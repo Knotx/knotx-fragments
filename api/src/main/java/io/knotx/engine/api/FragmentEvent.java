@@ -15,47 +15,57 @@
  */
 package io.knotx.engine.api;
 
-import io.knotx.fragment.Fragment;
-import io.vertx.core.json.JsonObject;
 
+import io.knotx.fragment.Fragment;
+import io.vertx.codegen.annotations.DataObject;
+import io.vertx.codegen.annotations.GenIgnore;
+import io.vertx.core.json.JsonObject;
+import java.util.Optional;
+
+@DataObject
 public class FragmentEvent {
 
   private final Fragment fragment;
-  private FragmentEventLog log;
+  private KnotFlow flow;
+  private final EventLog log;
   private Status status = Status.UNPROCESSED;
   private String errorMessage;
 
-  public FragmentEvent(Fragment fragment) {
+  public FragmentEvent(Fragment fragment, KnotFlow flow) {
     this.fragment = fragment;
-    log = new FragmentEventLog();
+    this.flow = flow;
+    this.log = new EventLog();
+  }
+
+  public FragmentEvent(FragmentEvent event) {
+    this.fragment = event.fragment;
+    this.log = event.log;
+    this.status = event.status;
+    this.errorMessage = event.errorMessage;
+    this.flow = event.getFlow().isPresent() ? event.getFlow().get() : null;
   }
 
   public FragmentEvent(JsonObject json) {
     this.fragment = new Fragment(json.getJsonObject("fragment"));
-    this.log = new FragmentEventLog(json.getJsonObject("log"));
+    this.flow = new KnotFlow(json.getJsonObject("flow"));
+    this.log = new EventLog(json.getJsonObject("log"));
     this.status = Status.valueOf(json.getString("status"));
     this.errorMessage = json.getString("errorMessage");
   }
 
-  public void next(String consumerId, String transition) {
-    log.append(consumerId, transition);
+  @GenIgnore
+  public Optional<KnotFlow> getFlow() {
+    return Optional.ofNullable(flow);
   }
 
-  public void success(String consumerId, String transition) {
-    status = Status.SUCCESS;
-    log.append(consumerId, transition);
+  public FragmentEvent setFlow(KnotFlow flow) {
+    this.flow = flow;
+    return this;
   }
 
-  public void failure(String consumerId, String transition, String errorMessage) {
-    this.errorMessage = errorMessage;
-    status = Status.FAILURE;
-    log.append(consumerId, transition);
-  }
-
-  public void fatal(String consumerId, String transition, String errorMessage) {
-    this.errorMessage = errorMessage;
-    status = Status.FATAL;
-    log.append(consumerId, transition);
+  public FragmentEvent log(EventLogEntry logEntry) {
+    log.append(logEntry);
+    return this;
   }
 
   public Fragment getFragment() {
@@ -70,6 +80,11 @@ public class FragmentEvent {
     return status;
   }
 
+  public FragmentEvent setStatus(Status status) {
+    this.status = status;
+    return this;
+  }
+
   public String getErrorMessage() {
     return errorMessage;
   }
@@ -77,12 +92,14 @@ public class FragmentEvent {
   public JsonObject toJson() {
     return new JsonObject()
         .put("fragment", fragment.toJson())
+        .put("flow", flow.toJson())
         .put("log", log.toJson())
         .put("status", status)
         .put("errorMessage", errorMessage);
   }
 
   public enum Status {
-    SUCCESS, FAILURE, UNPROCESSED, FATAL
+    UNPROCESSED, SUCCESS, FAILURE
   }
+
 }

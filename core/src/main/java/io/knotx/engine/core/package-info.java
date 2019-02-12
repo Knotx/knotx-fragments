@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-@ModuleGen(name = "knotx-knot-engine-api", groupPackage = "io.knotx.engine")
-package io.knotx.engine.api;
+@ModuleGen(name = "knotx-knot-engine-core", groupPackage = "io.knotx")
+package io.knotx.engine.core;
 
 import io.vertx.codegen.annotations.ModuleGen;

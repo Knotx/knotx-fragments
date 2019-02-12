@@ -110,6 +110,10 @@ sourceSets.named("main") {
 sourceSets.create("junitTest") {
     compileClasspath += sourceSets.named("main").get().output
 }
+sourceSets.named("test") {
+    compileClasspath += sourceSets.named("junitTest").get().output
+    runtimeClasspath += sourceSets.named("junitTest").get().output
+}
 
 
 // -----------------------------------------------------------------------------

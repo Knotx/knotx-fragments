@@ -46,6 +46,7 @@ dependencies {
     annotationProcessor(group = "io.vertx", name = "vertx-rx-java2-gen")
     
     api("io.knotx:knotx-fragment-api")
+    api("io.knotx:knotx-server-http-api")
     api(group = "com.google.guava", name = "guava")
     api(group = "commons-io", name = "commons-io")
     api(group = "org.apache.commons", name = "commons-lang3")
@@ -65,6 +66,9 @@ dependencies {
     implementation(group = "io.vertx", name = "vertx-service-discovery")
     implementation(group = "io.vertx", name = "vertx-circuit-breaker")
     implementation(group = "io.vertx", name = "vertx-hazelcast")
+
+    implementation("io.vertx:vertx-dropwizard-metrics")
+
 
     testImplementation(group = "io.knotx", name = "knotx-junit5")
     testImplementation(group = "io.vertx", name = "vertx-junit5")
