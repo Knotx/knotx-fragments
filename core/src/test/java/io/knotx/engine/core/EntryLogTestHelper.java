@@ -22,9 +22,11 @@ import io.vertx.core.json.JsonObject;
 import java.util.Iterator;
 import java.util.List;
 
-public class EntryLogTestHelper {
+class EntryLogTestHelper {
 
-  static boolean containsEntries(JsonObject log, List<Operation> expectedList) {
+  private static final String ASSERTION_MESSAGE = "They are equal, current [%s], expected [%s]";
+
+  static boolean verifyLogEntries(JsonObject log, List<Operation> expectedList) {
     JsonArray logArray = log.getJsonArray("operations", new JsonArray());
     if (logArray.size() != expectedList.size()) {
       return false;
@@ -35,13 +37,13 @@ public class EntryLogTestHelper {
     for (Operation expected : expectedList) {
       if (operationsItr.hasNext()) {
         JsonObject operation = operationsItr.next();
-        boolean equal = expected.customer.equals(operation.getString("consumer")) &&
+        boolean equal = expected.consumer.equals(operation.getString("consumer")) &&
             expected.action.equals(operation.getString("action"));
         if (!equal) {
-          return false;
+          throw new AssertionError(String.format(ASSERTION_MESSAGE, logArray, expectedList));
         }
       } else {
-        return false;
+        throw new AssertionError(String.format(ASSERTION_MESSAGE, logArray, expectedList));
       }
     }
     return true;
@@ -49,16 +51,24 @@ public class EntryLogTestHelper {
 
   static final class Operation {
 
-    private String customer;
+    private String consumer;
     private String action;
 
-    private Operation(String customer, String action) {
-      this.customer = customer;
+    private Operation(String consumer, String action) {
+      this.consumer = consumer;
       this.action = action;
     }
 
-    static Operation of(String customer, String action) {
-      return new Operation(customer, action);
+    static Operation of(String consumer, String action) {
+      return new Operation(consumer, action);
+    }
+
+    @Override
+    public String toString() {
+      return "{" +
+          "consumer='" + consumer + '\'' +
+          ", action='" + action + '\'' +
+          '}';
     }
   }
 

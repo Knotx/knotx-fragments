@@ -17,6 +17,9 @@
  */
 package io.knotx.engine.core;
 
+import static io.knotx.engine.core.EntryLogTestHelper.verifyLogEntries;
+
+import com.google.common.collect.Lists;
 import io.knotx.engine.api.FragmentEvent;
 import io.knotx.engine.api.FragmentEvent.Status;
 import io.knotx.engine.api.FragmentEventResult;
@@ -39,21 +42,23 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 @ExtendWith(VertxExtension.class)
-public class KnotEngineTest {
+class KnotEngineTest {
 
   @Test
-  public void execute_whenFragmentWithNoKnot_expectFragmentEventWithUnprocessedStatus(
+  void execute_whenEventWithNoKnot_expectEventWithUnprocessedStatus(
       VertxTestContext testContext, Vertx vertx) throws Throwable {
     // given
     KnotFlow knotFlow = null;
 
-    // then
-    verifySingle(testContext, vertx, knotFlow, events -> {
+    // when
+    verifyExecution(testContext, vertx, knotFlow, events -> {
+      // then
       Assertions.assertEquals(1, events.size());
       Assertions.assertEquals(Status.UNPROCESSED, events.get(0).getStatus());
       Assertions.assertTrue(events.get(0).getLog().getJsonArray("operations").isEmpty());
@@ -61,13 +66,14 @@ public class KnotEngineTest {
   }
 
   @Test
-  public void execute_whenFragmentWithInvalidKnotAddress_expectFragmentEventWithUnprocessedStatus(
+  void execute_whenEventWithInvalidAddressInKnotFlow_expectEventWithUnprocessedStatus(
       VertxTestContext testContext, Vertx vertx) throws Throwable {
     // given
     KnotFlow knotFlow = new KnotFlow("invalidAddress", Collections.emptyMap());
 
-    // then
-    verifySingle(testContext, vertx, knotFlow, events -> {
+    // when
+    verifyExecution(testContext, vertx, knotFlow, events -> {
+      // then
       Assertions.assertEquals(1, events.size());
       Assertions.assertEquals(Status.UNPROCESSED, events.get(0).getStatus());
       Assertions.assertTrue(events.get(0).getLog().getJsonArray("operations").isEmpty());
@@ -75,18 +81,19 @@ public class KnotEngineTest {
   }
 
   @Test
-  public void execute_whenFragmentThatIsNotProcessedByKnot_expectFragmentEventWithVerifyingLogEntryAndUnprocessedStatus(
+  void execute_whenEventAndNotProcessingKnot_expectEventWithSkippedLogEntryAndUnprocessedStatus(
       VertxTestContext testContext, Vertx vertx) throws Throwable {
     // given
     createNotProcessingKnot(vertx, "aAddress");
     KnotFlow knotFlow = new KnotFlow("aAddress", Collections.emptyMap());
 
-    // then
-    verifySingle(testContext, vertx, knotFlow, events -> {
+    // when
+    verifyExecution(testContext, vertx, knotFlow, events -> {
+      // then
       Assertions.assertEquals(1, events.size());
       Assertions.assertEquals(Status.UNPROCESSED, events.get(0).getStatus());
       Assertions.assertTrue(
-          EntryLogTestHelper.containsEntries(events.get(0).getLog(), Arrays.asList(
+          verifyLogEntries(events.get(0).getLog(), Arrays.asList(
               Operation.of("aAddress", "RECEIVED"),
               Operation.of("aAddress", "SKIPPED")
           )));
@@ -94,18 +101,19 @@ public class KnotEngineTest {
   }
 
   @Test
-  public void execute_whenFragmentWithOneKnot_expectFragmentEventWithReceivedAndProcessedLogEntriesAndSuccessStatus(
+  void execute_whenEventAndProcessingKnot_expectEventWithProcessedLogEntriesAndSuccessStatus(
       VertxTestContext testContext, Vertx vertx) throws Throwable {
     // given
     createSuccessKnot(vertx, "aAddress", "next");
     KnotFlow knotFlow = new KnotFlow("aAddress", Collections.emptyMap());
 
-    // then
-    verifySingle(testContext, vertx, knotFlow, events -> {
+    // when
+    verifyExecution(testContext, vertx, knotFlow, events -> {
+      // then
       Assertions.assertEquals(1, events.size());
       Assertions.assertEquals(Status.SUCCESS, events.get(0).getStatus());
       Assertions.assertTrue(
-          EntryLogTestHelper.containsEntries(events.get(0).getLog(), Arrays.asList(
+          verifyLogEntries(events.get(0).getLog(), Arrays.asList(
               Operation.of("aAddress", "RECEIVED"),
               Operation.of("aAddress", "PROCESSED")
           )));
@@ -113,50 +121,53 @@ public class KnotEngineTest {
   }
 
   @Test
-  public void execute_whenFragmentWithFailingKnot_expectFragmentEventWithReceivedAndErrorLogEntriesAndFailureStatus(
+  void execute_whenEventAndFailingKnot_expectEventWithErrorLogEntryAndFailureStatus(
       VertxTestContext testContext, Vertx vertx) throws Throwable {
     // given
-    createFailingKnot(vertx, "aAddress", false);
-    KnotFlow knotFlow = new KnotFlow("aAddress", Collections.emptyMap());
+    createFailingKnot(vertx, "bAddress", false);
+    KnotFlow knotFlow = new KnotFlow("bAddress", Collections.emptyMap());
 
-    // then
-    verifySingle(testContext, vertx, knotFlow, events -> {
+    // when
+    verifyExecution(testContext, vertx, knotFlow, events -> {
+      // then
       Assertions.assertEquals(1, events.size());
       Assertions.assertEquals(Status.FAILURE, events.get(0).getStatus());
       Assertions.assertTrue(
-          EntryLogTestHelper.containsEntries(events.get(0).getLog(), Arrays.asList(
-              Operation.of("aAddress", "RECEIVED"),
-              Operation.of("aAddress", "ERROR")
+          verifyLogEntries(events.get(0).getLog(), Arrays.asList(
+              Operation.of("bAddress", "RECEIVED"),
+              Operation.of("bAddress", "ERROR")
           )));
     });
   }
 
   @Test
-  public void execute_whenFragmentWithHardFailingKnot_expectFailure(
+  void execute_whenEventAndFailingKnotWithFatalException_expectEngineFailure(
       VertxTestContext testContext, Vertx vertx) throws Throwable {
     // given
     createFailingKnot(vertx, "aAddress", true);
     KnotFlow knotFlow = new KnotFlow("aAddress", Collections.emptyMap());
 
+    // when
     // then
     verifyFailingSingle(testContext, vertx, knotFlow);
   }
 
   @Test
-  public void execute_whenFragmentWithTwoKnots_expectFragmentEventReceivedProcessedLogEntriesAndSuccessStatus(
+  void execute_whenEventAndTwoProcessingKnots_expectEventProcessedLogEntriesAndSuccessStatus(
       VertxTestContext testContext, Vertx vertx) throws Throwable {
-    // when
+    // given
     createSuccessKnot(vertx, "aAddress", "next");
     createSuccessKnot(vertx, "bAddress", null);
     KnotFlow knotFlow = new KnotFlow("aAddress",
         Collections.singletonMap("next", new KnotFlow("bAddress", Collections.emptyMap())));
 
-    // then
-    verifySingle(testContext, vertx, knotFlow, events -> {
+    // when
+    verifyExecution(testContext, vertx, knotFlow, events -> {
+      // then
       Assertions.assertEquals(1, events.size());
       Assertions.assertEquals(Status.SUCCESS, events.get(0).getStatus());
       Assertions.assertTrue(
-          EntryLogTestHelper.containsEntries(events.get(0).getLog(), Arrays.asList(
+          verifyLogEntries(events.get(0).getLog(), Arrays.asList(
               Operation.of("aAddress", "RECEIVED"),
               Operation.of("aAddress", "PROCESSED"),
               Operation.of("bAddress", "RECEIVED"),
@@ -166,20 +177,21 @@ public class KnotEngineTest {
   }
 
   @Test
-  public void execute_whenFragmentWithFailingKnotAndFallback_expectFragmentEventWithSuccessStatus(
+  void execute_whenEventAndFailingKnotAndFallbackKnot_expectEventWithErrorAndProcessedLogEntriesAndSuccessStatus(
       VertxTestContext testContext, Vertx vertx) throws Throwable {
-    // when
+    // given
     createFailingKnot(vertx, "aAddress", false);
     createSuccessKnot(vertx, "bAddress", null);
     KnotFlow knotFlow = new KnotFlow("aAddress",
         Collections.singletonMap("error", new KnotFlow("bAddress", Collections.emptyMap())));
 
-    // then
-    verifySingle(testContext, vertx, knotFlow, events -> {
+    // when
+    verifyExecution(testContext, vertx, knotFlow, events -> {
+      // then
       Assertions.assertEquals(1, events.size());
       Assertions.assertEquals(Status.SUCCESS, events.get(0).getStatus());
       Assertions.assertTrue(
-          EntryLogTestHelper.containsEntries(events.get(0).getLog(), Arrays.asList(
+          verifyLogEntries(events.get(0).getLog(), Arrays.asList(
               Operation.of("aAddress", "RECEIVED"),
               Operation.of("aAddress", "ERROR"),
               Operation.of("bAddress", "RECEIVED"),
@@ -189,20 +201,21 @@ public class KnotEngineTest {
   }
 
   @Test
-  public void execute_whenFragmentWithFailingKnotAndNotProcessingFallback_expectFragmentEventWithFailureStatus(
+  void execute_whenEventAndFailingKnotAndNotProcessingFallbackKnot_expectFragmentEventWithFailureStatus(
       VertxTestContext testContext, Vertx vertx) throws Throwable {
-    // when
+    // given
     createFailingKnot(vertx, "aAddress", false);
     createNotProcessingKnot(vertx, "bAddress");
     KnotFlow knotFlow = new KnotFlow("aAddress",
         Collections.singletonMap("error", new KnotFlow("bAddress", Collections.emptyMap())));
 
-    // then
-    verifySingle(testContext, vertx, knotFlow, events -> {
+    // when
+    verifyExecution(testContext, vertx, knotFlow, events -> {
+      // then
       Assertions.assertEquals(1, events.size());
       Assertions.assertEquals(Status.FAILURE, events.get(0).getStatus());
       Assertions.assertTrue(
-          EntryLogTestHelper.containsEntries(events.get(0).getLog(), Arrays.asList(
+          verifyLogEntries(events.get(0).getLog(), Arrays.asList(
               Operation.of("aAddress", "RECEIVED"),
               Operation.of("aAddress", "ERROR"),
               Operation.of("bAddress", "RECEIVED"),
@@ -212,26 +225,55 @@ public class KnotEngineTest {
   }
 
   @Test
-  public void execute_whenFragmentWithFailingKnotAndNoFallback_expectFragmentEventWithFailureStatus(
+  void execute_whenEventAndFailingKnotAndNoFallbackKnot_expectFragmentEventWithFailureStatus(
       VertxTestContext testContext, Vertx vertx) throws Throwable {
-    // when
-    createSuccessKnot(vertx, "aAddress", "next");
-    createFailingKnot(vertx, "bAddress", false);
+    // given
+    createFailingKnot(vertx, "aAddress", false);
     KnotFlow knotFlow = new KnotFlow("aAddress",
-        Collections.singletonMap("next", new KnotFlow("bAddress", Collections.emptyMap())));
+        Collections.singletonMap("next", new KnotFlow("someAddress", Collections.emptyMap())));
 
-    // then
-    verifySingle(testContext, vertx, knotFlow, events -> {
+    // when
+    verifyExecution(testContext, vertx, knotFlow, events -> {
+      //then
       Assertions.assertEquals(1, events.size());
       Assertions.assertEquals(Status.FAILURE, events.get(0).getStatus());
       Assertions.assertTrue(
-          EntryLogTestHelper.containsEntries(events.get(0).getLog(), Arrays.asList(
+          verifyLogEntries(events.get(0).getLog(), Arrays.asList(
               Operation.of("aAddress", "RECEIVED"),
-              Operation.of("aAddress", "PROCESSED"),
-              Operation.of("bAddress", "RECEIVED"),
-              Operation.of("bAddress", "ERROR")
+              Operation.of("aAddress", "ERROR")
           )));
     });
+  }
+
+  @Test
+  void execute_whenTwoEventsAndProcessingKnot_expectTwoEventWithSuccessStatus(
+      VertxTestContext testContext, Vertx vertx) throws Throwable {
+    // given
+    createSuccessKnot(vertx, "aAddress", null);
+    createSuccessKnot(vertx, "bAddress", null);
+
+    KnotFlow firstKnotFlow = new KnotFlow("aAddress", Collections.emptyMap());
+    KnotFlow secondKnotFlow = new KnotFlow("bAddress", Collections.emptyMap());
+
+    // when
+    // when
+    verifyExecution(testContext, vertx, Lists.newArrayList(firstKnotFlow, secondKnotFlow),
+        events -> {
+          //then
+          Assertions.assertEquals(2, events.size());
+          Assertions.assertEquals(Status.SUCCESS, events.get(0).getStatus());
+          Assertions.assertTrue(
+              verifyLogEntries(events.get(0).getLog(), Arrays.asList(
+                  Operation.of("aAddress", "RECEIVED"),
+                  Operation.of("aAddress", "PROCESSED")
+              )));
+          Assertions.assertEquals(Status.SUCCESS, events.get(1).getStatus());
+          Assertions.assertTrue(
+              verifyLogEntries(events.get(1).getLog(), Arrays.asList(
+                  Operation.of("bAddress", "RECEIVED"),
+                  Operation.of("bAddress", "PROCESSED")
+              )));
+        });
   }
 
   private void createNotProcessingKnot(Vertx vertx, final String address) {
@@ -260,20 +302,25 @@ public class KnotEngineTest {
             });
   }
 
-  private void verifySingle(VertxTestContext testContext, Vertx vertx, KnotFlow knotFlow,
+  private void verifyExecution(VertxTestContext testContext, Vertx vertx, KnotFlow knotFlow,
       Consumer<List<FragmentEvent>> successConsumer) throws Throwable {
-    // given
+    verifyExecution(testContext, vertx, Collections.singletonList(knotFlow), successConsumer);
+  }
+
+  private void verifyExecution(VertxTestContext testContext, Vertx vertx, List<KnotFlow> knotFlow,
+      Consumer<List<FragmentEvent>> successConsumer) throws Throwable {
+    // prepare
+    List<FragmentEvent> events = knotFlow.stream()
+        .map(flow -> new FragmentEvent(new Fragment("type", new JsonObject(), "body"), flow))
+        .collect(
+            Collectors.toList());
     KnotEngine engine = new KnotEngine(vertx,
         new KnotEngineHandlerOptions(Collections.emptyList(), new DeliveryOptions()));
 
-    // when
-    Single<List<FragmentEvent>> execute = engine
-        .execute(Collections
-                .singletonList(
-                    new FragmentEvent(new Fragment("type", new JsonObject(), "body"), knotFlow)),
-            new ClientRequest());
+    // execute
+    Single<List<FragmentEvent>> execute = engine.execute(events, new ClientRequest());
 
-    // then
+    // verify
     execute.subscribe(
         onSuccess -> testContext.verify(() -> {
           successConsumer.accept(onSuccess);
