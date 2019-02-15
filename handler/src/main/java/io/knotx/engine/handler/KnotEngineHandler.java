@@ -17,23 +17,33 @@
  */
 package io.knotx.engine.handler;
 
+import io.knotx.engine.api.FragmentEvent;
 import io.knotx.engine.core.KnotEngine;
 import io.knotx.engine.core.impl.KnotEngineFactory;
+import io.knotx.fragment.Fragment;
 import io.knotx.server.api.context.RequestContext;
+import io.knotx.server.api.context.RequestEvent;
+import io.knotx.server.api.handler.DefaultRequestContextEngine;
+import io.knotx.server.api.handler.RequestContextEngine;
+import io.knotx.server.api.handler.RequestEventHandlerResult;
 import io.vertx.core.Handler;
 import io.vertx.core.json.JsonObject;
 import io.vertx.reactivex.core.Vertx;
 import io.vertx.reactivex.ext.web.RoutingContext;
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class KnotEngineHandler implements Handler<RoutingContext> {
 
   private FragmentEventProducer eventProducer;
   private KnotEngine engine;
+  private final RequestContextEngine requestContextEngine;
 
   KnotEngineHandler(Vertx vertx, JsonObject config) {
     KnotEngineHandlerOptions options = new KnotEngineHandlerOptions(config);
     eventProducer = new FragmentEventProducer(options.getFlows());
     engine = KnotEngineFactory.get(vertx, options.getDeliveryOptions());
+    requestContextEngine = new DefaultRequestContextEngine(getClass().getSimpleName());
   }
 
   @Override
@@ -41,14 +51,24 @@ public class KnotEngineHandler implements Handler<RoutingContext> {
     RequestContext requestContext = routingContext.get(RequestContext.KEY);
     engine.execute(eventProducer.get(requestContext.getRequestEvent().getFragments()),
         requestContext.getRequestEvent().getClientRequest())
+        .map(events -> toHandlerResult(events, requestContext))
         .subscribe(
-            fragmentEvents -> {
-              // TODO implement logic here
-            },
-            onError -> {
-              // TODO handle error
-            }
+            result -> requestContextEngine
+                .processAndSaveResult(result, routingContext, requestContext),
+            error -> requestContextEngine.handleFatal(routingContext, requestContext, error)
         );
+  }
 
+  private RequestEventHandlerResult toHandlerResult(List<FragmentEvent> events,
+      RequestContext requestContext) {
+    RequestEvent requestEvent = updateRequestEvent(requestContext.getRequestEvent(), events);
+    return RequestEventHandlerResult.success(requestEvent);
+  }
+
+  private RequestEvent updateRequestEvent(RequestEvent requestEvent, List<FragmentEvent> events) {
+    // TODO implement error handling: now we process all fragments, even they are invalid
+    List<Fragment> fragments = events.stream().map(FragmentEvent::getFragment)
+        .collect(Collectors.toList());
+    return new RequestEvent(requestEvent.getClientRequest(), fragments, requestEvent.getPayload());
   }
 }

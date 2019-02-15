@@ -26,10 +26,10 @@ import java.util.Optional;
 import org.junit.Assert;
 import org.junit.jupiter.api.Test;
 
-public class KnotFlowProviderTest {
+class KnotFlowProviderTest {
 
   @Test
-  public void get_whenNoFlowAttribute_emptyKnotFlow() {
+  void get_whenNoFlowAttribute_emptyKnotFlow() {
     // given
     Fragment fragment = new Fragment("type", new JsonObject(), "body");
     KnotFlowProvider tested = new KnotFlowProvider(Collections.emptyList());
@@ -42,7 +42,7 @@ public class KnotFlowProviderTest {
   }
 
   @Test
-  public void get_whenEmptyFlowAttribute_emptyKnotFlow() {
+  void get_whenEmptyFlowAttribute_emptyKnotFlow() {
     // given
     Fragment fragment = new Fragment("type", new JsonObject().put("flow", ""), "body");
     KnotFlowProvider tested = new KnotFlowProvider(Collections.emptyList());
@@ -55,7 +55,7 @@ public class KnotFlowProviderTest {
   }
 
   @Test
-  public void get_whenFlatFlowAttributeWithOneKnot_knotFlowWithAttributeAndNoTransitions() {
+  void get_whenFlatFlowAttributeWithOneKnot_knotFlowWithAttributeAndNoTransitions() {
     // given
     Fragment fragment = new Fragment("type", new JsonObject().put("flow", "aAddress"), "body");
     KnotFlowProvider tested = new KnotFlowProvider(Collections.emptyList());
@@ -69,7 +69,7 @@ public class KnotFlowProviderTest {
   }
 
   @Test
-  public void get_whenFlatFlowAttributeWithTwoKnots_knotFlowWithDefaultNextTransitions() {
+  void get_whenFlatFlowAttributeWithTwoKnots_knotFlowWithDefaultNextTransitions() {
     // given
     Fragment fragment = new Fragment("type",
         new JsonObject().put("flow", "aAddress,bAddress"), "body");
@@ -87,7 +87,7 @@ public class KnotFlowProviderTest {
   }
 
   @Test
-  public void get_whenEmptyJsonFlowAttribute_emptyFlowKnot() {
+  void get_whenEmptyJsonFlowAttribute_emptyFlowKnot() {
     // given
     Fragment fragment = new Fragment("type",
         new JsonObject().put("flow", "{}"), "body");
@@ -102,7 +102,7 @@ public class KnotFlowProviderTest {
   }
 
   @Test
-  public void get_whenInvalidJsonFlowAttribute_emptyKnotFlow() {
+  void get_whenInvalidJsonFlowAttribute_emptyKnotFlow() {
     // given
     Fragment fragment = new Fragment("type",
         new JsonObject().put("flow", "{\"address\":\"aAddress\""), "body");
@@ -117,7 +117,7 @@ public class KnotFlowProviderTest {
   }
 
   @Test
-  public void get_whenJsonFlowAttribute_knotFlowWithTransitions() {
+  void get_whenJsonFlowAttribute_knotFlowWithTransitions() {
     // given
     Fragment fragment = new Fragment("type",
         new JsonObject().put("flow",
@@ -137,7 +137,7 @@ public class KnotFlowProviderTest {
   }
 
   @Test
-  public void get_whenEmptyFlowNameAttribute_emptyKnotFlow() {
+  void get_whenEmptyFlowNameAttribute_emptyKnotFlow() {
     // given
     Fragment fragment = new Fragment("type", new JsonObject().put("flowName", ""), "body");
     KnotFlowProvider tested = new KnotFlowProvider(Collections.emptyList());
@@ -150,7 +150,7 @@ public class KnotFlowProviderTest {
   }
 
   @Test
-  public void get_whenFlowNameAttribute_knotFlowFromConfiguration() {
+  void get_whenFlowNameAttribute_knotFlowFromConfiguration() {
     // given
     KnotFlow expectedKnotFlow = new KnotFlow("address", Collections.emptyMap());
     List<KnotFlowContext> flows = Collections.singletonList(
