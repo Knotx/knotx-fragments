@@ -15,23 +15,26 @@
  *
  * The code comes from https://github.com/tomaszmichalak/vertx-rx-map-reduce.
  */
-package io.knotx.engine.core;
+package io.knotx.engine.handler;
 
-import io.knotx.server.api.handler.RoutingHandlerFactory;
-import io.vertx.core.Handler;
-import io.vertx.core.json.JsonObject;
-import io.vertx.reactivex.core.Vertx;
-import io.vertx.reactivex.ext.web.RoutingContext;
+import io.knotx.engine.api.FragmentEvent;
+import io.knotx.fragment.Fragment;
+import java.util.List;
+import java.util.stream.Collectors;
 
-public class KnotEngineHandlerFactory implements RoutingHandlerFactory {
+class FragmentEventProducer {
 
-  @Override
-  public String getName() {
-    return "knotEngine";
+  private KnotFlowProvider flowProvider;
+
+  FragmentEventProducer(List<KnotFlowContext> predefinedFlows) {
+    flowProvider = new KnotFlowProvider(predefinedFlows);
   }
 
-  @Override
-  public Handler<RoutingContext> create(Vertx vertx, JsonObject config) {
-    return new KnotEngineHandler(vertx, config);
+  List<FragmentEvent> get(List<Fragment> fragments) {
+    return fragments.stream()
+        .map(fragment -> new FragmentEvent(fragment, flowProvider.get(fragment).orElse(null)))
+        .collect(
+            Collectors.toList());
   }
+
 }

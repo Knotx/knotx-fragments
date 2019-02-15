@@ -27,11 +27,13 @@ import io.knotx.engine.api.KnotFlow;
 import io.knotx.engine.api.KnotProcessingFatalException;
 import io.knotx.engine.api.TraceableKnotOptions;
 import io.knotx.engine.core.EntryLogTestHelper.Operation;
+import io.knotx.engine.core.impl.KnotEngineFactory;
 import io.knotx.fragment.Fragment;
 import io.knotx.knotengine.core.junit.MockKnotProxy;
 import io.knotx.server.api.context.ClientRequest;
 import io.reactivex.Maybe;
 import io.reactivex.Single;
+import io.reactivex.SingleSource;
 import io.vertx.core.eventbus.DeliveryOptions;
 import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.VertxExtension;
@@ -262,12 +264,31 @@ class KnotEngineTest {
           //then
           Assertions.assertEquals(2, events.size());
           Assertions.assertEquals(Status.SUCCESS, events.get(0).getStatus());
+          Assertions.assertEquals(Status.SUCCESS, events.get(1).getStatus());
+        });
+  }
+
+  @Test
+  void execute_whenTwoEventsAndProcessingKnot_expectTwoEventWithCorrectOrder(
+      VertxTestContext testContext, Vertx vertx) throws Throwable {
+    // given
+    createLongProcessingKnot(vertx, "aAddress", null);
+    createSuccessKnot(vertx, "bAddress", null);
+
+    KnotFlow firstKnotFlow = new KnotFlow("aAddress", Collections.emptyMap());
+    KnotFlow secondKnotFlow = new KnotFlow("bAddress", Collections.emptyMap());
+
+    // when
+    // when
+    verifyExecution(testContext, vertx, Lists.newArrayList(firstKnotFlow, secondKnotFlow),
+        events -> {
+          //then
+          Assertions.assertEquals(2, events.size());
           Assertions.assertTrue(
               verifyLogEntries(events.get(0).getLog(), Arrays.asList(
                   Operation.of("aAddress", "RECEIVED"),
                   Operation.of("aAddress", "PROCESSED")
               )));
-          Assertions.assertEquals(Status.SUCCESS, events.get(1).getStatus());
           Assertions.assertTrue(
               verifyLogEntries(events.get(1).getLog(), Arrays.asList(
                   Operation.of("bAddress", "RECEIVED"),
@@ -282,7 +303,7 @@ class KnotEngineTest {
     );
   }
 
-  private void createSuccessKnot(Vertx vertx, final String address, final String transition) {
+  private void createSuccessKnot(Vertx vertx, String address, String transition) {
     MockKnotProxy.register(vertx.getDelegate(), address,
         fragmentContext ->
         {
@@ -292,7 +313,7 @@ class KnotEngineTest {
     );
   }
 
-  private void createFailingKnot(Vertx vertx, final String address, boolean exitOnError) {
+  private void createFailingKnot(Vertx vertx, String address, boolean exitOnError) {
     MockKnotProxy
         .register(vertx.getDelegate(), address,
             new TraceableKnotOptions("next", "error", exitOnError),
@@ -300,6 +321,23 @@ class KnotEngineTest {
               Fragment anyFragment = new Fragment("body", new JsonObject(), "");
               throw new KnotProcessingFatalException(anyFragment);
             });
+  }
+
+  private void createLongProcessingKnot(Vertx vertx, String address, String transition) {
+    MockKnotProxy.register(vertx.getDelegate(), address,
+        fragmentContext ->
+        {
+          FragmentEvent fragmentEvent = fragmentContext.getFragmentEvent();
+          SingleSource<FragmentEventResult> emitter =
+              singleObserver -> vertx.timerStream(200)
+                  .toObservable()
+                  .subscribe(
+                      time -> singleObserver
+                          .onSuccess(new FragmentEventResult(fragmentEvent, transition))
+                  );
+          return Maybe.fromSingle(emitter);
+        }
+    );
   }
 
   private void verifyExecution(VertxTestContext testContext, Vertx vertx, KnotFlow knotFlow,
@@ -314,8 +352,7 @@ class KnotEngineTest {
         .map(flow -> new FragmentEvent(new Fragment("type", new JsonObject(), "body"), flow))
         .collect(
             Collectors.toList());
-    KnotEngine engine = new KnotEngine(vertx,
-        new KnotEngineHandlerOptions(Collections.emptyList(), new DeliveryOptions()));
+    KnotEngine engine = KnotEngineFactory.get(vertx, new DeliveryOptions());
 
     // execute
     Single<List<FragmentEvent>> execute = engine.execute(events, new ClientRequest());
@@ -336,8 +373,7 @@ class KnotEngineTest {
   private void verifyFailingSingle(VertxTestContext testContext, Vertx vertx, KnotFlow knotFlow)
       throws Throwable {
     // given
-    KnotEngine engine = new KnotEngine(vertx,
-        new KnotEngineHandlerOptions(Collections.emptyList(), new DeliveryOptions()));
+    KnotEngine engine = KnotEngineFactory.get(vertx, new DeliveryOptions());
 
     // when
     Single<List<FragmentEvent>> execute = engine

@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-import org.apache.tools.ant.filters.ReplaceTokens
 import org.nosphere.apache.rat.RatTask
 
 plugins {
@@ -24,115 +23,46 @@ plugins {
     id("org.nosphere.apache.rat") version "0.4.0"
 }
 
-group = "io.knotx"
-
 // -----------------------------------------------------------------------------
 // Dependencies
 // -----------------------------------------------------------------------------
-
-val junitTestCompile = configurations.create("junitTestCompile")
-tasks.named<JavaCompile>("compileJava") {
-    options.annotationProcessorGeneratedSourcesDirectory = file("src/main/generated")
-}
-
-tasks.named<Delete>("clean") {
-    delete.add("src/main/generated")
-}
-
 dependencies {
+    api("io.knotx:knotx-fragment-api")
+    api("io.knotx:knotx-server-http-api")
+
     annotationProcessor(platform("io.knotx:knotx-dependencies:${project.version}"))
     annotationProcessor(group = "io.vertx", name = "vertx-codegen")
     annotationProcessor(group = "io.vertx", name = "vertx-service-proxy", classifier = "processor")
     annotationProcessor(group = "io.vertx", name = "vertx-rx-java2-gen")
-    
-    api("io.knotx:knotx-fragment-api")
-    api("io.knotx:knotx-server-http-api")
-    api(group = "com.google.guava", name = "guava")
-    api(group = "commons-io", name = "commons-io")
-    api(group = "org.apache.commons", name = "commons-lang3")
-    api(group = "com.typesafe", name = "config")
-    api(group = "commons-collections", name = "commons-collections")
 
     implementation(platform("io.knotx:knotx-dependencies:${project.version}"))
     implementation(group = "io.vertx", name = "vertx-core")
     implementation(group = "io.vertx", name = "vertx-service-proxy")
     implementation(group = "io.vertx", name = "vertx-rx-java2")
     implementation(group = "io.vertx", name = "vertx-codegen")
-    implementation(group = "io.vertx", name = "vertx-config")
-    implementation(group = "io.vertx", name = "vertx-config-hocon")
-    implementation(group = "io.vertx", name = "vertx-web")
-    implementation(group = "io.vertx", name = "vertx-web-api-contract")
-    implementation(group = "io.vertx", name = "vertx-web-client")
-    implementation(group = "io.vertx", name = "vertx-service-discovery")
-    implementation(group = "io.vertx", name = "vertx-circuit-breaker")
-    implementation(group = "io.vertx", name = "vertx-hazelcast")
-
-    implementation("io.vertx:vertx-dropwizard-metrics")
-
-
-    testImplementation(group = "io.knotx", name = "knotx-junit5")
-    testImplementation(group = "io.vertx", name = "vertx-junit5")
-    testImplementation(group = "org.junit.jupiter", name = "junit-jupiter-api")
-    testImplementation(group = "org.junit.jupiter", name = "junit-jupiter-params")
-    testImplementation(group = "org.junit.jupiter", name = "junit-jupiter-migrationsupport")
-    testImplementation(group = "io.vertx", name = "vertx-unit")
-    testImplementation(group = "com.github.stefanbirkner", name = "system-rules") {
-        exclude(module = "junit-dep")
-    }
-    testImplementation(group = "com.googlecode.zohhak", name = "zohhak")
-    testImplementation(group = "uk.co.datumedge", name = "hamcrest-json")
-    testImplementation(group = "org.hamcrest", name = "hamcrest-all")
-
-    testImplementation(group = "io.vertx", name = "vertx-core")
-    testImplementation(group = "io.vertx", name = "vertx-web")
-    testImplementation(group = "io.vertx", name = "vertx-web-api-contract")
-    testImplementation(group = "io.vertx", name = "vertx-web-client")
-    testImplementation(group = "io.vertx", name = "vertx-rx-java2")
-    testImplementation(group = "io.vertx", name = "vertx-service-proxy")
-    testImplementation(group = "io.vertx", name = "vertx-config")
-    testImplementation(group = "io.vertx", name = "vertx-config-hocon")
-    testImplementation(group = "io.vertx", name = "vertx-hazelcast")
 }
-
-junitTestCompile.extendsFrom(configurations.named("testImplementation").get())
 
 // -----------------------------------------------------------------------------
 // Source sets
 // -----------------------------------------------------------------------------
-
-tasks.withType<JavaCompile>().configureEach {
-    with(options) {
-        sourceCompatibility = "1.8"
-        targetCompatibility = "1.8"
-        encoding = "UTF-8"
-    }
+tasks.named<JavaCompile>("compileJava") {
+    options.annotationProcessorGeneratedSourcesDirectory = file("src/main/generated")
 }
-
+tasks.named<Delete>("clean") {
+    delete.add("src/main/generated")
+}
 sourceSets.named("main") {
     java.srcDir("src/main/generated")
 }
-sourceSets.create("junitTest") {
-    compileClasspath += sourceSets.named("main").get().output
-}
-
 
 // -----------------------------------------------------------------------------
 // Tasks
 // -----------------------------------------------------------------------------
-
-
 tasks {
     named<RatTask>("rat") {
         excludes.addAll("**/*.json", "**/*.MD", "**/*.templ", "**/*.adoc", "**/build/*", "**/out/*", "**/generated/*", "/src/test/resources/*", "*.iml")
     }
     getByName("build").dependsOn("rat")
-
-    named<Test>("test") {
-        useJUnitPlatform()
-        testLogging { showStandardStreams = true }
-        testLogging { showExceptions = true }
-        failFast = true
-    }
 }
 
 // -----------------------------------------------------------------------------
@@ -142,15 +72,14 @@ tasks.register<Jar>("sourcesJar") {
     from(sourceSets.named("main").get().allJava)
     classifier = "sources"
 }
-
 tasks.register<Jar>("javadocJar") {
     from(tasks.named<Javadoc>("javadoc"))
     classifier = "javadoc"
 }
-
-tasks.register<Jar>("testJar") {
-    from(sourceSets.named("junitTest").get().output)
-    classifier = "tests"
+tasks.named<Javadoc>("javadoc") {
+    if (JavaVersion.current().isJava9Compatible) {
+        (options as StandardJavadocDocletOptions).addBooleanOption("html5", true)
+    }
 }
 
 publishing {
@@ -160,10 +89,9 @@ publishing {
             from(components["java"])
             artifact(tasks["sourcesJar"])
             artifact(tasks["javadocJar"])
-            artifact(tasks["testJar"])
             pom {
                 name.set("Knot.x Knot Engine API")
-                description.set("Knot Engine API")
+                description.set("Knot Engine API module contains all Knot related interfaces.")
                 url.set("http://knotx.io")
                 licenses {
                     license {
@@ -182,7 +110,7 @@ publishing {
                         name.set("Maciej Laskowski")
                         email.set("https://github.com/Skejven")
                     }
-        developer {
+                    developer {
                         id.set("tomaszmichalak")
                         name.set("Tomasz Michalak")
                         email.set("https://github.com/tomaszmichalak")
@@ -214,8 +142,4 @@ signing {
     sign(publishing.publications["mavenJava"])
 }
 
-tasks.named<Javadoc>("javadoc") {
-    if (JavaVersion.current().isJava9Compatible) {
-        (options as StandardJavadocDocletOptions).addBooleanOption("html5", true)
-    }
-}
+apply(from = "../gradle/common.gradle.kts")

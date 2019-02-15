@@ -18,6 +18,8 @@ rootProject.name = "knotx-knot-engine"
 
 include("knotx-knot-engine-api")
 include("knotx-knot-engine-core")
+include("knotx-knot-engine-handler")
 
 project(":knotx-knot-engine-api").projectDir = file("api")
 project(":knotx-knot-engine-core").projectDir = file("core")
+project(":knotx-knot-engine-handler").projectDir = file("handler")

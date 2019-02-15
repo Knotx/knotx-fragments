@@ -15,13 +15,16 @@
  *
  * The code comes from https://github.com/tomaszmichalak/vertx-rx-map-reduce.
  */
-package io.knotx.engine.core;
+package io.knotx.engine.handler;
 
 import io.knotx.engine.api.KnotFlow;
 import io.vertx.codegen.annotations.DataObject;
 import io.vertx.core.json.JsonObject;
 import java.util.Objects;
 
+/**
+ * It is the named Knot Flow.
+ */
 @DataObject(generateConverter = true)
 public class KnotFlowContext {
 

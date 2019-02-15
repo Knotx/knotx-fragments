@@ -23,27 +23,31 @@ import java.util.Objects;
 @DataObject
 public class FragmentContext {
 
-  private static final String FRAGMENT_EVENT = "fragmentEvent";
-  private static final String CLIENT_REQUEST = "clientRequest";
+  private static final String FRAGMENT_EVENT_KEY = "fragmentEvent";
+  private static final String CLIENT_REQUEST_KEY = "clientRequest";
+  private static final String ORDER_KEY = "order";
 
   private final FragmentEvent fragmentEvent;
   private final ClientRequest clientRequest;
+  private final int order;
 
-  public FragmentContext(FragmentEvent fragmentEvent,
-      ClientRequest clientRequest) {
+  public FragmentContext(FragmentEvent fragmentEvent, ClientRequest clientRequest, int order) {
     this.fragmentEvent = fragmentEvent;
     this.clientRequest = clientRequest;
+    this.order = order;
   }
 
   public FragmentContext(JsonObject json) {
-    this.fragmentEvent = new FragmentEvent(json.getJsonObject(FRAGMENT_EVENT));
-    this.clientRequest = new ClientRequest(json.getJsonObject(CLIENT_REQUEST));
+    this.fragmentEvent = new FragmentEvent(json.getJsonObject(FRAGMENT_EVENT_KEY));
+    this.clientRequest = new ClientRequest(json.getJsonObject(CLIENT_REQUEST_KEY));
+    this.order = json.getInteger(ORDER_KEY);
   }
 
   public JsonObject toJson() {
     return new JsonObject()
-        .put(FRAGMENT_EVENT, fragmentEvent.toJson())
-        .put(CLIENT_REQUEST, clientRequest.toJson());
+        .put(FRAGMENT_EVENT_KEY, fragmentEvent.toJson())
+        .put(CLIENT_REQUEST_KEY, clientRequest.toJson())
+        .put(ORDER_KEY, order);
   }
 
   public FragmentEvent getFragmentEvent() {
@@ -52,6 +56,10 @@ public class FragmentContext {
 
   public ClientRequest getClientRequest() {
     return clientRequest;
+  }
+
+  public int getOrder() {
+    return order;
   }
 
   @Override
@@ -63,13 +71,14 @@ public class FragmentContext {
       return false;
     }
     FragmentContext that = (FragmentContext) o;
-    return Objects.equals(fragmentEvent, that.fragmentEvent) &&
+    return order == that.order &&
+        Objects.equals(fragmentEvent, that.fragmentEvent) &&
         Objects.equals(clientRequest, that.clientRequest);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(fragmentEvent, clientRequest);
+    return Objects.hash(fragmentEvent, clientRequest, order);
   }
 
   @Override
@@ -77,6 +86,7 @@ public class FragmentContext {
     return "FragmentContext{" +
         "fragmentEvent=" + fragmentEvent +
         ", clientRequest=" + clientRequest +
+        ", order=" + order +
         '}';
   }
 }

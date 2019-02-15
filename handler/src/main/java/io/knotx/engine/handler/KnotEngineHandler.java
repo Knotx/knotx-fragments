@@ -15,8 +15,10 @@
  *
  * The code comes from https://github.com/tomaszmichalak/vertx-rx-map-reduce.
  */
-package io.knotx.engine.core;
+package io.knotx.engine.handler;
 
+import io.knotx.engine.core.KnotEngine;
+import io.knotx.engine.core.impl.KnotEngineFactory;
 import io.knotx.server.api.context.RequestContext;
 import io.vertx.core.Handler;
 import io.vertx.core.json.JsonObject;
@@ -31,7 +33,7 @@ public class KnotEngineHandler implements Handler<RoutingContext> {
   KnotEngineHandler(Vertx vertx, JsonObject config) {
     KnotEngineHandlerOptions options = new KnotEngineHandlerOptions(config);
     eventProducer = new FragmentEventProducer(options.getFlows());
-    engine = new KnotEngine(vertx, new KnotEngineHandlerOptions(config));
+    engine = KnotEngineFactory.get(vertx, options.getDeliveryOptions());
   }
 
   @Override

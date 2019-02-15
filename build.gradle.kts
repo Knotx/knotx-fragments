@@ -24,4 +24,6 @@ subprojects {
         maven { url = uri("https://oss.sonatype.org/content/repositories/snapshots") }
     }
 
+    group = "io.knotx"
+
 }
