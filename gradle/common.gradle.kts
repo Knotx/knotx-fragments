@@ -13,6 +13,8 @@ allprojects {
         }
 
         tasks.withType<Test>().configureEach {
+            environment("vertx.logger-delegate-factory-class-name", "io.vertx.core.logging.SLF4JLogDelegateFactory")
+            
             failFast = true
             useJUnitPlatform()
             testLogging {
@@ -22,7 +24,7 @@ allprojects {
 
             dependencies {
                 "testImplementation"("org.junit.jupiter:junit-jupiter-api")
-                "testRuntimeOnly"("org.junit.jupiter:junit-jupiter-engine:5")
+                "testRuntimeOnly"("org.junit.jupiter:junit-jupiter-engine")
             }
         }
     }

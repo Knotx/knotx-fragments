@@ -37,18 +37,21 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 class KnotEngineImpl implements KnotEngine {
 
+  private static final Logger LOGGER = LoggerFactory.getLogger(KnotEngineImpl.class);
+
   private static final String DEFAULT_ERROR_TRANSITION = "error";
-  private final Logger LOGGER = LoggerFactory.getLogger(KnotEngineImpl.class);
+  private static final String NO_TRANSITION = null;
 
   private final Vertx vertx;
   private DeliveryOptions deliveryOptions;
   private final Map<String, KnotProxy> proxies;
 
+  // TODO deliveryOptions should be specified per particular Knot per address
+  // TODO then we can implement circuit breaker mechanism
   KnotEngineImpl(Vertx vertx, DeliveryOptions deliveryOptions) {
     this.vertx = vertx;
     this.deliveryOptions = deliveryOptions;
@@ -57,18 +60,16 @@ class KnotEngineImpl implements KnotEngine {
 
   public Single<List<FragmentEvent>> execute(List<FragmentEvent> sourceEvents,
       ClientRequest clientRequest) {
-    List<FragmentContext> sourceContextList = wrapContext(sourceEvents, clientRequest);
-    return Flowable.fromIterable(sourceContextList)
+    return Flowable.just(sourceEvents)
+        .map(e -> wrapContext(e, clientRequest))
+        .concatMap(Flowable::fromIterable)
         .map(this::execute)
         .flatMap(Single::toFlowable)
         .reduce(new ArrayList<FragmentContext>(), (list, item) -> {
           list.add(item);
           return list;
         })
-        .map(list -> {
-          list.sort(Comparator.comparingInt(FragmentContext::getOrder));
-          return list;
-        })
+        .map(this::sortAccordingToIncomigOrder)
         .map(this::covert);
   }
 
@@ -83,32 +84,22 @@ class KnotEngineImpl implements KnotEngine {
 
   private Single<FragmentContext> execute(FragmentContext sourceCtx) {
     return Single.just(sourceCtx)
+        .map(this::traceMessage)
         .flatMap(this::callKnotProxy)
         .map(this::nextKnotFlow)
         .flatMap(event -> {
           FragmentContext processedCtx = new FragmentContext(event,
               sourceCtx.getClientRequest(), sourceCtx.getOrder());
           if (hasNextKnotFlow(event)) {
-            return Single.just(processedCtx);
-          } else {
             return execute(processedCtx);
+          } else {
+            return Single.just(processedCtx);
           }
         });
   }
 
-  private FragmentEvent nextKnotFlow(FragmentEventResult ctx) {
-    Optional<KnotFlow> knotFlow = ctx.getFragmentEvent().getFlow();
-    return knotFlow
-        .map(flow -> {
-          KnotFlow nextFlow = flow.get(ctx.getTransition());
-          return new FragmentEvent(ctx.getFragmentEvent()).setFlow(nextFlow);
-        })
-        .orElse(ctx.getFragmentEvent());
-  }
-
   private SingleSource<? extends FragmentEventResult> callKnotProxy(FragmentContext context) {
-    Optional<KnotFlow> knotFlow = context.getFragmentEvent().getFlow();
-    return knotFlow
+    return context.getFragmentEvent().getFlow()
         .map(flow -> proxies
             .computeIfAbsent(flow.getAddress(),
                 adr -> KnotProxy
@@ -116,34 +107,57 @@ class KnotEngineImpl implements KnotEngine {
             .rxProcess(context)
             .onErrorResumeNext(error -> handleProxyError(context, error))
         )
-        .orElse(Single.just(new FragmentEventResult(context.getFragmentEvent(), null)));
+        .orElse(Single.just(new FragmentEventResult(context.getFragmentEvent(), NO_TRANSITION)));
+  }
+
+  private FragmentEvent nextKnotFlow(FragmentEventResult ctx) {
+    return ctx.getFragmentEvent().getFlow()
+        .map(currentFlow -> {
+          KnotFlow nextFlow = currentFlow.get(ctx.getTransition());
+          return new FragmentEvent(ctx.getFragmentEvent()).setFlow(nextFlow);
+        })
+        .orElse(ctx.getFragmentEvent());
+  }
+
+  private boolean hasNextKnotFlow(FragmentEvent event) {
+    return event.getFlow().isPresent();
   }
 
   private SingleSource<? extends FragmentEventResult> handleProxyError(FragmentContext context,
       Throwable error) {
-    if (error instanceof ServiceException) {
-      ServiceException serviceException = (ServiceException) error;
-      if (serviceException.failureCode()
-          == KnotProcessingFatalException.FAILURE_CODE) {
-        throw new KnotProcessingFatalException(
-            new Fragment(serviceException.getDebugInfo()));
-      } else {
-        // TODO refactor
-        return Single
-            .just(new FragmentEventResult(context.getFragmentEvent(), DEFAULT_ERROR_TRANSITION));
-      }
+    if (isFatal(error)) {
+      throw new KnotProcessingFatalException(
+          new Fragment(((ServiceException) error).getDebugInfo()));
     } else {
       return Single
           .just(new FragmentEventResult(context.getFragmentEvent(), DEFAULT_ERROR_TRANSITION));
     }
   }
 
-  private boolean hasNextKnotFlow(FragmentEvent event) {
-    return !event.getFlow().isPresent();
+  private boolean isFatal(Throwable error) {
+    boolean isServiceException = error instanceof ServiceException;
+    if (isServiceException) {
+      ServiceException serviceException = (ServiceException) error;
+      return serviceException.failureCode() == KnotProcessingFatalException.FAILURE_CODE;
+    }
+    return false;
+  }
+
+  private ArrayList<FragmentContext> sortAccordingToIncomigOrder(ArrayList<FragmentContext> list) {
+    list.sort(Comparator.comparingInt(FragmentContext::getOrder));
+    return list;
   }
 
   private List<FragmentEvent> covert(List<FragmentContext> fragmentContexts) {
     return fragmentContexts.stream().map(FragmentContext::getFragmentEvent)
         .collect(Collectors.toList());
+  }
+
+  private FragmentContext traceMessage(FragmentContext fragmentContext) {
+    if (LOGGER.isTraceEnabled()) {
+      LOGGER.trace("The next Knot is set to process the fragment [{}].",
+          fragmentContext.getFragmentEvent());
+    }
+    return fragmentContext;
   }
 }

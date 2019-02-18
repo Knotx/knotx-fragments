@@ -98,6 +98,11 @@ public class FragmentEvent {
         .put("errorMessage", errorMessage);
   }
 
+  @Override
+  public String toString() {
+    return toJson().encode();
+  }
+
   public enum Status {
     UNPROCESSED, SUCCESS, FAILURE
   }
