@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 Cognifide Limited
+ * Copyright (C) 2019 Knot.x Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 package io.knotx.knotengine.core.junit;
 
 
-import io.knotx.engine.api.FragmentContext;
+import io.knotx.engine.api.FragmentEventContext;
 import io.knotx.engine.api.FragmentEventResult;
 import io.knotx.engine.api.KnotProxy;
 import io.knotx.engine.api.TraceableKnotOptions;
@@ -29,10 +29,10 @@ import java.util.function.Function;
 public final class MockKnotProxy extends TraceableKnotProxy {
 
   private final String address;
-  private final Function<FragmentContext, Maybe<FragmentEventResult>> knotAction;
+  private final Function<FragmentEventContext, Maybe<FragmentEventResult>> knotAction;
 
   private MockKnotProxy(String address,
-      Function<FragmentContext, Maybe<FragmentEventResult>> knotAction) {
+      Function<FragmentEventContext, Maybe<FragmentEventResult>> knotAction) {
     super(new TraceableKnotOptions());
     this.address = address;
     this.knotAction = knotAction;
@@ -40,7 +40,7 @@ public final class MockKnotProxy extends TraceableKnotProxy {
 
   private MockKnotProxy(String address,
       TraceableKnotOptions options,
-      Function<FragmentContext, Maybe<FragmentEventResult>> knotAction) {
+      Function<FragmentEventContext, Maybe<FragmentEventResult>> knotAction) {
     super(options);
     this.address = address;
     this.knotAction = knotAction;
@@ -51,21 +51,21 @@ public final class MockKnotProxy extends TraceableKnotProxy {
   }
 
   public static void register(Vertx vertx, String address,
-      Function<FragmentContext, Maybe<FragmentEventResult>> knotAction) {
+      Function<FragmentEventContext, Maybe<FragmentEventResult>> knotAction) {
     new ServiceBinder(vertx)
         .setAddress(address)
         .register(KnotProxy.class, new MockKnotProxy(address, knotAction));
   }
 
   public static void register(Vertx vertx, String address, TraceableKnotOptions options,
-      Function<FragmentContext, Maybe<FragmentEventResult>> knotAction) {
+      Function<FragmentEventContext, Maybe<FragmentEventResult>> knotAction) {
     new ServiceBinder(vertx)
         .setAddress(address)
         .register(KnotProxy.class, new MockKnotProxy(address, options, knotAction));
   }
 
   @Override
-  protected Maybe<FragmentEventResult> execute(FragmentContext fragmentContext) {
+  protected Maybe<FragmentEventResult> execute(FragmentEventContext fragmentContext) {
     return knotAction.apply(fragmentContext);
   }
 

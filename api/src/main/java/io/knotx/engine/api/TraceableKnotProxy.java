@@ -36,7 +36,7 @@ public abstract class TraceableKnotProxy implements KnotProxy {
   }
 
   @Override
-  public void process(FragmentContext context,
+  public void process(FragmentEventContext context,
       Handler<AsyncResult<FragmentEventResult>> result) {
     Maybe.just(context)
         .map(ctx -> {
@@ -63,11 +63,11 @@ public abstract class TraceableKnotProxy implements KnotProxy {
         );
   }
 
-  protected abstract Maybe<FragmentEventResult> execute(FragmentContext fragmentContext);
+  protected abstract Maybe<FragmentEventResult> execute(FragmentEventContext fragmentContext);
 
   protected abstract String getAddress();
 
-  protected FragmentEventResult processError(FragmentContext ctx,
+  protected FragmentEventResult processError(FragmentEventContext ctx,
       Throwable error) {
     LOGGER
         .warn("Fragment[{}] processing error, Knot [{}]",
@@ -90,7 +90,7 @@ public abstract class TraceableKnotProxy implements KnotProxy {
     return knotResult;
   }
 
-  protected FragmentEventResult unprocessed(FragmentContext ctx) {
+  protected FragmentEventResult unprocessed(FragmentEventContext ctx) {
     if (LOGGER.isTraceEnabled()) {
       LOGGER
           .trace("Fragment[{}] not processed via Knot [{}]",

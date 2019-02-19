@@ -21,7 +21,7 @@ import io.vertx.core.json.JsonObject;
 import java.util.Objects;
 
 @DataObject
-public class FragmentContext {
+public class FragmentEventContext {
 
   private static final String FRAGMENT_EVENT_KEY = "fragmentEvent";
   private static final String CLIENT_REQUEST_KEY = "clientRequest";
@@ -31,13 +31,13 @@ public class FragmentContext {
   private final ClientRequest clientRequest;
   private final int order;
 
-  public FragmentContext(FragmentEvent fragmentEvent, ClientRequest clientRequest, int order) {
+  public FragmentEventContext(FragmentEvent fragmentEvent, ClientRequest clientRequest, int order) {
     this.fragmentEvent = fragmentEvent;
     this.clientRequest = clientRequest;
     this.order = order;
   }
 
-  public FragmentContext(JsonObject json) {
+  public FragmentEventContext(JsonObject json) {
     this.fragmentEvent = new FragmentEvent(json.getJsonObject(FRAGMENT_EVENT_KEY));
     this.clientRequest = new ClientRequest(json.getJsonObject(CLIENT_REQUEST_KEY));
     this.order = json.getInteger(ORDER_KEY);
@@ -70,7 +70,7 @@ public class FragmentContext {
     if (o == null || getClass() != o.getClass()) {
       return false;
     }
-    FragmentContext that = (FragmentContext) o;
+    FragmentEventContext that = (FragmentEventContext) o;
     return order == that.order &&
         Objects.equals(fragmentEvent, that.fragmentEvent) &&
         Objects.equals(clientRequest, that.clientRequest);
@@ -83,7 +83,7 @@ public class FragmentContext {
 
   @Override
   public String toString() {
-    return "FragmentContext{" +
+    return "FragmentEventContext{" +
         "fragmentEvent=" + fragmentEvent +
         ", clientRequest=" + clientRequest +
         ", order=" + order +

@@ -35,6 +35,6 @@ public interface KnotProxy {
     return new KnotProxyVertxEBProxy(vertx, address, deliveryOptions);
   }
 
-  void process(FragmentContext fragmentContext, Handler<AsyncResult<FragmentEventResult>> result);
+  void process(FragmentEventContext fragmentContext, Handler<AsyncResult<FragmentEventResult>> result);
 
 }
