@@ -27,7 +27,7 @@ public class KnotEngineHandlerFactory implements RoutingHandlerFactory {
 
   @Override
   public String getName() {
-    return "knotEngine";
+    return "knotEngineHandler";
   }
 
   @Override
