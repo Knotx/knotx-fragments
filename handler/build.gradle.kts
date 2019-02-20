@@ -27,21 +27,9 @@ plugins {
 // -----------------------------------------------------------------------------
 dependencies {
     api(project(":knotx-knot-engine-api"))
-    api(project(":knotx-knot-engine-core"))
+    implementation(project(":knotx-knot-engine-core"))
 
-    annotationProcessor(platform("io.knotx:knotx-dependencies:${project.version}"))
-    annotationProcessor(group = "io.vertx", name = "vertx-codegen")
-    annotationProcessor(group = "io.vertx", name = "vertx-service-proxy", classifier = "processor")
-    annotationProcessor(group = "io.vertx", name = "vertx-rx-java2-gen")
-
-    implementation(platform("io.knotx:knotx-dependencies:${project.version}"))
-    implementation(group = "io.vertx", name = "vertx-core")
-    implementation(group = "io.vertx", name = "vertx-service-proxy")
-    implementation(group = "io.vertx", name = "vertx-rx-java2")
-    implementation(group = "io.vertx", name = "vertx-codegen")
-
-    testImplementation(group = "io.knotx", name = "knotx-junit5")
-    testImplementation(group = "io.vertx", name = "vertx-junit5")
+    implementation(group = "org.apache.commons", name = "commons-lang3")
 }
 
 // -----------------------------------------------------------------------------
@@ -49,12 +37,6 @@ dependencies {
 // -----------------------------------------------------------------------------
 sourceSets.named("main") {
     java.srcDir("src/main/generated")
-}
-tasks.named<JavaCompile>("compileJava") {
-    options.annotationProcessorGeneratedSourcesDirectory = file("src/main/generated")
-}
-tasks.named<Delete>("clean") {
-    delete.add("src/main/generated")
 }
 
 // -----------------------------------------------------------------------------
@@ -83,7 +65,6 @@ tasks.named<Javadoc>("javadoc") {
         (options as StandardJavadocDocletOptions).addBooleanOption("html5", true)
     }
 }
-
 publishing {
     publications {
         create<MavenPublication>("mavenJava") {
@@ -139,9 +120,10 @@ publishing {
         }
     }
 }
-
 signing {
     sign(publishing.publications["mavenJava"])
 }
 
 apply(from = "../gradle/common.gradle.kts")
+apply(from = "../gradle/common.deps.gradle.kts")
+apply(from = "../gradle/codegen.deps.gradle.kts")
