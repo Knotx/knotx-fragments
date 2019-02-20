@@ -117,6 +117,27 @@ class KnotEngineTest {
   void execute_whenEventAndProcessingKnot_expectEventWithProcessedLogEntriesAndSuccessStatus(
       VertxTestContext testContext, Vertx vertx) throws Throwable {
     // given
+    createSuccessKnot(vertx, "aAddress", null);
+    KnotFlow knotFlow = new KnotFlow("aAddress", Collections.emptyMap());
+
+    // when
+    verifyExecution(testContext, vertx, knotFlow, events -> {
+      // then
+      Assertions.assertEquals(1, events.size());
+      Assertions.assertEquals(Status.SUCCESS, events.get(0).getStatus());
+      Assertions.assertTrue(
+          verifyLogEntries(events.get(0).getLog(), Arrays.asList(
+              Operation.of("aAddress", "RECEIVED"),
+              Operation.of("aAddress", "PROCESSED")
+          )));
+    });
+  }
+
+  @Test
+  @DisplayName("Expect a success event status when defined Knot updates the event and set next transition")
+  void execute_whenEventAndProcessingKnotWithNextTransition_expectEventWithProcessedLogEntriesAndSuccessStatus(
+      VertxTestContext testContext, Vertx vertx) throws Throwable {
+    // given
     createSuccessKnot(vertx, "aAddress", "next");
     KnotFlow knotFlow = new KnotFlow("aAddress", Collections.emptyMap());
 
