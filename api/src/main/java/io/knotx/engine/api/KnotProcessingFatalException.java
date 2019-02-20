@@ -12,18 +12,20 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
+ * The code comes from https://github.com/tomaszmichalak/vertx-rx-map-reduce.
  */
+package io.knotx.engine.api;
 
-subprojects {
+import io.knotx.fragment.Fragment;
+import io.vertx.serviceproxy.ServiceException;
 
-    repositories {
-        mavenLocal()
-        maven { url = uri("https://plugins.gradle.org/m2/") }
-        maven { url = uri("http://repo1.maven.org/maven2") }
-        maven { url = uri("https://oss.sonatype.org/content/groups/staging/") }
-        maven { url = uri("https://oss.sonatype.org/content/repositories/snapshots") }
-    }
+public class KnotProcessingFatalException extends ServiceException {
 
-    group = "io.knotx"
+  public static final int FAILURE_CODE = -128;
 
+  public KnotProcessingFatalException(Fragment fragment) {
+    super(FAILURE_CODE, "Failed during fragment processing [" + fragment.getId() + "]",
+        fragment.toJson());
+  }
 }

@@ -25,24 +25,12 @@ plugins {
 // -----------------------------------------------------------------------------
 // Dependencies
 // -----------------------------------------------------------------------------
-
-val junitTestCompile = configurations.create("junitTestCompile")
-
 dependencies {
     api(project(":knotx-knot-engine-api"))
+    implementation(project(":knotx-knot-engine-core"))
 
-    implementation(platform("io.knotx:knotx-dependencies:${project.version}"))
-    implementation(group = "io.vertx", name = "vertx-core")
-    implementation(group = "io.vertx", name = "vertx-service-proxy")
-    implementation(group = "io.vertx", name = "vertx-rx-java2")
-
-    implementation(group = "ch.qos.logback", name = "logback-classic")
-
-    testImplementation(group = "io.knotx", name = "knotx-junit5")
-    testImplementation(group = "io.vertx", name = "vertx-junit5")
+    implementation(group = "org.apache.commons", name = "commons-lang3")
 }
-
-junitTestCompile.extendsFrom(configurations.named("testImplementation").get())
 
 // -----------------------------------------------------------------------------
 // Source sets
@@ -50,20 +38,6 @@ junitTestCompile.extendsFrom(configurations.named("testImplementation").get())
 sourceSets.named("main") {
     java.srcDir("src/main/generated")
 }
-tasks.named<JavaCompile>("compileJava") {
-    options.annotationProcessorGeneratedSourcesDirectory = file("src/main/generated")
-}
-tasks.named<Delete>("clean") {
-    delete.add("src/main/generated")
-}
-sourceSets.create("junitTest") {
-    compileClasspath += sourceSets.named("main").get().output
-}
-sourceSets.named("test") {
-    compileClasspath += sourceSets.named("junitTest").get().output
-    runtimeClasspath += sourceSets.named("junitTest").get().output
-}
-
 
 // -----------------------------------------------------------------------------
 // Tasks
@@ -91,22 +65,16 @@ tasks.named<Javadoc>("javadoc") {
         (options as StandardJavadocDocletOptions).addBooleanOption("html5", true)
     }
 }
-tasks.register<Jar>("testJar") {
-    from(sourceSets.named("junitTest").get().output)
-    classifier = "tests"
-}
-
 publishing {
     publications {
         create<MavenPublication>("mavenJava") {
-            artifactId = "knotx-knot-engine-core"
+            artifactId = "knotx-knot-engine-handler"
             from(components["java"])
             artifact(tasks["sourcesJar"])
             artifact(tasks["javadocJar"])
-            artifact(tasks["testJar"])
             pom {
-                name.set("Knot.x Knot Engine Core")
-                description.set("Knot Engine Core module containing engine implementation.")
+                name.set("Knot.x Knot Engine Handler")
+                description.set("Knot Engine Handler allowing to configure engine in request processing chain.")
                 url.set("http://knotx.io")
                 licenses {
                     license {
@@ -152,9 +120,10 @@ publishing {
         }
     }
 }
-
 signing {
     sign(publishing.publications["mavenJava"])
 }
 
 apply(from = "../gradle/common.gradle.kts")
+apply(from = "../gradle/common.deps.gradle.kts")
+apply(from = "../gradle/codegen.deps.gradle.kts")
