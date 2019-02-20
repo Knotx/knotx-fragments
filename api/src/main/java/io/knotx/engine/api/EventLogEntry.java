@@ -71,7 +71,12 @@ public class EventLogEntry {
 
   @Override
   public String toString() {
-    return toJson().encode();
+    return "EventLogEntry{" +
+        "consumer='" + consumer + '\'' +
+        ", action=" + action +
+        ", transition='" + transition + '\'' +
+        ", timestamp=" + timestamp +
+        '}';
   }
 
   enum EventAction {

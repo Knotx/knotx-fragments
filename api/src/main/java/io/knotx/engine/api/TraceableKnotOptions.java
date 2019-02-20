@@ -78,5 +78,12 @@ public class TraceableKnotOptions {
     return exitOnError;
   }
 
-
+  @Override
+  public String toString() {
+    return "TraceableKnotOptions{" +
+        "unprocessedTransition='" + unprocessedTransition + '\'' +
+        ", errorTransition='" + errorTransition + '\'' +
+        ", exitOnError=" + exitOnError +
+        '}';
+  }
 }

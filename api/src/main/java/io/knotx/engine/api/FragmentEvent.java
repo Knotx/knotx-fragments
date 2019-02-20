@@ -25,6 +25,12 @@ import java.util.Optional;
 @DataObject
 public class FragmentEvent {
 
+  private static final String FRAGMENT_KEY = "fragment";
+  private static final String FLOW_KEY = "flow";
+  private static final String LOG_KEY = "log";
+  private static final String STATUS_KEY = "status";
+  private static final String ERROR_MESSAGE_KEY = "errorMessage";
+
   private final Fragment fragment;
   private KnotFlow flow;
   private final EventLog log;
@@ -46,11 +52,11 @@ public class FragmentEvent {
   }
 
   public FragmentEvent(JsonObject json) {
-    this.fragment = new Fragment(json.getJsonObject("fragment"));
-    this.flow = new KnotFlow(json.getJsonObject("flow"));
-    this.log = new EventLog(json.getJsonObject("log"));
-    this.status = Status.valueOf(json.getString("status"));
-    this.errorMessage = json.getString("errorMessage");
+    this.fragment = new Fragment(json.getJsonObject(FRAGMENT_KEY));
+    this.flow = new KnotFlow(json.getJsonObject(FLOW_KEY));
+    this.log = new EventLog(json.getJsonObject(LOG_KEY));
+    this.status = Status.valueOf(json.getString(STATUS_KEY));
+    this.errorMessage = json.getString(ERROR_MESSAGE_KEY);
   }
 
   @GenIgnore
@@ -91,16 +97,22 @@ public class FragmentEvent {
 
   public JsonObject toJson() {
     return new JsonObject()
-        .put("fragment", fragment.toJson())
-        .put("flow", flow.toJson())
-        .put("log", log.toJson())
-        .put("status", status)
-        .put("errorMessage", errorMessage);
+        .put(FRAGMENT_KEY, fragment.toJson())
+        .put(FLOW_KEY, flow.toJson())
+        .put(LOG_KEY, log.toJson())
+        .put(STATUS_KEY, status)
+        .put(ERROR_MESSAGE_KEY, errorMessage);
   }
 
   @Override
   public String toString() {
-    return toJson().encode();
+    return "FragmentEvent{" +
+        "fragment=" + fragment +
+        ", flow=" + flow +
+        ", log=" + log +
+        ", status=" + status +
+        ", errorMessage='" + errorMessage + '\'' +
+        '}';
   }
 
   public enum Status {

@@ -25,6 +25,7 @@ import java.util.stream.Collectors;
 public class EventLog {
 
   private static final String OPERATIONS_KEY = "operations";
+
   private final List<EventLogEntry> operations;
 
   EventLog() {
@@ -42,7 +43,7 @@ public class EventLog {
     final JsonArray jsonArray = new JsonArray();
     operations.forEach(entry -> jsonArray.add(entry.toJson()));
     return new JsonObject()
-        .put("operations", jsonArray);
+        .put(OPERATIONS_KEY, jsonArray);
   }
 
   void append(EventLogEntry logEntry) {
@@ -70,8 +71,11 @@ public class EventLog {
     return Objects.hash(operations);
   }
 
+
   @Override
   public String toString() {
-    return toJson().encode();
+    return "EventLog{" +
+        "operations=" + operations +
+        '}';
   }
 }

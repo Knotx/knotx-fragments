@@ -52,6 +52,10 @@ public class KnotFlow {
     return new JsonObject().put("address", address).put("onTransition", map);
   }
 
+  /**
+   * TODO fix me later
+   * This code comes from Vert.x Converter
+   */
   private static void fromJson(Iterable<java.util.Map.Entry<String, Object>> json,
       KnotFlow knotFlow) {
     knotFlow.onTransition = Collections.emptyMap();

@@ -32,7 +32,7 @@ public class KnotEngineFactory {
    * @param deliveryOptions proxy delivery options
    */
   public static KnotEngine get(Vertx vertx, DeliveryOptions deliveryOptions) {
-    return new KnotEngineImpl(vertx, deliveryOptions);
+    return new DefaultKnotEngine(vertx, deliveryOptions);
   }
 
 }

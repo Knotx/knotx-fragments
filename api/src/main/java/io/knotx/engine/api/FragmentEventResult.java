@@ -52,6 +52,9 @@ public class FragmentEventResult {
 
   @Override
   public String toString() {
-    return toJson().encode();
+    return "FragmentEventResult{" +
+        "fragmentEvent=" + fragmentEvent +
+        ", transition='" + transition + '\'' +
+        '}';
   }
 }

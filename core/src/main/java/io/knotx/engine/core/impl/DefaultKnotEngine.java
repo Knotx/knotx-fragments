@@ -39,9 +39,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-class KnotEngineImpl implements KnotEngine {
+class DefaultKnotEngine implements KnotEngine {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(KnotEngineImpl.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(DefaultKnotEngine.class);
 
   private static final String DEFAULT_ERROR_TRANSITION = "error";
   private static final String NO_TRANSITION = null;
@@ -52,7 +52,7 @@ class KnotEngineImpl implements KnotEngine {
 
   // TODO deliveryOptions should be specified per particular Knot per address
   // TODO then we can implement circuit breaker mechanism
-  KnotEngineImpl(Vertx vertx, DeliveryOptions deliveryOptions) {
+  DefaultKnotEngine(Vertx vertx, DeliveryOptions deliveryOptions) {
     this.vertx = vertx;
     this.deliveryOptions = deliveryOptions;
     this.proxies = new HashMap<>();

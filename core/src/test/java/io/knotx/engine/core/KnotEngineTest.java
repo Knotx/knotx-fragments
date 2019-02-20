@@ -47,11 +47,12 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 @ExtendWith(VertxExtension.class)
-public class KnotEngineTest {
+class KnotEngineTest {
 
   @BeforeEach
   void setUp() {
@@ -59,7 +60,8 @@ public class KnotEngineTest {
   }
 
   @Test
-  public void execute_whenEventWithNoKnot_expectEventWithUnprocessedStatus(
+  @DisplayName("Expect an unprocessed event status when no processing flow is defined")
+  void execute_whenEventWithNoKnot_expectEventWithUnprocessedStatus(
       VertxTestContext testContext, Vertx vertx) throws Throwable {
     // given
     KnotFlow knotFlow = null;
@@ -74,7 +76,8 @@ public class KnotEngineTest {
   }
 
   @Test
-  public void execute_whenEventWithInvalidAddressInKnotFlow_expectEventWithUnprocessedStatus(
+  @DisplayName("Expect an unprocessed event status when an incorrect processing flow is defined")
+  void execute_whenEventWithInvalidAddressInKnotFlow_expectEventWithUnprocessedStatus(
       VertxTestContext testContext, Vertx vertx) throws Throwable {
     // given
     KnotFlow knotFlow = new KnotFlow("invalidAddress", Collections.emptyMap());
@@ -89,7 +92,8 @@ public class KnotEngineTest {
   }
 
   @Test
-  public void execute_whenEventAndNotProcessingKnot_expectEventWithSkippedLogEntryAndUnprocessedStatus(
+  @DisplayName("Expect an unprocessed event status when the defined Knot does not update the event")
+  void execute_whenEventAndNotProcessingKnot_expectEventWithSkippedLogEntryAndUnprocessedStatus(
       VertxTestContext testContext, Vertx vertx) throws Throwable {
     // given
     createNotProcessingKnot(vertx, "aAddress");
@@ -109,7 +113,8 @@ public class KnotEngineTest {
   }
 
   @Test
-  public void execute_whenEventAndProcessingKnot_expectEventWithProcessedLogEntriesAndSuccessStatus(
+  @DisplayName("Expect a success event status when defined Knot updates the event")
+  void execute_whenEventAndProcessingKnot_expectEventWithProcessedLogEntriesAndSuccessStatus(
       VertxTestContext testContext, Vertx vertx) throws Throwable {
     // given
     createSuccessKnot(vertx, "aAddress", "next");
@@ -129,7 +134,8 @@ public class KnotEngineTest {
   }
 
   @Test
-  public void execute_whenEventAndFailingKnot_expectEventWithErrorLogEntryAndFailureStatus(
+  @DisplayName("Expect a failure event status when defined Knot failed")
+  void execute_whenEventAndFailingKnot_expectEventWithErrorLogEntryAndFailureStatus(
       VertxTestContext testContext, Vertx vertx) throws Throwable {
     // given
     createFailingKnot(vertx, "bAddress", false);
@@ -149,7 +155,8 @@ public class KnotEngineTest {
   }
 
   @Test
-  public void execute_whenEventAndFailingKnotWithFatalException_expectEngineFailure(
+  @DisplayName("Expect an exception when defined Knot failed with KnotProcessingFatalException")
+  void execute_whenEventAndFailingKnotWithFatalException_expectEngineFailure(
       VertxTestContext testContext, Vertx vertx) throws Throwable {
     // given
     createFailingKnot(vertx, "aAddress", true);
@@ -161,7 +168,8 @@ public class KnotEngineTest {
   }
 
   @Test
-  public void execute_whenEventAndTwoProcessingKnots_expectEventProcessedLogEntriesAndSuccessStatus(
+  @DisplayName("Expect a success event status when two defined Knots update the event")
+  void execute_whenEventAndTwoProcessingKnots_expectEventProcessedLogEntriesAndSuccessStatus(
       VertxTestContext testContext, Vertx vertx) throws Throwable {
     // given
     createSuccessKnot(vertx, "aAddress", "next");
@@ -185,7 +193,8 @@ public class KnotEngineTest {
   }
 
   @Test
-  public void execute_whenEventAndFailingKnotAndFallbackKnot_expectEventWithErrorAndProcessedLogEntriesAndSuccessStatus(
+  @DisplayName("Expect a success event status when the failing Knots updates the event and the fallback Knot is defined")
+  void execute_whenEventAndFailingKnotAndFallbackKnot_expectEventWithErrorAndProcessedLogEntriesAndSuccessStatus(
       VertxTestContext testContext, Vertx vertx) throws Throwable {
     // given
     createFailingKnot(vertx, "aAddress", false);
@@ -209,7 +218,8 @@ public class KnotEngineTest {
   }
 
   @Test
-  public void execute_whenEventAndFailingKnotAndNotProcessingFallbackKnot_expectFragmentEventWithFailureStatus(
+  @DisplayName("Expect a failure event status when the failing Knots updates the event and the fallback Knot does not update the event")
+  void execute_whenEventAndFailingKnotAndNotProcessingFallbackKnot_expectFragmentEventWithFailureStatus(
       VertxTestContext testContext, Vertx vertx) throws Throwable {
     // given
     createFailingKnot(vertx, "aAddress", false);
@@ -233,7 +243,8 @@ public class KnotEngineTest {
   }
 
   @Test
-  public void execute_whenEventAndFailingKnotAndNoFallbackKnot_expectFragmentEventWithFailureStatus(
+  @DisplayName("Expect a failure event status when the failing Knots updates the event")
+  void execute_whenEventAndFailingKnotAndNoFallbackKnot_expectFragmentEventWithFailureStatus(
       VertxTestContext testContext, Vertx vertx) throws Throwable {
     // given
     createFailingKnot(vertx, "aAddress", false);
@@ -254,7 +265,8 @@ public class KnotEngineTest {
   }
 
   @Test
-  public void execute_whenTwoEventsAndProcessingKnot_expectTwoEventWithSuccessStatus(
+  @DisplayName("Expect success events statuses when the Knots update events")
+  void execute_whenTwoEventsAndProcessingKnot_expectTwoEventWithSuccessStatus(
       VertxTestContext testContext, Vertx vertx) throws Throwable {
     // given
     createSuccessKnot(vertx, "aAddress", null);
@@ -275,7 +287,8 @@ public class KnotEngineTest {
   }
 
   @Test
-  public void execute_whenTwoEventsAndProcessingKnot_expectTwoEventWithCorrectOrder(
+  @DisplayName("Expect result events in the same order as original")
+  void execute_whenTwoEventsAndProcessingKnot_expectTwoEventWithCorrectOrder(
       VertxTestContext testContext, Vertx vertx) throws Throwable {
     // given
     createLongProcessingKnot(vertx, "aAddress", null);
