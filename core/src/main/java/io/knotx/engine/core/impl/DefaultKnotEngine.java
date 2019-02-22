@@ -70,7 +70,7 @@ class DefaultKnotEngine implements KnotEngine {
           list.add(item);
           return list;
         })
-        .map(this::sortAccordingToIncomigOrder)
+        .map(this::sortAccordingToIncomingOrder)
         .map(this::traceEngineResults)
         .map(this::covert);
   }
@@ -128,9 +128,13 @@ class DefaultKnotEngine implements KnotEngine {
   private SingleSource<? extends FragmentEventResult> handleProxyError(FragmentEventContext context,
       Throwable error) {
     if (isFatal(error)) {
+      LOGGER.error("Knot processing failed with fatal error [{}].", context.getFragmentEvent(),
+          error);
       throw new KnotProcessingFatalException(
           new Fragment(((ServiceException) error).getDebugInfo()));
     } else {
+      LOGGER.warn("Knot processing failed [{}], trying to process with the 'error' transition.",
+          context.getFragmentEvent(), error);
       return Single
           .just(new FragmentEventResult(context.getFragmentEvent(), DEFAULT_ERROR_TRANSITION));
     }
@@ -145,7 +149,7 @@ class DefaultKnotEngine implements KnotEngine {
     return false;
   }
 
-  private ArrayList<FragmentEventContext> sortAccordingToIncomigOrder(
+  private ArrayList<FragmentEventContext> sortAccordingToIncomingOrder(
       ArrayList<FragmentEventContext> list) {
     list.sort(Comparator.comparingInt(FragmentEventContext::getOrder));
     return list;
