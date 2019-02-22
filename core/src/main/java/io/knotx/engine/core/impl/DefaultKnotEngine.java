@@ -15,8 +15,9 @@
  */
 package io.knotx.engine.core.impl;
 
-import io.knotx.engine.api.FragmentEventContext;
 import io.knotx.engine.api.FragmentEvent;
+import io.knotx.engine.api.FragmentEvent.Status;
+import io.knotx.engine.api.FragmentEventContext;
 import io.knotx.engine.api.FragmentEventResult;
 import io.knotx.engine.api.KnotFlow;
 import io.knotx.engine.api.KnotProcessingFatalException;
@@ -70,6 +71,7 @@ class DefaultKnotEngine implements KnotEngine {
           return list;
         })
         .map(this::sortAccordingToIncomigOrder)
+        .map(this::traceEngineResults)
         .map(this::covert);
   }
 
@@ -143,7 +145,8 @@ class DefaultKnotEngine implements KnotEngine {
     return false;
   }
 
-  private ArrayList<FragmentEventContext> sortAccordingToIncomigOrder(ArrayList<FragmentEventContext> list) {
+  private ArrayList<FragmentEventContext> sortAccordingToIncomigOrder(
+      ArrayList<FragmentEventContext> list) {
     list.sort(Comparator.comparingInt(FragmentEventContext::getOrder));
     return list;
   }
@@ -159,5 +162,16 @@ class DefaultKnotEngine implements KnotEngine {
           fragmentContext.getFragmentEvent());
     }
     return fragmentContext;
+  }
+
+  private List<FragmentEventContext> traceEngineResults(List<FragmentEventContext> results) {
+    if (LOGGER.isTraceEnabled()) {
+      List<FragmentEvent> processedEvents = results.stream()
+          .map(FragmentEventContext::getFragmentEvent)
+          .filter(event -> Status.UNPROCESSED != event.getStatus())
+          .collect(Collectors.toList());
+      LOGGER.trace("Knot Engine processed fragments: [{}]", processedEvents);
+    }
+    return results;
   }
 }
