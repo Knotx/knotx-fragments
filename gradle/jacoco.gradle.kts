@@ -13,20 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 subprojects {
-
-    repositories {
-        mavenLocal()
-        maven { url = uri("https://plugins.gradle.org/m2/") }
-        maven { url = uri("http://repo1.maven.org/maven2") }
-        maven { url = uri("https://oss.sonatype.org/content/groups/staging/") }
-        maven { url = uri("https://oss.sonatype.org/content/repositories/snapshots") }
+    plugins.withId("jacoco") {
+        tasks.getByName<JacocoReport>("jacocoTestReport") {
+            reports {
+                sourceDirectories.from(fileTree("src/main/java"))
+                classDirectories.from(fileTree("build/classes") {
+                    exclude("**/*Options*")
+                })
+                xml.destination = File("$buildDir/reports/jacoco/report.xml")
+                html.isEnabled = true
+                xml.isEnabled = true
+                csv.isEnabled = false
+            }
+        }
     }
-
-    group = "io.knotx"
-
 }
-
-apply(from = "gradle/javaAndUnitTests.gradle.kts")
-apply(from = "gradle/jacoco.gradle.kts")

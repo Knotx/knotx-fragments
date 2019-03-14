@@ -34,12 +34,6 @@ dependencies {
     annotationProcessor(group = "io.vertx", name = "vertx-codegen")
     annotationProcessor(group = "io.vertx", name = "vertx-service-proxy", classifier = "processor")
     annotationProcessor(group = "io.vertx", name = "vertx-rx-java2-gen")
-
-    implementation(platform("io.knotx:knotx-dependencies:${project.version}"))
-    implementation(group = "io.vertx", name = "vertx-core")
-    implementation(group = "io.vertx", name = "vertx-service-proxy")
-    implementation(group = "io.vertx", name = "vertx-rx-java2")
-    implementation(group = "io.vertx", name = "vertx-codegen")
 }
 
 // -----------------------------------------------------------------------------
@@ -142,4 +136,4 @@ signing {
     sign(publishing.publications["mavenJava"])
 }
 
-apply(from = "../gradle/common.gradle.kts")
+apply(from = "../gradle/common.deps.gradle.kts")
