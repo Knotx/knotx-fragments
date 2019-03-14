@@ -21,65 +21,60 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.Objects;
 
-@DataObject
+@DataObject(generateConverter = true)
 public class KnotFlow {
 
-  private String address;
+  private KnotFlowStep step;
 
   private Map<String, KnotFlow> onTransition;
 
   public KnotFlow(String address, Map<String, KnotFlow> onTransition) {
-    this.address = address;
+    this.step = new KnotFlowStep(address);
+    this.onTransition = onTransition;
+  }
+
+  public KnotFlow(KnotFlowStep stepOptions, Map<String, KnotFlow> onTransition) {
+    if (stepOptions == null) {
+      throw new IllegalStateException("Step options can not be null");
+    }
+    this.step = stepOptions;
     this.onTransition = onTransition;
   }
 
   public KnotFlow(JsonObject json) {
-    fromJson(json, this);
+    KnotFlowConverter.fromJson(json, this);
+    if (this.onTransition == null) {
+      this.onTransition = Collections.emptyMap();
+    }
   }
 
-  public String getAddress() {
-    return address;
+  public JsonObject toJson() {
+    JsonObject result = new JsonObject();
+    KnotFlowConverter.toJson(this, result);
+    return result;
+  }
+
+  public KnotFlowStep getStep() {
+    return step;
+  }
+
+  public KnotFlow setStep(KnotFlowStep step) {
+    this.step = step;
+    return this;
   }
 
   public KnotFlow get(String transition) {
     return onTransition.get(transition);
   }
 
-  public JsonObject toJson() {
-    JsonObject map = new JsonObject();
-    onTransition.forEach((key, value) -> map.put(key, value.toJson()));
-
-    return new JsonObject().put("address", address).put("onTransition", map);
+  public Map<String, KnotFlow> getOnTransition() {
+    return onTransition;
   }
 
-  /**
-   * TODO fix me later
-   * This code comes from Vert.x Converter
-   */
-  private static void fromJson(Iterable<java.util.Map.Entry<String, Object>> json,
-      KnotFlow knotFlow) {
-    knotFlow.onTransition = Collections.emptyMap();
-    for (java.util.Map.Entry<String, Object> member : json) {
-      switch (member.getKey()) {
-        case "address":
-          if (member.getValue() instanceof String) {
-            knotFlow.address = (String) member.getValue();
-          }
-          break;
-        case "onTransition":
-          if (member.getValue() instanceof JsonObject) {
-            java.util.Map<String, KnotFlow> map = new java.util.LinkedHashMap<>();
-            ((Iterable<java.util.Map.Entry<String, Object>>) member.getValue()).forEach(entry -> {
-              if (entry.getValue() instanceof JsonObject) {
-                map.put(entry.getKey(),
-                    new KnotFlow((JsonObject) entry.getValue()));
-              }
-            });
-            knotFlow.onTransition = map;
-          }
-          break;
-      }
-    }
+  public KnotFlow setOnTransition(
+      Map<String, KnotFlow> onTransition) {
+    this.onTransition = onTransition;
+    return this;
   }
 
   @Override
@@ -91,19 +86,20 @@ public class KnotFlow {
       return false;
     }
     KnotFlow knotFlow = (KnotFlow) o;
-    return Objects.equals(address, knotFlow.address) &&
+    return Objects.equals(step, knotFlow.step) &&
         Objects.equals(onTransition, knotFlow.onTransition);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(address, onTransition);
+    return Objects.hash(step, onTransition);
   }
+
 
   @Override
   public String toString() {
     return "KnotFlow{" +
-        "address='" + address + '\'' +
+        "step=" + step +
         ", onTransition=" + onTransition +
         '}';
   }

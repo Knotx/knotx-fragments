@@ -18,16 +18,19 @@
 package io.knotx.engine.handler;
 
 import io.knotx.engine.api.FragmentEvent;
+import io.knotx.engine.api.KnotFlow;
+import io.knotx.engine.api.KnotFlowStep;
 import io.knotx.fragment.Fragment;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 class FragmentEventProducer {
 
   private KnotFlowProvider flowProvider;
 
-  FragmentEventProducer(List<KnotFlowContext> predefinedFlows) {
-    flowProvider = new KnotFlowProvider(predefinedFlows);
+  public FragmentEventProducer(Map<String, KnotFlow> flows, Map<String, KnotFlowStep> steps) {
+    flowProvider = new KnotFlowProvider(flows, steps);
   }
 
   List<FragmentEvent> get(List<Fragment> fragments) {

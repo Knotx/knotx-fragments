@@ -18,13 +18,14 @@
 package io.knotx.engine.handler;
 
 import io.knotx.engine.api.KnotFlow;
+import io.knotx.engine.api.KnotFlowStep;
 import io.knotx.fragment.Fragment;
 import io.vertx.core.json.DecodeException;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import java.util.Collections;
-import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import org.apache.commons.lang3.StringUtils;
 
@@ -32,20 +33,18 @@ public class KnotFlowProvider {
 
   private final Logger LOGGER = LoggerFactory.getLogger(KnotFlowProvider.class);
 
-  private List<KnotFlowContext> flows;
+  private Map<String, KnotFlow> flows;
+  private Map<String, KnotFlowStep> steps;
 
-  KnotFlowProvider(List<KnotFlowContext> flows) {
+  KnotFlowProvider(Map<String, KnotFlow> flows, Map<String, KnotFlowStep> steps) {
     this.flows = flows;
+    this.steps = steps;
   }
 
   public Optional<KnotFlow> get(Fragment fragment) {
     Optional<KnotFlow> result = Optional.empty();
     if (fragment.getConfiguration().containsKey("flowName")) {
-      result = flows.stream()
-          .filter(flowContext -> flowContext.getName()
-              .equals(fragment.getConfiguration().getString("flowName")))
-          .map(KnotFlowContext::getKnotFlow)
-          .findFirst();
+      result = Optional.ofNullable(flows.get(fragment.getConfiguration().getString("flowName")));
     } else if (fragment.getConfiguration().containsKey("flow")) {
       try {
         result = parseString(fragment.getConfiguration().getString("flow"));
@@ -63,19 +62,19 @@ public class KnotFlowProvider {
     }
     if (encoded.startsWith("{")) {
       KnotFlow knotFlow = new KnotFlow(new JsonObject(encoded));
-      if (StringUtils.isNotBlank(knotFlow.getAddress())) {
-        return Optional.of(knotFlow);
-      } else {
+      if (knotFlow.getStep() == null || StringUtils.isBlank(knotFlow.getStep().getAddress())) {
         return Optional.empty();
+      } else {
+        return Optional.of(knotFlow);
       }
     } else {
       String[] split = encoded.split(",");
       KnotFlow knotFlow = null;
       for (int i = split.length - 1; i >= 0; i--) {
         if (knotFlow == null) {
-          knotFlow = new KnotFlow(split[i], Collections.emptyMap());
+          knotFlow = new KnotFlow(steps.get(split[i]), Collections.emptyMap());
         } else {
-          knotFlow = new KnotFlow(split[i], Collections.singletonMap("next", knotFlow));
+          knotFlow = new KnotFlow(steps.get(split[i]), Collections.singletonMap("next", knotFlow));
         }
       }
       return Optional.of(knotFlow);

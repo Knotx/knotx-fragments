@@ -28,16 +28,13 @@ import io.knotx.server.api.context.ClientRequest;
 import io.reactivex.Flowable;
 import io.reactivex.Single;
 import io.reactivex.SingleSource;
-import io.vertx.core.eventbus.DeliveryOptions;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import io.vertx.reactivex.core.Vertx;
 import io.vertx.serviceproxy.ServiceException;
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 class DefaultKnotEngine implements KnotEngine {
@@ -48,15 +45,9 @@ class DefaultKnotEngine implements KnotEngine {
   private static final String NO_TRANSITION = null;
 
   private final Vertx vertx;
-  private DeliveryOptions deliveryOptions;
-  private final Map<String, KnotProxy> proxies;
 
-  // TODO deliveryOptions should be specified per particular Knot per address
-  // TODO then we can implement circuit breaker mechanism
-  DefaultKnotEngine(Vertx vertx, DeliveryOptions deliveryOptions) {
+  DefaultKnotEngine(Vertx vertx) {
     this.vertx = vertx;
-    this.deliveryOptions = deliveryOptions;
-    this.proxies = new HashMap<>();
   }
 
   public Single<List<FragmentEvent>> execute(List<FragmentEvent> sourceEvents,
@@ -102,10 +93,9 @@ class DefaultKnotEngine implements KnotEngine {
 
   private SingleSource<? extends FragmentEventResult> callKnotProxy(FragmentEventContext context) {
     return context.getFragmentEvent().getFlow()
-        .map(flow -> proxies
-            .computeIfAbsent(flow.getAddress(),
-                adr -> KnotProxy
-                    .createProxyWithOptions(vertx, adr, deliveryOptions))
+        .map(flow -> KnotProxy
+            .createProxyWithOptions(vertx, flow.getStep().getAddress(),
+                flow.getStep().getDeliveryOptions())
             .rxProcess(context)
             .onErrorResumeNext(error -> handleProxyError(context, error))
         )

@@ -31,6 +31,7 @@ dependencies {
     implementation(project(":knotx-knot-engine-core"))
 
     implementation(group = "org.apache.commons", name = "commons-lang3")
+    implementation(group = "io.vertx", name = "vertx-circuit-breaker")
 }
 
 // -----------------------------------------------------------------------------

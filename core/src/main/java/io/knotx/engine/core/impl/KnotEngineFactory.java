@@ -16,7 +16,6 @@
 package io.knotx.engine.core.impl;
 
 import io.knotx.engine.core.KnotEngine;
-import io.vertx.core.eventbus.DeliveryOptions;
 import io.vertx.reactivex.core.Vertx;
 
 /**
@@ -29,10 +28,9 @@ public class KnotEngineFactory {
    * Gets Knot Engine instance.
    *
    * @param vertx - RX Vert.x API wrapper
-   * @param deliveryOptions proxy delivery options
    */
-  public static KnotEngine get(Vertx vertx, DeliveryOptions deliveryOptions) {
-    return new DefaultKnotEngine(vertx, deliveryOptions);
+  public static KnotEngine get(Vertx vertx) {
+    return new DefaultKnotEngine(vertx);
   }
 
 }

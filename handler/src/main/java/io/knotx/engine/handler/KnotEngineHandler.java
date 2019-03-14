@@ -20,6 +20,7 @@ package io.knotx.engine.handler;
 import io.knotx.engine.api.FragmentEvent;
 import io.knotx.engine.core.KnotEngine;
 import io.knotx.engine.core.impl.KnotEngineFactory;
+import io.knotx.engine.handler.options.KnotEngineHandlerOptions;
 import io.knotx.fragment.Fragment;
 import io.knotx.server.api.context.RequestContext;
 import io.knotx.server.api.context.RequestEvent;
@@ -41,8 +42,8 @@ public class KnotEngineHandler implements Handler<RoutingContext> {
 
   KnotEngineHandler(Vertx vertx, JsonObject config) {
     KnotEngineHandlerOptions options = new KnotEngineHandlerOptions(config);
-    eventProducer = new FragmentEventProducer(options.getFlows());
-    engine = KnotEngineFactory.get(vertx, options.getDeliveryOptions());
+    eventProducer = new FragmentEventProducer(options.getFlows(), options.getSteps());
+    engine = KnotEngineFactory.get(vertx);
     requestContextEngine = new DefaultRequestContextEngine(getClass().getSimpleName());
   }
 

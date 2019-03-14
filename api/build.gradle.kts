@@ -34,6 +34,9 @@ dependencies {
     annotationProcessor(group = "io.vertx", name = "vertx-codegen")
     annotationProcessor(group = "io.vertx", name = "vertx-service-proxy", classifier = "processor")
     annotationProcessor(group = "io.vertx", name = "vertx-rx-java2-gen")
+
+    implementation(group = "io.vertx", name = "vertx-circuit-breaker")
+    implementation(group = "org.apache.commons", name = "commons-lang3")
 }
 
 // -----------------------------------------------------------------------------

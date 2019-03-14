@@ -18,21 +18,26 @@
 package io.knotx.engine.handler;
 
 import io.knotx.engine.api.KnotFlow;
+import io.knotx.engine.api.KnotFlowStep;
 import io.knotx.fragment.Fragment;
 import io.vertx.core.json.JsonObject;
 import java.util.Collections;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 import org.junit.Assert;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+// TODO implement tests for stepAlias
 class KnotFlowProviderTest {
 
   @Test
+  @DisplayName("Expect no flow when a fragment does not declare any flow.")
   void get_whenNoFlowAttribute_emptyKnotFlow() {
     // given
     Fragment fragment = new Fragment("type", new JsonObject(), "body");
-    KnotFlowProvider tested = new KnotFlowProvider(Collections.emptyList());
+    KnotFlowProvider tested = new KnotFlowProvider(Collections.emptyMap(), Collections.emptyMap());
 
     // when
     Optional<KnotFlow> knotFlow = tested.get(fragment);
@@ -42,10 +47,11 @@ class KnotFlowProviderTest {
   }
 
   @Test
+  @DisplayName("Expect no flow when a fragment declares empty flow configuration entry.")
   void get_whenEmptyFlowAttribute_emptyKnotFlow() {
     // given
     Fragment fragment = new Fragment("type", new JsonObject().put("flow", ""), "body");
-    KnotFlowProvider tested = new KnotFlowProvider(Collections.emptyList());
+    KnotFlowProvider tested = new KnotFlowProvider(Collections.emptyMap(), Collections.emptyMap());
 
     // when
     Optional<KnotFlow> knotFlow = tested.get(fragment);
@@ -58,14 +64,15 @@ class KnotFlowProviderTest {
   void get_whenFlatFlowAttributeWithOneKnot_knotFlowWithAttributeAndNoTransitions() {
     // given
     Fragment fragment = new Fragment("type", new JsonObject().put("flow", "aAddress"), "body");
-    KnotFlowProvider tested = new KnotFlowProvider(Collections.emptyList());
+    KnotFlowProvider tested = new KnotFlowProvider(Collections.emptyMap(),
+        Collections.singletonMap("aAddress", new KnotFlowStep("aAddress.address")));
 
     // when
     Optional<KnotFlow> knotFlow = tested.get(fragment);
 
     // then
     Assert.assertTrue(knotFlow.isPresent());
-    Assert.assertEquals(new KnotFlow("aAddress", Collections.emptyMap()), knotFlow.get());
+    Assert.assertEquals(new KnotFlow("aAddress.address", Collections.emptyMap()), knotFlow.get());
   }
 
   @Test
@@ -74,15 +81,19 @@ class KnotFlowProviderTest {
     Fragment fragment = new Fragment("type",
         new JsonObject().put("flow", "aAddress,bAddress"), "body");
 
-    KnotFlowProvider tested = new KnotFlowProvider(Collections.emptyList());
+    Map<String, KnotFlowStep> steps = new HashMap<>();
+    steps.put("aAddress", new KnotFlowStep("aAddress.address"));
+    steps.put("bAddress", new KnotFlowStep("bAddress.address"));
+
+    KnotFlowProvider tested = new KnotFlowProvider(Collections.emptyMap(), steps);
 
     // when
     Optional<KnotFlow> knotFlow = tested.get(fragment);
 
     // then
     Assert.assertTrue(knotFlow.isPresent());
-    Assert.assertEquals(new KnotFlow("aAddress", Collections
-            .singletonMap("next", new KnotFlow("bAddress", Collections.emptyMap()))),
+    Assert.assertEquals(new KnotFlow("aAddress.address", Collections
+            .singletonMap("next", new KnotFlow("bAddress.address", Collections.emptyMap()))),
         knotFlow.get());
   }
 
@@ -92,7 +103,7 @@ class KnotFlowProviderTest {
     Fragment fragment = new Fragment("type",
         new JsonObject().put("flow", "{}"), "body");
 
-    KnotFlowProvider tested = new KnotFlowProvider(Collections.emptyList());
+    KnotFlowProvider tested = new KnotFlowProvider(Collections.emptyMap(), Collections.emptyMap());
 
     // when
     Optional<KnotFlow> knotFlow = tested.get(fragment);
@@ -105,9 +116,9 @@ class KnotFlowProviderTest {
   void get_whenInvalidJsonFlowAttribute_emptyKnotFlow() {
     // given
     Fragment fragment = new Fragment("type",
-        new JsonObject().put("flow", "{\"address\":\"aAddress\""), "body");
+        new JsonObject().put("flow", "{\"step\":{\"address\":\"aAddress\"}"), "body");
 
-    KnotFlowProvider tested = new KnotFlowProvider(Collections.emptyList());
+    KnotFlowProvider tested = new KnotFlowProvider(Collections.emptyMap(), Collections.emptyMap());
 
     // when
     Optional<KnotFlow> knotFlow = tested.get(fragment);
@@ -121,10 +132,10 @@ class KnotFlowProviderTest {
     // given
     Fragment fragment = new Fragment("type",
         new JsonObject().put("flow",
-            "{\"address\":\"aAddress\", \"onTransition\": {\"go-b\": {\"address\": \"bAddress\"}}}"),
+            "{\"step\":{\"address\":\"aAddress\"},\"onTransition\":{\"go-b\":{\"step\":{\"address\":\"bAddress\"}}}}"),
         "body");
 
-    KnotFlowProvider tested = new KnotFlowProvider(Collections.emptyList());
+    KnotFlowProvider tested = new KnotFlowProvider(Collections.emptyMap(), Collections.emptyMap());
 
     // when
     Optional<KnotFlow> knotFlow = tested.get(fragment);
@@ -140,7 +151,7 @@ class KnotFlowProviderTest {
   void get_whenEmptyFlowNameAttribute_emptyKnotFlow() {
     // given
     Fragment fragment = new Fragment("type", new JsonObject().put("flowName", ""), "body");
-    KnotFlowProvider tested = new KnotFlowProvider(Collections.emptyList());
+    KnotFlowProvider tested = new KnotFlowProvider(Collections.emptyMap(), Collections.emptyMap());
 
     // when
     Optional<KnotFlow> knotFlow = tested.get(fragment);
@@ -153,11 +164,10 @@ class KnotFlowProviderTest {
   void get_whenFlowNameAttribute_knotFlowFromConfiguration() {
     // given
     KnotFlow expectedKnotFlow = new KnotFlow("address", Collections.emptyMap());
-    List<KnotFlowContext> flows = Collections.singletonList(
-        new KnotFlowContext("knotFlowName", expectedKnotFlow));
+    Map<String, KnotFlow> flows = Collections.singletonMap("knotFlowName", expectedKnotFlow);
     Fragment fragment = new Fragment("type", new JsonObject().put("flowName", "knotFlowName"),
         "body");
-    KnotFlowProvider tested = new KnotFlowProvider(flows);
+    KnotFlowProvider tested = new KnotFlowProvider(flows, Collections.emptyMap());
 
     // when
     Optional<KnotFlow> knotFlow = tested.get(fragment);

@@ -13,25 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.knotx.engine.handler;
+package io.knotx.engine.handler.options;
 
+import io.knotx.engine.api.KnotFlow;
+import io.knotx.engine.api.KnotFlowStep;
 import io.vertx.codegen.annotations.DataObject;
-import io.vertx.core.eventbus.DeliveryOptions;
 import io.vertx.core.json.JsonObject;
-import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 @DataObject(generateConverter = true)
 public class KnotEngineHandlerOptions {
 
-  private List<KnotFlowContext> flows;
+  private Map<String, KnotFlow> flows;
 
-  private DeliveryOptions deliveryOptions;
+  private Map<String, KnotFlowStep> steps;
 
-  public KnotEngineHandlerOptions(List<KnotFlowContext> flows,
-      DeliveryOptions deliveryOptions) {
+  public KnotEngineHandlerOptions(Map<String, KnotFlow> flows,
+      Map<String, KnotFlowStep> steps) {
     this.flows = flows;
-    this.deliveryOptions = deliveryOptions;
+    this.steps = steps;
   }
 
   public KnotEngineHandlerOptions(JsonObject json) {
@@ -44,22 +45,23 @@ public class KnotEngineHandlerOptions {
     return jsonObject;
   }
 
-  public DeliveryOptions getDeliveryOptions() {
-    return deliveryOptions;
-  }
-
-  public KnotEngineHandlerOptions setDeliveryOptions(DeliveryOptions deliveryOptions) {
-    this.deliveryOptions = deliveryOptions;
-    return this;
-  }
-
-  public List<KnotFlowContext> getFlows() {
+  public Map<String, KnotFlow> getFlows() {
     return flows;
   }
 
   public KnotEngineHandlerOptions setFlows(
-      List<KnotFlowContext> flows) {
+      Map<String, KnotFlow> flows) {
     this.flows = flows;
+    return this;
+  }
+
+  public Map<String, KnotFlowStep> getSteps() {
+    return steps;
+  }
+
+  public KnotEngineHandlerOptions setSteps(
+      Map<String, KnotFlowStep> steps) {
+    this.steps = steps;
     return this;
   }
 
@@ -73,19 +75,19 @@ public class KnotEngineHandlerOptions {
     }
     KnotEngineHandlerOptions that = (KnotEngineHandlerOptions) o;
     return Objects.equals(flows, that.flows) &&
-        Objects.equals(deliveryOptions, that.deliveryOptions);
+        Objects.equals(steps, that.steps);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(flows, deliveryOptions);
+    return Objects.hash(flows, steps);
   }
 
   @Override
   public String toString() {
     return "KnotEngineHandlerOptions{" +
         "flows=" + flows +
-        ", deliveryOptions=" + deliveryOptions +
+        ", steps=" + steps +
         '}';
   }
 }
