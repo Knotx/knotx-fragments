@@ -19,6 +19,7 @@ plugins {
     id("java-library")
     id("maven-publish")
     id("signing")
+    id("jacoco")
     id("org.nosphere.apache.rat") version "0.4.0"
 }
 
@@ -124,6 +125,5 @@ signing {
     sign(publishing.publications["mavenJava"])
 }
 
-apply(from = "../gradle/common.gradle.kts")
 apply(from = "../gradle/common.deps.gradle.kts")
 apply(from = "../gradle/codegen.deps.gradle.kts")

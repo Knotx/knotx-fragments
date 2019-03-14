@@ -19,6 +19,7 @@ plugins {
     id("java-library")
     id("maven-publish")
     id("signing")
+    id("jacoco")
     id("org.nosphere.apache.rat") version "0.4.0"
 }
 
@@ -30,16 +31,6 @@ val junitTestCompile = configurations.create("junitTestCompile")
 
 dependencies {
     api(project(":knotx-knot-engine-api"))
-
-    implementation(platform("io.knotx:knotx-dependencies:${project.version}"))
-    implementation(group = "io.vertx", name = "vertx-core")
-    implementation(group = "io.vertx", name = "vertx-service-proxy")
-    implementation(group = "io.vertx", name = "vertx-rx-java2")
-
-    implementation(group = "ch.qos.logback", name = "logback-classic")
-
-    testImplementation(group = "io.knotx", name = "knotx-junit5")
-    testImplementation(group = "io.vertx", name = "vertx-junit5")
 }
 
 junitTestCompile.extendsFrom(configurations.named("testImplementation").get())
@@ -157,4 +148,4 @@ signing {
     sign(publishing.publications["mavenJava"])
 }
 
-apply(from = "../gradle/common.gradle.kts")
+apply(from = "../gradle/common.deps.gradle.kts")
