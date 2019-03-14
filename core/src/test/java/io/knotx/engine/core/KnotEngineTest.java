@@ -46,18 +46,12 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 @ExtendWith(VertxExtension.class)
 class KnotEngineTest {
-
-//  @BeforeEach
-//  void setUp() {
-//    Assertions.assertTrue(System.getenv().containsKey("vertx.logger-delegate-factory-class-name"));
-//  }
 
   @Test
   @DisplayName("Expect an unprocessed event status when no processing flow is defined")
