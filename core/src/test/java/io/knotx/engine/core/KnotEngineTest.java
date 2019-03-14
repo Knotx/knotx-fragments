@@ -24,7 +24,6 @@ import io.knotx.engine.api.FragmentEvent;
 import io.knotx.engine.api.FragmentEvent.Status;
 import io.knotx.engine.api.FragmentEventResult;
 import io.knotx.engine.api.KnotFlow;
-import io.knotx.engine.api.KnotFlowStep;
 import io.knotx.engine.api.KnotProcessingFatalException;
 import io.knotx.engine.api.TraceableKnotOptions;
 import io.knotx.engine.core.EntryLogTestHelper.Operation;
@@ -75,7 +74,7 @@ class KnotEngineTest {
   void execute_whenEventWithInvalidAddressInKnotFlow_expectEventWithUnprocessedStatus(
       VertxTestContext testContext, Vertx vertx) throws Throwable {
     // given
-    KnotFlow knotFlow = new KnotFlow(new KnotFlowStep("invalidAddress"), Collections.emptyMap());
+    KnotFlow knotFlow = new KnotFlow("invalidAddress", Collections.emptyMap());
 
     // when
     verifyExecution(testContext, vertx, knotFlow, events -> {
@@ -92,7 +91,7 @@ class KnotEngineTest {
       VertxTestContext testContext, Vertx vertx) throws Throwable {
     // given
     createNotProcessingKnot(vertx, "aAddress");
-    KnotFlow knotFlow = new KnotFlow(new KnotFlowStep("aAddress"), Collections.emptyMap());
+    KnotFlow knotFlow = new KnotFlow("aAddress", Collections.emptyMap());
 
     // when
     verifyExecution(testContext, vertx, knotFlow, events -> {
@@ -113,7 +112,7 @@ class KnotEngineTest {
       VertxTestContext testContext, Vertx vertx) throws Throwable {
     // given
     createSuccessKnot(vertx, "aAddress", null);
-    KnotFlow knotFlow = new KnotFlow(new KnotFlowStep("aAddress"), Collections.emptyMap());
+    KnotFlow knotFlow = new KnotFlow("aAddress", Collections.emptyMap());
 
     // when
     verifyExecution(testContext, vertx, knotFlow, events -> {
@@ -134,7 +133,7 @@ class KnotEngineTest {
       VertxTestContext testContext, Vertx vertx) throws Throwable {
     // given
     createSuccessKnot(vertx, "aAddress", "next");
-    KnotFlow knotFlow = new KnotFlow(new KnotFlowStep("aAddress"), Collections.emptyMap());
+    KnotFlow knotFlow = new KnotFlow("aAddress", Collections.emptyMap());
 
     // when
     verifyExecution(testContext, vertx, knotFlow, events -> {
@@ -155,7 +154,7 @@ class KnotEngineTest {
       VertxTestContext testContext, Vertx vertx) throws Throwable {
     // given
     createFailingKnot(vertx, "bAddress", false);
-    KnotFlow knotFlow = new KnotFlow(new KnotFlowStep("bAddress"), Collections.emptyMap());
+    KnotFlow knotFlow = new KnotFlow("bAddress", Collections.emptyMap());
 
     // when
     verifyExecution(testContext, vertx, knotFlow, events -> {
@@ -176,7 +175,7 @@ class KnotEngineTest {
       VertxTestContext testContext, Vertx vertx) throws Throwable {
     // given
     createFailingKnot(vertx, "aAddress", true);
-    KnotFlow knotFlow = new KnotFlow(new KnotFlowStep("aAddress"), Collections.emptyMap());
+    KnotFlow knotFlow = new KnotFlow("aAddress", Collections.emptyMap());
 
     // when
     // then
@@ -190,9 +189,8 @@ class KnotEngineTest {
     // given
     createSuccessKnot(vertx, "aAddress", "next");
     createSuccessKnot(vertx, "bAddress", null);
-    KnotFlow knotFlow = new KnotFlow(new KnotFlowStep("aAddress"),
-        Collections.singletonMap("next",
-            new KnotFlow(new KnotFlowStep("bAddress"), Collections.emptyMap())));
+    KnotFlow knotFlow = new KnotFlow("aAddress",
+        Collections.singletonMap("next", new KnotFlow("bAddress", Collections.emptyMap())));
 
     // when
     verifyExecution(testContext, vertx, knotFlow, events -> {
@@ -216,9 +214,8 @@ class KnotEngineTest {
     // given
     createFailingKnot(vertx, "aAddress", false);
     createSuccessKnot(vertx, "bAddress", null);
-    KnotFlow knotFlow = new KnotFlow(new KnotFlowStep("aAddress"),
-        Collections.singletonMap("error",
-            new KnotFlow(new KnotFlowStep("bAddress"), Collections.emptyMap())));
+    KnotFlow knotFlow = new KnotFlow("aAddress",
+        Collections.singletonMap("error", new KnotFlow("bAddress", Collections.emptyMap())));
 
     // when
     verifyExecution(testContext, vertx, knotFlow, events -> {
@@ -242,9 +239,8 @@ class KnotEngineTest {
     // given
     createFailingKnot(vertx, "aAddress", false);
     createNotProcessingKnot(vertx, "bAddress");
-    KnotFlow knotFlow = new KnotFlow(new KnotFlowStep("aAddress"),
-        Collections.singletonMap("error",
-            new KnotFlow(new KnotFlowStep("bAddress"), Collections.emptyMap())));
+    KnotFlow knotFlow = new KnotFlow("aAddress",
+        Collections.singletonMap("error", new KnotFlow("bAddress", Collections.emptyMap())));
 
     // when
     verifyExecution(testContext, vertx, knotFlow, events -> {
@@ -267,9 +263,8 @@ class KnotEngineTest {
       VertxTestContext testContext, Vertx vertx) throws Throwable {
     // given
     createFailingKnot(vertx, "aAddress", false);
-    KnotFlow knotFlow = new KnotFlow(new KnotFlowStep("aAddress"),
-        Collections.singletonMap("next",
-            new KnotFlow(new KnotFlowStep("someAddress"), Collections.emptyMap())));
+    KnotFlow knotFlow = new KnotFlow("aAddress",
+        Collections.singletonMap("next", new KnotFlow("someAddress", Collections.emptyMap())));
 
     // when
     verifyExecution(testContext, vertx, knotFlow, events -> {
@@ -292,8 +287,8 @@ class KnotEngineTest {
     createSuccessKnot(vertx, "aAddress", null);
     createSuccessKnot(vertx, "bAddress", null);
 
-    KnotFlow firstKnotFlow = new KnotFlow(new KnotFlowStep("aAddress"), Collections.emptyMap());
-    KnotFlow secondKnotFlow = new KnotFlow(new KnotFlowStep("bAddress"), Collections.emptyMap());
+    KnotFlow firstKnotFlow = new KnotFlow("aAddress", Collections.emptyMap());
+    KnotFlow secondKnotFlow = new KnotFlow("bAddress", Collections.emptyMap());
 
     // when
     // when
@@ -314,8 +309,8 @@ class KnotEngineTest {
     createLongProcessingKnot(vertx, "aAddress", null);
     createSuccessKnot(vertx, "bAddress", null);
 
-    KnotFlow firstKnotFlow = new KnotFlow(new KnotFlowStep("aAddress"), Collections.emptyMap());
-    KnotFlow secondKnotFlow = new KnotFlow(new KnotFlowStep("bAddress"), Collections.emptyMap());
+    KnotFlow firstKnotFlow = new KnotFlow("aAddress", Collections.emptyMap());
+    KnotFlow secondKnotFlow = new KnotFlow("bAddress", Collections.emptyMap());
 
     // when
     // when
