@@ -22,14 +22,14 @@ import io.vertx.core.json.JsonObject;
 import java.util.Iterator;
 import java.util.List;
 
-class EntryLogTestHelper {
+class FlowEntryLogVerifier {
 
   private static final String ASSERTION_MESSAGE = "They are equal, current [%s], expected [%s]";
 
-  static boolean verifyLogEntries(JsonObject log, List<Operation> expectedList) {
+  static void verifyLogEntries(JsonObject log, List<Operation> expectedList) {
     JsonArray logArray = log.getJsonArray("operations", new JsonArray());
     if (logArray.size() != expectedList.size()) {
-      return false;
+      throw new AssertionError(String.format(ASSERTION_MESSAGE, logArray, expectedList));
     }
     Iterator<JsonObject> operationsItr = logArray.stream()
         .map(operation -> (JsonObject) operation)
@@ -46,7 +46,6 @@ class EntryLogTestHelper {
         throw new AssertionError(String.format(ASSERTION_MESSAGE, logArray, expectedList));
       }
     }
-    return true;
   }
 
   static final class Operation {
@@ -71,6 +70,5 @@ class EntryLogTestHelper {
           '}';
     }
   }
-
 
 }

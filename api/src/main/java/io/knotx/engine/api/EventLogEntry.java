@@ -47,6 +47,10 @@ public class EventLogEntry {
     return new EventLogEntry(consumerAddress, EventAction.ERROR, transition);
   }
 
+  public static EventLogEntry timeout(String consumerAddress) {
+    return new EventLogEntry(consumerAddress, EventAction.TIMEOUT, null);
+  }
+
   private EventLogEntry(String consumerAddress, EventAction action, String transition) {
     this.consumer = consumerAddress;
     this.action = action;
@@ -83,7 +87,8 @@ public class EventLogEntry {
     RECEIVED,
     SKIPPED,
     PROCESSED,
-    ERROR
+    ERROR,
+    TIMEOUT
   }
 
 }

@@ -15,6 +15,7 @@
  */
 package io.knotx.engine.core.impl;
 
+import io.knotx.engine.api.EventLogEntry;
 import io.knotx.engine.api.FragmentEvent;
 import io.knotx.engine.api.FragmentEvent.Status;
 import io.knotx.engine.api.FragmentEventContext;
@@ -28,6 +29,8 @@ import io.knotx.server.api.context.ClientRequest;
 import io.reactivex.Flowable;
 import io.reactivex.Single;
 import io.reactivex.SingleSource;
+import io.vertx.core.eventbus.ReplyException;
+import io.vertx.core.eventbus.ReplyFailure;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import io.vertx.reactivex.core.Vertx;
@@ -35,6 +38,7 @@ import io.vertx.serviceproxy.ServiceException;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 class DefaultKnotEngine implements KnotEngine {
@@ -117,17 +121,38 @@ class DefaultKnotEngine implements KnotEngine {
 
   private SingleSource<? extends FragmentEventResult> handleProxyError(FragmentEventContext context,
       Throwable error) {
+    FragmentEvent fragmentEvent = context.getFragmentEvent();
     if (isFatal(error)) {
-      LOGGER.error("Knot processing failed with fatal error [{}].", context.getFragmentEvent(),
+      LOGGER.error("Knot processing failed with fatal error [{}].", fragmentEvent,
           error);
       throw new KnotProcessingFatalException(
           new Fragment(((ServiceException) error).getDebugInfo()));
     } else {
       LOGGER.warn("Knot processing failed [{}], trying to process with the 'error' transition.",
-          context.getFragmentEvent(), error);
+          fragmentEvent, error);
+      fragmentEvent.setStatus(Status.FAILURE);
+      Optional<KnotFlow> flow = context.getFragmentEvent().getFlow();
+      flow.ifPresent(knotFlow -> logError(fragmentEvent, knotFlow, error));
       return Single
-          .just(new FragmentEventResult(context.getFragmentEvent(), DEFAULT_ERROR_TRANSITION));
+          .just(new FragmentEventResult(fragmentEvent, DEFAULT_ERROR_TRANSITION));
     }
+  }
+
+  private void logError(FragmentEvent fragmentEvent, KnotFlow flow,
+      Throwable error) {
+    if (isTimeout(error)) {
+      fragmentEvent
+          .log(EventLogEntry.timeout(flow.getStep().getAddress()));
+    } else {
+      fragmentEvent
+          .log(EventLogEntry.error(flow.getStep().getAddress(), "error"));
+    }
+  }
+
+  private boolean isTimeout(Throwable error) {
+    return
+        error instanceof ReplyException
+            && ((ReplyException) error).failureType() == ReplyFailure.TIMEOUT;
   }
 
   private boolean isFatal(Throwable error) {
