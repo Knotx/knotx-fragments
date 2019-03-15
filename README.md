@@ -85,14 +85,17 @@ The fragment configuration looks like
 {
   "flow": {
     "step": {
-      "address": "knotx.knot.databridge"
-      // delivery options, circuit breaker options, knot params
+      "address": "knotx.knot.databridge",
+      "deliveryOptions": {},
+      "circuitBreakerOptions": {},
+      "knotParams": {}
     },
     "onTransition": {
       "next": {
         "step": {
-          "address": "knotx.knot.te"
-          // delivery options, circuit breaker options, knot params
+          "address": "knotx.knot.te",
+          "deliveryOptions": {},
+          "circuitBreakerOptions": {}
         }
       }
     }
