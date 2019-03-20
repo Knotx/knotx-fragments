@@ -7,12 +7,12 @@ Knot Engine processes Fragments using **Knots**, that are self-contained service
 and transform Fragments.
 Each Fragment defines its own processing path which is called **Flow**.
 A Flow is a **graph of Steps** that Fragment will be routed through by the Knot Engine. 
-A **Step** is a specific use of Knot (with its own configuration and context).
+A **Step** is a specific use of Knot (it calls logic in Knot in specified way and with defined behaviour).
 
-Fragments are
+**Knot Engine processes all Fragments with defined Flow.**
 
 # How to configure
-Knot Engine processes **all** fragments containing `flowAlias` or `flow` configuration 
+Flow can be defined in two ways, either by `flowAlias` or `flow` configuration 
 entries. This section describes how flow can be defined in fragment configuration. The last chapter
 explains how Knot Engine can be configured in [Knot.x Server](https://github.com/Knotx/knotx-server-http).
 
