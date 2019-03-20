@@ -1,7 +1,15 @@
 # Knot.x Knot Engine
 
 # How does it works
-It is a handler in server flow...
+It is a **Handler** that processes a request during HTTP Server request processing.
+It operates on **Fragments** that are result of breaking request into smaller, independent parts.
+Knot Engine processes Fragments using **Knots**, that are self-contained services that enriches 
+and transform Fragments.
+Each Fragment defines its own processing path which is called **Flow**.
+A Flow is a **graph of Steps** that Fragment will be routed through by the Knot Engine. 
+A **Step** is a specific use of Knot (with its own configuration and context).
+
+Fragments are
 
 # How to configure
 Knot Engine processes **all** fragments containing `flowAlias` or `flow` configuration 
