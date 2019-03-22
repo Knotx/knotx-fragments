@@ -19,31 +19,34 @@ package io.knotx.engine.core;
 
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
+import java.util.Arrays;
 import java.util.Iterator;
-import java.util.List;
 
 class FlowEntryLogVerifier {
 
-  private static final String ASSERTION_MESSAGE = "They are equal, current [%s], expected [%s]";
+  private static final String ASSERTION_MESSAGE = "They are equal, \ncurrent: \n[%s],\n expected: \n[%s]";
 
-  static void verifyLogEntries(JsonObject log, List<Operation> expectedList) {
+  static void verifyLogEntries(JsonObject log, Operation... expectedOperations) {
     JsonArray logArray = log.getJsonArray("operations", new JsonArray());
-    if (logArray.size() != expectedList.size()) {
-      throw new AssertionError(String.format(ASSERTION_MESSAGE, logArray, expectedList));
+    if (logArray.size() != expectedOperations.length) {
+      throw new AssertionError(
+          String.format(ASSERTION_MESSAGE, logArray, Arrays.toString(expectedOperations)));
     }
     Iterator<JsonObject> operationsItr = logArray.stream()
         .map(operation -> (JsonObject) operation)
         .iterator();
-    for (Operation expected : expectedList) {
+    for (Operation expectedOperation : expectedOperations) {
       if (operationsItr.hasNext()) {
         JsonObject operation = operationsItr.next();
-        boolean equal = expected.consumer.equals(operation.getString("consumer")) &&
-            expected.action.equals(operation.getString("action"));
+        boolean equal = expectedOperation.consumer.equals(operation.getString("consumer")) &&
+            expectedOperation.action.equals(operation.getString("action"));
         if (!equal) {
-          throw new AssertionError(String.format(ASSERTION_MESSAGE, logArray, expectedList));
+          throw new AssertionError(
+              String.format(ASSERTION_MESSAGE, logArray, Arrays.toString(expectedOperations)));
         }
       } else {
-        throw new AssertionError(String.format(ASSERTION_MESSAGE, logArray, expectedList));
+        throw new AssertionError(
+            String.format(ASSERTION_MESSAGE, logArray, Arrays.toString(expectedOperations)));
       }
     }
   }

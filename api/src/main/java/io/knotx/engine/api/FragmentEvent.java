@@ -31,11 +31,19 @@ public class FragmentEvent {
   private static final String STATUS_KEY = "status";
   private static final String ERROR_MESSAGE_KEY = "errorMessage";
 
-  private final Fragment fragment;
+  // TODO removed final here
+  private Fragment fragment;
+  // TODO remove flow
   private KnotFlow flow;
   private final EventLog log;
   private Status status = Status.UNPROCESSED;
   private String errorMessage;
+
+  public FragmentEvent(Fragment fragment) {
+    this.fragment = fragment;
+    this.flow = null;
+    this.log = new EventLog();
+  }
 
   public FragmentEvent(Fragment fragment, KnotFlow flow) {
     this.fragment = fragment;
@@ -76,6 +84,11 @@ public class FragmentEvent {
 
   public Fragment getFragment() {
     return fragment;
+  }
+
+  public FragmentEvent setFragment(Fragment fragment) {
+    this.fragment = fragment;
+    return this;
   }
 
   public JsonObject getLog() {

@@ -18,6 +18,7 @@
 package io.knotx.engine.api;
 
 import io.knotx.engine.api.FragmentEvent.Status;
+import io.knotx.engine.api.exception.KnotProcessingFatalException;
 import io.reactivex.Maybe;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;

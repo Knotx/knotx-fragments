@@ -21,7 +21,7 @@ import io.knotx.engine.api.FragmentEvent.Status;
 import io.knotx.engine.api.FragmentEventContext;
 import io.knotx.engine.api.FragmentEventResult;
 import io.knotx.engine.api.KnotFlow;
-import io.knotx.engine.api.KnotProcessingFatalException;
+import io.knotx.engine.api.exception.KnotProcessingFatalException;
 import io.knotx.engine.core.KnotEngine;
 import io.knotx.engine.reactivex.api.KnotProxy;
 import io.knotx.fragment.Fragment;

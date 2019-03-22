@@ -13,60 +13,45 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.knotx.engine.api;
+package io.knotx.engine.api.fragment;
 
+import io.knotx.fragment.Fragment;
 import io.knotx.server.api.context.ClientRequest;
 import io.vertx.codegen.annotations.DataObject;
 import io.vertx.core.json.JsonObject;
 import java.util.Objects;
 
 @DataObject
-public class FragmentEventContext {
+public class FragmentContext {
 
-  private static final String FRAGMENT_EVENT_KEY = "fragmentEvent";
+  private static final String FRAGMENT_KEY = "fragment";
   private static final String CLIENT_REQUEST_KEY = "clientRequest";
-  private static final String ORDER_KEY = "order";
 
-  private final FragmentEvent fragmentEvent;
+  private final Fragment fragment;
   private final ClientRequest clientRequest;
-  private final int order;
 
-  // TODO remove order
-  public FragmentEventContext(FragmentEvent fragmentEvent, ClientRequest clientRequest) {
-    this.fragmentEvent = fragmentEvent;
+  public FragmentContext(Fragment fragment, ClientRequest clientRequest) {
+    this.fragment = fragment;
     this.clientRequest = clientRequest;
-    this.order = 0;
   }
 
-  public FragmentEventContext(FragmentEvent fragmentEvent, ClientRequest clientRequest, int order) {
-    this.fragmentEvent = fragmentEvent;
-    this.clientRequest = clientRequest;
-    this.order = order;
-  }
-
-  public FragmentEventContext(JsonObject json) {
-    this.fragmentEvent = new FragmentEvent(json.getJsonObject(FRAGMENT_EVENT_KEY));
+  public FragmentContext(JsonObject json) {
+    this.fragment = new Fragment(json.getJsonObject(FRAGMENT_KEY));
     this.clientRequest = new ClientRequest(json.getJsonObject(CLIENT_REQUEST_KEY));
-    this.order = json.getInteger(ORDER_KEY);
   }
 
   public JsonObject toJson() {
     return new JsonObject()
-        .put(FRAGMENT_EVENT_KEY, fragmentEvent.toJson())
-        .put(CLIENT_REQUEST_KEY, clientRequest.toJson())
-        .put(ORDER_KEY, order);
+        .put(FRAGMENT_KEY, fragment.toJson())
+        .put(CLIENT_REQUEST_KEY, clientRequest.toJson());
   }
 
-  public FragmentEvent getFragmentEvent() {
-    return fragmentEvent;
+  public Fragment getFragment() {
+    return fragment;
   }
 
   public ClientRequest getClientRequest() {
     return clientRequest;
-  }
-
-  public int getOrder() {
-    return order;
   }
 
   @Override
@@ -77,23 +62,21 @@ public class FragmentEventContext {
     if (o == null || getClass() != o.getClass()) {
       return false;
     }
-    FragmentEventContext that = (FragmentEventContext) o;
-    return order == that.order &&
-        Objects.equals(fragmentEvent, that.fragmentEvent) &&
+    FragmentContext that = (FragmentContext) o;
+    return Objects.equals(fragment, that.fragment) &&
         Objects.equals(clientRequest, that.clientRequest);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(fragmentEvent, clientRequest, order);
+    return Objects.hash(fragment, clientRequest);
   }
 
   @Override
   public String toString() {
-    return "FragmentEventContext{" +
-        "fragmentEvent=" + fragmentEvent +
+    return "FragmentContext{" +
+        "fragment=" + fragment +
         ", clientRequest=" + clientRequest +
-        ", order=" + order +
         '}';
   }
 }

@@ -26,7 +26,6 @@ import io.knotx.engine.core.FlowEntryLogVerifier.Operation;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
 import io.vertx.reactivex.core.Vertx;
-import java.util.Arrays;
 import java.util.Collections;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
@@ -53,14 +52,14 @@ class KnotEngineProcessingOrderTest {
         events -> {
           //then
           Assertions.assertEquals(2, events.size());
-          verifyLogEntries(events.get(0).getLog(), Arrays.asList(
+          verifyLogEntries(events.get(0).getLog(),
               Operation.of("aAddress", "RECEIVED"),
               Operation.of("aAddress", "PROCESSED")
-          ));
-          verifyLogEntries(events.get(1).getLog(), Arrays.asList(
+          );
+          verifyLogEntries(events.get(1).getLog(),
               Operation.of("bAddress", "RECEIVED"),
               Operation.of("bAddress", "PROCESSED")
-          ));
+          );
         });
   }
 

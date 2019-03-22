@@ -35,6 +35,14 @@ public class EventLogEntry {
     return new EventLogEntry(consumerAddress, EventAction.RECEIVED, null);
   }
 
+  public static EventLogEntry success(String consumerAddress, String transition) {
+    return new EventLogEntry(consumerAddress, EventAction.SUCCESS, transition);
+  }
+
+  public static EventLogEntry unsupported(String consumerAddress, String transition) {
+    return new EventLogEntry(consumerAddress, EventAction.UNSUPPORTED_TRANSITION, transition);
+  }
+
   static EventLogEntry processed(String consumerAddress, String transition) {
     return new EventLogEntry(consumerAddress, EventAction.PROCESSED, transition);
   }
@@ -83,12 +91,15 @@ public class EventLogEntry {
         '}';
   }
 
+  // TODO remove received, skipped, processed
   enum EventAction {
+    SUCCESS, //OK
     RECEIVED,
     SKIPPED,
     PROCESSED,
-    ERROR,
-    TIMEOUT
+    UNSUPPORTED_TRANSITION, //OK
+    ERROR,//OK
+    TIMEOUT //?
   }
 
 }

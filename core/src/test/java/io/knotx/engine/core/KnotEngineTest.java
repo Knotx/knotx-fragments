@@ -34,7 +34,6 @@ import io.vertx.core.eventbus.DeliveryOptions;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
 import io.vertx.reactivex.core.Vertx;
-import java.util.Arrays;
 import java.util.Collections;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
@@ -71,9 +70,9 @@ class KnotEngineTest {
       // then
       Assertions.assertEquals(1, events.size());
       Assertions.assertEquals(Status.FAILURE, events.get(0).getStatus());
-      verifyLogEntries(events.get(0).getLog(), Collections.singletonList(
+      verifyLogEntries(events.get(0).getLog(),
           Operation.of("invalidAddress", "ERROR")
-      ));
+      );
     });
   }
 
@@ -90,10 +89,10 @@ class KnotEngineTest {
       // then
       Assertions.assertEquals(1, events.size());
       Assertions.assertEquals(Status.UNPROCESSED, events.get(0).getStatus());
-      verifyLogEntries(events.get(0).getLog(), Arrays.asList(
+      verifyLogEntries(events.get(0).getLog(),
           Operation.of("aAddress", "RECEIVED"),
           Operation.of("aAddress", "SKIPPED")
-      ));
+      );
     });
   }
 
@@ -109,10 +108,10 @@ class KnotEngineTest {
       // then
       Assertions.assertEquals(1, events.size());
       Assertions.assertEquals(Status.SUCCESS, events.get(0).getStatus());
-      verifyLogEntries(events.get(0).getLog(), Arrays.asList(
+      verifyLogEntries(events.get(0).getLog(),
           Operation.of("aAddress", "RECEIVED"),
           Operation.of("aAddress", "PROCESSED")
-      ));
+      );
     });
   }
 
@@ -129,10 +128,10 @@ class KnotEngineTest {
       // then
       Assertions.assertEquals(1, events.size());
       Assertions.assertEquals(Status.SUCCESS, events.get(0).getStatus());
-      verifyLogEntries(events.get(0).getLog(), Arrays.asList(
+      verifyLogEntries(events.get(0).getLog(),
           Operation.of("aAddress", "RECEIVED"),
           Operation.of("aAddress", "PROCESSED")
-      ));
+      );
     });
   }
 
@@ -148,10 +147,10 @@ class KnotEngineTest {
       // then
       Assertions.assertEquals(1, events.size());
       Assertions.assertEquals(Status.FAILURE, events.get(0).getStatus());
-      verifyLogEntries(events.get(0).getLog(), Arrays.asList(
+      verifyLogEntries(events.get(0).getLog(),
           Operation.of("bAddress", "RECEIVED"),
           Operation.of("bAddress", "ERROR")
-      ));
+      );
     });
   }
 
@@ -173,9 +172,9 @@ class KnotEngineTest {
       // then
       Assertions.assertEquals(1, events.size());
       Assertions.assertEquals(Status.FAILURE, events.get(0).getStatus());
-      verifyLogEntries(events.get(0).getLog(), Arrays.asList(
+      verifyLogEntries(events.get(0).getLog(),
           Operation.of("bAddress", "TIMEOUT")
-      ));
+      );
     });
   }
 
@@ -207,12 +206,12 @@ class KnotEngineTest {
       // then
       Assertions.assertEquals(1, events.size());
       Assertions.assertEquals(Status.SUCCESS, events.get(0).getStatus());
-      verifyLogEntries(events.get(0).getLog(), Arrays.asList(
+      verifyLogEntries(events.get(0).getLog(),
           Operation.of("aAddress", "RECEIVED"),
           Operation.of("aAddress", "PROCESSED"),
           Operation.of("bAddress", "RECEIVED"),
           Operation.of("bAddress", "PROCESSED")
-      ));
+      );
     });
   }
 
@@ -231,12 +230,12 @@ class KnotEngineTest {
       // then
       Assertions.assertEquals(1, events.size());
       Assertions.assertEquals(Status.SUCCESS, events.get(0).getStatus());
-      verifyLogEntries(events.get(0).getLog(), Arrays.asList(
+      verifyLogEntries(events.get(0).getLog(),
           Operation.of("aAddress", "RECEIVED"),
           Operation.of("aAddress", "ERROR"),
           Operation.of("bAddress", "RECEIVED"),
           Operation.of("bAddress", "PROCESSED")
-      ));
+      );
     });
   }
 
@@ -255,12 +254,12 @@ class KnotEngineTest {
       // then
       Assertions.assertEquals(1, events.size());
       Assertions.assertEquals(Status.FAILURE, events.get(0).getStatus());
-      verifyLogEntries(events.get(0).getLog(), Arrays.asList(
+      verifyLogEntries(events.get(0).getLog(),
           Operation.of("aAddress", "RECEIVED"),
           Operation.of("aAddress", "ERROR"),
           Operation.of("bAddress", "RECEIVED"),
           Operation.of("bAddress", "SKIPPED")
-      ));
+      );
     });
   }
 
@@ -278,10 +277,10 @@ class KnotEngineTest {
       //then
       Assertions.assertEquals(1, events.size());
       Assertions.assertEquals(Status.FAILURE, events.get(0).getStatus());
-      verifyLogEntries(events.get(0).getLog(), Arrays.asList(
+      verifyLogEntries(events.get(0).getLog(),
           Operation.of("aAddress", "RECEIVED"),
           Operation.of("aAddress", "ERROR")
-      ));
+      );
     });
   }
 

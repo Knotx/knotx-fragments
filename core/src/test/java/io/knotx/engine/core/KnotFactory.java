@@ -17,7 +17,7 @@ package io.knotx.engine.core;
 
 import io.knotx.engine.api.FragmentEvent;
 import io.knotx.engine.api.FragmentEventResult;
-import io.knotx.engine.api.KnotProcessingFatalException;
+import io.knotx.engine.api.exception.KnotProcessingFatalException;
 import io.knotx.engine.api.TraceableKnotOptions;
 import io.knotx.fragment.Fragment;
 import io.knotx.knotengine.core.junit.MockKnotProxy;
