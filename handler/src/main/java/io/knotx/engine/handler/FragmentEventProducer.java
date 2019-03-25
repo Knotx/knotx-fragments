@@ -33,9 +33,10 @@ class FragmentEventProducer {
     flowProvider = new KnotFlowProvider(flows, steps);
   }
 
+  // TODO fix
   List<FragmentEvent> get(List<Fragment> fragments) {
     return fragments.stream()
-        .map(fragment -> new FragmentEvent(fragment, flowProvider.get(fragment).orElse(null)))
+        .map(fragment -> new FragmentEvent(fragment)) //, flowProvider.get(fragment).orElse(null)))
         .collect(
             Collectors.toList());
   }

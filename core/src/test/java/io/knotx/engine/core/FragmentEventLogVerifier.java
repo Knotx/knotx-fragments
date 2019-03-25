@@ -22,7 +22,7 @@ import io.vertx.core.json.JsonObject;
 import java.util.Arrays;
 import java.util.Iterator;
 
-class FlowEntryLogVerifier {
+class FragmentEventLogVerifier {
 
   private static final String ASSERTION_MESSAGE = "They are equal, \ncurrent: \n[%s],\n expected: \n[%s]";
 

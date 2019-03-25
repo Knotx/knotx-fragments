@@ -18,8 +18,7 @@
 package io.knotx.engine.handler;
 
 import io.knotx.engine.api.FragmentEvent;
-import io.knotx.engine.core.KnotEngine;
-import io.knotx.engine.core.impl.KnotEngineFactory;
+import io.knotx.engine.core.FragmentsEngine;
 import io.knotx.engine.handler.options.KnotEngineHandlerOptions;
 import io.knotx.fragment.Fragment;
 import io.knotx.server.api.context.RequestContext;
@@ -37,27 +36,28 @@ import java.util.stream.Collectors;
 public class KnotEngineHandler implements Handler<RoutingContext> {
 
   private FragmentEventProducer eventProducer;
-  private KnotEngine engine;
+  private FragmentsEngine engine;
   private final RequestContextEngine requestContextEngine;
 
   KnotEngineHandler(Vertx vertx, JsonObject config) {
     KnotEngineHandlerOptions options = new KnotEngineHandlerOptions(config);
     eventProducer = new FragmentEventProducer(options.getFlows(), options.getSteps());
-    engine = KnotEngineFactory.get(vertx);
+    engine = new FragmentsEngine(vertx);
     requestContextEngine = new DefaultRequestContextEngine(getClass().getSimpleName());
   }
 
   @Override
   public void handle(RoutingContext routingContext) {
-    RequestContext requestContext = routingContext.get(RequestContext.KEY);
-    engine.execute(eventProducer.get(requestContext.getRequestEvent().getFragments()),
-        requestContext.getRequestEvent().getClientRequest())
-        .map(events -> toHandlerResult(events, requestContext))
-        .subscribe(
-            result -> requestContextEngine
-                .processAndSaveResult(result, routingContext, requestContext),
-            error -> requestContextEngine.handleFatal(routingContext, requestContext, error)
-        );
+    // TODO
+//    RequestContext requestContext = routingContext.get(RequestContext.KEY);
+//    engine.execute(eventProducer.get(requestContext.getRequestEvent().getFragments()),
+//        requestContext.getRequestEvent().getClientRequest())
+//        .map(events -> toHandlerResult(events, requestContext))
+//        .subscribe(
+//            result -> requestContextEngine
+//                .processAndSaveResult(result, routingContext, requestContext),
+//            error -> requestContextEngine.handleFatal(routingContext, requestContext, error)
+//        );
   }
 
   private RequestEventHandlerResult toHandlerResult(List<FragmentEvent> events,

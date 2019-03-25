@@ -16,10 +16,12 @@
 package io.knotx.engine.api.fragment;
 
 import io.knotx.fragment.Fragment;
+import io.vertx.codegen.annotations.DataObject;
 import io.vertx.core.json.JsonObject;
 import java.util.Objects;
 import org.apache.commons.lang3.StringUtils;
 
+@DataObject
 public class FragmentResult {
 
   public static final String DEFAULT_TRANSITION = "_next";

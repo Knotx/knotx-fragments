@@ -22,21 +22,30 @@ import io.knotx.engine.api.EventLogEntry;
 import io.knotx.engine.api.FragmentEvent;
 import io.knotx.engine.api.FragmentEvent.Status;
 import io.knotx.engine.api.FragmentEventContext;
+import io.knotx.engine.api.GraphNode;
 import io.knotx.engine.api.exception.KnotProcessingFatalException;
 import io.knotx.engine.api.fragment.FragmentContext;
 import io.knotx.engine.api.fragment.FragmentResult;
 import io.knotx.fragment.Fragment;
 import io.reactivex.Single;
 import io.reactivex.SingleSource;
+import io.vertx.core.Vertx;
 import io.vertx.core.eventbus.ReplyException;
 import io.vertx.core.eventbus.ReplyFailure;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
+import io.vertx.reactivex.RxHelper;
 import io.vertx.serviceproxy.ServiceException;
 
 class GraphEngine {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(GraphEngine.class);
+
+  private final Vertx vertx;
+
+  GraphEngine(Vertx vertx) {
+    this.vertx = vertx;
+  }
 
   Single<FragmentEvent> start(FragmentEventContext eventContext, GraphNode root) {
     FragmentExecutionContext executionContext = new FragmentExecutionContext()
@@ -49,6 +58,7 @@ class GraphEngine {
   private Single<FragmentExecutionContext> processNode(FragmentExecutionContext context) {
     return Single.just(context)
         .map(this::traceEvent)
+        .observeOn(RxHelper.blockingScheduler(vertx))
         .flatMap(this::doGraphNodeOperation)
         .map(result -> setNextNode(result, context))
         .flatMap(ctx -> {
@@ -100,7 +110,8 @@ class GraphEngine {
       FragmentEvent fragmentEvent = context.getFragmentEventContext().getFragmentEvent();
       fragmentEvent.setStatus(Status.FAILURE);
       fragmentEvent
-          .log(EventLogEntry.unsupported(context.getCurrentNode().getName(), result.getTransition()));
+          .log(EventLogEntry
+              .unsupported(context.getCurrentNode().getName(), result.getTransition()));
     }
     context.end();
     return context;

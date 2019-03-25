@@ -18,36 +18,24 @@ package io.knotx.engine.api;
 
 import io.knotx.fragment.Fragment;
 import io.vertx.codegen.annotations.DataObject;
-import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.core.json.JsonObject;
-import java.util.Optional;
 
 @DataObject
 public class FragmentEvent {
 
   private static final String FRAGMENT_KEY = "fragment";
-  private static final String FLOW_KEY = "flow";
   private static final String LOG_KEY = "log";
   private static final String STATUS_KEY = "status";
   private static final String ERROR_MESSAGE_KEY = "errorMessage";
 
   // TODO removed final here
   private Fragment fragment;
-  // TODO remove flow
-  private KnotFlow flow;
   private final EventLog log;
   private Status status = Status.UNPROCESSED;
   private String errorMessage;
 
   public FragmentEvent(Fragment fragment) {
     this.fragment = fragment;
-    this.flow = null;
-    this.log = new EventLog();
-  }
-
-  public FragmentEvent(Fragment fragment, KnotFlow flow) {
-    this.fragment = fragment;
-    this.flow = flow;
     this.log = new EventLog();
   }
 
@@ -56,25 +44,13 @@ public class FragmentEvent {
     this.log = event.log;
     this.status = event.status;
     this.errorMessage = event.errorMessage;
-    this.flow = event.getFlow().isPresent() ? event.getFlow().get() : null;
   }
 
   public FragmentEvent(JsonObject json) {
     this.fragment = new Fragment(json.getJsonObject(FRAGMENT_KEY));
-    this.flow = new KnotFlow(json.getJsonObject(FLOW_KEY));
     this.log = new EventLog(json.getJsonObject(LOG_KEY));
     this.status = Status.valueOf(json.getString(STATUS_KEY));
     this.errorMessage = json.getString(ERROR_MESSAGE_KEY);
-  }
-
-  @GenIgnore
-  public Optional<KnotFlow> getFlow() {
-    return Optional.ofNullable(flow);
-  }
-
-  public FragmentEvent setFlow(KnotFlow flow) {
-    this.flow = flow;
-    return this;
   }
 
   public FragmentEvent log(EventLogEntry logEntry) {
@@ -111,7 +87,6 @@ public class FragmentEvent {
   public JsonObject toJson() {
     return new JsonObject()
         .put(FRAGMENT_KEY, fragment.toJson())
-        .put(FLOW_KEY, flow.toJson())
         .put(LOG_KEY, log.toJson())
         .put(STATUS_KEY, status)
         .put(ERROR_MESSAGE_KEY, errorMessage);
@@ -121,7 +96,6 @@ public class FragmentEvent {
   public String toString() {
     return "FragmentEvent{" +
         "fragment=" + fragment +
-        ", flow=" + flow +
         ", log=" + log +
         ", status=" + status +
         ", errorMessage='" + errorMessage + '\'' +

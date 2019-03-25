@@ -16,6 +16,7 @@
 package io.knotx.engine.core;
 
 import io.knotx.engine.api.FragmentEventContext;
+import io.knotx.engine.api.GraphNode;
 
 public class FragmentExecutionContext {
 
