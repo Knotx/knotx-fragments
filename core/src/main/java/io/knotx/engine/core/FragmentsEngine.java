@@ -28,7 +28,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * The Fragments Engine processes all fragment events from the request. Each fragment event contains
+ * Fragments Engine processes fragment events in the request scope. Each fragment event contains
  * a fragment and an event metadata such as status, event log. All fragment events are processed
  * asynchronously according to the graph. The engine uses the Map-Reduce pattern where list of
  * events (fragments) is transformed to single items and processed independently. The inspiration

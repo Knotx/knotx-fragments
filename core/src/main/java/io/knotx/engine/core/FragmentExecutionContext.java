@@ -18,37 +18,37 @@ package io.knotx.engine.core;
 import io.knotx.engine.api.FragmentEventContext;
 import io.knotx.engine.api.GraphNode;
 
-public class FragmentExecutionContext {
+class FragmentExecutionContext {
 
   private FragmentEventContext fragmentEventContext;
 
   private GraphNode currentNode;
 
-  public FragmentEventContext getFragmentEventContext() {
+  FragmentEventContext getFragmentEventContext() {
     return fragmentEventContext;
   }
 
-  public FragmentExecutionContext setFragmentEventContext(
+  FragmentExecutionContext setFragmentEventContext(
       FragmentEventContext fragmentEventContext) {
     this.fragmentEventContext = fragmentEventContext;
     return this;
   }
 
-  public GraphNode getCurrentNode() {
+  GraphNode getCurrentNode() {
     return currentNode;
   }
 
-  public FragmentExecutionContext setCurrentNode(GraphNode graphNode) {
+  FragmentExecutionContext setCurrentNode(GraphNode graphNode) {
     this.currentNode = graphNode;
     return this;
   }
 
-  public FragmentExecutionContext end() {
+  FragmentExecutionContext end() {
     currentNode = null;
     return this;
   }
 
-  public boolean isLast() {
+  boolean isLast() {
     return currentNode == null;
   }
 
