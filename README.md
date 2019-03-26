@@ -182,4 +182,65 @@ steps {
     }
   }
 }
+
+
 ```
+  graph {
+    proxyAlias = book-cache-decorator 
+    onTransition: {
+      next: {
+        proxyAlias = "te"
+        onTransition: {
+          next {
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+
+```
+proxies {
+  book-cache-decorator {
+    factory = "cache"
+    config {
+      proxyAlias = book-cb-proxy
+    }
+    
+  }
+  
+  book-cb-decorator {
+    factory = "cb"
+    config {
+      
+    }
+    proxyAlias = book-eb-proxy
+  }
+  
+  book-eb-proxy {
+    factory = "eb"
+    config {
+      address = "knotx.knot.books"
+      deliveryOptions {
+        sendTimeout = 1000
+      }
+    }
+  }
+  
+  book-classpath-proxy {
+    factory = "classpath"
+    config {
+      class = "MyLogic.class"
+    }
+  }
+  
+  book-http-proxy {
+    factory = "http"
+    config {
+      url = "http://localhost:8080/api/"
+    }
+  }
+  
+}

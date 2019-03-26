@@ -26,13 +26,9 @@ public class GraphNode {
 
   private String identifier;
 
-  /**
-   * It is always ok when returns value. If any exception then go to error transition.
-   */
   private Function<FragmentContext, Single<FragmentResult>> operation;
 
   private Map<String, GraphNode> outgoingEdges;
-
 
   public GraphNode(String identifier, Function<FragmentContext, Single<FragmentResult>> operation,
       Map<String, GraphNode> edges) {

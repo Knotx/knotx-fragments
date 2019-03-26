@@ -17,6 +17,7 @@ package io.knotx.engine.handler.options;
 
 import io.knotx.engine.api.KnotFlow;
 import io.knotx.engine.api.KnotFlowStep;
+import io.knotx.engine.handler.proxy.OperationProxyFactoryOptions;
 import io.vertx.codegen.annotations.DataObject;
 import io.vertx.core.json.JsonObject;
 import java.util.Map;
@@ -28,6 +29,8 @@ public class KnotEngineHandlerOptions {
   private Map<String, KnotFlow> flows;
 
   private Map<String, KnotFlowStep> steps;
+
+  private Map<String, OperationProxyFactoryOptions> operationProxies;
 
   public KnotEngineHandlerOptions(Map<String, KnotFlow> flows,
       Map<String, KnotFlowStep> steps) {
@@ -65,6 +68,16 @@ public class KnotEngineHandlerOptions {
     return this;
   }
 
+  public Map<String, OperationProxyFactoryOptions> getOperationProxies() {
+    return operationProxies;
+  }
+
+  public KnotEngineHandlerOptions setOperationProxies(
+      Map<String, OperationProxyFactoryOptions> operationProxies) {
+    this.operationProxies = operationProxies;
+    return this;
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) {
@@ -75,12 +88,13 @@ public class KnotEngineHandlerOptions {
     }
     KnotEngineHandlerOptions that = (KnotEngineHandlerOptions) o;
     return Objects.equals(flows, that.flows) &&
-        Objects.equals(steps, that.steps);
+        Objects.equals(steps, that.steps) &&
+        Objects.equals(operationProxies, that.operationProxies);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(flows, steps);
+    return Objects.hash(flows, steps, operationProxies);
   }
 
   @Override
@@ -88,6 +102,8 @@ public class KnotEngineHandlerOptions {
     return "KnotEngineHandlerOptions{" +
         "flows=" + flows +
         ", steps=" + steps +
+        ", operationProxies=" + operationProxies +
         '}';
   }
+
 }
