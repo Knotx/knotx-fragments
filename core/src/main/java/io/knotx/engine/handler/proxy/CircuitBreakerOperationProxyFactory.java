@@ -24,7 +24,6 @@ import io.vertx.circuitbreaker.CircuitBreakerOptions;
 import io.vertx.circuitbreaker.impl.CircuitBreakerImpl;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
-import java.util.Optional;
 
 public class CircuitBreakerOperationProxyFactory implements OperationProxyFactory {
 
@@ -34,17 +33,17 @@ public class CircuitBreakerOperationProxyFactory implements OperationProxyFactor
   }
 
   @Override
-  public FragmentOperation create(String alias, JsonObject config,
-      Optional<FragmentOperation> proxy,
-      Vertx vertx) {
+  public FragmentOperation create(String alias, JsonObject config, Vertx vertx,
+      FragmentOperation nextProxy) {
+
+    if (nextProxy == null) {
+      throw new IllegalStateException("Circuit Breaker proxy requires operation to follow");
+    }
 
     String circuitBreakerName = config.getString("circuitBreakerName");
     JsonObject circuitBreakerOptions = config.getJsonObject("circuitBreakerOptions");
     CircuitBreaker circuitBreaker = new CircuitBreakerImpl(circuitBreakerName, vertx,
         new CircuitBreakerOptions(circuitBreakerOptions));
-
-    FragmentOperation nextProxy = proxy.orElseThrow(
-        () -> new IllegalStateException("Circuit Breaker proxy requires operation to follow"));
 
     return (fragmentContext, resultHandler) -> circuitBreaker.executeWithFallback(
         f -> nextProxy.apply(fragmentContext,

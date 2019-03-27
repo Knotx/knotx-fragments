@@ -138,12 +138,12 @@ class OperationProxyProviderTest {
     OperationProxyFactory proxyFactory = Mockito.mock(OperationProxyFactory.class);
     when(proxyFactory.getName()).thenReturn(PROXY_FACTORY_NAME);
     when(proxyFactory
-        .create(eq(PROXY_ALIAS), any(), eq(Optional.of(expectedOperationSecond)), eq(vertx)))
+        .create(eq(PROXY_ALIAS), any(), eq(vertx), eq(expectedOperationSecond)))
         .thenReturn(expectedOperation);
 
     OperationProxyFactory proxyFactorySecond = Mockito.mock(OperationProxyFactory.class);
     when(proxyFactorySecond.getName()).thenReturn(PROXY_FACTORY_NAME_SECOND);
-    when(proxyFactorySecond.create(eq(PROXY_ALIAS_SECOND), any(), eq(Optional.empty()), eq(vertx)))
+    when(proxyFactorySecond.create(eq(PROXY_ALIAS_SECOND), any(), eq(vertx), eq(null)))
         .thenReturn(expectedOperationSecond);
 
     Map<String, OperationProxyFactoryOptions> proxies = ImmutableMap.of(
@@ -161,7 +161,7 @@ class OperationProxyProviderTest {
 
     // then
     Mockito.verify(proxyFactory)
-        .create(eq(PROXY_ALIAS), any(), eq(Optional.of(expectedOperationSecond)), eq(vertx));
+        .create(eq(PROXY_ALIAS), any(), eq(vertx), eq(expectedOperationSecond));
   }
 
   @CacheableProxy
@@ -173,8 +173,8 @@ class OperationProxyProviderTest {
     }
 
     @Override
-    public FragmentOperation create(String alias, JsonObject config,
-        Optional<FragmentOperation> nextProxy, Vertx vertx) {
+    public FragmentOperation create(String alias, JsonObject config, Vertx vertx,
+        FragmentOperation nextProxy) {
       return (fragmentContext, resultHandler) -> {
         FragmentResult result = new FragmentResult(fragmentContext.getFragment(),
             FragmentResult.DEFAULT_TRANSITION);

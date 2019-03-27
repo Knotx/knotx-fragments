@@ -21,7 +21,6 @@ import io.knotx.engine.api.proxy.OperationProxyFactory;
 import io.vertx.core.Vertx;
 import io.vertx.core.eventbus.DeliveryOptions;
 import io.vertx.core.json.JsonObject;
-import java.util.Optional;
 
 @CacheableProxy
 public class EBOperationProxyFactory implements OperationProxyFactory {
@@ -32,8 +31,8 @@ public class EBOperationProxyFactory implements OperationProxyFactory {
   }
 
   @Override
-  public FragmentOperation create(String alias, JsonObject config, Optional<FragmentOperation> proxy,
-      Vertx vertx) {
+  public FragmentOperation create(String alias, JsonObject config, Vertx vertx,
+      FragmentOperation nextProxy) {
     String address = config.getString("address");
     DeliveryOptions deliveryOptions = new DeliveryOptions(
         config.getJsonObject("deliveryOptions") == null ? new JsonObject()

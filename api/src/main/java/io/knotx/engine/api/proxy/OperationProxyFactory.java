@@ -17,12 +17,16 @@ package io.knotx.engine.api.proxy;
 
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
-import java.util.Optional;
+
 
 public interface OperationProxyFactory {
 
   String getName();
 
-  FragmentOperation create(String alias, JsonObject config, Optional<FragmentOperation> nextProxy, Vertx vertx);
+  /**
+   * @param nextProxy - next proxy chain operation, if last this option should be <pre>null</pre>
+   */
+  FragmentOperation create(String alias, JsonObject config, Vertx vertx,
+      FragmentOperation nextProxy);
 
 }

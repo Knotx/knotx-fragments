@@ -16,10 +16,10 @@
 
 rootProject.name = "knotx-fragments-engine"
 
-include("knotx-fragments-engine-api")
-include("knotx-fragments-engine-core")
-include("knotx-fragments-engine-handler")
+include("knotx-fragments-handler-api")
+include("knotx-fragments-handler-core")
+include("knotx-fragments-engine")
 
-project(":knotx-fragments-engine-api").projectDir = file("api")
-project(":knotx-fragments-engine-core").projectDir = file("core")
-project(":knotx-fragments-engine-handler").projectDir = file("handler")
+project(":knotx-fragments-handler-api").projectDir = file("api")
+project(":knotx-fragments-handler-core").projectDir = file("core")
+project(":knotx-fragments-engine").projectDir = file("engine")

@@ -58,12 +58,14 @@ public class OperationProxyProvider {
       return Optional.empty();
     }
 
-    Optional<FragmentOperation> operation = config.getNext().flatMap(this::get);
+    // recurrence here :)
+    FragmentOperation operation = config.getNext().flatMap(this::get).orElse(null);
+
     if (isCacheable(factory)) {
       return Optional.of(cache.computeIfAbsent(alias,
-          a -> factory.create(a, config.getConfig(), operation, vertx)));
+          a -> factory.create(alias, config.getConfig(), vertx, operation)));
     } else {
-      return Optional.of(factory.create(alias, config.getConfig(), operation, vertx));
+      return Optional.of(factory.create(alias, config.getConfig(), vertx, operation));
     }
   }
 
