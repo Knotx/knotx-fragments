@@ -13,12 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.knotx.engine.api;
+package io.knotx.engine.core;
 
 
 import io.knotx.fragment.Fragment;
 import io.vertx.codegen.annotations.DataObject;
 import io.vertx.core.json.JsonObject;
+import java.util.Objects;
 
 @DataObject
 public class FragmentEvent {
@@ -26,31 +27,28 @@ public class FragmentEvent {
   private static final String FRAGMENT_KEY = "fragment";
   private static final String LOG_KEY = "log";
   private static final String STATUS_KEY = "status";
-  private static final String ERROR_MESSAGE_KEY = "errorMessage";
 
-  // TODO removed final here
-  private Fragment fragment;
   private final EventLog log;
-  private Status status = Status.UNPROCESSED;
-  private String errorMessage;
+  private Fragment fragment;
+  private Status status;
 
   public FragmentEvent(Fragment fragment) {
     this.fragment = fragment;
     this.log = new EventLog();
-  }
-
-  public FragmentEvent(FragmentEvent event) {
-    this.fragment = event.fragment;
-    this.log = event.log;
-    this.status = event.status;
-    this.errorMessage = event.errorMessage;
+    this.status = Status.UNPROCESSED;
   }
 
   public FragmentEvent(JsonObject json) {
     this.fragment = new Fragment(json.getJsonObject(FRAGMENT_KEY));
     this.log = new EventLog(json.getJsonObject(LOG_KEY));
     this.status = Status.valueOf(json.getString(STATUS_KEY));
-    this.errorMessage = json.getString(ERROR_MESSAGE_KEY);
+  }
+
+  public JsonObject toJson() {
+    return new JsonObject()
+        .put(FRAGMENT_KEY, fragment.toJson())
+        .put(LOG_KEY, log.toJson())
+        .put(STATUS_KEY, status);
   }
 
   public FragmentEvent log(EventLogEntry logEntry) {
@@ -80,25 +78,31 @@ public class FragmentEvent {
     return this;
   }
 
-  public String getErrorMessage() {
-    return errorMessage;
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    FragmentEvent that = (FragmentEvent) o;
+    return Objects.equals(log, that.log) &&
+        Objects.equals(fragment, that.fragment) &&
+        status == that.status;
   }
 
-  public JsonObject toJson() {
-    return new JsonObject()
-        .put(FRAGMENT_KEY, fragment.toJson())
-        .put(LOG_KEY, log.toJson())
-        .put(STATUS_KEY, status)
-        .put(ERROR_MESSAGE_KEY, errorMessage);
+  @Override
+  public int hashCode() {
+    return Objects.hash(log, fragment, status);
   }
 
   @Override
   public String toString() {
     return "FragmentEvent{" +
-        "fragment=" + fragment +
-        ", log=" + log +
+        "log=" + log +
+        ", fragment=" + fragment +
         ", status=" + status +
-        ", errorMessage='" + errorMessage + '\'' +
         '}';
   }
 

@@ -30,7 +30,7 @@ plugins {
 val junitTestCompile = configurations.create("junitTestCompile")
 
 dependencies {
-    api(project(":knotx-knot-engine-api"))
+    api(project(":knotx-fragments-engine-api"))
 }
 
 junitTestCompile.extendsFrom(configurations.named("testImplementation").get())

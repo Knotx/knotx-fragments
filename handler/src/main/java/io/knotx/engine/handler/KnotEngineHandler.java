@@ -17,10 +17,15 @@
  */
 package io.knotx.engine.handler;
 
-import io.knotx.engine.api.FragmentEvent;
+import io.knotx.engine.core.FragmentEvent;
+import io.knotx.engine.core.FragmentEventContext;
+import io.knotx.engine.core.FragmentEventContextGraphAware;
 import io.knotx.engine.core.FragmentsEngine;
 import io.knotx.engine.handler.options.KnotEngineHandlerOptions;
+import io.knotx.engine.handler.proxy.OperationProxyFactoryProvider;
+import io.knotx.engine.handler.proxy.OperationProxyProvider;
 import io.knotx.fragment.Fragment;
+import io.knotx.server.api.context.ClientRequest;
 import io.knotx.server.api.context.RequestContext;
 import io.knotx.server.api.context.RequestEvent;
 import io.knotx.server.api.handler.DefaultRequestContextEngine;
@@ -35,29 +40,34 @@ import java.util.stream.Collectors;
 
 public class KnotEngineHandler implements Handler<RoutingContext> {
 
-  private FragmentEventProducer eventProducer;
-  private FragmentsEngine engine;
+  private final FragmentsEngine engine;
   private final RequestContextEngine requestContextEngine;
+  private final GraphBuilder graphBuilder;
 
   KnotEngineHandler(Vertx vertx, JsonObject config) {
     KnotEngineHandlerOptions options = new KnotEngineHandlerOptions(config);
-    eventProducer = new FragmentEventProducer(options.getFlows(), options.getSteps());
+
+    OperationProxyProvider proxyProvider = new OperationProxyProvider(options.getOperations(),
+        new OperationProxyFactoryProvider(), vertx.getDelegate());
+    graphBuilder = new GraphBuilder(options.getFlows(), proxyProvider);
+
     engine = new FragmentsEngine(vertx);
     requestContextEngine = new DefaultRequestContextEngine(getClass().getSimpleName());
   }
 
   @Override
   public void handle(RoutingContext routingContext) {
-    // TODO
-//    RequestContext requestContext = routingContext.get(RequestContext.KEY);
-//    engine.execute(eventProducer.get(requestContext.getRequestEvent().getFragments()),
-//        requestContext.getRequestEvent().getClientRequest())
-//        .map(events -> toHandlerResult(events, requestContext))
-//        .subscribe(
-//            result -> requestContextEngine
-//                .processAndSaveResult(result, routingContext, requestContext),
-//            error -> requestContextEngine.handleFatal(routingContext, requestContext, error)
-//        );
+    RequestContext requestContext = routingContext.get(RequestContext.KEY);
+    List<Fragment> fragments = requestContext.getRequestEvent().getFragments();
+    ClientRequest clientRequest = requestContext.getRequestEvent().getClientRequest();
+
+    engine.execute(toEvents(fragments, clientRequest))
+        .map(events -> toHandlerResult(events, requestContext))
+        .subscribe(
+            result -> requestContextEngine
+                .processAndSaveResult(result, routingContext, requestContext),
+            error -> requestContextEngine.handleFatal(routingContext, requestContext, error)
+        );
   }
 
   private RequestEventHandlerResult toHandlerResult(List<FragmentEvent> events,
@@ -71,5 +81,20 @@ public class KnotEngineHandler implements Handler<RoutingContext> {
     List<Fragment> fragments = events.stream().map(FragmentEvent::getFragment)
         .collect(Collectors.toList());
     return new RequestEvent(requestEvent.getClientRequest(), fragments, requestEvent.getPayload());
+  }
+
+  private List<FragmentEventContextGraphAware> toEvents(List<Fragment> fragments,
+      ClientRequest clientRequest) {
+    return fragments.stream()
+        .map(
+            fragment -> {
+              FragmentEventContext fragmentEventContext = new FragmentEventContext(
+                  new FragmentEvent(fragment), clientRequest);
+              return graphBuilder.build(fragment).map(
+                  graphNode -> new FragmentEventContextGraphAware(fragmentEventContext, graphNode))
+                  .orElseGet(() -> new FragmentEventContextGraphAware(fragmentEventContext));
+            })
+        .collect(
+            Collectors.toList());
   }
 }

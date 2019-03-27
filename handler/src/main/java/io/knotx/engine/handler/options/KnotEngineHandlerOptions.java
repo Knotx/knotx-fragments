@@ -15,8 +15,6 @@
  */
 package io.knotx.engine.handler.options;
 
-import io.knotx.engine.api.KnotFlow;
-import io.knotx.engine.api.KnotFlowStep;
 import io.knotx.engine.handler.proxy.OperationProxyFactoryOptions;
 import io.vertx.codegen.annotations.DataObject;
 import io.vertx.core.json.JsonObject;
@@ -26,16 +24,12 @@ import java.util.Objects;
 @DataObject(generateConverter = true)
 public class KnotEngineHandlerOptions {
 
-  private Map<String, KnotFlow> flows;
+  private Map<String, GraphOptions> flows;
 
-  private Map<String, KnotFlowStep> steps;
+  private Map<String, OperationProxyFactoryOptions> operations;
 
-  private Map<String, OperationProxyFactoryOptions> operationProxies;
-
-  public KnotEngineHandlerOptions(Map<String, KnotFlow> flows,
-      Map<String, KnotFlowStep> steps) {
+  public KnotEngineHandlerOptions(Map<String, GraphOptions> flows) {
     this.flows = flows;
-    this.steps = steps;
   }
 
   public KnotEngineHandlerOptions(JsonObject json) {
@@ -48,33 +42,23 @@ public class KnotEngineHandlerOptions {
     return jsonObject;
   }
 
-  public Map<String, KnotFlow> getFlows() {
+  public Map<String, GraphOptions> getFlows() {
     return flows;
   }
 
   public KnotEngineHandlerOptions setFlows(
-      Map<String, KnotFlow> flows) {
+      Map<String, GraphOptions> flows) {
     this.flows = flows;
     return this;
   }
 
-  public Map<String, KnotFlowStep> getSteps() {
-    return steps;
+  public Map<String, OperationProxyFactoryOptions> getOperations() {
+    return operations;
   }
 
-  public KnotEngineHandlerOptions setSteps(
-      Map<String, KnotFlowStep> steps) {
-    this.steps = steps;
-    return this;
-  }
-
-  public Map<String, OperationProxyFactoryOptions> getOperationProxies() {
-    return operationProxies;
-  }
-
-  public KnotEngineHandlerOptions setOperationProxies(
-      Map<String, OperationProxyFactoryOptions> operationProxies) {
-    this.operationProxies = operationProxies;
+  public KnotEngineHandlerOptions setOperations(
+      Map<String, OperationProxyFactoryOptions> operations) {
+    this.operations = operations;
     return this;
   }
 
@@ -88,22 +72,19 @@ public class KnotEngineHandlerOptions {
     }
     KnotEngineHandlerOptions that = (KnotEngineHandlerOptions) o;
     return Objects.equals(flows, that.flows) &&
-        Objects.equals(steps, that.steps) &&
-        Objects.equals(operationProxies, that.operationProxies);
+        Objects.equals(operations, that.operations);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(flows, steps, operationProxies);
+    return Objects.hash(flows, operations);
   }
 
   @Override
   public String toString() {
     return "KnotEngineHandlerOptions{" +
         "flows=" + flows +
-        ", steps=" + steps +
-        ", operationProxies=" + operationProxies +
+        ", operations=" + operations +
         '}';
   }
-
 }

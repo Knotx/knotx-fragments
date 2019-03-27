@@ -25,10 +25,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import io.knotx.engine.api.FragmentEvent;
-import io.knotx.engine.api.FragmentEvent.Status;
-import io.knotx.engine.api.FragmentEventContext;
-import io.knotx.engine.api.GraphNode;
+import io.knotx.engine.core.FragmentEvent.Status;
 import io.knotx.engine.api.fragment.FragmentContext;
 import io.knotx.engine.api.fragment.FragmentResult;
 import io.knotx.engine.core.FragmentEventLogVerifier.Operation;

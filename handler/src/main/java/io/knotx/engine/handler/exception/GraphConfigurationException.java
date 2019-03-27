@@ -12,14 +12,14 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
+ * The code comes from https://github.com/tomaszmichalak/vertx-rx-map-reduce.
  */
+package io.knotx.engine.handler.exception;
 
-rootProject.name = "knotx-fragments-engine"
+public class GraphConfigurationException extends ConfigurationException {
 
-include("knotx-fragments-engine-api")
-include("knotx-fragments-engine-core")
-include("knotx-fragments-engine-handler")
-
-project(":knotx-fragments-engine-api").projectDir = file("api")
-project(":knotx-fragments-engine-core").projectDir = file("core")
-project(":knotx-fragments-engine-handler").projectDir = file("handler")
+  public GraphConfigurationException(String message) {
+    super(message);
+  }
+}

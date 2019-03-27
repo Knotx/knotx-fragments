@@ -15,7 +15,7 @@
  *
  * The code comes from https://github.com/tomaszmichalak/vertx-rx-map-reduce.
  */
-package io.knotx.engine.api;
+package io.knotx.engine.core;
 
 import io.vertx.core.json.JsonObject;
 

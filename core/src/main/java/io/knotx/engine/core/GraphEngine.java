@@ -18,11 +18,7 @@ package io.knotx.engine.core;
 import static io.knotx.engine.api.fragment.FragmentResult.DEFAULT_TRANSITION;
 import static io.knotx.engine.api.fragment.FragmentResult.ERROR_TRANSITION;
 
-import io.knotx.engine.api.EventLogEntry;
-import io.knotx.engine.api.FragmentEvent;
-import io.knotx.engine.api.FragmentEvent.Status;
-import io.knotx.engine.api.FragmentEventContext;
-import io.knotx.engine.api.GraphNode;
+import io.knotx.engine.core.FragmentEvent.Status;
 import io.knotx.engine.api.exception.KnotProcessingFatalException;
 import io.knotx.engine.api.fragment.FragmentContext;
 import io.knotx.engine.api.fragment.FragmentResult;

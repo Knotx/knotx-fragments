@@ -15,9 +15,7 @@
  */
 package io.knotx.engine.core;
 
-import io.knotx.engine.api.FragmentEvent;
-import io.knotx.engine.api.FragmentEvent.Status;
-import io.knotx.engine.api.FragmentEventContextGraphAware;
+import io.knotx.engine.core.FragmentEvent.Status;
 import io.reactivex.Flowable;
 import io.reactivex.Single;
 import io.vertx.core.logging.Logger;
@@ -28,8 +26,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * Fragments Engine processes fragment events in the request scope. Each fragment event contains
- * a fragment and an event metadata such as status, event log. All fragment events are processed
+ * Fragments Engine processes fragment events in the request scope. Each fragment event contains a
+ * fragment and an event metadata such as status, event log. All fragment events are processed
  * asynchronously according to the graph. The engine uses the Map-Reduce pattern where list of
  * events (fragments) is transformed to single items and processed independently. The inspiration
  * comes from https://github.com/tomaszmichalak/vertx-rx-map-reduce.
@@ -45,7 +43,7 @@ public class FragmentsEngine {
   }
 
   /**
-   * Processes events asynchronously according to the {@link io.knotx.engine.api.GraphNode}.
+   * Processes events asynchronously according to the {@link GraphNode}.
    *
    * @param sourceEvents list of fragment events to process with graph context
    * @return asynchronous response containing processed list of fragment events returned in the same
@@ -55,8 +53,11 @@ public class FragmentsEngine {
 
     return Flowable.just(sourceEvents)
         .concatMap(Flowable::fromIterable)
-        .map(eventContext -> graphEngine
-            .start(eventContext.getFragmentEventContext(), eventContext.getGraphNode()))
+        .map(eventContext -> {
+          return eventContext.getGraphNode()
+              .map(graphNode -> graphEngine.start(eventContext.getFragmentEventContext(), graphNode))
+              .orElseGet(() -> Single.just(eventContext.getFragmentEventContext().getFragmentEvent()));
+        })
         .flatMap(Single::toFlowable)
         .reduce(new ArrayList<FragmentEvent>(), (list, item) -> {
           list.add(item);

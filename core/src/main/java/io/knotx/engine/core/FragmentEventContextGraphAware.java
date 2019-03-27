@@ -13,14 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.knotx.engine.api;
+package io.knotx.engine.core;
 
 import java.util.Objects;
+import java.util.Optional;
 
 public class FragmentEventContextGraphAware {
 
   private final FragmentEventContext fragmentEventContext;
   private final GraphNode graphNode;
+
+  public FragmentEventContextGraphAware(FragmentEventContext fragmentEventContext) {
+    this(fragmentEventContext, null);
+  }
 
   public FragmentEventContextGraphAware(FragmentEventContext fragmentEventContext,
       GraphNode graphNode) {
@@ -32,8 +37,8 @@ public class FragmentEventContextGraphAware {
     return fragmentEventContext;
   }
 
-  public GraphNode getGraphNode() {
-    return graphNode;
+  public Optional<GraphNode> getGraphNode() {
+    return Optional.ofNullable(graphNode);
   }
 
   @Override

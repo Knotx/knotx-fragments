@@ -27,8 +27,8 @@ plugins {
 // Dependencies
 // -----------------------------------------------------------------------------
 dependencies {
-    api(project(":knotx-knot-engine-api"))
-    implementation(project(":knotx-knot-engine-core"))
+    api(project(":knotx-fragments-engine-api"))
+    implementation(project(":knotx-fragments-engine-core"))
 
     implementation(group = "org.apache.commons", name = "commons-lang3")
     implementation(group = "io.vertx", name = "vertx-circuit-breaker")

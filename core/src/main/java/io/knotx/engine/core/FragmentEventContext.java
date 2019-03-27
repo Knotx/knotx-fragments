@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.knotx.engine.api;
+package io.knotx.engine.core;
 
 import io.knotx.server.api.context.ClientRequest;
 import io.vertx.codegen.annotations.DataObject;
