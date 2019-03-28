@@ -16,16 +16,18 @@ void apply(FragmentContext fragmentContext, Handler<AsyncResult<FragmentResult>>
 
 Operation proxies decorate operation logic (a fragment transformation) with some behaviour.
 
+task
+
 ```hocon
-evaluations {
+tasks {
   pdp {
-    operation = pdp-request-scope-cache-proxy
+    action = fetch-product-with-cache
     onTransition {
       next {
-        operation = te-eb-proxy
+        action = te
       },
-      error {
-        operation = fallback-result
+      fallback {
+        action = apply-fallback
       }
     }
   }
@@ -33,26 +35,25 @@ evaluations {
 ```
 
 ```html
-<knotx:snippet fragment="pdp">
+<knotx:snippet knotx-task="pdp">
 
 </knotx:snippet>
 
 ```
 
 ```hocon
-proxies {
-  pdp-request-scope-cache-proxy {
+
+decorators {
+  cache {
     factory = "cache"
     config {
       payload = "products"
     }
-    next = product-circuit-breaker-proxy
-  }
-  
-  product-circuit-breaker-proxy {
+  },
+  circuit-breaker {
     factory = "cb"
     config {
-      circuitBreakerName = product-circuit-breaker-proxy
+      circuitBreakerName = product-circuit-breaker
       circuitBreakerOptions {
         timeout = 800
         resetTimeout = 10000
@@ -60,10 +61,61 @@ proxies {
         fallbackOnFailure = true
       }
     }
-    next = product-eb-proxy
+  }
+}
+
+actions {
+  fetch-product {
+    factory = "eb"
+    config {
+      address = "knotx.knot.books"
+      deliveryOptions {
+        sendTimeout = 1000
+      }
+    }
+    with {
+      name = cache
+      with {
+        name = circuit-breaker
+      }
+    }
+  }
+  apply-fallback {
+    factory = "static"
+    config {
+      class = <div>Product not available at the moment</div>
+    }
+  }
+}
+```
+
+
+
+```hocon
+actions {
+  fetch-product-with-cache {
+    factory = "cache"
+    config {
+      payload = "products"
+    }
+    doAction = fetch-product-with-circuit-breaker
   }
   
-  product-eb-proxy {
+  fetch-product-with-circuit-breaker {
+    factory = "cb"
+    config {
+      circuitBreakerName = product-circuit-breaker
+      circuitBreakerOptions {
+        timeout = 800
+        resetTimeout = 10000
+        maxFailures = 3
+        fallbackOnFailure = true
+      }
+    }
+    doAction = fetch-product
+  }
+  
+  fetch-product {
     factory = "eb"
     config {
       address = "knotx.knot.books"
@@ -73,31 +125,10 @@ proxies {
     }
   }
   
-  offers-db-classpath-proxy {
-    factory = "classpath"
+  apply-fallback {
+    factory = "static"
     config {
-      class = "io.knotx.postgres.OffersLogic.class"
-    }
-  }
-  
-  book-circuit-breaker-proxy {
-    factory = "cb"
-    config {
-      circuitBreakerName = product-circuit-breaker-proxy
-      circuitBreakerOptions {
-        timeout = 800
-        resetTimeout = 10000
-        maxFailures = 3
-        fallbackOnFailure = true
-      }
-    }
-    next = book-http-proxy
-  }
-  
-  book-http-proxy {
-    factory = "http"
-    config {
-      url = "http://localhost:8080/api/"
+      class = <div>Product not available at the moment</div>
     }
   }
 }

@@ -17,7 +17,7 @@ package io.knotx.engine.api;
 
 import io.knotx.engine.api.fragment.FragmentContext;
 import io.knotx.engine.api.fragment.FragmentResult;
-import io.knotx.engine.api.proxy.FragmentOperation;
+import io.knotx.engine.api.fragment.Action;
 import io.vertx.codegen.annotations.ProxyGen;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.AsyncResult;
@@ -27,7 +27,7 @@ import io.vertx.core.eventbus.DeliveryOptions;
 
 @ProxyGen
 @VertxGen
-public interface KnotProxy extends FragmentOperation {
+public interface KnotProxy extends Action {
 
   static KnotProxy createProxy(Vertx vertx, String address) {
     return new KnotProxyVertxEBProxy(vertx, address);

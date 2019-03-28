@@ -13,20 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.knotx.engine.api.proxy;
+package io.knotx.engine.api.fragment;
 
-import io.vertx.core.Vertx;
-import io.vertx.core.json.JsonObject;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-
-public interface OperationProxyFactory {
-
-  String getName();
-
-  /**
-   * @param nextProxy - next proxy chain operation, if last this option should be <pre>null</pre>
-   */
-  FragmentOperation create(String alias, JsonObject config, Vertx vertx,
-      FragmentOperation nextProxy);
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.TYPE)
+public @interface CacheableAction {
 
 }

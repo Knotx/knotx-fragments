@@ -13,17 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.knotx.engine.handler.proxy;
+package io.knotx.engine.handler.action;
 
-import io.knotx.engine.api.proxy.CacheableProxy;
-import io.knotx.engine.api.proxy.FragmentOperation;
-import io.knotx.engine.api.proxy.OperationProxyFactory;
+import io.knotx.engine.api.fragment.CacheableAction;
+import io.knotx.engine.api.fragment.Action;
+import io.knotx.engine.api.fragment.ActionFactory;
+import io.knotx.engine.api.fragment.ScalableAction;
 import io.vertx.core.Vertx;
 import io.vertx.core.eventbus.DeliveryOptions;
 import io.vertx.core.json.JsonObject;
 
-@CacheableProxy
-public class EBOperationProxyFactory implements OperationProxyFactory {
+@CacheableAction
+public class ScalableActionFactory implements ActionFactory {
 
   @Override
   public String getName() {
@@ -31,14 +32,14 @@ public class EBOperationProxyFactory implements OperationProxyFactory {
   }
 
   @Override
-  public FragmentOperation create(String alias, JsonObject config, Vertx vertx,
-      FragmentOperation nextProxy) {
+  public Action create(String alias, JsonObject config, Vertx vertx,
+      Action doAction) {
     String address = config.getString("address");
     DeliveryOptions deliveryOptions = new DeliveryOptions(
         config.getJsonObject("deliveryOptions") == null ? new JsonObject()
             : config.getJsonObject("deliveryOptions"));
 
-    return EBOperationProxy.create(vertx, address, deliveryOptions);
+    return ScalableAction.create(vertx, address, deliveryOptions);
   }
 
 }

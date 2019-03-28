@@ -17,13 +17,13 @@
  */
 package io.knotx.engine.handler;
 
+import io.knotx.engine.api.fragment.ActionFactory;
 import io.knotx.engine.core.FragmentEvent;
 import io.knotx.engine.core.FragmentEventContext;
 import io.knotx.engine.core.FragmentEventContextGraphAware;
 import io.knotx.engine.core.FragmentsEngine;
-import io.knotx.engine.handler.options.KnotEngineHandlerOptions;
-import io.knotx.engine.handler.proxy.OperationProxyFactoryProvider;
-import io.knotx.engine.handler.proxy.OperationProxyProvider;
+import io.knotx.engine.handler.options.FragmentsHandlerOptions;
+import io.knotx.engine.handler.action.ActionProvider;
 import io.knotx.fragment.Fragment;
 import io.knotx.server.api.context.ClientRequest;
 import io.knotx.server.api.context.RequestContext;
@@ -35,22 +35,24 @@ import io.vertx.core.Handler;
 import io.vertx.core.json.JsonObject;
 import io.vertx.reactivex.core.Vertx;
 import io.vertx.reactivex.ext.web.RoutingContext;
+import java.util.Iterator;
 import java.util.List;
+import java.util.ServiceLoader;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-public class KnotEngineHandler implements Handler<RoutingContext> {
+public class FragmentsHandler implements Handler<RoutingContext> {
 
   private final FragmentsEngine engine;
   private final RequestContextEngine requestContextEngine;
   private final GraphBuilder graphBuilder;
 
-  KnotEngineHandler(Vertx vertx, JsonObject config) {
-    KnotEngineHandlerOptions options = new KnotEngineHandlerOptions(config);
+  FragmentsHandler(Vertx vertx, JsonObject config) {
+    FragmentsHandlerOptions options = new FragmentsHandlerOptions(config);
 
-    OperationProxyProvider proxyProvider = new OperationProxyProvider(options.getOperations(),
-        new OperationProxyFactoryProvider(), vertx.getDelegate());
+    ActionProvider proxyProvider = new ActionProvider(options.getOperations(),
+        supplyFactories(), vertx.getDelegate());
     graphBuilder = new GraphBuilder(options.getFlows(), proxyProvider);
-
     engine = new FragmentsEngine(vertx);
     requestContextEngine = new DefaultRequestContextEngine(getClass().getSimpleName());
   }
@@ -68,6 +70,14 @@ public class KnotEngineHandler implements Handler<RoutingContext> {
                 .processAndSaveResult(result, routingContext, requestContext),
             error -> requestContextEngine.handleFatal(routingContext, requestContext, error)
         );
+  }
+
+  private Supplier<Iterator<ActionFactory>> supplyFactories() {
+    return () -> {
+      ServiceLoader<ActionFactory> factories = ServiceLoader
+          .load(ActionFactory.class);
+      return factories.iterator();
+    };
   }
 
   private RequestEventHandlerResult toHandlerResult(List<FragmentEvent> events,

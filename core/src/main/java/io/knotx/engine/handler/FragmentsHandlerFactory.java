@@ -23,15 +23,15 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.reactivex.core.Vertx;
 import io.vertx.reactivex.ext.web.RoutingContext;
 
-public class KnotEngineHandlerFactory implements RoutingHandlerFactory {
+public class FragmentsHandlerFactory implements RoutingHandlerFactory {
 
   @Override
   public String getName() {
-    return "knotEngineHandler";
+    return "fragmentsHandler";
   }
 
   @Override
   public Handler<RoutingContext> create(Vertx vertx, JsonObject config) {
-    return new KnotEngineHandler(vertx, config);
+    return new FragmentsHandler(vertx, config);
   }
 }

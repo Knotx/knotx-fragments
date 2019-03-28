@@ -17,13 +17,13 @@
  */
 package io.knotx.engine.handler;
 
-import io.knotx.engine.core.GraphNode;
-import io.knotx.engine.handler.options.GraphOptions;
+import io.knotx.engine.api.fragment.Action;
 import io.knotx.engine.api.fragment.FragmentContext;
 import io.knotx.engine.api.fragment.FragmentResult;
-import io.knotx.engine.api.proxy.FragmentOperation;
+import io.knotx.engine.core.GraphNode;
+import io.knotx.engine.handler.action.ActionProvider;
 import io.knotx.engine.handler.exception.GraphConfigurationException;
-import io.knotx.engine.handler.proxy.OperationProxyProvider;
+import io.knotx.engine.handler.options.GraphOptions;
 import io.knotx.fragment.Fragment;
 import io.reactivex.Single;
 import io.vertx.core.logging.Logger;
@@ -33,24 +33,23 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 
-public class GraphBuilder {
+class GraphBuilder {
 
-  private static final Logger LOGGER = LoggerFactory
-      .getLogger(GraphBuilder.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(GraphBuilder.class);
 
   private static final String EVALUATION = "evaluation";
 
 
   private final Map<String, GraphOptions> graphOptionsMap;
-  private final OperationProxyProvider proxyProvider;
+  private final ActionProvider proxyProvider;
 
   GraphBuilder(Map<String, GraphOptions> graphOptionsMap,
-      OperationProxyProvider proxyProvider) {
+      ActionProvider proxyProvider) {
     this.graphOptionsMap = graphOptionsMap;
     this.proxyProvider = proxyProvider;
   }
 
-  public Optional<GraphNode> build(Fragment fragment) {
+  Optional<GraphNode> build(Fragment fragment) {
     Optional<GraphNode> result = Optional.empty();
     if (fragment.getConfiguration().containsKey(EVALUATION)) {
       String graphAlias = fragment.getConfiguration().getString(EVALUATION);
@@ -61,7 +60,7 @@ public class GraphBuilder {
   }
 
   private GraphNode initGraphNode(String alias, GraphOptions options) {
-    FragmentOperation fragmentOperation = proxyProvider.get(options.getProxy()).orElseThrow(
+    Action action = proxyProvider.get(options.getProxy()).orElseThrow(
         () -> new GraphConfigurationException("No provider for proxy " + options.getProxy()));
 
     Map<String, GraphOptions> transitions = options.getTransitions();
@@ -70,15 +69,15 @@ public class GraphBuilder {
       GraphNode node = initGraphNode(alias, childGraphOptions);
       edges.put(transition, node);
     });
-    return new GraphNode(alias, toRxFunction(fragmentOperation), edges);
+    return new GraphNode(alias, toRxFunction(action), edges);
 
   }
 
   private Function<FragmentContext, Single<FragmentResult>> toRxFunction(
-      FragmentOperation fragmentOperation) {
-    io.knotx.engine.reactivex.api.proxy.FragmentOperation rxOperation = io.knotx.engine.reactivex.api.proxy.FragmentOperation
-        .newInstance(fragmentOperation);
-    return rxOperation::rxApply;
+      Action action) {
+    io.knotx.engine.reactivex.api.fragment.Action rxAction = io.knotx.engine.reactivex.api.fragment.Action
+        .newInstance(action);
+    return rxAction::rxApply;
   }
 
 }

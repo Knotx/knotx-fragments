@@ -12,20 +12,28 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
+ * The code comes from https://github.com/tomaszmichalak/vertx-rx-map-reduce.
  */
-package io.knotx.engine.handler.proxy;
+package io.knotx.engine.handler;
 
-import io.knotx.engine.api.proxy.OperationProxyFactory;
-import java.util.Iterator;
-import java.util.ServiceLoader;
-import java.util.function.Supplier;
+import io.knotx.fragment.Fragment;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
-public class OperationProxyFactoryProvider implements Supplier<Iterator<OperationProxyFactory>> {
+// TODO
+class GraphBuilderTest {
 
-  @Override
-  public Iterator<OperationProxyFactory> get() {
-    ServiceLoader<OperationProxyFactory> factories = ServiceLoader
-        .load(OperationProxyFactory.class);
-    return factories.iterator();
+  @Test
+  @DisplayName("")
+  void expectGraphNode() {
+    Fragment fragment; // = new Fragment(...)
+
+    GraphBuilder tested; // = new GraphBuilder();
+
+    // when
+    // Optional<GraphNode> build = tested.build(fragment);
+
   }
+
 }

@@ -15,30 +15,30 @@
  */
 package io.knotx.engine.handler.options;
 
-import io.knotx.engine.handler.proxy.OperationProxyFactoryOptions;
+import io.knotx.engine.handler.action.ActionFactoryOptions;
 import io.vertx.codegen.annotations.DataObject;
 import io.vertx.core.json.JsonObject;
 import java.util.Map;
 import java.util.Objects;
 
 @DataObject(generateConverter = true)
-public class KnotEngineHandlerOptions {
+public class FragmentsHandlerOptions {
 
   private Map<String, GraphOptions> flows;
 
-  private Map<String, OperationProxyFactoryOptions> operations;
+  private Map<String, ActionFactoryOptions> operations;
 
-  public KnotEngineHandlerOptions(Map<String, GraphOptions> flows) {
+  public FragmentsHandlerOptions(Map<String, GraphOptions> flows) {
     this.flows = flows;
   }
 
-  public KnotEngineHandlerOptions(JsonObject json) {
-    KnotEngineHandlerOptionsConverter.fromJson(json, this);
+  public FragmentsHandlerOptions(JsonObject json) {
+    FragmentsHandlerOptionsConverter.fromJson(json, this);
   }
 
   public JsonObject toJson() {
     JsonObject jsonObject = new JsonObject();
-    KnotEngineHandlerOptionsConverter.toJson(this, jsonObject);
+    FragmentsHandlerOptionsConverter.toJson(this, jsonObject);
     return jsonObject;
   }
 
@@ -46,18 +46,18 @@ public class KnotEngineHandlerOptions {
     return flows;
   }
 
-  public KnotEngineHandlerOptions setFlows(
+  public FragmentsHandlerOptions setFlows(
       Map<String, GraphOptions> flows) {
     this.flows = flows;
     return this;
   }
 
-  public Map<String, OperationProxyFactoryOptions> getOperations() {
+  public Map<String, ActionFactoryOptions> getOperations() {
     return operations;
   }
 
-  public KnotEngineHandlerOptions setOperations(
-      Map<String, OperationProxyFactoryOptions> operations) {
+  public FragmentsHandlerOptions setOperations(
+      Map<String, ActionFactoryOptions> operations) {
     this.operations = operations;
     return this;
   }
@@ -70,7 +70,7 @@ public class KnotEngineHandlerOptions {
     if (o == null || getClass() != o.getClass()) {
       return false;
     }
-    KnotEngineHandlerOptions that = (KnotEngineHandlerOptions) o;
+    FragmentsHandlerOptions that = (FragmentsHandlerOptions) o;
     return Objects.equals(flows, that.flows) &&
         Objects.equals(operations, that.operations);
   }
@@ -82,7 +82,7 @@ public class KnotEngineHandlerOptions {
 
   @Override
   public String toString() {
-    return "KnotEngineHandlerOptions{" +
+    return "FragmentsHandlerOptions{" +
         "flows=" + flows +
         ", operations=" + operations +
         '}';

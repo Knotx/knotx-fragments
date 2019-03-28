@@ -13,19 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.knotx.engine.api.proxy;
+package io.knotx.engine.api.fragment;
 
-import io.knotx.engine.api.fragment.FragmentContext;
-import io.knotx.engine.api.fragment.FragmentResult;
+import io.vertx.codegen.annotations.ProxyGen;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
-import io.vertx.lang.rx.RxGen;
+import io.vertx.core.Vertx;
+import io.vertx.core.eventbus.DeliveryOptions;
 
-@RxGen(FragmentOperation.class)
+/**
+ * This action can be easily scaled with Vert.x Event Bus. You can deploy more instances of the same
+ * class and Vert.x provides load balancing out of the box (all of then listens on the same
+ * address).
+ */
+@ProxyGen
 @VertxGen
-public interface FragmentOperation {
+@CacheableAction
+public interface ScalableAction extends Action {
 
-  void apply(FragmentContext fragmentContext, Handler<AsyncResult<FragmentResult>> resultHandler);
+  static ScalableAction create(Vertx vertx, String address, DeliveryOptions deliveryOptions) {
+    return new ScalableActionVertxEBProxy(vertx, address, deliveryOptions);
+  }
+
+  void apply(FragmentContext fragmentContext, Handler<AsyncResult<FragmentResult>> fragmentResult);
 
 }

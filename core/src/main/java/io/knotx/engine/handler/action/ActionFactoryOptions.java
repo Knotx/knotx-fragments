@@ -13,45 +13,36 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.knotx.engine.handler.proxy;
+package io.knotx.engine.handler.action;
 
 import io.vertx.codegen.annotations.DataObject;
 import io.vertx.core.json.JsonObject;
 import java.util.Objects;
-import java.util.Optional;
 
-@DataObject
-public class OperationProxyFactoryOptions {
+@DataObject(generateConverter = true)
+public class ActionFactoryOptions {
 
-  private static final String FACTORY_KEY = "factory";
-  private static final String CONFIG_KEY = "config";
-  private static final String NEXT_KEY = "next";
+  private String factory;
+  private JsonObject config;
+  private String doAction;
 
-  private final String factory;
-  private final JsonObject config;
-  private final String next;
-
-  public OperationProxyFactoryOptions(String factory, JsonObject config) {
+  ActionFactoryOptions(String factory, JsonObject config) {
     this(factory, config, null);
   }
 
-  public OperationProxyFactoryOptions(String factory, JsonObject config, String next) {
+  ActionFactoryOptions(String factory, JsonObject config, String doAction) {
     this.factory = factory;
     this.config = config;
-    this.next = next;
+    this.doAction = doAction;
   }
 
-  public OperationProxyFactoryOptions(JsonObject json) {
-    this.factory = json.getString(FACTORY_KEY);
-    this.config = json.getJsonObject(CONFIG_KEY);
-    this.next = json.getString(NEXT_KEY);
+  public ActionFactoryOptions(JsonObject json) {
+    ActionFactoryOptionsConverter.fromJson(json, this);
   }
 
   public JsonObject toJson() {
     JsonObject json = new JsonObject();
-    json.put(FACTORY_KEY, factory);
-    json.put(CONFIG_KEY, config);
-    json.put(NEXT_KEY, next);
+    ActionFactoryOptionsConverter.toJson(this, json);
     return json;
   }
 
@@ -59,14 +50,29 @@ public class OperationProxyFactoryOptions {
     return factory;
   }
 
+  public ActionFactoryOptions setFactory(String factory) {
+    this.factory = factory;
+    return this;
+  }
 
   public JsonObject getConfig() {
     return config;
   }
 
-  public Optional<String> getNext() {
-    return Optional.ofNullable(next);
+  public ActionFactoryOptions setConfig(JsonObject config) {
+    this.config = config;
+    return this;
   }
+
+  public String getDoAction() {
+    return doAction;
+  }
+
+  public ActionFactoryOptions setDoAction(String doAction) {
+    this.doAction = doAction;
+    return this;
+  }
+
 
   @Override
   public boolean equals(Object o) {
@@ -76,23 +82,23 @@ public class OperationProxyFactoryOptions {
     if (o == null || getClass() != o.getClass()) {
       return false;
     }
-    OperationProxyFactoryOptions that = (OperationProxyFactoryOptions) o;
+    ActionFactoryOptions that = (ActionFactoryOptions) o;
     return Objects.equals(factory, that.factory) &&
         Objects.equals(config, that.config) &&
-        Objects.equals(next, that.next);
+        Objects.equals(doAction, that.doAction);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(factory, config, next);
+    return Objects.hash(factory, config, doAction);
   }
 
   @Override
   public String toString() {
-    return "OperationProxyFactoryOptions{" +
+    return "ActionFactoryOptions{" +
         "factory='" + factory + '\'' +
         ", config=" + config +
-        ", next='" + next + '\'' +
+        ", doAction='" + doAction + '\'' +
         '}';
   }
 }
