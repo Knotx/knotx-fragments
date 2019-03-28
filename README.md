@@ -17,9 +17,9 @@ entries. This section describes how flow can be defined in fragment configuratio
 explains how Knot Engine can be configured in [Knot.x Server](https://github.com/Knotx/knotx-server-http).
 
 ## Flow configuration
-Knot Engine allows to pre-configure flows and it steps.
+Knot Engine allows to pre-configure tasks and it steps.
 
-### Pre-configured flows
+### Pre-configured tasks
 The fragment configuration looks like
 ```json
 {
@@ -28,7 +28,7 @@ The fragment configuration looks like
 ```
 and the handler configuration contains
 ```hocon
-flows {
+tasks {
   default {
     stepAlias = databridge
     onTranstion {
@@ -149,8 +149,8 @@ steps {
 {
   name = knotEngineHandler
   config {
-    # preconfigred flows
-    flows {
+    # preconfigred tasks
+    tasks {
       default {
         stepAlias = databridge
         onTranstion {

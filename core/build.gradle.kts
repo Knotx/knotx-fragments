@@ -70,13 +70,13 @@ tasks.named<Javadoc>("javadoc") {
 publishing {
     publications {
         create<MavenPublication>("mavenJava") {
-            artifactId = "knotx-knot-engine-handler"
+            artifactId = "knotx-fragments-handler-core"
             from(components["java"])
             artifact(tasks["sourcesJar"])
             artifact(tasks["javadocJar"])
             pom {
-                name.set("Knot.x Knot Engine Handler")
-                description.set("Knot Engine Handler allowing to configure engine in request processing chain.")
+                name.set("Knot.x Fragments Handler Core")
+                description.set("Fragments Handler Core allows to process fragments using Graph logic.")
                 url.set("http://knotx.io")
                 licenses {
                     license {
@@ -102,8 +102,8 @@ publishing {
                     }
                 }
                 scm {
-                    connection.set("scm:git:git://github.com/Knotx/knotx-knot-engine.git")
-                    developerConnection.set("scm:git:ssh://github.com:Knotx/knotx-knot-engine.git")
+                    connection.set("scm:git:git://github.com/Knotx/knotx-fragments-handler.git")
+                    developerConnection.set("scm:git:ssh://github.com:Knotx/knotx-fragments-handler.git")
                     url.set("http://knotx.io")
                 }
             }

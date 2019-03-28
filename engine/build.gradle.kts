@@ -90,14 +90,14 @@ tasks.register<Jar>("testJar") {
 publishing {
     publications {
         create<MavenPublication>("mavenJava") {
-            artifactId = "knotx-knot-engine-core"
+            artifactId = "knotx-fragments-engine"
             from(components["java"])
             artifact(tasks["sourcesJar"])
             artifact(tasks["javadocJar"])
             artifact(tasks["testJar"])
             pom {
-                name.set("Knot.x Knot Engine Core")
-                description.set("Knot Engine Core module containing engine implementation.")
+                name.set("Knot.x Fragments Engine")
+                description.set("Fragments Engine module containing map-reduce, graph engine implementation.")
                 url.set("http://knotx.io")
                 licenses {
                     license {
@@ -123,8 +123,8 @@ publishing {
                     }
                 }
                 scm {
-                    connection.set("scm:git:git://github.com/Knotx/knotx-knot-engine.git")
-                    developerConnection.set("scm:git:ssh://github.com:Knotx/knotx-knot-engine.git")
+                    connection.set("scm:git:git://github.com/Knotx/knotx-fragments-handler.git")
+                    developerConnection.set("scm:git:ssh://github.com:Knotx/knotx-fragments-handler.git")
                     url.set("http://knotx.io")
                 }
             }

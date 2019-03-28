@@ -1,6 +1,6 @@
-# Fragments Engine Handler
+# Fragments Handler
 
-## Operation proxy
+## Action
 A graph node delegates fragment processing to  
 `java.util.function.Function<FragmentContext, Single<FragmentResult>>`. It represents a function 
 that accepts FragmentContext as an argument and produces Single<FragmentResult> as a result.
@@ -14,83 +14,21 @@ The method is RXfied version of:
 void apply(FragmentContext fragmentContext, Handler<AsyncResult<FragmentResult>> resultHandler);
 ```
 
-Operation proxies decorate operation logic (a fragment transformation) with some behaviour.
+Actions implements the interface above and can:
+- do some fragment logic
+- add some behaviour to fragment logic.
 
-task
+### Example
+Fragments can contain `data-knotx-task` entry in their configuration. If it is present, then
+the graph processing logic is applied.
 
-```hocon
-tasks {
-  pdp {
-    action = fetch-product-with-cache
-    onTransition {
-      next {
-        action = te
-      },
-      fallback {
-        action = apply-fallback
-      }
-    }
-  }
-}
-```
-
+The example HTML markup:
 ```html
-<knotx:snippet knotx-task="pdp">
-
+<knotx:snippet data-knotx-task="pdp">
 </knotx:snippet>
-
 ```
 
-```hocon
-
-decorators {
-  cache {
-    factory = "cache"
-    config {
-      payload = "products"
-    }
-  },
-  circuit-breaker {
-    factory = "cb"
-    config {
-      circuitBreakerName = product-circuit-breaker
-      circuitBreakerOptions {
-        timeout = 800
-        resetTimeout = 10000
-        maxFailures = 3
-        fallbackOnFailure = true
-      }
-    }
-  }
-}
-
-actions {
-  fetch-product {
-    factory = "eb"
-    config {
-      address = "knotx.knot.books"
-      deliveryOptions {
-        sendTimeout = 1000
-      }
-    }
-    with {
-      name = cache
-      with {
-        name = circuit-breaker
-      }
-    }
-  }
-  apply-fallback {
-    factory = "static"
-    config {
-      class = <div>Product not available at the moment</div>
-    }
-  }
-}
-```
-
-
-
+And in the configuration we have:
 ```hocon
 actions {
   fetch-product-with-cache {
@@ -132,5 +70,4 @@ actions {
     }
   }
 }
-
 ```
