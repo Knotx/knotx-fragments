@@ -13,8 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.knotx.engine.api.fragment;
+package io.knotx.engine.api;
 
+import io.knotx.engine.api.fragment.Action;
+import io.knotx.engine.api.fragment.FragmentContext;
+import io.knotx.engine.api.fragment.FragmentResult;
 import io.vertx.codegen.annotations.ProxyGen;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.AsyncResult;
@@ -29,13 +32,17 @@ import io.vertx.core.eventbus.DeliveryOptions;
  */
 @ProxyGen
 @VertxGen
-@CacheableAction
-public interface ScalableAction extends Action {
+public interface Knot extends Action {
 
-  static ScalableAction create(Vertx vertx, String address, DeliveryOptions deliveryOptions) {
-    return new ScalableActionVertxEBProxy(vertx, address, deliveryOptions);
+  static Knot createProxy(Vertx vertx, String address) {
+    return new KnotVertxEBProxy(vertx, address);
   }
 
-  void apply(FragmentContext fragmentContext, Handler<AsyncResult<FragmentResult>> fragmentResult);
+  static Knot createProxyWithOptions(Vertx vertx, String address, DeliveryOptions deliveryOptions) {
+    return new KnotVertxEBProxy(vertx, address, deliveryOptions);
+  }
+
+  // This method is repeated for VertxGen
+  void apply(FragmentContext fragmentContext, Handler<AsyncResult<FragmentResult>> result);
 
 }

@@ -168,7 +168,7 @@ class ActionProviderTest {
   }
 
   @Test
-  @DisplayName("Expect not null action defined as doAction when creating the action.")
+  @DisplayName("Expect not null action defined as doAction while creating action.")
   void getComplexOperation(Vertx vertx) {
     // given
     Action expectedOperation = Mockito.mock(Action.class);

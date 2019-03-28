@@ -15,7 +15,6 @@
  */
 package io.knotx.engine.api.fragment;
 
-import io.knotx.engine.api.fragment.Action;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
 

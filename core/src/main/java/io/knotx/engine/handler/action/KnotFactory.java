@@ -15,20 +15,20 @@
  */
 package io.knotx.engine.handler.action;
 
-import io.knotx.engine.api.fragment.CacheableAction;
+import io.knotx.engine.api.Knot;
 import io.knotx.engine.api.fragment.Action;
 import io.knotx.engine.api.fragment.ActionFactory;
-import io.knotx.engine.api.fragment.ScalableAction;
+import io.knotx.engine.api.fragment.CacheableAction;
 import io.vertx.core.Vertx;
 import io.vertx.core.eventbus.DeliveryOptions;
 import io.vertx.core.json.JsonObject;
 
 @CacheableAction
-public class ScalableActionFactory implements ActionFactory {
+public class KnotFactory implements ActionFactory {
 
   @Override
   public String getName() {
-    return "eb";
+    return "knot";
   }
 
   @Override
@@ -39,7 +39,7 @@ public class ScalableActionFactory implements ActionFactory {
         config.getJsonObject("deliveryOptions") == null ? new JsonObject()
             : config.getJsonObject("deliveryOptions"));
 
-    return ScalableAction.create(vertx, address, deliveryOptions);
+    return Knot.createProxyWithOptions(vertx, address, deliveryOptions);
   }
 
 }
