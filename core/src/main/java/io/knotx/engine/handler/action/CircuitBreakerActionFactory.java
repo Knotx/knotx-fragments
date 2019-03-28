@@ -30,10 +30,14 @@ import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
 
+/**
+ * This is a factory class creating action, which provides circuit breaker mechanism. It protects
+ * the `doAction` action against overloading when it does not respond on time. If t
+ */
 @CacheableAction
 public class CircuitBreakerActionFactory implements ActionFactory {
 
-  public static final String FALLBACK_TRANSITION = "fallback";
+  static final String FALLBACK_TRANSITION = "fallback";
 
   @Override
   public String getName() {
@@ -46,9 +50,11 @@ public class CircuitBreakerActionFactory implements ActionFactory {
       throw new DoActionNotDefinedException("Circuit Breaker action requires `doAction` defined");
     }
     String circuitBreakerName = config.getString("circuitBreakerName");
-    JsonObject circuitBreakerOptions = config.getJsonObject("circuitBreakerOptions");
+    CircuitBreakerOptions circuitBreakerOptions =
+        config.getJsonObject("circuitBreakerOptions") == null ? new CircuitBreakerOptions()
+            : new CircuitBreakerOptions(config.getJsonObject("circuitBreakerOptions"));
     CircuitBreaker circuitBreaker = new CircuitBreakerImpl(circuitBreakerName, vertx,
-        new CircuitBreakerOptions(circuitBreakerOptions));
+        circuitBreakerOptions);
 
     return new CircuitBreakerAction(circuitBreaker, doAction);
   }
@@ -68,11 +74,11 @@ public class CircuitBreakerActionFactory implements ActionFactory {
         Handler<AsyncResult<FragmentResult>> resultHandler) {
       circuitBreaker.executeWithFallback(
           f -> doAction.apply(fragmentContext,
-              knotResult -> {
-                if (knotResult.succeeded()) {
-                  f.complete(knotResult.result());
+              result -> {
+                if (result.succeeded()) {
+                  f.complete(result.result());
                 } else {
-                  f.fail(knotResult.cause());
+                  f.fail(result.cause());
                 }
               }),
           v -> {
