@@ -18,11 +18,11 @@ package io.knotx.fragments.engine;
 import static io.knotx.fragments.handler.api.fragment.FragmentResult.DEFAULT_TRANSITION;
 import static io.knotx.fragments.handler.api.fragment.FragmentResult.ERROR_TRANSITION;
 
+import io.knotx.fragment.Fragment;
 import io.knotx.fragments.engine.FragmentEvent.Status;
 import io.knotx.fragments.handler.api.exception.KnotProcessingFatalException;
 import io.knotx.fragments.handler.api.fragment.FragmentContext;
 import io.knotx.fragments.handler.api.fragment.FragmentResult;
-import io.knotx.fragment.Fragment;
 import io.reactivex.Single;
 import io.reactivex.SingleSource;
 import io.vertx.core.Vertx;
@@ -83,8 +83,9 @@ class GraphEngine {
   private void updateEventStatus(FragmentExecutionContext context, FragmentResult result) {
     FragmentEvent fragmentEvent = context.getFragmentEventContext().getFragmentEvent();
     fragmentEvent.setStatus(Status.SUCCESS);
+    GraphNode node = context.getCurrentNode();
     fragmentEvent
-        .log(EventLogEntry.success(context.getCurrentNode().getName(), result.getTransition()));
+        .log(EventLogEntry.success(node.getTask(), node.getAction(), result.getTransition()));
   }
 
   private void updateFragment(FragmentExecutionContext context, FragmentResult result) {
@@ -105,9 +106,10 @@ class GraphEngine {
     if (!DEFAULT_TRANSITION.equals(result.getTransition())) {
       FragmentEvent fragmentEvent = context.getFragmentEventContext().getFragmentEvent();
       fragmentEvent.setStatus(Status.FAILURE);
+      GraphNode node = context.getCurrentNode();
       fragmentEvent
           .log(EventLogEntry
-              .unsupported(context.getCurrentNode().getName(), result.getTransition()));
+              .unsupported(node.getTask(), node.getAction(), result.getTransition()));
     }
     context.end();
     return context;
@@ -134,13 +136,13 @@ class GraphEngine {
 
   private void updateEventLog(Throwable error, FragmentExecutionContext context) {
     FragmentEvent fragmentEvent = context.getFragmentEventContext().getFragmentEvent();
-    String graphNodeName = context.getCurrentNode().getName();
+    GraphNode node = context.getCurrentNode();
     if (isTimeout(error)) {
       fragmentEvent
-          .log(EventLogEntry.timeout(graphNodeName));
+          .log(EventLogEntry.timeout(node.getTask(), node.getAction()));
     } else {
       fragmentEvent
-          .log(EventLogEntry.error(graphNodeName, ERROR_TRANSITION));
+          .log(EventLogEntry.error(node.getTask(), node.getAction(), ERROR_TRANSITION));
     }
   }
 
@@ -157,7 +159,8 @@ class GraphEngine {
   private FragmentExecutionContext traceEvent(FragmentExecutionContext context) {
     if (LOGGER.isTraceEnabled()) {
       LOGGER.trace("Fragment event [{}] is processed via graph node [{}].",
-          context.getFragmentEventContext().getFragmentEvent(), context.getCurrentNode().getName());
+          context.getFragmentEventContext().getFragmentEvent(),
+          context.getCurrentNode().getAction());
     }
     return context;
   }

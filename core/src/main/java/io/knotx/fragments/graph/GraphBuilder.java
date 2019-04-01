@@ -36,40 +36,43 @@ import java.util.function.Function;
 public class GraphBuilder {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(GraphBuilder.class);
-
-  private static final String TASK_KEY = "data-knotx-task";
-
+  static final String TASK_KEY = "data-knotx-task";
 
   private final Map<String, GraphOptions> graphOptionsMap;
-  private final ActionProvider proxyProvider;
+  private final ActionProvider actionProvider;
 
   public GraphBuilder(Map<String, GraphOptions> graphOptionsMap,
       ActionProvider proxyProvider) {
     this.graphOptionsMap = graphOptionsMap;
-    this.proxyProvider = proxyProvider;
+    this.actionProvider = proxyProvider;
   }
 
   public Optional<GraphNode> build(Fragment fragment) {
     Optional<GraphNode> result = Optional.empty();
     if (fragment.getConfiguration().containsKey(TASK_KEY)) {
-      String graphAlias = fragment.getConfiguration().getString(TASK_KEY);
-      GraphOptions options = graphOptionsMap.get(graphAlias);
-      result = Optional.of(initGraphNode(graphAlias, options));
+      String task = fragment.getConfiguration().getString(TASK_KEY);
+      GraphOptions options = graphOptionsMap.get(task);
+      if (options == null) {
+        LOGGER.warn("Task [{}] not defined in configuration!", task);
+        return Optional.empty();
+      }
+
+      result = Optional.of(initGraphNode(task, options));
     }
     return result;
   }
 
-  private GraphNode initGraphNode(String alias, GraphOptions options) {
-    Action action = proxyProvider.get(options.getProxy()).orElseThrow(
-        () -> new GraphConfigurationException("No provider for proxy " + options.getProxy()));
+  private GraphNode initGraphNode(String task, GraphOptions options) {
+    Action action = actionProvider.get(options.getAction()).orElseThrow(
+        () -> new GraphConfigurationException("No provider for action " + options.getAction()));
 
     Map<String, GraphOptions> transitions = options.getTransitions();
     Map<String, GraphNode> edges = new HashMap<>();
     transitions.forEach((transition, childGraphOptions) -> {
-      GraphNode node = initGraphNode(alias, childGraphOptions);
+      GraphNode node = initGraphNode(task, childGraphOptions);
       edges.put(transition, node);
     });
-    return new GraphNode(alias, toRxFunction(action), edges);
+    return new GraphNode(task, options.getAction(), toRxFunction(action), edges);
 
   }
 

@@ -24,15 +24,19 @@ import java.util.function.Function;
 
 public class GraphNode {
 
-  private String identifier;
+  private String task;
+
+  private String action;
 
   private Function<FragmentContext, Single<FragmentResult>> operation;
 
   private Map<String, GraphNode> outgoingEdges;
 
-  public GraphNode(String identifier, Function<FragmentContext, Single<FragmentResult>> operation,
+  public GraphNode(String task, String action,
+      Function<FragmentContext, Single<FragmentResult>> operation,
       Map<String, GraphNode> edges) {
-    this.identifier = identifier;
+    this.task = task;
+    this.action = action;
     this.operation = operation;
     this.outgoingEdges = edges;
   }
@@ -45,7 +49,21 @@ public class GraphNode {
     return Optional.ofNullable(outgoingEdges.get(transition));
   }
 
-  public String getName() {
-    return identifier;
+  public String getAction() {
+    return action;
+  }
+
+  public String getTask() {
+    return task;
+  }
+
+  @Override
+  public String toString() {
+    return "GraphNode{" +
+        "task='" + task + '\'' +
+        ", action='" + action + '\'' +
+        ", operation=" + operation +
+        ", outgoingEdges=" + outgoingEdges +
+        '}';
   }
 }

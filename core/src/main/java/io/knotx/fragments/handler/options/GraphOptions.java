@@ -25,15 +25,15 @@ import java.util.Optional;
 @DataObject(generateConverter = true)
 public class GraphOptions {
 
-  private String proxy;
+  private String action;
 
   private Map<String, GraphOptions> transitions;
 
-  public GraphOptions(String proxyAlias, Map<String, GraphOptions> transitions) {
-    if (proxyAlias == null) {
+  public GraphOptions(String action, Map<String, GraphOptions> transitions) {
+    if (action == null) {
       throw new IllegalStateException("Proxy can not be null");
     }
-    this.proxy = proxyAlias;
+    this.action = action;
     this.transitions = transitions;
   }
 
@@ -50,12 +50,12 @@ public class GraphOptions {
     return result;
   }
 
-  public String getProxy() {
-    return proxy;
+  public String getAction() {
+    return action;
   }
 
-  public GraphOptions setProxy(String proxy) {
-    this.proxy = proxy;
+  public GraphOptions setAction(String action) {
+    this.action = action;
     return this;
   }
 
@@ -82,19 +82,19 @@ public class GraphOptions {
       return false;
     }
     GraphOptions that = (GraphOptions) o;
-    return Objects.equals(proxy, that.proxy) &&
+    return Objects.equals(action, that.action) &&
         Objects.equals(transitions, that.transitions);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(proxy, transitions);
+    return Objects.hash(action, transitions);
   }
 
   @Override
   public String toString() {
     return "GraphOptions{" +
-        "proxy='" + proxy + '\'' +
+        "action='" + action + '\'' +
         ", transitions=" + transitions +
         '}';
   }

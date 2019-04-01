@@ -21,84 +21,63 @@ import io.vertx.core.json.JsonObject;
 
 public class EventLogEntry {
 
-  private static final String CONSUMER_KEY = "consumer";
+  private static final String TASK_KEY = "task";
   private static final String ACTION_KEY = "action";
+  private static final String STATUS_KEY = "status";
   private static final String TRANSITION_KEY = "transition";
   private static final String TIMESTAMP_KEY = "timestamp";
 
-  private String consumer;
-  private EventAction action;
+  private String task;
+  private String action;
+  private ActionStatus status;
   private String transition;
   private long timestamp;
 
-  public static EventLogEntry received(String consumerAddress) {
-    return new EventLogEntry(consumerAddress, EventAction.RECEIVED, null);
+  public static EventLogEntry success(String task, String action, String transition) {
+    return new EventLogEntry(task, action, ActionStatus.SUCCESS, transition);
   }
 
-  public static EventLogEntry success(String consumerAddress, String transition) {
-    return new EventLogEntry(consumerAddress, EventAction.SUCCESS, transition);
+  public static EventLogEntry unsupported(String task, String action, String transition) {
+    return new EventLogEntry(task, action, ActionStatus.UNSUPPORTED_TRANSITION, transition);
   }
 
-  public static EventLogEntry unsupported(String consumerAddress, String transition) {
-    return new EventLogEntry(consumerAddress, EventAction.UNSUPPORTED_TRANSITION, transition);
+  public static EventLogEntry error(String task, String action, String transition) {
+    return new EventLogEntry(task, action, ActionStatus.ERROR, transition);
   }
 
-  static EventLogEntry processed(String consumerAddress, String transition) {
-    return new EventLogEntry(consumerAddress, EventAction.PROCESSED, transition);
+  public static EventLogEntry timeout(String task, String action) {
+    return new EventLogEntry(task, action, ActionStatus.TIMEOUT, null);
   }
 
-  static EventLogEntry skipped(String consumerAddress) {
-    return new EventLogEntry(consumerAddress, EventAction.SKIPPED, null);
-  }
-
-  public static EventLogEntry error(String consumerAddress, String transition) {
-    return new EventLogEntry(consumerAddress, EventAction.ERROR, transition);
-  }
-
-  public static EventLogEntry timeout(String consumerAddress) {
-    return new EventLogEntry(consumerAddress, EventAction.TIMEOUT, null);
-  }
-
-  private EventLogEntry(String consumerAddress, EventAction action, String transition) {
-    this.consumer = consumerAddress;
+  private EventLogEntry(String task, String action, ActionStatus status, String transition) {
+    this.task = task;
     this.action = action;
+    this.status = status;
     this.transition = transition;
     this.timestamp = System.currentTimeMillis();
   }
 
   EventLogEntry(JsonObject json) {
-    this.consumer = json.getString(CONSUMER_KEY);
-    this.action = EventAction.valueOf(json.getString(ACTION_KEY));
+    this.task = json.getString(TASK_KEY);
+    this.action = json.getString(ACTION_KEY);
+    this.status = ActionStatus.valueOf(json.getString(STATUS_KEY));
     this.transition = json.getString(TRANSITION_KEY);
     this.timestamp = json.getLong(TIMESTAMP_KEY);
   }
 
   JsonObject toJson() {
     return new JsonObject()
-        .put(CONSUMER_KEY, consumer)
-        .put(ACTION_KEY, action.name())
+        .put(TASK_KEY, task)
+        .put(ACTION_KEY, action)
+        .put(STATUS_KEY, status.name())
         .put(TRANSITION_KEY, transition)
         .put(TIMESTAMP_KEY, timestamp);
   }
 
-  @Override
-  public String toString() {
-    return "EventLogEntry{" +
-        "consumer='" + consumer + '\'' +
-        ", action=" + action +
-        ", transition='" + transition + '\'' +
-        ", timestamp=" + timestamp +
-        '}';
-  }
-
-  // TODO remove received, skipped, processed
-  enum EventAction {
-    SUCCESS, //OK
-    RECEIVED,
-    SKIPPED,
-    PROCESSED,
-    UNSUPPORTED_TRANSITION, //OK
-    ERROR,//OK
+  enum ActionStatus {
+    SUCCESS,
+    UNSUPPORTED_TRANSITION,
+    ERROR,
     TIMEOUT //?
   }
 

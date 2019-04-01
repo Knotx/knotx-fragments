@@ -38,8 +38,9 @@ class FragmentEventLogVerifier {
     for (Operation expectedOperation : expectedOperations) {
       if (operationsItr.hasNext()) {
         JsonObject operation = operationsItr.next();
-        boolean equal = expectedOperation.consumer.equals(operation.getString("consumer")) &&
-            expectedOperation.action.equals(operation.getString("action"));
+        boolean equal = expectedOperation.task.equals(operation.getString("task")) &&
+            expectedOperation.name.equals(operation.getString("action")) &&
+            expectedOperation.status.equals(operation.getString("status"));
         if (!equal) {
           throw new AssertionError(
               String.format(ASSERTION_MESSAGE, logArray, Arrays.toString(expectedOperations)));
@@ -53,23 +54,26 @@ class FragmentEventLogVerifier {
 
   static final class Operation {
 
-    private String consumer;
-    private String action;
+    private String task;
+    private String name;
+    private String status;
 
-    private Operation(String consumer, String action) {
-      this.consumer = consumer;
-      this.action = action;
+    private Operation(String task, String action, String status) {
+      this.task = task;
+      this.name = action;
+      this.status = status;
     }
 
-    static Operation of(String consumer, String action) {
-      return new Operation(consumer, action);
+    static Operation of(String task, String action, String status) {
+      return new Operation(task, action, status);
     }
 
     @Override
     public String toString() {
-      return "{" +
-          "consumer='" + consumer + '\'' +
-          ", action='" + action + '\'' +
+      return "Operation{" +
+          "task='" + task + '\'' +
+          ", name='" + name + '\'' +
+          ", status='" + status + '\'' +
           '}';
     }
   }
