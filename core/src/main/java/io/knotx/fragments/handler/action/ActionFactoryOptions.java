@@ -50,6 +50,12 @@ public class ActionFactoryOptions {
     return factory;
   }
 
+  /**
+   * Sets {@code Action} factory name.
+   *
+   * @param factory action factory name.
+   * @return reference to this, so the API can be used fluently
+   */
   public ActionFactoryOptions setFactory(String factory) {
     this.factory = factory;
     return this;
@@ -59,6 +65,12 @@ public class ActionFactoryOptions {
     return config;
   }
 
+  /**
+   * Sets {@code Action} configuration that is passed to Action Factory.
+   *
+   * @param config action factory configuration.
+   * @return reference to this, so the API can be used fluently
+   */
   public ActionFactoryOptions setConfig(JsonObject config) {
     this.config = config;
     return this;
@@ -68,6 +80,13 @@ public class ActionFactoryOptions {
     return doAction;
   }
 
+  /**
+   * Sets the name of the base {@code Action} that will be triggered while creating current {@code
+   * Action}. In not set ({@code null}), given action will have no base actions.
+   *
+   * @param doAction name of the base {@code Action}.
+   * @return reference to this, so the API can be used fluently
+   */
   public ActionFactoryOptions setDoAction(String doAction) {
     this.doAction = doAction;
     return this;

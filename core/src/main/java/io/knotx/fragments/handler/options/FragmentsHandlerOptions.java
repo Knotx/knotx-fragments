@@ -46,6 +46,12 @@ public class FragmentsHandlerOptions {
     return tasks;
   }
 
+  /**
+   * Sets {@code Task} list, which are named graphs of {@code Actions}.
+   *
+   * @param tasks list of defined {@code Tasks}.
+   * @return reference to this, so the API can be used fluently
+   */
   public FragmentsHandlerOptions setTasks(
       Map<String, GraphOptions> tasks) {
     this.tasks = tasks;
@@ -56,6 +62,12 @@ public class FragmentsHandlerOptions {
     return actions;
   }
 
+  /**
+   * Sets named actions with their factory configuration.
+   *
+   * @param actions list of named {@code Actions} (name -> Action)
+   * @return reference to this, so the API can be used fluently
+   */
   public FragmentsHandlerOptions setActions(
       Map<String, ActionFactoryOptions> actions) {
     this.actions = actions;

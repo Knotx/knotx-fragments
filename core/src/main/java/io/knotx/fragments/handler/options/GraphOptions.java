@@ -54,6 +54,11 @@ public class GraphOptions {
     return action;
   }
 
+  /**
+   * Sets {@code Action} name. This action will be executed during processing given graph node.
+   *
+   * @return reference to this, so the API can be used fluently
+   */
   public GraphOptions setAction(String action) {
     this.action = action;
     return this;
@@ -67,6 +72,12 @@ public class GraphOptions {
     return transitions;
   }
 
+  /**
+   * Sets the {@code Map} of possible transitions for the given graph node.
+   *
+   * @param transitions map of possible transitions.
+   * @return reference to this, so the API can be used fluently
+   */
   public GraphOptions setTransitions(
       Map<String, GraphOptions> transitions) {
     this.transitions = transitions;
