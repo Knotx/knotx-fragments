@@ -13,13 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package io.knotx.fragments.handler.api.fragment;
 
-rootProject.name = "knotx-fragments-engine"
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-include("knotx-fragments-handler-api")
-include("knotx-fragments-handler-core")
-include("knotx-fragments-engine")
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.TYPE)
+public @interface CacheableAction {
 
-project(":knotx-fragments-handler-api").projectDir = file("api")
-project(":knotx-fragments-handler-core").projectDir = file("core")
-project(":knotx-fragments-engine").projectDir = file("engine")
+}

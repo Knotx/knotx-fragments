@@ -12,14 +12,20 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
+ * The code comes from https://github.com/tomaszmichalak/vertx-rx-map-reduce.
  */
+package io.knotx.fragments.handler.api.exception;
 
-rootProject.name = "knotx-fragments-engine"
+import io.knotx.fragment.Fragment;
+import io.vertx.serviceproxy.ServiceException;
 
-include("knotx-fragments-handler-api")
-include("knotx-fragments-handler-core")
-include("knotx-fragments-engine")
+public class KnotProcessingFatalException extends ServiceException {
 
-project(":knotx-fragments-handler-api").projectDir = file("api")
-project(":knotx-fragments-handler-core").projectDir = file("core")
-project(":knotx-fragments-engine").projectDir = file("engine")
+  public static final int FAILURE_CODE = -128;
+
+  public KnotProcessingFatalException(Fragment fragment) {
+    super(FAILURE_CODE, "Failed during fragment processing [" + fragment.getId() + "]",
+        fragment.toJson());
+  }
+}

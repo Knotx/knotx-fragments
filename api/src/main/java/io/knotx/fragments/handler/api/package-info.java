@@ -13,13 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+@ModuleGen(name = "knotx-fragments-handler-api", groupPackage = "io.knotx.fragments.handler")
+package io.knotx.fragments.handler.api;
 
-rootProject.name = "knotx-fragments-engine"
-
-include("knotx-fragments-handler-api")
-include("knotx-fragments-handler-core")
-include("knotx-fragments-engine")
-
-project(":knotx-fragments-handler-api").projectDir = file("api")
-project(":knotx-fragments-handler-core").projectDir = file("core")
-project(":knotx-fragments-engine").projectDir = file("engine")
+import io.vertx.codegen.annotations.ModuleGen;
