@@ -18,7 +18,7 @@ Actions is a simple function (business logic) with some restrictions imposed. E.
 time can be limited to a certain amount of time. If it will not end in that time (Action timeout), 
 error Transition is returned and some fallback Action may be applied.
 
-<img src="https://github.com/Knotx/knotx-fragments-handler/raw/master/assets/images/graph_processing_failure.png" width="400">
+<img src="https://github.com/Knotx/knotx-fragments-handler/raw/master/assets/images/graph_processing_failure.png" width="500">
 
 The diagram belows depicts Fragments Engine logic (map-reduce).
 
