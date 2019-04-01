@@ -12,13 +12,13 @@ Each Action transforms content of Fragment or updates Fragment's payload.
 
 Fragment's path in the Task graph is defined by Action's output, called Transition.
 
-![Node with exits](assets/images/graph_processing.png)
+![Node with exits](assets/images/graph_processing.png =700x)
 
 Actions is a simple function (business logic) with some restrictions imposed. E.g. function processing
 time can be limited to a certain amount of time. If it will not end in that time (Action timeout), 
 error Transition is returned and some fallback Action may be applied.
 
-![Node with exits](assets/images/graph_processing_failure.png)
+![Node with exits](assets/images/graph_processing_failure.png =700x)
 
 
 The diagram belows depicts Fragments Engine logic (map-reduce).
