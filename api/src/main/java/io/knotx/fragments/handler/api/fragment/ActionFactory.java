@@ -13,13 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package io.knotx.fragments.handler.api.fragment;
 
-rootProject.name = "knotx-fragments-engine"
+import io.vertx.core.Vertx;
+import io.vertx.core.json.JsonObject;
 
-include("knotx-fragments-handler-api")
-include("knotx-fragments-handler-core")
-include("knotx-fragments-engine")
 
-project(":knotx-fragments-handler-api").projectDir = file("api")
-project(":knotx-fragments-handler-core").projectDir = file("core")
-project(":knotx-fragments-engine").projectDir = file("engine")
+public interface ActionFactory {
+
+  String getName();
+
+  /**
+   * @param doAction action to be applied, if no action should be called in chain then it is
+   * <pre>null</pre>
+   */
+  Action create(String alias, JsonObject config, Vertx vertx, Action doAction);
+
+}

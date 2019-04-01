@@ -34,6 +34,9 @@ dependencies {
     annotationProcessor(group = "io.vertx", name = "vertx-codegen")
     annotationProcessor(group = "io.vertx", name = "vertx-service-proxy", classifier = "processor")
     annotationProcessor(group = "io.vertx", name = "vertx-rx-java2-gen")
+
+    implementation(group = "io.vertx", name = "vertx-circuit-breaker")
+    implementation(group = "org.apache.commons", name = "commons-lang3")
 }
 
 // -----------------------------------------------------------------------------
@@ -54,7 +57,7 @@ sourceSets.named("main") {
 // -----------------------------------------------------------------------------
 tasks {
     named<RatTask>("rat") {
-        excludes.addAll("**/*.json", "**/*.MD", "**/*.templ", "**/*.adoc", "**/build/*", "**/out/*", "**/generated/*", "/src/test/resources/*", "*.iml")
+        excludes.addAll("**/*.md", "**/*.adoc", "**/build/*", "**/out/*", "**/generated/*")
     }
     getByName("build").dependsOn("rat")
 }
@@ -79,13 +82,13 @@ tasks.named<Javadoc>("javadoc") {
 publishing {
     publications {
         create<MavenPublication>("mavenJava") {
-            artifactId = "knotx-knot-engine-api"
+            artifactId = "knotx-fragments-handler-api"
             from(components["java"])
             artifact(tasks["sourcesJar"])
             artifact(tasks["javadocJar"])
             pom {
-                name.set("Knot.x Knot Engine API")
-                description.set("Knot Engine API module contains all Knot related interfaces.")
+                name.set("Knot.x Fragments Handler API")
+                description.set("Fragments Handler API module contains Fragment processing interfaces.")
                 url.set("http://knotx.io")
                 licenses {
                     license {
@@ -111,8 +114,8 @@ publishing {
                     }
                 }
                 scm {
-                    connection.set("scm:git:git://github.com/Knotx/knotx-knot-engine.git")
-                    developerConnection.set("scm:git:ssh://github.com:Knotx/knotx-knot-engine.git")
+                    connection.set("scm:git:git://github.com/Knotx/knotx-fragments-handler.git")
+                    developerConnection.set("scm:git:ssh://github.com:Knotx/knotx-fragments-handler.git")
                     url.set("http://knotx.io")
                 }
             }

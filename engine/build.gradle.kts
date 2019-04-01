@@ -26,13 +26,14 @@ plugins {
 // -----------------------------------------------------------------------------
 // Dependencies
 // -----------------------------------------------------------------------------
+
+val junitTestCompile = configurations.create("junitTestCompile")
+
 dependencies {
     api(project(":knotx-fragments-handler-api"))
-    implementation(project(":knotx-fragments-engine"))
-
-    implementation(group = "org.apache.commons", name = "commons-lang3")
-    implementation(group = "io.vertx", name = "vertx-circuit-breaker")
 }
+
+junitTestCompile.extendsFrom(configurations.named("testImplementation").get())
 
 // -----------------------------------------------------------------------------
 // Source sets
@@ -40,13 +41,27 @@ dependencies {
 sourceSets.named("main") {
     java.srcDir("src/main/generated")
 }
+tasks.named<JavaCompile>("compileJava") {
+    options.annotationProcessorGeneratedSourcesDirectory = file("src/main/generated")
+}
+tasks.named<Delete>("clean") {
+    delete.add("src/main/generated")
+}
+sourceSets.create("junitTest") {
+    compileClasspath += sourceSets.named("main").get().output
+}
+sourceSets.named("test") {
+    compileClasspath += sourceSets.named("junitTest").get().output
+    runtimeClasspath += sourceSets.named("junitTest").get().output
+}
+
 
 // -----------------------------------------------------------------------------
 // Tasks
 // -----------------------------------------------------------------------------
 tasks {
     named<RatTask>("rat") {
-        excludes.addAll("**/*.json", "**/*.md", "**/*.adoc", "**/build/*", "**/out/*", "**/generated/*")
+        excludes.addAll("**/*.json", "**/*.md", "**/*.adoc", "**/build/*", "**/out/*", "**/generated/*", "/src/test/resources/*")
     }
     getByName("build").dependsOn("rat")
 }
@@ -67,16 +82,22 @@ tasks.named<Javadoc>("javadoc") {
         (options as StandardJavadocDocletOptions).addBooleanOption("html5", true)
     }
 }
+tasks.register<Jar>("testJar") {
+    from(sourceSets.named("junitTest").get().output)
+    classifier = "tests"
+}
+
 publishing {
     publications {
         create<MavenPublication>("mavenJava") {
-            artifactId = "knotx-fragments-handler-core"
+            artifactId = "knotx-fragments-engine"
             from(components["java"])
             artifact(tasks["sourcesJar"])
             artifact(tasks["javadocJar"])
+            artifact(tasks["testJar"])
             pom {
-                name.set("Knot.x Fragments Handler Core")
-                description.set("Fragments Handler Core allows to process fragments using Graph logic.")
+                name.set("Knot.x Fragments Engine")
+                description.set("Fragments Engine module containing map-reduce, graph engine implementation.")
                 url.set("http://knotx.io")
                 licenses {
                     license {
@@ -122,9 +143,9 @@ publishing {
         }
     }
 }
+
 signing {
     sign(publishing.publications["mavenJava"])
 }
 
 apply(from = "../gradle/common.deps.gradle.kts")
-apply(from = "../gradle/codegen.deps.gradle.kts")

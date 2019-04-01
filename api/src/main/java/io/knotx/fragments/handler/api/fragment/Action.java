@@ -13,13 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package io.knotx.fragments.handler.api.fragment;
 
-rootProject.name = "knotx-fragments-engine"
+import io.vertx.codegen.annotations.VertxGen;
+import io.vertx.core.AsyncResult;
+import io.vertx.core.Handler;
+import io.vertx.lang.rx.RxGen;
 
-include("knotx-fragments-handler-api")
-include("knotx-fragments-handler-core")
-include("knotx-fragments-engine")
+@RxGen(Action.class)
+@VertxGen
+public interface Action {
 
-project(":knotx-fragments-handler-api").projectDir = file("api")
-project(":knotx-fragments-handler-core").projectDir = file("core")
-project(":knotx-fragments-engine").projectDir = file("engine")
+  void apply(FragmentContext fragmentContext, Handler<AsyncResult<FragmentResult>> resultHandler);
+
+}
