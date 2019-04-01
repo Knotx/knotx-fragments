@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-rootProject.name = "knotx-fragments-engine"
+rootProject.name = "knotx-fragments-handler"
 
 include("knotx-fragments-handler-api")
 include("knotx-fragments-handler-core")
