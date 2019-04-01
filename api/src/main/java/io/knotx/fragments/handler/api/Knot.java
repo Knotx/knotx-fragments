@@ -25,11 +25,6 @@ import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.eventbus.DeliveryOptions;
 
-/**
- * This action can be easily scaled with Vert.x Event Bus. You can deploy more instances of the same
- * class and Vert.x provides load balancing out of the box (all of then listens on the same
- * address).
- */
 @ProxyGen
 @VertxGen
 public interface Knot extends Action {
