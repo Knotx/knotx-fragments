@@ -20,8 +20,11 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+/**
+ * Marks {@link ActionFactory} as one delivering cacheable actions.
+ */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
-public @interface CacheableAction {
+public @interface Cacheable {
 
 }

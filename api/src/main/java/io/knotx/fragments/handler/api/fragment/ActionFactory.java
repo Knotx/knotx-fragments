@@ -18,14 +18,27 @@ package io.knotx.fragments.handler.api.fragment;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
 
-
+/**
+ * Creates an instance of {@link Action} class.
+ */
 public interface ActionFactory {
 
+  /**
+   * Action factory name.
+   *
+   * @return action factory name
+   */
   String getName();
 
   /**
+   * Creates an instance of {@link Action} class.
+   *
+   * @param alias - action alias
+   * @param config - JSON configuration
+   * @param vertx - vertx instance
    * @param doAction action to be applied, if no action should be called in chain then it is
    * <pre>null</pre>
+   * @return function to execute
    */
   Action create(String alias, JsonObject config, Vertx vertx, Action doAction);
 

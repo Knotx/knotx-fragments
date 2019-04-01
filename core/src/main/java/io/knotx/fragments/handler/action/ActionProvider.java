@@ -15,7 +15,7 @@
  */
 package io.knotx.fragments.handler.action;
 
-import io.knotx.fragments.handler.api.fragment.CacheableAction;
+import io.knotx.fragments.handler.api.fragment.Cacheable;
 import io.knotx.fragments.handler.api.fragment.Action;
 import io.knotx.fragments.handler.api.fragment.ActionFactory;
 import io.vertx.core.Vertx;
@@ -76,7 +76,7 @@ public class ActionProvider {
   }
 
   private boolean isCacheable(ActionFactory factory) {
-    return factory.getClass().isAnnotationPresent(CacheableAction.class);
+    return factory.getClass().isAnnotationPresent(Cacheable.class);
   }
 
   private Map<String, ActionFactory> loadFactories(

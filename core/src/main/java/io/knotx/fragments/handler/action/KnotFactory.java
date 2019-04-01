@@ -18,12 +18,12 @@ package io.knotx.fragments.handler.action;
 import io.knotx.fragments.handler.api.Knot;
 import io.knotx.fragments.handler.api.fragment.Action;
 import io.knotx.fragments.handler.api.fragment.ActionFactory;
-import io.knotx.fragments.handler.api.fragment.CacheableAction;
+import io.knotx.fragments.handler.api.fragment.Cacheable;
 import io.vertx.core.Vertx;
 import io.vertx.core.eventbus.DeliveryOptions;
 import io.vertx.core.json.JsonObject;
 
-@CacheableAction
+@Cacheable
 public class KnotFactory implements ActionFactory {
 
   @Override

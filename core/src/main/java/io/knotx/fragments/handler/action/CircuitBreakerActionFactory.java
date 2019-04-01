@@ -17,7 +17,7 @@ package io.knotx.fragments.handler.action;
 
 import io.knotx.fragments.handler.api.fragment.Action;
 import io.knotx.fragments.handler.api.fragment.ActionFactory;
-import io.knotx.fragments.handler.api.fragment.CacheableAction;
+import io.knotx.fragments.handler.api.fragment.Cacheable;
 import io.knotx.fragments.handler.api.fragment.FragmentContext;
 import io.knotx.fragments.handler.api.fragment.FragmentResult;
 import io.knotx.fragments.handler.exception.DoActionNotDefinedException;
@@ -34,7 +34,7 @@ import io.vertx.core.json.JsonObject;
  * This is a factory class creating action, which provides circuit breaker mechanism. It protects
  * the `doAction` action against overloading when it does not respond on time. If t
  */
-@CacheableAction
+@Cacheable
 public class CircuitBreakerActionFactory implements ActionFactory {
 
   static final String FALLBACK_TRANSITION = "fallback";

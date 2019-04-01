@@ -28,7 +28,7 @@ import static org.mockito.Mockito.when;
 import com.google.common.collect.ImmutableMap;
 import io.knotx.fragments.handler.api.fragment.FragmentContext;
 import io.knotx.fragments.handler.api.fragment.FragmentResult;
-import io.knotx.fragments.handler.api.fragment.CacheableAction;
+import io.knotx.fragments.handler.api.fragment.Cacheable;
 import io.knotx.fragments.handler.api.fragment.Action;
 import io.knotx.fragments.handler.api.fragment.ActionFactory;
 import io.vertx.core.AsyncResult;
@@ -226,7 +226,7 @@ class ActionProviderTest {
     }
   }
 
-  @CacheableAction
+  @Cacheable
   class TestCacheableOperationFactory implements ActionFactory {
 
     @Override

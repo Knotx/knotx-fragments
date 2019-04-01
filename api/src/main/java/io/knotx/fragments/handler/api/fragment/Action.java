@@ -24,6 +24,13 @@ import io.vertx.lang.rx.RxGen;
 @VertxGen
 public interface Action {
 
+  /**
+   * Transforms a fragment into the new one. It returns a fragment result containing the new fragment
+   * and a transition (which determines an edge in the processing graph).
+   *
+   * @param fragmentContext - contains both fragment and client request
+   * @param resultHandler - handler that is invoked when the new fragment is ready
+   */
   void apply(FragmentContext fragmentContext, Handler<AsyncResult<FragmentResult>> resultHandler);
 
 }
