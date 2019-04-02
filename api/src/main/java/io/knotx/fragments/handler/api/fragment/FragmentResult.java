@@ -21,6 +21,9 @@ import io.vertx.core.json.JsonObject;
 import java.util.Objects;
 import org.apache.commons.lang3.StringUtils;
 
+/**
+ * Result of the {@code Action} fragment processing.
+ */
 @DataObject
 public class FragmentResult {
 
@@ -49,10 +52,20 @@ public class FragmentResult {
         .put(TRANSITION_KEY, transition);
   }
 
+  /**
+   * A {@code Fragment} transformed or updated during applying the {@code Action}.
+   *
+   * @return transformed or updated Fragment
+   */
   public Fragment getFragment() {
     return fragment;
   }
 
+  /**
+   * Name of the next step in the graph that is defined as the {@code Action} output.
+   *
+   * @return next transition
+   */
   public String getTransition() {
     if (StringUtils.isBlank(transition)) {
       return DEFAULT_TRANSITION;

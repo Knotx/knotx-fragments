@@ -139,4 +139,6 @@ signing {
     sign(publishing.publications["mavenJava"])
 }
 
+
+apply(from = "../gradle/codegen.deps.gradle.kts")
 apply(from = "../gradle/common.deps.gradle.kts")

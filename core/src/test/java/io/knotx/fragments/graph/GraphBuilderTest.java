@@ -28,7 +28,7 @@ import io.knotx.fragments.handler.api.fragment.Action;
 import io.knotx.fragments.handler.api.fragment.FragmentContext;
 import io.knotx.fragments.handler.api.fragment.FragmentResult;
 import io.knotx.fragments.handler.exception.GraphConfigurationException;
-import io.knotx.fragments.handler.options.GraphOptions;
+import io.knotx.fragments.handler.options.GraphNodeOptions;
 import io.knotx.server.api.context.ClientRequest;
 import io.reactivex.Single;
 import io.vertx.core.Future;
@@ -55,7 +55,7 @@ class GraphBuilderTest {
     Mockito.when(actionProvider.get(Mockito.eq("actionA"))).thenReturn(Optional.empty());
 
     GraphBuilder tested = new GraphBuilder(Collections.singletonMap("taskB",
-        new GraphOptions("actionA", Collections.emptyMap())), actionProvider);
+        new GraphNodeOptions("actionA", Collections.emptyMap())), actionProvider);
 
     // when
     Fragment fragment = new Fragment("type", new JsonObject().put(GraphBuilder.TASK_KEY, "taskA"),
@@ -74,7 +74,7 @@ class GraphBuilderTest {
     Mockito.when(actionProvider.get(Mockito.eq("actionA"))).thenReturn(Optional.empty());
 
     GraphBuilder tested = new GraphBuilder(Collections.singletonMap("taskA",
-        new GraphOptions("actionA", Collections.emptyMap())), actionProvider);
+        new GraphNodeOptions("actionA", Collections.emptyMap())), actionProvider);
 
     // when, then
     Fragment fragment = new Fragment("type", new JsonObject().put(GraphBuilder.TASK_KEY, "taskA"),
@@ -100,7 +100,7 @@ class GraphBuilderTest {
     Mockito.when(actionProvider.get(Mockito.eq("actionA"))).thenReturn(Optional.of(
         expectedAction));
     GraphBuilder tested = new GraphBuilder(
-        Collections.singletonMap("taskA", new GraphOptions("actionA", Collections.emptyMap())),
+        Collections.singletonMap("taskA", new GraphNodeOptions("actionA", Collections.emptyMap())),
         actionProvider);
 
     // when
@@ -136,9 +136,9 @@ class GraphBuilderTest {
         anyAction));
 
     GraphBuilder tested = new GraphBuilder(
-        Collections.singletonMap("taskA", new GraphOptions("actionA", Collections
+        Collections.singletonMap("taskA", new GraphNodeOptions("actionA", Collections
             .singletonMap("customTransition",
-                new GraphOptions("actionB", Collections.emptyMap())))),
+                new GraphNodeOptions("actionB", Collections.emptyMap())))),
         actionProvider);
 
     // when

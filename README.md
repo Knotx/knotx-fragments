@@ -1,4 +1,4 @@
-# Fragments Handler
+# Fragments Handler API
 It is a [**Handler**](https://github.com/Knotx/knotx-server-http/tree/master/api#routing-handlers)
 that processes a request during HTTP Server request processing.
 It operates on [**Fragments**](https://github.com/Knotx/knotx-fragment-api#knotx-fragment-api)
@@ -8,9 +8,9 @@ It operates on [**Fragments**](https://github.com/Knotx/knotx-fragment-api#knotx
 
 ## How does it works
 
-Each **Fragment** may specify a processing **Task** that defines a named graph of **Actions**.
+Each **Fragment** may specify a processing **Task** that points to a named, directed graph of **Actions**.
 
-Each **Action** transforms Fragment's content or updates its payload. 
+Each **Action** transforms Fragment's content and/or updates its payload. 
 
 Fragment's path in the Task graph is defined by Action's output, called **Transition**.
 

@@ -22,14 +22,17 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
+/**
+ * Defines graph's verticle with outgoing directed edges ({@code Transitions}).
+ */
 @DataObject(generateConverter = true)
-public class GraphOptions {
+public class GraphNodeOptions {
 
   private String action;
 
-  private Map<String, GraphOptions> transitions;
+  private Map<String, GraphNodeOptions> transitions;
 
-  public GraphOptions(String action, Map<String, GraphOptions> transitions) {
+  public GraphNodeOptions(String action, Map<String, GraphNodeOptions> transitions) {
     if (action == null) {
       throw new IllegalStateException("Proxy can not be null");
     }
@@ -37,8 +40,8 @@ public class GraphOptions {
     this.transitions = transitions;
   }
 
-  public GraphOptions(JsonObject json) {
-    GraphOptionsConverter.fromJson(json, this);
+  public GraphNodeOptions(JsonObject json) {
+    GraphNodeOptionsConverter.fromJson(json, this);
     if (this.transitions == null) {
       this.transitions = Collections.emptyMap();
     }
@@ -46,7 +49,7 @@ public class GraphOptions {
 
   public JsonObject toJson() {
     JsonObject result = new JsonObject();
-    GraphOptionsConverter.toJson(this, result);
+    GraphNodeOptionsConverter.toJson(this, result);
     return result;
   }
 
@@ -59,16 +62,16 @@ public class GraphOptions {
    *
    * @return reference to this, so the API can be used fluently
    */
-  public GraphOptions setAction(String action) {
+  public GraphNodeOptions setAction(String action) {
     this.action = action;
     return this;
   }
 
-  public Optional<GraphOptions> get(String transition) {
+  public Optional<GraphNodeOptions> get(String transition) {
     return Optional.ofNullable(transitions.get(transition));
   }
 
-  public Map<String, GraphOptions> getTransitions() {
+  public Map<String, GraphNodeOptions> getTransitions() {
     return transitions;
   }
 
@@ -78,8 +81,8 @@ public class GraphOptions {
    * @param transitions map of possible transitions.
    * @return reference to this, so the API can be used fluently
    */
-  public GraphOptions setTransitions(
-      Map<String, GraphOptions> transitions) {
+  public GraphNodeOptions setTransitions(
+      Map<String, GraphNodeOptions> transitions) {
     this.transitions = transitions;
     return this;
   }
@@ -92,7 +95,7 @@ public class GraphOptions {
     if (o == null || getClass() != o.getClass()) {
       return false;
     }
-    GraphOptions that = (GraphOptions) o;
+    GraphNodeOptions that = (GraphNodeOptions) o;
     return Objects.equals(action, that.action) &&
         Objects.equals(transitions, that.transitions);
   }
@@ -104,7 +107,7 @@ public class GraphOptions {
 
   @Override
   public String toString() {
-    return "GraphOptions{" +
+    return "GraphNodeOptions{" +
         "action='" + action + '\'' +
         ", transitions=" + transitions +
         '}';

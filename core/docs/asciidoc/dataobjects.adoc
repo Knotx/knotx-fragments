@@ -30,14 +30,18 @@ Sets <code>Action</code> factory name.
 |[[actions]]`@actions`|`link:dataobjects.html#ActionFactoryOptions[ActionFactoryOptions]`|+++
 Sets named actions with their factory configuration.
 +++
-|[[tasks]]`@tasks`|`link:dataobjects.html#GraphOptions[GraphOptions]`|+++
-Sets <code>Task</code> list, which are named graphs of <code>Actions</code>.
+|[[tasks]]`@tasks`|`link:dataobjects.html#GraphNodeOptions[GraphNodeOptions]`|+++
+Sets <code>Task</code> list, which are named, directed graphs of <code>Actions</code>.
 +++
 |===
 
-[[GraphOptions]]
-== GraphOptions
+[[GraphNodeOptions]]
+== GraphNodeOptions
 
+++++
+ Defines graph's verticle with outgoing directed edges (<code>Transitions</code>).
+++++
+'''
 
 [cols=">25%,25%,50%"]
 [frame="topbot"]
@@ -46,7 +50,7 @@ Sets <code>Task</code> list, which are named graphs of <code>Actions</code>.
 |[[action]]`@action`|`String`|+++
 Sets <code>Action</code> name. This action will be executed during processing given graph node.
 +++
-|[[transitions]]`@transitions`|`link:dataobjects.html#GraphOptions[GraphOptions]`|+++
+|[[transitions]]`@transitions`|`link:dataobjects.html#GraphNodeOptions[GraphNodeOptions]`|+++
 Sets the <code>Map</code> of possible transitions for the given graph node.
 +++
 |===

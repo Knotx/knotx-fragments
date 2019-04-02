@@ -24,7 +24,7 @@ import io.knotx.fragments.handler.api.fragment.Action;
 import io.knotx.fragments.handler.api.fragment.FragmentContext;
 import io.knotx.fragments.handler.api.fragment.FragmentResult;
 import io.knotx.fragments.handler.exception.GraphConfigurationException;
-import io.knotx.fragments.handler.options.GraphOptions;
+import io.knotx.fragments.handler.options.GraphNodeOptions;
 import io.reactivex.Single;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
@@ -38,10 +38,10 @@ public class GraphBuilder {
   private static final Logger LOGGER = LoggerFactory.getLogger(GraphBuilder.class);
   static final String TASK_KEY = "data-knotx-task";
 
-  private final Map<String, GraphOptions> graphOptionsMap;
+  private final Map<String, GraphNodeOptions> graphOptionsMap;
   private final ActionProvider actionProvider;
 
-  public GraphBuilder(Map<String, GraphOptions> graphOptionsMap,
+  public GraphBuilder(Map<String, GraphNodeOptions> graphOptionsMap,
       ActionProvider proxyProvider) {
     this.graphOptionsMap = graphOptionsMap;
     this.actionProvider = proxyProvider;
@@ -51,7 +51,7 @@ public class GraphBuilder {
     Optional<GraphNode> result = Optional.empty();
     if (fragment.getConfiguration().containsKey(TASK_KEY)) {
       String task = fragment.getConfiguration().getString(TASK_KEY);
-      GraphOptions options = graphOptionsMap.get(task);
+      GraphNodeOptions options = graphOptionsMap.get(task);
       if (options == null) {
         LOGGER.warn("Task [{}] not defined in configuration!", task);
         return Optional.empty();
@@ -62,11 +62,11 @@ public class GraphBuilder {
     return result;
   }
 
-  private GraphNode initGraphNode(String task, GraphOptions options) {
+  private GraphNode initGraphNode(String task, GraphNodeOptions options) {
     Action action = actionProvider.get(options.getAction()).orElseThrow(
         () -> new GraphConfigurationException("No provider for action " + options.getAction()));
 
-    Map<String, GraphOptions> transitions = options.getTransitions();
+    Map<String, GraphNodeOptions> transitions = options.getTransitions();
     Map<String, GraphNode> edges = new HashMap<>();
     transitions.forEach((transition, childGraphOptions) -> {
       GraphNode node = initGraphNode(task, childGraphOptions);
