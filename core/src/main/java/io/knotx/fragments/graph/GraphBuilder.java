@@ -66,7 +66,7 @@ public class GraphBuilder {
     Action action = actionProvider.get(options.getAction()).orElseThrow(
         () -> new GraphConfigurationException("No provider for action " + options.getAction()));
 
-    Map<String, GraphNodeOptions> transitions = options.getTransitions();
+    Map<String, GraphNodeOptions> transitions = options.getOnTransitions();
     Map<String, GraphNode> edges = new HashMap<>();
     transitions.forEach((transition, childGraphOptions) -> {
       GraphNode node = initGraphNode(task, childGraphOptions);

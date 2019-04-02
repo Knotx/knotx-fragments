@@ -50,8 +50,8 @@ Sets <code>Task</code> list, which are named, directed graphs of <code>Actions</
 |[[action]]`@action`|`String`|+++
 Sets <code>Action</code> name. This action will be executed during processing given graph node.
 +++
-|[[transitions]]`@transitions`|`link:dataobjects.html#GraphNodeOptions[GraphNodeOptions]`|+++
-Sets the <code>Map</code> of possible transitions for the given graph node.
+|[[onTransitions]]`@onTransitions`|`link:dataobjects.html#GraphNodeOptions[GraphNodeOptions]`|+++
+Sets the <code>Map</code> of possible onTransitions for the given graph node.
 +++
 |===
 

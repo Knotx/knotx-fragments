@@ -65,7 +65,7 @@ public class FragmentsHandlerOptions {
   /**
    * Sets named actions with their factory configuration.
    *
-   * @param actions list of named {@code Actions} (name -> Action)
+   * @param actions list of named {@code Actions} (name -&gt; Action)
    * @return reference to this, so the API can be used fluently
    */
   public FragmentsHandlerOptions setActions(

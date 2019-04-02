@@ -30,20 +30,20 @@ public class GraphNodeOptions {
 
   private String action;
 
-  private Map<String, GraphNodeOptions> transitions;
+  private Map<String, GraphNodeOptions> onTransitions;
 
   public GraphNodeOptions(String action, Map<String, GraphNodeOptions> transitions) {
     if (action == null) {
       throw new IllegalStateException("Proxy can not be null");
     }
     this.action = action;
-    this.transitions = transitions;
+    this.onTransitions = transitions;
   }
 
   public GraphNodeOptions(JsonObject json) {
     GraphNodeOptionsConverter.fromJson(json, this);
-    if (this.transitions == null) {
-      this.transitions = Collections.emptyMap();
+    if (this.onTransitions == null) {
+      this.onTransitions = Collections.emptyMap();
     }
   }
 
@@ -60,6 +60,7 @@ public class GraphNodeOptions {
   /**
    * Sets {@code Action} name. This action will be executed during processing given graph node.
    *
+   * @param action action name
    * @return reference to this, so the API can be used fluently
    */
   public GraphNodeOptions setAction(String action) {
@@ -68,22 +69,22 @@ public class GraphNodeOptions {
   }
 
   public Optional<GraphNodeOptions> get(String transition) {
-    return Optional.ofNullable(transitions.get(transition));
+    return Optional.ofNullable(onTransitions.get(transition));
   }
 
-  public Map<String, GraphNodeOptions> getTransitions() {
-    return transitions;
+  public Map<String, GraphNodeOptions> getOnTransitions() {
+    return onTransitions;
   }
 
   /**
-   * Sets the {@code Map} of possible transitions for the given graph node.
+   * Sets the {@code Map} of possible onTransitions for the given graph node.
    *
-   * @param transitions map of possible transitions.
+   * @param onTransitions map of possible transitions.
    * @return reference to this, so the API can be used fluently
    */
-  public GraphNodeOptions setTransitions(
-      Map<String, GraphNodeOptions> transitions) {
-    this.transitions = transitions;
+  public GraphNodeOptions setOnTransitions(
+      Map<String, GraphNodeOptions> onTransitions) {
+    this.onTransitions = onTransitions;
     return this;
   }
 
@@ -97,19 +98,19 @@ public class GraphNodeOptions {
     }
     GraphNodeOptions that = (GraphNodeOptions) o;
     return Objects.equals(action, that.action) &&
-        Objects.equals(transitions, that.transitions);
+        Objects.equals(onTransitions, that.onTransitions);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(action, transitions);
+    return Objects.hash(action, onTransitions);
   }
 
   @Override
   public String toString() {
     return "GraphNodeOptions{" +
         "action='" + action + '\'' +
-        ", transitions=" + transitions +
+        ", onTransitions=" + onTransitions +
         '}';
   }
 }

@@ -74,6 +74,17 @@ public class EventLogEntry {
         .put(TIMESTAMP_KEY, timestamp);
   }
 
+  @Override
+  public String toString() {
+    return "EventLogEntry{" +
+        "task='" + task + '\'' +
+        ", action='" + action + '\'' +
+        ", status=" + status +
+        ", transition='" + transition + '\'' +
+        ", timestamp=" + timestamp +
+        '}';
+  }
+
   enum ActionStatus {
     SUCCESS,
     UNSUPPORTED_TRANSITION,
