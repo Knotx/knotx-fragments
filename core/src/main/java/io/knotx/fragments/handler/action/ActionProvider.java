@@ -32,13 +32,13 @@ public class ActionProvider {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(ActionProvider.class);
 
-  private final Map<String, ActionFactoryOptions> options;
+  private final Map<String, ActionOptions> options;
   private final Vertx vertx;
 
   private final Map<String, ActionFactory> factories;
   private final Map<String, Action> cache;
 
-  public ActionProvider(Map<String, ActionFactoryOptions> options,
+  public ActionProvider(Map<String, ActionOptions> options,
       Supplier<Iterator<ActionFactory>> factoriesSupplier, Vertx vertx) {
     this.options = options;
     this.vertx = vertx;
@@ -50,7 +50,7 @@ public class ActionProvider {
     if (StringUtils.isBlank(action)) {
       return Optional.empty();
     }
-    ActionFactoryOptions config = options.get(action);
+    ActionOptions config = options.get(action);
     if (config == null) {
       LOGGER.warn("Could not create initialize proxy [{}] with missing config.", action);
       return Optional.empty();

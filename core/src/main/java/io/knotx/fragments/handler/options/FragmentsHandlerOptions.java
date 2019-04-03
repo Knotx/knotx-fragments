@@ -15,7 +15,7 @@
  */
 package io.knotx.fragments.handler.options;
 
-import io.knotx.fragments.handler.action.ActionFactoryOptions;
+import io.knotx.fragments.handler.action.ActionOptions;
 import io.vertx.codegen.annotations.DataObject;
 import io.vertx.core.json.JsonObject;
 import java.util.Map;
@@ -26,7 +26,7 @@ public class FragmentsHandlerOptions {
 
   private Map<String, GraphNodeOptions> tasks;
 
-  private Map<String, ActionFactoryOptions> actions;
+  private Map<String, ActionOptions> actions;
 
   public FragmentsHandlerOptions(Map<String, GraphNodeOptions> flows) {
     this.tasks = flows;
@@ -52,13 +52,12 @@ public class FragmentsHandlerOptions {
    * @param tasks list of defined {@code Tasks}.
    * @return reference to this, so the API can be used fluently
    */
-  public FragmentsHandlerOptions setTasks(
-      Map<String, GraphNodeOptions> tasks) {
+  public FragmentsHandlerOptions setTasks(Map<String, GraphNodeOptions> tasks) {
     this.tasks = tasks;
     return this;
   }
 
-  public Map<String, ActionFactoryOptions> getActions() {
+  public Map<String, ActionOptions> getActions() {
     return actions;
   }
 
@@ -68,8 +67,7 @@ public class FragmentsHandlerOptions {
    * @param actions list of named {@code Actions} (name -&gt; Action)
    * @return reference to this, so the API can be used fluently
    */
-  public FragmentsHandlerOptions setActions(
-      Map<String, ActionFactoryOptions> actions) {
+  public FragmentsHandlerOptions setActions(Map<String, ActionOptions> actions) {
     this.actions = actions;
     return this;
   }

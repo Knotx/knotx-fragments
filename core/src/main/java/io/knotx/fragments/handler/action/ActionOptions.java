@@ -20,29 +20,29 @@ import io.vertx.core.json.JsonObject;
 import java.util.Objects;
 
 @DataObject(generateConverter = true)
-public class ActionFactoryOptions {
+public class ActionOptions {
 
   private String factory;
   private JsonObject config;
   private String doAction;
 
-  ActionFactoryOptions(String factory, JsonObject config) {
+  ActionOptions(String factory, JsonObject config) {
     this(factory, config, null);
   }
 
-  ActionFactoryOptions(String factory, JsonObject config, String doAction) {
+  ActionOptions(String factory, JsonObject config, String doAction) {
     this.factory = factory;
     this.config = config;
     this.doAction = doAction;
   }
 
-  public ActionFactoryOptions(JsonObject json) {
-    ActionFactoryOptionsConverter.fromJson(json, this);
+  public ActionOptions(JsonObject json) {
+    ActionOptionsConverter.fromJson(json, this);
   }
 
   public JsonObject toJson() {
     JsonObject json = new JsonObject();
-    ActionFactoryOptionsConverter.toJson(this, json);
+    ActionOptionsConverter.toJson(this, json);
     return json;
   }
 
@@ -56,7 +56,7 @@ public class ActionFactoryOptions {
    * @param factory action factory name.
    * @return reference to this, so the API can be used fluently
    */
-  public ActionFactoryOptions setFactory(String factory) {
+  public ActionOptions setFactory(String factory) {
     this.factory = factory;
     return this;
   }
@@ -66,12 +66,12 @@ public class ActionFactoryOptions {
   }
 
   /**
-   * Sets {@code Action} configuration that is passed to Action Factory.
+   * Sets {@code Action} configuration that is passed to Action.
    *
    * @param config action factory configuration.
    * @return reference to this, so the API can be used fluently
    */
-  public ActionFactoryOptions setConfig(JsonObject config) {
+  public ActionOptions setConfig(JsonObject config) {
     this.config = config;
     return this;
   }
@@ -87,7 +87,7 @@ public class ActionFactoryOptions {
    * @param doAction name of the base {@code Action}.
    * @return reference to this, so the API can be used fluently
    */
-  public ActionFactoryOptions setDoAction(String doAction) {
+  public ActionOptions setDoAction(String doAction) {
     this.doAction = doAction;
     return this;
   }
@@ -101,7 +101,7 @@ public class ActionFactoryOptions {
     if (o == null || getClass() != o.getClass()) {
       return false;
     }
-    ActionFactoryOptions that = (ActionFactoryOptions) o;
+    ActionOptions that = (ActionOptions) o;
     return Objects.equals(factory, that.factory) &&
         Objects.equals(config, that.config) &&
         Objects.equals(doAction, that.doAction);
@@ -114,7 +114,7 @@ public class ActionFactoryOptions {
 
   @Override
   public String toString() {
-    return "ActionFactoryOptions{" +
+    return "ActionOptions{" +
         "factory='" + factory + '\'' +
         ", config=" + config +
         ", doAction='" + doAction + '\'' +

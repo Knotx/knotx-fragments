@@ -1,7 +1,7 @@
 = Cheatsheets
 
-[[ActionFactoryOptions]]
-== ActionFactoryOptions
+[[ActionOptions]]
+== ActionOptions
 
 
 [cols=">25%,25%,50%"]
@@ -9,7 +9,7 @@
 |===
 ^|Name | Type ^| Description
 |[[config]]`@config`|`Json object`|+++
-Sets <code>Action</code> configuration that is passed to Action Factory.
+Sets <code>Action</code> configuration that is passed to Action.
 +++
 |[[doAction]]`@doAction`|`String`|+++
 Sets the name of the base <code>Action</code> that will be triggered while creating current <code>Action</code>. In not set (<code>null</code>), given action will have no base actions.
@@ -27,7 +27,7 @@ Sets <code>Action</code> factory name.
 [frame="topbot"]
 |===
 ^|Name | Type ^| Description
-|[[actions]]`@actions`|`link:dataobjects.html#ActionFactoryOptions[ActionFactoryOptions]`|+++
+|[[actions]]`@actions`|`link:dataobjects.html#ActionOptions[ActionOptions]`|+++
 Sets named actions with their factory configuration.
 +++
 |[[tasks]]`@tasks`|`link:dataobjects.html#GraphNodeOptions[GraphNodeOptions]`|+++

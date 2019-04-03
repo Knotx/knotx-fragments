@@ -88,8 +88,8 @@ class ActionProviderTest {
   @DisplayName("Expect no action when no factory found.")
   void getWithNoFactory(Vertx vertx) {
     // given
-    Map<String, ActionFactoryOptions> proxies = Collections
-        .singletonMap(PROXY_ALIAS, new ActionFactoryOptions("eb", new JsonObject(), null));
+    Map<String, ActionOptions> proxies = Collections
+        .singletonMap(PROXY_ALIAS, new ActionOptions("eb", new JsonObject(), null));
 
     ActionProvider tested = new ActionProvider(proxies,
         Collections::emptyListIterator,
@@ -106,9 +106,9 @@ class ActionProviderTest {
   @DisplayName("Expect action when action alias defined and factory found.")
   void getOperation(Vertx vertx) {
     // given
-    Map<String, ActionFactoryOptions> proxies = Collections
+    Map<String, ActionOptions> proxies = Collections
         .singletonMap(PROXY_ALIAS,
-            new ActionFactoryOptions(PROXY_FACTORY_NAME, new JsonObject(), null));
+            new ActionOptions(PROXY_FACTORY_NAME, new JsonObject(), null));
     List<ActionFactory> factories = Collections
         .singletonList(new TestCacheableOperationFactory());
 
@@ -126,9 +126,9 @@ class ActionProviderTest {
   @DisplayName("Expect new action every time we call non cacheable factory.")
   void getNewAction(Vertx vertx) {
     // given
-    Map<String, ActionFactoryOptions> proxies = Collections
+    Map<String, ActionOptions> proxies = Collections
         .singletonMap(PROXY_ALIAS,
-            new ActionFactoryOptions(PROXY_FACTORY_NAME, new JsonObject(), null));
+            new ActionOptions(PROXY_FACTORY_NAME, new JsonObject(), null));
     List<ActionFactory> factories = Collections
         .singletonList(new TestOperationFactory());
 
@@ -148,9 +148,9 @@ class ActionProviderTest {
   @DisplayName("Expect the same action every time we call cacheable factory.")
   void getCachedOperation(Vertx vertx) {
     // given
-    Map<String, ActionFactoryOptions> proxies = Collections
+    Map<String, ActionOptions> proxies = Collections
         .singletonMap(PROXY_ALIAS,
-            new ActionFactoryOptions(PROXY_FACTORY_NAME, new JsonObject(), null));
+            new ActionOptions(PROXY_FACTORY_NAME, new JsonObject(), null));
     List<ActionFactory> factories = Collections
         .singletonList(new TestCacheableOperationFactory());
 
@@ -185,11 +185,11 @@ class ActionProviderTest {
     when(proxyFactorySecond.create(eq(PROXY_ALIAS_SECOND), any(), eq(vertx), eq(null)))
         .thenReturn(expectedOperationSecond);
 
-    Map<String, ActionFactoryOptions> proxies = ImmutableMap.of(
+    Map<String, ActionOptions> proxies = ImmutableMap.of(
         PROXY_ALIAS,
-        new ActionFactoryOptions(PROXY_FACTORY_NAME, new JsonObject(), PROXY_ALIAS_SECOND),
+        new ActionOptions(PROXY_FACTORY_NAME, new JsonObject(), PROXY_ALIAS_SECOND),
         PROXY_ALIAS_SECOND,
-        new ActionFactoryOptions(PROXY_FACTORY_NAME_SECOND, new JsonObject())
+        new ActionOptions(PROXY_FACTORY_NAME_SECOND, new JsonObject())
     );
     List<ActionFactory> factories = Arrays.asList(proxyFactory, proxyFactorySecond);
 
