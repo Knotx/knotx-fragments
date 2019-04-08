@@ -20,6 +20,7 @@ import io.knotx.fragments.handler.api.fragment.FragmentResult;
 import io.reactivex.Single;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Function;
 
 public class GraphNode {
@@ -30,11 +31,11 @@ public class GraphNode {
 
   private Function<FragmentContext, Single<FragmentResult>> operation;
 
-  private Map<String, GraphNode> outgoingEdges;
+  private Map<String, Set<GraphNode>> outgoingEdges;
 
   public GraphNode(String task, String action,
       Function<FragmentContext, Single<FragmentResult>> operation,
-      Map<String, GraphNode> edges) {
+      Map<String, Set<GraphNode>> edges) {
     this.task = task;
     this.action = action;
     this.operation = operation;
@@ -45,7 +46,7 @@ public class GraphNode {
     return operation.apply(fragmentContext);
   }
 
-  public Optional<GraphNode> next(String transition) {
+  public Optional<Set<GraphNode>> next(String transition) {
     return Optional.ofNullable(outgoingEdges.get(transition));
   }
 
