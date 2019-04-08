@@ -15,13 +15,14 @@
  */
 package io.knotx.fragments.engine;
 
+import java.util.List;
 import java.util.Set;
 
 class FragmentExecutionContext {
 
   private FragmentEventContext fragmentEventContext;
 
-  private Set<GraphNode> graphNodes;
+  private List<GraphNode> graphNodes;
 
   FragmentEventContext getFragmentEventContext() {
     return fragmentEventContext;
@@ -33,11 +34,11 @@ class FragmentExecutionContext {
     return this;
   }
 
-  Set<GraphNode> getGraphNodes() {
+  List<GraphNode> getGraphNodes() {
     return graphNodes;
   }
 
-  FragmentExecutionContext setGraphNodes(Set<GraphNode> graphNodes) {
+  FragmentExecutionContext setGraphNodes(List<GraphNode> graphNodes) {
     this.graphNodes = graphNodes;
     return this;
   }

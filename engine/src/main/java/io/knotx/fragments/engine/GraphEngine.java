@@ -34,8 +34,6 @@ import io.vertx.core.logging.LoggerFactory;
 import io.vertx.reactivex.RxHelper;
 import io.vertx.serviceproxy.ServiceException;
 import java.util.Collections;
-import java.util.Optional;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 class GraphEngine {
@@ -50,7 +48,7 @@ class GraphEngine {
 
   Single<FragmentEvent> start(FragmentEventContext eventContext, GraphNode root) {
     FragmentExecutionContext executionContext = new FragmentExecutionContext()
-        .setFragmentEventContext(eventContext).setGraphNodes(Collections.singleton(root));
+        .setFragmentEventContext(eventContext).setGraphNodes(Collections.singletonList(root));
 
     return processNode(executionContext)
         .map(ctx -> ctx.getFragmentEventContext().getFragmentEvent());
@@ -71,7 +69,7 @@ class GraphEngine {
 ////        });
 //  }
 
-  private void updateEventStatus(FragmentExecutionContext context, FragmentResult result) {
+  private void updateEvent(FragmentExecutionContext context, FragmentResult result) {
     FragmentEvent fragmentEvent = context.getFragmentEventContext().getFragmentEvent();
     fragmentEvent.setStatus(Status.SUCCESS);
 //    GraphNode node = context.getGraphNodes();
@@ -86,46 +84,35 @@ class GraphEngine {
 
 
   private Single<FragmentExecutionContext> processNode(FragmentExecutionContext context) {
-    FragmentEventContext fragmentEventContext = context.getFragmentEventContext();
-    FragmentContext fc = new FragmentContext(fragmentEventContext.getFragmentEvent().getFragment(),
-        fragmentEventContext
-            .getClientRequest());
     traceEvent(context);
-
     return Observable.fromIterable(context.getGraphNodes())
         .flatMap(graphNode -> Single.just(graphNode)
-            .flatMap(gn -> gn.doOperation(fc))
-            .onErrorResumeNext(error -> handleError(context, error))
-            .toObservable()
-            .subscribeOn(RxHelper.blockingScheduler(vertx))
-            .map(fr -> {
-              Optional<Set<GraphNode>> nextSteps = graphNode.next(fr.getTransition());
-              updateEventStatus(context, fr);
-              final Optional<FragmentExecutionContext> executionContext = nextSteps
-                  .map(context::setGraphNodes);
-
-              if (executionContext.isPresent()) {
-                processNode(context);
-              } else {
-                endProcessing(context, fr);
-              }
-
-              return context;
+            .observeOn(RxHelper.blockingScheduler(vertx))
+            .flatMap(gn -> {
+              FragmentEventContext fragmentEventContext = context.getFragmentEventContext();
+              FragmentContext fc = new FragmentContext(
+                  fragmentEventContext.getFragmentEvent().getFragment(),
+                  fragmentEventContext
+                      .getClientRequest());
+              return gn.doOperation(fc);
             })
+            .onErrorResumeNext(error -> handleError(context, error))
+            .flatMap(fr -> {
+              updateEvent(context, fr);
+              updateFragment(context, fr);
+              return graphNode.next(fr.getTransition()).map(context::setGraphNodes)
+                  .map(this::processNode).orElseGet(() -> endProcessing(context, fr));
+            }).toObservable()
         )
-        // recurency here until endProcessing
         .reduce(context, (fragmentExecutionContext, fragmentExecutionContext2) -> {
           final Fragment fragment = fragmentExecutionContext.getFragmentEventContext()
               .getFragmentEvent().getFragment();
           final Fragment fragment2 = fragmentExecutionContext2.getFragmentEventContext()
               .getFragmentEvent().getFragment();
           fragment.mergeInPayload(fragment2.getPayload());
+          fragment.setBody(fragment2.getBody());
           return fragmentExecutionContext;
         });
-
-//        .next(result.getTransition())
-//        .map(context::setGraphNodes)
-//        .orElseGet(() -> endProcessing(context, result));
   }
 
   private Single<FragmentExecutionContext> endProcessing(FragmentExecutionContext context,

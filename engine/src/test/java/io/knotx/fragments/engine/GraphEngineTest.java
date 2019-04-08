@@ -78,7 +78,6 @@ class GraphEngineTest {
   }
 
   @Test
-  @Disabled
   @DisplayName("Expect evaluated fragment when engine operation ends.")
   void expectEvaluatedFragment(VertxTestContext testContext, Vertx vertx)
       throws Throwable {
@@ -115,7 +114,7 @@ class GraphEngineTest {
     // given
     GraphNode graphNode = new GraphNode("taskA", "first", successOperation,
         Collections.singletonMap(DEFAULT_TRANSITION,
-            Collections.singleton(
+            Collections.singletonList(
                 new GraphNode("taskA", "second", successOperation, Collections.emptyMap()))));
 
     // when
@@ -147,7 +146,7 @@ class GraphEngineTest {
     // given
     GraphNode graphNode = new GraphNode("taskA", "first", successOperation,
         Collections.singletonMap(DEFAULT_TRANSITION,
-            Collections.singleton(
+            Collections.singletonList(
                 new GraphNode("taskA", "second", successOperation, Collections.emptyMap()))));
 
     // when
@@ -179,7 +178,7 @@ class GraphEngineTest {
     // given
     GraphNode graphNode = new GraphNode("taskA", "first", invalidOperation,
         Collections.singletonMap(ERROR_TRANSITION,
-            Collections.singleton(
+            Collections.singletonList(
                 new GraphNode("taskA", "second", successOperation, Collections.emptyMap()))));
 
     // when
@@ -273,7 +272,7 @@ class GraphEngineTest {
     // given
     GraphNode graphNode = new GraphNode("taskA", "first", invalidOperation,
         Collections.singletonMap(ERROR_TRANSITION,
-            Collections.singleton(
+            Collections.singletonList(
                 new GraphNode("taskA", "second", successOperation, Collections.emptyMap()))));
 
     // when
