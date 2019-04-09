@@ -36,6 +36,7 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
 import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.Assertions;
@@ -151,10 +152,10 @@ class GraphBuilderTest {
     GraphNode rootNode = graphNode.get();
     assertEquals("taskA", rootNode.getTask());
     assertEquals("actionA", rootNode.getAction());
-    Optional<GraphNode> customNode = rootNode.next("customTransition");
+    Optional<List<GraphNode>> customNode = rootNode.next("customTransition");
     assertTrue(customNode.isPresent());
-    assertEquals("taskA", customNode.get().getTask());
-    assertEquals("actionB", customNode.get().getAction());
+    assertEquals("taskA", customNode.get().get(0).getTask());
+    assertEquals("actionB", customNode.get().get(0).getAction());
   }
 
 }

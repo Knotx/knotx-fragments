@@ -15,14 +15,24 @@
  */
 package io.knotx.fragments.engine;
 
+import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 
 class FragmentExecutionContext {
 
   private FragmentEventContext fragmentEventContext;
 
   private List<GraphNode> graphNodes;
+
+  public FragmentExecutionContext() {
+    //empty
+  }
+
+  public FragmentExecutionContext(FragmentExecutionContext context, GraphNode graphNode) {
+    FragmentEvent fragmentEvent = new FragmentEvent(context.getFragmentEventContext().getFragmentEvent().getFragment());
+    this.fragmentEventContext = new FragmentEventContext(fragmentEvent, context.getFragmentEventContext().getClientRequest());
+    this.graphNodes = Collections.singletonList(graphNode);
+  }
 
   FragmentEventContext getFragmentEventContext() {
     return fragmentEventContext;

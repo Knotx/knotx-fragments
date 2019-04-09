@@ -65,8 +65,16 @@ public class FragmentEvent {
     return this;
   }
 
-  public JsonObject getLog() {
+  public JsonObject getLogAsJson() {
     return log.toJson();
+  }
+
+  public EventLog getLog() {
+    return log;
+  }
+
+  public void appendLog(EventLog log) {
+    this.log.appendAll(log);
   }
 
   public Status getStatus() {

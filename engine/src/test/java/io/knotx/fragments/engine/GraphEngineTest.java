@@ -59,7 +59,7 @@ class GraphEngineTest {
 
   private FragmentEventContext eventContext;
   private Fragment initialFragment = new Fragment("snippet", new JsonObject(), "some body");
-  private Fragment evaluatedFragment = new Fragment("snippet", new JsonObject(), "updated body");
+  private Fragment evaluatedFragment = new Fragment(initialFragment.toJson()).setBody("updated body");
 
   @Mock
   private TestFunction successOperation;
@@ -206,7 +206,6 @@ class GraphEngineTest {
   }
 
   @Test
-  @Disabled
   @DisplayName("Expect success event log entry when operation ends.")
   void expectSuccessEventLogEntry(VertxTestContext testContext, Vertx vertx)
       throws Throwable {
@@ -218,13 +217,12 @@ class GraphEngineTest {
 
     // then
     verifyExecution(result, testContext,
-        event -> verifyLogEntries(event.getLog(),
+        event -> verifyLogEntries(event.getLogAsJson(),
             Operation.of("taskA", "first", "SUCCESS")
         ));
   }
 
   @Test
-  @Disabled
   @DisplayName("Expect unsupported event log entries when error transition not handled.")
   void expectUnsupportedEventLogEntryWhenError(VertxTestContext testContext, Vertx vertx)
       throws Throwable {
@@ -236,14 +234,13 @@ class GraphEngineTest {
 
     // then
     verifyExecution(result, testContext,
-        event -> FragmentEventLogVerifier.verifyLogEntries(event.getLog(),
+        event -> FragmentEventLogVerifier.verifyLogEntries(event.getLogAsJson(),
             Operation.of("taskA", "first", "ERROR"),
             Operation.of("taskA", "first", "UNSUPPORTED_TRANSITION")
         ));
   }
 
   @Test
-  @Disabled
   @DisplayName("Expect unsupported event log entries when custom transition not handled.")
   void expectUnsupportedEventLogEntryWhenCustomTransition(VertxTestContext testContext, Vertx vertx)
       throws Throwable {
@@ -258,14 +255,13 @@ class GraphEngineTest {
 
     // then
     verifyExecution(result, testContext,
-        event -> FragmentEventLogVerifier.verifyLogEntries(event.getLog(),
+        event -> FragmentEventLogVerifier.verifyLogEntries(event.getLogAsJson(),
             Operation.of("taskA", "first", "SUCCESS"),
             Operation.of("taskA", "first", "UNSUPPORTED_TRANSITION")
         ));
   }
 
   @Test
-  @Disabled
   @DisplayName("Expect error and success event log entries when error transition handled.")
   void expectErrorAndSuccessEventLogEntries(VertxTestContext testContext, Vertx vertx)
       throws Throwable {
@@ -280,7 +276,7 @@ class GraphEngineTest {
 
     // then
     verifyExecution(result, testContext,
-        event -> FragmentEventLogVerifier.verifyLogEntries(event.getLog(),
+        event -> FragmentEventLogVerifier.verifyLogEntries(event.getLogAsJson(),
             Operation.of("taskA", "first", "ERROR"),
             Operation.of("taskA", "second", "SUCCESS")
         ));

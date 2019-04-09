@@ -50,6 +50,10 @@ public class EventLog {
     operations.add(logEntry);
   }
 
+  public void appendAll(EventLog log) {
+    this.operations.addAll(log.operations);
+  }
+
   public JsonObject getLog() {
     return toJson();
   }
@@ -78,4 +82,5 @@ public class EventLog {
         "operations=" + operations +
         '}';
   }
+
 }
