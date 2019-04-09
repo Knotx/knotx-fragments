@@ -282,6 +282,102 @@ class GraphEngineTest {
         ));
   }
 
+  @Test
+  @DisplayName("Expect success status and fragment's body update when parallel processing")
+  void expectSuccessParallelProcessing() {
+    // scenario:
+    // first -> parallel[A,B,C] -> last
+    // body expected
+    // payload expected
+  }
+
+  @Test
+  @DisplayName("Expect error status when parallel processing and one of parallel actions returns error")
+  void expectErrorParallelProcessing() {
+    // scenario:
+    // first -> parallel[A, B with ERROR, C] -> last
+    // error after parallel
+  }
+
+  @Test
+  @DisplayName("Expect success status when parallel processing and one of parallel actions returns error that is handled by parallel section fallback")
+  void expectFallbackAppliedAfterParallelProcessing() {
+    // scenario:
+    // first -> parallel[A, B with ERROR, C] -> errorFallback
+    // error after parallel but handled by fallback
+  }
+
+  @Test
+  @DisplayName("Expect success status when parallel processing and one of parallel actions returns error that is handled by action fallback")
+  void expectFallbackAppliedDuringParallelProcessing() {
+    // scenario:
+    // first -> parallel[A, B with ERROR -> fallbackB, C] -> last
+    // error at parallel B but handled by fallbackB
+  }
+
+  @Test
+  @DisplayName("Expect success status when nested parallel processing")
+  void expectSuccessNestedParallel() {
+    // scenario:
+    // first -> parallel[A, parallel[B', B'']] -> last
+  }
+
+  @Test
+  @DisplayName("Expect success status when nested parallel processing")
+  void expectSuccessMultipleParallel() {
+    // scenario:
+    // first -> parallel[A, B] -> middle -> parallel[X, Y] -> last
+  }
+
+
+  @Test
+  @DisplayName("Expect success status when processing starts in parallel")
+  void startWithParallel() {
+    // scenario:
+    // parallel[A, B, C] -> last
+  }
+
+
+  @Test
+  @DisplayName("Expect success status when processing ends in parallel")
+  void endWithParallel() {
+    // scenario:
+    // first -> parallel[A, B, C]
+  }
+
+  @Test
+  @DisplayName("Expect fatal status when body is modified during parallel processing")
+  void ensureBodyImmutableDuringParallelProcessing() {
+    // scenario:
+    // first -> parallel[A, B modifies body: FATAL, C] -> last
+    // FATAL after parallel
+  }
+
+  @Test
+  @DisplayName("Expect modified body in the step after parallel when it was modified before parallel")
+  void ensureBodyModifiedBeforeParallelProcessingIsPassedAfter() {
+    // scenario:
+    // first (modify body) -> parallel[A, B, C] -> last
+    // modified body passed to last
+  }
+
+  @Test
+  @DisplayName("Expect parallel nodes when processed in parallel")
+  void verifyParallelExecution() {
+    // scenario:
+    // first -> parallel[A, B, C] -> last
+    // A, B, C all with 500 ms delay, 1s for parallel section
+  }
+
+  @Test
+  @DisplayName("Expect success nodes when processed in parallel and data from parallel is required by subsequent step")
+  void verifyDataFlowInParallelExecution() {
+    // scenario:
+    // first -> parallel[A, B -> B1 -> B2, C] -> last
+    // B2 uses data from B
+    // last uses data from A, B2, C
+  }
+
   private void verifyExecution(Single<FragmentEvent> result, VertxTestContext testContext,
       Consumer<FragmentEvent> successConsumer) throws Throwable {
     // execute

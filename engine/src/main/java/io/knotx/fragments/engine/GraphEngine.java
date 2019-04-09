@@ -27,7 +27,6 @@ import io.reactivex.Observable;
 import io.reactivex.ObservableSource;
 import io.reactivex.Single;
 import io.reactivex.SingleSource;
-import io.reactivex.functions.Function;
 import io.vertx.core.Vertx;
 import io.vertx.core.eventbus.ReplyException;
 import io.vertx.core.eventbus.ReplyFailure;
@@ -56,21 +55,6 @@ class GraphEngine {
         .map(ctx -> ctx.getFragmentEventContext().getFragmentEvent());
   }
 
-//  private Single<FragmentExecutionContext> processNode(FragmentExecutionContext context) {
-//    return Single.just(context)
-//        .map(this::traceEvent)
-//        .observeOn(RxHelper.blockingScheduler(vertx))
-////        .flatMap(this::doGraphNodeOperation)
-//        .map(this::process);
-////        .flatMap(ctx -> {
-////          if (ctx.isLast()) {
-////            return Single.just(ctx);
-////          } else {
-////            return processNode(ctx);
-////          }
-////        });
-//  }
-
   private void updateEvent(FragmentExecutionContext context, FragmentResult result) {
     FragmentEvent fragmentEvent = context.getFragmentEventContext().getFragmentEvent();
     if (!result.getTransition().equals(ERROR_TRANSITION)) {
@@ -95,10 +79,6 @@ class GraphEngine {
           FragmentExecutionContext newContext = new FragmentExecutionContext(context, graphNode);
           return nodeAction(newContext, graphNode);
         })
-//        .onErrorResumeNext(
-//            throwable -> {
-//              return handleReduceError(context, throwable);
-//            })
         .reduce(context, (fectx1, fectx2) -> {
           final FragmentEvent fragmentEvent1 = fectx1.getFragmentEventContext().getFragmentEvent();
           final FragmentEvent fragmentEvent2 = fectx2.getFragmentEventContext().getFragmentEvent();
