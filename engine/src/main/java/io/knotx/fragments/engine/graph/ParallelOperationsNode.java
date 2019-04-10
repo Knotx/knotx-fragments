@@ -27,8 +27,7 @@ public class ParallelOperationsNode implements Node {
   private final Node successTransition;
   private final Node errorTransition;
 
-  public ParallelOperationsNode(Set<Node> parallelNodes,
-      Node successTransition, Node errorTransition) {
+  public ParallelOperationsNode(Set<Node> parallelNodes, Node successTransition, Node errorTransition) {
     this.parallelNodes = parallelNodes;
     this.successTransition = successTransition;
     this.errorTransition = errorTransition;

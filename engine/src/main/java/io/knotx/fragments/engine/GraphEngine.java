@@ -21,12 +21,12 @@ import static io.knotx.fragments.handler.api.fragment.FragmentResult.ERROR_TRANS
 import io.knotx.fragment.Fragment;
 import io.knotx.fragments.engine.FragmentEvent.Status;
 import io.knotx.fragments.engine.graph.Node;
+import io.knotx.fragments.engine.graph.ParallelOperationsNode;
 import io.knotx.fragments.engine.graph.SingleOperationNode;
 import io.knotx.fragments.handler.api.exception.KnotProcessingFatalException;
 import io.knotx.fragments.handler.api.fragment.FragmentContext;
 import io.knotx.fragments.handler.api.fragment.FragmentResult;
 import io.reactivex.Observable;
-import io.reactivex.ObservableSource;
 import io.reactivex.Single;
 import io.reactivex.SingleSource;
 import io.vertx.core.Vertx;
@@ -36,10 +36,6 @@ import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import io.vertx.reactivex.RxHelper;
 import io.vertx.serviceproxy.ServiceException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.stream.Collectors;
 
 class GraphEngine {
 
@@ -70,24 +66,24 @@ class GraphEngine {
     }
   }
 
-  private void updateFragment(FragmentExecutionContext context, FragmentResult result) {
+  private void updateFragment(FragmentExecutionContext context, Fragment resultFragment) {
     FragmentEvent fragmentEvent = context.getFragmentEventContext().getFragmentEvent();
-    fragmentEvent.setFragment(result.getFragment());
+    fragmentEvent.setFragment(resultFragment);
   }
 
 
   private Single<FragmentExecutionContext> processNode(FragmentExecutionContext context) {
     traceEvent(context);
     if (context.getCurrent() instanceof SingleOperationNode) {
-      return nodeAction(context, (SingleOperationNode) context.getCurrent());
-    }
-    else {
-      // fixme
-      final List<SingleOperationNode> current = new ArrayList<>();
-      return Observable.fromIterable(current)
+      SingleOperationNode current = (SingleOperationNode) context.getCurrent();
+      return nodeAction(context, current);
+    } else {
+      ParallelOperationsNode current = (ParallelOperationsNode) context.getCurrent();
+      return Observable.fromIterable(current.getParallelNodes())
           .flatMap(graphNode -> {
             FragmentExecutionContext newContext = new FragmentExecutionContext(context, graphNode);
-            return nodeAction(newContext, graphNode).toObservable();
+            //fixme cast
+            return nodeAction(newContext, (SingleOperationNode) graphNode).toObservable();
           })
           .reduce(context, (fectx1, fectx2) -> {
             final FragmentEvent fragmentEvent1 = fectx1.getFragmentEventContext()
@@ -106,6 +102,17 @@ class GraphEngine {
             fragmentEvent1.appendLog(fragmentEvent2.getLog());
 
             return fectx1;
+          })
+          .flatMap(mergedExecutionContext -> {
+            Node currentNode = mergedExecutionContext.getCurrent();
+            FragmentEvent fr = mergedExecutionContext.getFragmentEventContext().getFragmentEvent();
+            // Fixme Update log
+//            updateEvent(context, fr);
+            updateFragment(context, fr.getFragment());
+            // Fixme not alway _success
+            return currentNode.next(DEFAULT_TRANSITION).map(context::setCurrent)
+                .map(this::processNode).orElseGet(() -> endProcessing(context,
+                    new FragmentResult(fr.getFragment(), DEFAULT_TRANSITION)));
           });
     }
   }
@@ -125,7 +132,7 @@ class GraphEngine {
         .onErrorResumeNext(error -> handleError(context, error))
         .flatMap(fr -> {
           updateEvent(context, fr);
-          updateFragment(context, fr);
+          updateFragment(context, fr.getFragment());
           return graphNode.next(fr.getTransition()).map(context::setCurrent)
               .map(this::processNode).orElseGet(() -> endProcessing(context, fr));
         });

@@ -45,6 +45,7 @@ public class SingleOperationNode implements Node {
     return operation.apply(fragmentContext);
   }
 
+  @Override
   public Optional<Node> next(String transition) {
     return Optional.ofNullable(outgoingEdges.get(transition));
   }

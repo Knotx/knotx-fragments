@@ -57,13 +57,9 @@ import org.mockito.quality.Strictness;
 @MockitoSettings(strictness = Strictness.LENIENT)
 class GraphEngineParallelOperationsTest {
 
+  private static final String INITIAL_BODY = "initial body";
   private FragmentEventContext eventContext;
-  private Fragment initialFragment = new Fragment("snippet", new JsonObject(), "some body");
-  private Fragment evaluatedFragment = new Fragment(initialFragment.toJson())
-      .setBody("updated body");
-
-  @Mock
-  private TestFunction successOperation;
+  private Fragment initialFragment = new Fragment("snippet", new JsonObject(), INITIAL_BODY);
 
   @Mock
   private TestFunction invalidOperation;
@@ -73,36 +69,51 @@ class GraphEngineParallelOperationsTest {
     eventContext = new FragmentEventContext(new FragmentEvent(initialFragment),
         new ClientRequest());
 
-    when(successOperation.apply(Mockito.any())).thenReturn(Single.just(
-        new FragmentResult(evaluatedFragment, DEFAULT_TRANSITION)));
     when(invalidOperation.apply(Mockito.any())).thenThrow(new RuntimeException());
   }
 
   /*
-   * scenario: first -> parallel[A,B,C] -> last
+   * scenario: first -> parallel[A,B,C] -> last -> superLast
    */
+  // ToDo simpler test to check if parallel [A, B] - both update payload
   @Test
   @DisplayName("Expect success status and fragment's body update when parallel processing")
   void expectSuccessParallelProcessing(VertxTestContext testContext, Vertx vertx) throws Throwable {
     // given
-    Node rootNode = new SingleOperationNode("taskA", "first", successOperation,
-        Collections.singletonMap(DEFAULT_TRANSITION, new ParallelOperationsNode(
-              parallel(
-                  new SingleOperationNode("taskA", "A", successOperation, Collections.emptyMap()),
-                  new SingleOperationNode("taskB", "B", successOperation, Collections.emptyMap()),
-                  new SingleOperationNode("taskC", "C", successOperation, Collections.emptyMap())
-              ), new SingleOperationNode("lastTask", "last", successOperation, Collections.emptyMap()), null
-            )
-            ));
+    JsonObject taskAPayload = new JsonObject().put("key", "taskAOperation");
+    JsonObject taskBPayload = new JsonObject().put("key", "taskBOperation");
+    JsonObject taskCPayload = new JsonObject().put("key", "taskCOperation");
 
+    Node rootNode = new SingleOperationNode("firstTask", "first", appendBody(":first"),
+        Collections.singletonMap(DEFAULT_TRANSITION, new ParallelOperationsNode(
+                parallel(
+                    new SingleOperationNode("taskA", "A", appendPayload("A", taskAPayload),
+                        Collections.emptyMap()),
+                    new SingleOperationNode("taskB", "B", appendPayload("B", taskBPayload),
+                        Collections.emptyMap()),
+                    new SingleOperationNode("taskC", "C", appendPayload("C", taskCPayload),
+                        Collections.emptyMap())
+                ),
+                new SingleOperationNode("lastTask", "last", appendBody(":last"),
+                    Collections.emptyMap()),
+                null
+            )
+        ));
+    String expectedBody = INITIAL_BODY + ":first:last";
 
     // when
     Single<FragmentEvent> result = new GraphEngine(vertx).start(eventContext, rootNode);
 
     // then
-    // ToDo check body and payload
     verifyExecution(result, testContext,
-        event -> assertEquals(evaluatedFragment, event.getFragment()));
+        fragmentEvent -> {
+          final Fragment fragment = fragmentEvent.getFragment();
+          assertEquals(expectedBody, fragment.getBody());
+          final JsonObject payload = fragment.getPayload();
+          assertEquals(taskAPayload, payload.getJsonObject("A"));
+          assertEquals(taskBPayload, payload.getJsonObject("B"));
+          assertEquals(taskCPayload, payload.getJsonObject("C"));
+        });
   }
 
   /*
@@ -204,7 +215,8 @@ class GraphEngineParallelOperationsTest {
   @Test
   @Disabled
   @DisplayName("Expect modified body in the step after parallel when it was modified before parallel")
-  void ensureBodyModifiedBeforeParallelProcessingIsPassedAfter(VertxTestContext testContext, Vertx vertx) {
+  void ensureBodyModifiedBeforeParallelProcessingIsPassedAfter(VertxTestContext testContext,
+      Vertx vertx) {
     // scenario:
     // first (modify body) -> parallel[A, B, C] -> last
     // modified body passed to last
@@ -235,6 +247,27 @@ class GraphEngineParallelOperationsTest {
     // last uses data from A, B2, C
   }
 
+  interface TestFunction extends Function<FragmentContext, Single<FragmentResult>> {
+
+  }
+
+  private TestFunction appendPayload(String payloadKey, JsonObject payloadValue) {
+    return fragmentContext -> {
+      Fragment fragment = fragmentContext.getFragment();
+      fragment.appendPayload(payloadKey, payloadValue);
+      FragmentResult result = new FragmentResult(fragment, DEFAULT_TRANSITION);
+      return Single.just(result);
+    };
+  }
+
+  private TestFunction appendBody(String postfix) {
+    return fragmentContext -> {
+      Fragment fragment = fragmentContext.getFragment();
+      fragment.setBody(fragment.getBody() + postfix);
+      FragmentResult result = new FragmentResult(fragment, DEFAULT_TRANSITION);
+      return Single.just(result);
+    };
+  }
 
   private Set<Node> parallel(Node... nodes) {
     return new HashSet<>(Arrays.asList(nodes));
@@ -256,8 +289,5 @@ class GraphEngineParallelOperationsTest {
     }
   }
 
-  interface TestFunction extends Function<FragmentContext, Single<FragmentResult>> {
-
-  }
 
 }
