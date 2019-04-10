@@ -15,23 +15,22 @@
  */
 package io.knotx.fragments.engine;
 
-import java.util.Collections;
-import java.util.List;
+import io.knotx.fragments.engine.graph.Node;
 
 class FragmentExecutionContext {
 
   private FragmentEventContext fragmentEventContext;
 
-  private List<GraphNode> graphNodes;
+  private Node current;
 
   public FragmentExecutionContext() {
     //empty
   }
 
-  public FragmentExecutionContext(FragmentExecutionContext context, GraphNode graphNode) {
+  public FragmentExecutionContext(FragmentExecutionContext context, Node current) {
     FragmentEvent fragmentEvent = new FragmentEvent(context.getFragmentEventContext().getFragmentEvent().getFragment());
     this.fragmentEventContext = new FragmentEventContext(fragmentEvent, context.getFragmentEventContext().getClientRequest());
-    this.graphNodes = Collections.singletonList(graphNode);
+    this.current = current;
   }
 
   FragmentEventContext getFragmentEventContext() {
@@ -44,22 +43,22 @@ class FragmentExecutionContext {
     return this;
   }
 
-  List<GraphNode> getGraphNodes() {
-    return graphNodes;
+  Node getCurrent() {
+    return current;
   }
 
-  FragmentExecutionContext setGraphNodes(List<GraphNode> graphNodes) {
-    this.graphNodes = graphNodes;
+  FragmentExecutionContext setCurrent(Node current) {
+    this.current = current;
     return this;
   }
 
   FragmentExecutionContext end() {
-    graphNodes = null;
+    current = null;
     return this;
   }
 
   boolean isLast() {
-    return graphNodes == null;
+    return current == null;
   }
 
 }

@@ -15,20 +15,21 @@
  */
 package io.knotx.fragments.engine;
 
+import io.knotx.fragments.engine.graph.SingleOperationNode;
 import java.util.Objects;
 import java.util.Optional;
 
 public class FragmentEventContextGraphAware {
 
   private final FragmentEventContext fragmentEventContext;
-  private final GraphNode graphNode;
+  private final SingleOperationNode graphNode;
 
   public FragmentEventContextGraphAware(FragmentEventContext fragmentEventContext) {
     this(fragmentEventContext, null);
   }
 
   public FragmentEventContextGraphAware(FragmentEventContext fragmentEventContext,
-      GraphNode graphNode) {
+      SingleOperationNode graphNode) {
     this.fragmentEventContext = fragmentEventContext;
     this.graphNode = graphNode;
   }
@@ -37,7 +38,7 @@ public class FragmentEventContextGraphAware {
     return fragmentEventContext;
   }
 
-  public Optional<GraphNode> getGraphNode() {
+  public Optional<SingleOperationNode> getGraphNode() {
     return Optional.ofNullable(graphNode);
   }
 

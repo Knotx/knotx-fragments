@@ -27,6 +27,7 @@ import org.apache.commons.lang3.StringUtils;
 @DataObject
 public class FragmentResult {
 
+  //ToDo: change default to _success
   public static final String DEFAULT_TRANSITION = "_next";
   public static final String ERROR_TRANSITION = "_error";
 

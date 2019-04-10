@@ -13,17 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.knotx.fragments.engine;
+package io.knotx.fragments.engine.graph;
 
 import io.knotx.fragments.handler.api.fragment.FragmentContext;
 import io.knotx.fragments.handler.api.fragment.FragmentResult;
 import io.reactivex.Single;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 
-public class GraphNode {
+public class SingleOperationNode implements Node {
 
   private String task;
 
@@ -31,11 +30,11 @@ public class GraphNode {
 
   private Function<FragmentContext, Single<FragmentResult>> operation;
 
-  private Map<String, List<GraphNode>> outgoingEdges;
+  private Map<String, Node> outgoingEdges;
 
-  public GraphNode(String task, String action,
+  public SingleOperationNode(String task, String action,
       Function<FragmentContext, Single<FragmentResult>> operation,
-      Map<String, List<GraphNode>> edges) {
+      Map<String, Node> edges) {
     this.task = task;
     this.action = action;
     this.operation = operation;
@@ -46,7 +45,7 @@ public class GraphNode {
     return operation.apply(fragmentContext);
   }
 
-  public Optional<List<GraphNode>> next(String transition) {
+  public Optional<Node> next(String transition) {
     return Optional.ofNullable(outgoingEdges.get(transition));
   }
 
@@ -60,7 +59,7 @@ public class GraphNode {
 
   @Override
   public String toString() {
-    return "GraphNode{" +
+    return "SingleOperationNode{" +
         "task='" + task + '\'' +
         ", action='" + action + '\'' +
         ", operation=" + operation +

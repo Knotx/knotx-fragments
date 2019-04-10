@@ -18,7 +18,8 @@
 package io.knotx.fragments.graph;
 
 import io.knotx.fragment.Fragment;
-import io.knotx.fragments.engine.GraphNode;
+import io.knotx.fragments.engine.graph.Node;
+import io.knotx.fragments.engine.graph.SingleOperationNode;
 import io.knotx.fragments.handler.action.ActionProvider;
 import io.knotx.fragments.handler.api.fragment.Action;
 import io.knotx.fragments.handler.api.fragment.FragmentContext;
@@ -28,9 +29,7 @@ import io.knotx.fragments.handler.options.GraphNodeOptions;
 import io.reactivex.Single;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
@@ -49,8 +48,8 @@ public class GraphBuilder {
     this.actionProvider = proxyProvider;
   }
 
-  public Optional<GraphNode> build(Fragment fragment) {
-    Optional<GraphNode> result = Optional.empty();
+  public Optional<SingleOperationNode> build(Fragment fragment) {
+    Optional<SingleOperationNode> result = Optional.empty();
     if (fragment.getConfiguration().containsKey(TASK_KEY)) {
       String task = fragment.getConfiguration().getString(TASK_KEY);
       GraphNodeOptions options = graphOptionsMap.get(task);
@@ -64,17 +63,17 @@ public class GraphBuilder {
     return result;
   }
 
-  private GraphNode initGraphNode(String task, GraphNodeOptions options) {
+  private SingleOperationNode initGraphNode(String task, GraphNodeOptions options) {
     Action action = actionProvider.get(options.getAction()).orElseThrow(
         () -> new GraphConfigurationException("No provider for action " + options.getAction()));
 
     Map<String, GraphNodeOptions> transitions = options.getOnTransitions();
-    Map<String, List<GraphNode>> edges = new HashMap<>();
+    Map<String, Node> edges = new HashMap<>();
     transitions.forEach((transition, childGraphOptions) -> {
-      GraphNode node = initGraphNode(task, childGraphOptions);
-      edges.put(transition, Collections.singletonList(node));
+      SingleOperationNode node = initGraphNode(task, childGraphOptions);
+      edges.put(transition, node);
     });
-    return new GraphNode(task, options.getAction(), toRxFunction(action), edges);
+    return new SingleOperationNode(task, options.getAction(), toRxFunction(action), edges);
 
   }
 

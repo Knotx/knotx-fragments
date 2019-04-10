@@ -16,6 +16,7 @@
 package io.knotx.fragments.engine;
 
 import io.knotx.fragments.engine.FragmentEvent.Status;
+import io.knotx.fragments.engine.graph.SingleOperationNode;
 import io.reactivex.Flowable;
 import io.reactivex.Single;
 import io.vertx.core.logging.Logger;
@@ -43,7 +44,7 @@ public class FragmentsEngine {
   }
 
   /**
-   * Processes events asynchronously according to the {@link GraphNode}.
+   * Processes events asynchronously according to the {@link SingleOperationNode}.
    *
    * @param sourceEvents list of fragment events to process with graph context
    * @return asynchronous response containing processed list of fragment events returned in the same

@@ -22,7 +22,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 
 import io.knotx.fragment.Fragment;
-import io.knotx.fragments.engine.GraphNode;
+import io.knotx.fragments.engine.graph.Node;
+import io.knotx.fragments.engine.graph.SingleOperationNode;
 import io.knotx.fragments.handler.action.ActionProvider;
 import io.knotx.fragments.handler.api.fragment.Action;
 import io.knotx.fragments.handler.api.fragment.FragmentContext;
@@ -36,7 +37,6 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
 import java.util.Collections;
-import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.Assertions;
@@ -61,7 +61,7 @@ class GraphBuilderTest {
     // when
     Fragment fragment = new Fragment("type", new JsonObject().put(GraphBuilder.TASK_KEY, "taskA"),
         "initial body");
-    Optional<GraphNode> graphNode = tested.build(fragment);
+    Optional<SingleOperationNode> graphNode = tested.build(fragment);
 
     // then
     Assertions.assertFalse(graphNode.isPresent());
@@ -107,7 +107,7 @@ class GraphBuilderTest {
     // when
     Fragment fragment = new Fragment("type", new JsonObject().put(GraphBuilder.TASK_KEY, "taskA"),
         initialBody);
-    Optional<GraphNode> graphNode = tested.build(fragment);
+    Optional<SingleOperationNode> graphNode = tested.build(fragment);
 
     // then
     assertTrue(graphNode.isPresent());
@@ -145,17 +145,19 @@ class GraphBuilderTest {
     // when
     Fragment fragment = new Fragment("type", new JsonObject().put(GraphBuilder.TASK_KEY, "taskA"),
         "some body");
-    Optional<GraphNode> graphNode = tested.build(fragment);
+    Optional<SingleOperationNode> graphNode = tested.build(fragment);
 
     // then
     assertTrue(graphNode.isPresent());
-    GraphNode rootNode = graphNode.get();
+    SingleOperationNode rootNode = graphNode.get();
     assertEquals("taskA", rootNode.getTask());
     assertEquals("actionA", rootNode.getAction());
-    Optional<List<GraphNode>> customNode = rootNode.next("customTransition");
+    Optional<Node> customNode = rootNode.next("customTransition");
     assertTrue(customNode.isPresent());
-    assertEquals("taskA", customNode.get().get(0).getTask());
-    assertEquals("actionB", customNode.get().get(0).getAction());
+    assertTrue(customNode.get() instanceof SingleOperationNode);
+    SingleOperationNode customSingleNode = (SingleOperationNode) customNode.get();
+    assertEquals("taskA", customSingleNode.getTask());
+    assertEquals("actionB", customSingleNode.getAction());
   }
 
 }

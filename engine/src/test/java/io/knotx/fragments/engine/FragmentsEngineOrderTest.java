@@ -19,6 +19,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.knotx.fragment.Fragment;
+import io.knotx.fragments.engine.graph.SingleOperationNode;
 import io.knotx.fragments.handler.api.fragment.FragmentContext;
 import io.knotx.fragments.handler.api.fragment.FragmentResult;
 import io.knotx.server.api.context.ClientRequest;
@@ -78,7 +79,7 @@ class FragmentsEngineOrderTest {
   private FragmentEventContextGraphAware initEventContextGraphAware(
       String fragmentBody,
       Function<FragmentContext, Single<FragmentResult>> operation) {
-    GraphNode graphNode = new GraphNode("taskA", "id", operation, Collections.emptyMap());
+    SingleOperationNode graphNode = new SingleOperationNode("taskA", "id", operation, Collections.emptyMap());
     Fragment fragment = new Fragment("snippet", new JsonObject(), fragmentBody);
 
     return new FragmentEventContextGraphAware(
