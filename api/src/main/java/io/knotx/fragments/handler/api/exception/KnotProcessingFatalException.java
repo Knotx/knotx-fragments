@@ -18,14 +18,17 @@
 package io.knotx.fragments.handler.api.exception;
 
 import io.knotx.fragment.Fragment;
-import io.vertx.serviceproxy.ServiceException;
 
-public class KnotProcessingFatalException extends ServiceException {
+public class KnotProcessingFatalException extends IllegalStateException {
 
-  public static final int FAILURE_CODE = -128;
+  private Fragment fragment;
 
   public KnotProcessingFatalException(Fragment fragment) {
-    super(FAILURE_CODE, "Failed during fragment processing [" + fragment.getId() + "]",
-        fragment.toJson());
+    super("Failed during fragment processing [" + fragment.getId() + "]");
+    this.fragment = fragment;
+  }
+
+  public Fragment getFragment() {
+    return fragment;
   }
 }

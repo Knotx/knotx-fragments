@@ -160,8 +160,7 @@ class GraphEngine {
     if (isFatal(error)) {
       LOGGER.error("Processing failed with fatal error [{}].", fragmentEvent,
           error);
-      throw new KnotProcessingFatalException(
-          new Fragment(((ServiceException) error).getDebugInfo()));
+      throw (KnotProcessingFatalException) error;
     } else {
       LOGGER.warn("Knot processing failed [{}], trying to process with the 'error' transition.",
           fragmentEvent, error);

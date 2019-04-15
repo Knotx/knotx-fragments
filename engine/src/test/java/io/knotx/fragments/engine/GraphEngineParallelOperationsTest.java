@@ -153,14 +153,12 @@ class GraphEngineParallelOperationsTest {
     );
 
     // when
-    Assertions.assertThrows(KnotProcessingFatalException.class,
-        () -> new GraphEngine(vertx).start(eventContext, rootNode));
+    Single<FragmentEvent> result = new GraphEngine(vertx)
+        .start(eventContext, rootNode);
 
     // then
-    Assertions.assertTrue(testContext.awaitCompletion(5, TimeUnit.SECONDS));
-    if (testContext.failed()) {
-      throw testContext.causeOfFailure();
-    }
+    verifyError(result, testContext,
+        error -> Assertions.assertTrue(error instanceof KnotProcessingFatalException));
   }
 
   /*
@@ -393,6 +391,23 @@ class GraphEngineParallelOperationsTest {
           successConsumer.accept(onSuccess);
           testContext.completeNow();
         }), testContext::failNow);
+
+    Assertions.assertTrue(testContext.awaitCompletion(5, TimeUnit.SECONDS));
+    if (testContext.failed()) {
+      throw testContext.causeOfFailure();
+    }
+  }
+
+  private void verifyError(Single<FragmentEvent> result, VertxTestContext testContext,
+      Consumer<Throwable> errorConsumer) throws Throwable {
+    // execute
+    // verifyLogEntries
+    result.subscribe(
+        onSuccess -> testContext.failNow(new IllegalStateException()),
+        onError -> testContext.verify(() -> {
+          errorConsumer.accept(onError);
+          testContext.completeNow();
+        }));
 
     Assertions.assertTrue(testContext.awaitCompletion(5, TimeUnit.SECONDS));
     if (testContext.failed()) {
