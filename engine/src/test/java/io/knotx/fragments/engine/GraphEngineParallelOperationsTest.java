@@ -22,9 +22,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.when;
 
 import io.knotx.fragment.Fragment;
+import io.knotx.fragments.engine.FragmentEvent.Status;
 import io.knotx.fragments.engine.graph.Node;
 import io.knotx.fragments.engine.graph.ParallelOperationsNode;
 import io.knotx.fragments.engine.graph.SingleOperationNode;
+import io.knotx.fragments.handler.api.exception.KnotProcessingFatalException;
 import io.knotx.fragments.handler.api.fragment.FragmentContext;
 import io.knotx.fragments.handler.api.fragment.FragmentResult;
 import io.knotx.server.api.context.ClientRequest;
@@ -70,6 +72,95 @@ class GraphEngineParallelOperationsTest {
         new ClientRequest());
 
     when(invalidOperation.apply(Mockito.any())).thenThrow(new RuntimeException());
+  }
+
+  @Test
+  @DisplayName("Expect unprocessed status when empty parallel action processing ends")
+  void expectUnprocessedWhenEmptyParallelEnds(VertxTestContext testContext, Vertx vertx)
+      throws Throwable {
+    // given
+    Node rootNode = new ParallelOperationsNode(
+        parallel(),
+        null,
+        null
+    );
+
+    // when
+    Single<FragmentEvent> result = new GraphEngine(vertx).start(eventContext, rootNode);
+
+    // then
+    verifyExecution(result, testContext,
+        fragmentEvent -> Assertions.assertEquals(Status.UNPROCESSED, fragmentEvent.getStatus()));
+  }
+
+  @Test
+  @DisplayName("Expect success status when single parallel action processing ends")
+  void expectSuccessWhenSingleProcessingEnds(VertxTestContext testContext, Vertx vertx)
+      throws Throwable {
+    // given
+    Node rootNode = new ParallelOperationsNode(
+        parallel(
+            new SingleOperationNode("task", "action", success(),
+                Collections.emptyMap())
+        ),
+        null,
+        null
+    );
+
+    // when
+    Single<FragmentEvent> result = new GraphEngine(vertx).start(eventContext, rootNode);
+
+    // then
+    verifyExecution(result, testContext,
+        fragmentEvent -> Assertions.assertEquals(Status.SUCCESS, fragmentEvent.getStatus()));
+  }
+
+  @Test
+  @DisplayName("Expect failure status when single parallel action processing fails")
+  void expectErrorWhenSingleProcessingFails(VertxTestContext testContext, Vertx vertx)
+      throws Throwable {
+    // given
+    Node rootNode = new ParallelOperationsNode(
+        parallel(
+            new SingleOperationNode("task", "action", failure(),
+                Collections.emptyMap())
+        ),
+        null,
+        null
+    );
+
+    // when
+    Single<FragmentEvent> result = new GraphEngine(vertx).start(eventContext, rootNode);
+
+    // then
+    verifyExecution(result, testContext,
+        fragmentEvent -> Assertions.assertEquals(Status.FAILURE, fragmentEvent.getStatus()));
+  }
+
+  @Test
+  @DisplayName("Expect fatal when single parallel action throws fatal")
+  void expectExceptionWhenSingleProcessingThrowsFatal(VertxTestContext testContext, Vertx vertx)
+      throws Throwable {
+    // given
+    Node rootNode = new ParallelOperationsNode(
+        parallel(
+            new SingleOperationNode("task", "action",
+                fatal(eventContext.getFragmentEvent().getFragment()),
+                Collections.emptyMap())
+        ),
+        null,
+        null
+    );
+
+    // when
+    Assertions.assertThrows(KnotProcessingFatalException.class,
+        () -> new GraphEngine(vertx).start(eventContext, rootNode));
+
+    // then
+    Assertions.assertTrue(testContext.awaitCompletion(5, TimeUnit.SECONDS));
+    if (testContext.failed()) {
+      throw testContext.causeOfFailure();
+    }
   }
 
   /*
@@ -249,6 +340,26 @@ class GraphEngineParallelOperationsTest {
 
   interface TestFunction extends Function<FragmentContext, Single<FragmentResult>> {
 
+  }
+
+  private TestFunction success() {
+    return fragmentContext -> {
+      Fragment fragment = fragmentContext.getFragment();
+      FragmentResult result = new FragmentResult(fragment, DEFAULT_TRANSITION);
+      return Single.just(result);
+    };
+  }
+
+  private TestFunction failure() {
+    return fragmentContext -> {
+      throw new RuntimeException();
+    };
+  }
+
+  private TestFunction fatal(Fragment fragment) {
+    return fragmentContext -> {
+      throw new KnotProcessingFatalException(fragment);
+    };
   }
 
   private TestFunction appendPayload(String payloadKey, JsonObject payloadValue) {
