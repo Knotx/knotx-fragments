@@ -19,6 +19,7 @@ package io.knotx.fragments.engine;
 
 import static io.knotx.fragments.handler.api.fragment.FragmentResult.DEFAULT_TRANSITION;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
 import io.knotx.fragment.Fragment;
@@ -31,6 +32,7 @@ import io.knotx.fragments.handler.api.fragment.FragmentContext;
 import io.knotx.fragments.handler.api.fragment.FragmentResult;
 import io.knotx.server.api.context.ClientRequest;
 import io.reactivex.Single;
+import io.reactivex.exceptions.CompositeException;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.VertxExtension;
@@ -42,7 +44,6 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
@@ -90,7 +91,7 @@ class GraphEngineParallelOperationsTest {
 
     // then
     verifyExecution(result, testContext,
-        fragmentEvent -> Assertions.assertEquals(Status.UNPROCESSED, fragmentEvent.getStatus()));
+        fragmentEvent -> assertEquals(Status.UNPROCESSED, fragmentEvent.getStatus()));
   }
 
   @Test
@@ -112,7 +113,7 @@ class GraphEngineParallelOperationsTest {
 
     // then
     verifyExecution(result, testContext,
-        fragmentEvent -> Assertions.assertEquals(Status.SUCCESS, fragmentEvent.getStatus()));
+        fragmentEvent -> assertEquals(Status.SUCCESS, fragmentEvent.getStatus()));
   }
 
   @Test
@@ -134,7 +135,7 @@ class GraphEngineParallelOperationsTest {
 
     // then
     verifyExecution(result, testContext,
-        fragmentEvent -> Assertions.assertEquals(Status.FAILURE, fragmentEvent.getStatus()));
+        fragmentEvent -> assertEquals(Status.FAILURE, fragmentEvent.getStatus()));
   }
 
   @Test
@@ -158,37 +159,26 @@ class GraphEngineParallelOperationsTest {
 
     // then
     verifyError(result, testContext,
-        error -> Assertions.assertTrue(error instanceof KnotProcessingFatalException));
+        error -> assertTrue(error.getExceptions().stream()
+            .anyMatch(KnotProcessingFatalException.class::isInstance))
+    );
   }
 
-  /*
-   * scenario: first -> parallel[A,B,C] -> last -> superLast
-   */
-  // ToDo simpler test to check if parallel [A, B] - both update payload
   @Test
-  @DisplayName("Expect success status and fragment's body update when parallel processing")
-  void expectSuccessParallelProcessing(VertxTestContext testContext, Vertx vertx) throws Throwable {
+  @DisplayName("Expect payload updated when parallel action ends")
+  void expectPayloadUpdatedInParallelProcessing(VertxTestContext testContext, Vertx vertx)
+      throws Throwable {
     // given
     JsonObject taskAPayload = new JsonObject().put("key", "taskAOperation");
-    JsonObject taskBPayload = new JsonObject().put("key", "taskBOperation");
-    JsonObject taskCPayload = new JsonObject().put("key", "taskCOperation");
 
-    Node rootNode = new SingleOperationNode("firstTask", "first", appendBody(":first"),
-        Collections.singletonMap(DEFAULT_TRANSITION, new ParallelOperationsNode(
-                parallel(
-                    new SingleOperationNode("taskA", "A", appendPayload("A", taskAPayload),
-                        Collections.emptyMap()),
-                    new SingleOperationNode("taskB", "B", appendPayload("B", taskBPayload),
-                        Collections.emptyMap()),
-                    new SingleOperationNode("taskC", "C", appendPayload("C", taskCPayload),
-                        Collections.emptyMap())
-                ),
-                new SingleOperationNode("lastTask", "last", appendBody(":last"),
-                    Collections.emptyMap()),
-                null
-            )
-        ));
-    String expectedBody = INITIAL_BODY + ":first:last";
+    Node rootNode = new ParallelOperationsNode(
+        parallel(
+            new SingleOperationNode("taskA", "A", appendPayload("A", taskAPayload),
+                Collections.emptyMap())
+        ),
+        null,
+        null
+    );
 
     // when
     Single<FragmentEvent> result = new GraphEngine(vertx).start(eventContext, rootNode);
@@ -196,144 +186,131 @@ class GraphEngineParallelOperationsTest {
     // then
     verifyExecution(result, testContext,
         fragmentEvent -> {
-          final Fragment fragment = fragmentEvent.getFragment();
-          assertEquals(expectedBody, fragment.getBody());
-          final JsonObject payload = fragment.getPayload();
-          assertEquals(taskAPayload, payload.getJsonObject("A"));
-          assertEquals(taskBPayload, payload.getJsonObject("B"));
-          assertEquals(taskCPayload, payload.getJsonObject("C"));
+          assertEquals(taskAPayload, fragmentEvent.getFragment().getPayload().getJsonObject("A"));
         });
   }
 
-  /*
-   * scenario:
-   */
+
   @Test
-  @Disabled
-  @DisplayName("Expect error status when parallel processing and one of parallel actions returns error")
-  void expectErrorParallelProcessing(VertxTestContext testContext, Vertx vertx) {
-    // scenario:
-    // first -> parallel[A, B with ERROR, C] -> last
-    // error after parallel
+  @DisplayName("Expect success status when parallel inside parallel ends successfully")
+  void inception(VertxTestContext testContext, Vertx vertx) throws Throwable {
+    // given
+    Node rootNode = new ParallelOperationsNode(
+        parallel(
+            new ParallelOperationsNode(
+                parallel(
+                    new SingleOperationNode("task", "action", success(),
+                        Collections.emptyMap())
+                ),
+                null,
+                null
+            )
+        ), null, null);
+
+    // when
+    Single<FragmentEvent> result = new GraphEngine(vertx).start(eventContext, rootNode);
+
+    // then
+    verifyExecution(result, testContext,
+        fragmentEvent -> assertEquals(Status.SUCCESS, fragmentEvent.getStatus()));
   }
 
-  /*
-   * scenario:
-   */
   @Test
-  @Disabled
+  @DisplayName("Expect payload updated when parallel inside parallel action ends")
+  void expectPayloadUpdatedInParallelInsideParallelProcessing(VertxTestContext testContext,
+      Vertx vertx) throws Throwable {
+    // given
+    JsonObject taskAPayload = new JsonObject().put("key", "taskAOperation");
+    Node rootNode = new ParallelOperationsNode(
+        parallel(
+            new ParallelOperationsNode(
+                parallel(
+                    new SingleOperationNode("task", "action", appendPayload("A", taskAPayload),
+                        Collections.emptyMap())
+                ),
+                null,
+                null
+            )
+        ), null, null);
+
+    // when
+    Single<FragmentEvent> result = new GraphEngine(vertx).start(eventContext, rootNode);
+
+    // then
+    verifyExecution(result, testContext,
+        fragmentEvent -> assertEquals(taskAPayload,
+            fragmentEvent.getFragment().getPayload().getJsonObject("A")));
+  }
+
+  @Test
+  @DisplayName("Expect success when only one of parallel actions ends and another is empty")
+  void expectSuccessWhenOnlyOneOfParallelActionsSuccess(VertxTestContext testContext,
+      Vertx vertx) throws Throwable {
+    // given
+    Node rootNode = new ParallelOperationsNode(
+        parallel(
+            new ParallelOperationsNode(
+                parallel(),
+                null,
+                null
+            ),
+            new SingleOperationNode("task", "action", success(),
+                Collections.emptyMap())
+        ), null, null);
+
+    // when
+    Single<FragmentEvent> result = new GraphEngine(vertx).start(eventContext, rootNode);
+
+    // then
+    verifyExecution(result, testContext,
+        fragmentEvent -> assertEquals(Status.SUCCESS, fragmentEvent.getStatus()));
+  }
+
+  @Test
+  @DisplayName("Expect error when one of parallel actions ends with error")
+  void expectError(VertxTestContext testContext,
+      Vertx vertx) throws Throwable {
+    // given
+    Node rootNode = new ParallelOperationsNode(
+        parallel(
+            new SingleOperationNode("task", "failing", failure(),
+                Collections.emptyMap()),
+            new SingleOperationNode("task", "success", success(),
+                Collections.emptyMap())
+        ), null, null);
+
+    // when
+    Single<FragmentEvent> result = new GraphEngine(vertx).start(eventContext, rootNode);
+
+    // then
+    verifyExecution(result, testContext,
+        fragmentEvent -> assertEquals(Status.FAILURE, fragmentEvent.getStatus()));
+  }
+
+  @Test
   @DisplayName("Expect success status when parallel processing and one of parallel actions returns error that is handled by parallel section fallback")
-  void expectFallbackAppliedAfterParallelProcessing(VertxTestContext testContext, Vertx vertx) {
-    // scenario:
-    // first -> parallel[A, B with ERROR, C] -> errorFallback
-    // error after parallel but handled by fallback
-  }
+  void expectFallbackAppliedAfterParallelProcessing(VertxTestContext testContext, Vertx vertx)
+      throws Throwable {
+    // given
 
-  /*
-   * scenario:
-   */
-  @Test
-  @Disabled
-  @DisplayName("Expect success status when parallel processing and one of parallel actions returns error that is handled by action fallback")
-  void expectFallbackAppliedDuringParallelProcessing(VertxTestContext testContext, Vertx vertx) {
-    // scenario:
-    // first -> parallel[A, B with ERROR -> fallbackB, C] -> last
-    // error at parallel B but handled by fallbackB
-  }
+    Node rootNode = new ParallelOperationsNode(
+        parallel(
+            new SingleOperationNode("task", "A", success(),
+                Collections.emptyMap()),
+            new SingleOperationNode("task", "B", failure(),
+                Collections.emptyMap())
+        ),
+        null,
+        new SingleOperationNode("task", "fallback", success(),
+            Collections.emptyMap())
+    );
 
-  /*
-   * scenario:
-   */
-  @Test
-  @Disabled
-  @DisplayName("Expect success status when nested parallel processing")
-  void expectSuccessNestedParallel(VertxTestContext testContext, Vertx vertx) {
-    // scenario:
-    // first -> parallel[A, parallel[B', B'']] -> last
-  }
+    // when
+    Single<FragmentEvent> result = new GraphEngine(vertx).start(eventContext, rootNode);
 
-  /*
-   * scenario:
-   */
-  @Test
-  @Disabled
-  @DisplayName("Expect success status when nested parallel processing")
-  void expectSuccessMultipleParallel(VertxTestContext testContext, Vertx vertx) {
-    // scenario:
-    // first -> parallel[A, B] -> middle -> parallel[X, Y] -> last
-  }
-
-
-  /*
-   * scenario:
-   */
-  @Test
-  @Disabled
-  @DisplayName("Expect success status when processing starts in parallel")
-  void startWithParallel(VertxTestContext testContext, Vertx vertx) {
-    // scenario:
-    // parallel[A, B, C] -> last
-  }
-
-  /*
-   * scenario:
-   */
-  @Test
-  @Disabled
-  @DisplayName("Expect success status when processing ends in parallel")
-  void endWithParallel(VertxTestContext testContext, Vertx vertx) {
-    // scenario:
-    // first -> parallel[A, B, C]
-  }
-
-  /*
-   * scenario:
-   */
-  @Test
-  @Disabled
-  @DisplayName("Expect fatal status when body is modified during parallel processing")
-  void ensureBodyImmutableDuringParallelProcessing(VertxTestContext testContext, Vertx vertx) {
-    // scenario:
-    // first -> parallel[A, B modifies body: FATAL, C] -> last
-    // FATAL after parallel
-  }
-
-  /*
-   * scenario:
-   */
-  @Test
-  @Disabled
-  @DisplayName("Expect modified body in the step after parallel when it was modified before parallel")
-  void ensureBodyModifiedBeforeParallelProcessingIsPassedAfter(VertxTestContext testContext,
-      Vertx vertx) {
-    // scenario:
-    // first (modify body) -> parallel[A, B, C] -> last
-    // modified body passed to last
-  }
-
-  /*
-   * scenario:
-   */
-  @Test
-  @Disabled
-  @DisplayName("Expect parallel nodes when processed in parallel")
-  void verifyParallelExecution(VertxTestContext testContext, Vertx vertx) {
-    // scenario:
-    // first -> parallel[A, B, C] -> last
-    // A, B, C all with 500 ms delay, 1s for parallel section
-  }
-
-  /*
-   * scenario:
-   */
-  @Test
-  @Disabled
-  @DisplayName("Expect success nodes when processed in parallel and data from parallel is required by subsequent step")
-  void verifyDataFlowInParallelExecution(VertxTestContext testContext, Vertx vertx) {
-    // scenario:
-    // first -> parallel[A, B -> B1 -> B2, C] -> last
-    // B2 uses data from B
-    // last uses data from A, B2, C
+    // then
+    verifyExecution(result, testContext,
+        fragmentEvent -> assertEquals(Status.SUCCESS, fragmentEvent.getStatus()));
   }
 
   interface TestFunction extends Function<FragmentContext, Single<FragmentResult>> {
@@ -392,24 +369,24 @@ class GraphEngineParallelOperationsTest {
           testContext.completeNow();
         }), testContext::failNow);
 
-    Assertions.assertTrue(testContext.awaitCompletion(5, TimeUnit.SECONDS));
+    assertTrue(testContext.awaitCompletion(5, TimeUnit.SECONDS));
     if (testContext.failed()) {
       throw testContext.causeOfFailure();
     }
   }
 
   private void verifyError(Single<FragmentEvent> result, VertxTestContext testContext,
-      Consumer<Throwable> errorConsumer) throws Throwable {
+      Consumer<CompositeException> errorConsumer) throws Throwable {
     // execute
     // verifyLogEntries
     result.subscribe(
         onSuccess -> testContext.failNow(new IllegalStateException()),
         onError -> testContext.verify(() -> {
-          errorConsumer.accept(onError);
+          errorConsumer.accept((CompositeException) onError);
           testContext.completeNow();
         }));
 
-    Assertions.assertTrue(testContext.awaitCompletion(5, TimeUnit.SECONDS));
+    assertTrue(testContext.awaitCompletion(5, TimeUnit.SECONDS));
     if (testContext.failed()) {
       throw testContext.causeOfFailure();
     }

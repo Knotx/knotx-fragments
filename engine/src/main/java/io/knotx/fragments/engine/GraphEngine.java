@@ -35,7 +35,7 @@ import io.vertx.core.eventbus.ReplyFailure;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import io.vertx.reactivex.RxHelper;
-import io.vertx.serviceproxy.ServiceException;
+import java.util.Optional;
 
 class GraphEngine {
 
@@ -76,48 +76,67 @@ class GraphEngine {
     traceEvent(context);
     if (context.getCurrent() instanceof SingleOperationNode) {
       SingleOperationNode current = (SingleOperationNode) context.getCurrent();
-      return nodeAction(context, current);
+      return singleOperationAction(context, current);
     } else {
       ParallelOperationsNode current = (ParallelOperationsNode) context.getCurrent();
-      return Observable.fromIterable(current.getParallelNodes())
-          .flatMap(graphNode -> {
-            FragmentExecutionContext newContext = new FragmentExecutionContext(context, graphNode);
-            //fixme cast
-            return nodeAction(newContext, (SingleOperationNode) graphNode).toObservable();
-          })
-          .reduce(context, (fectx1, fectx2) -> {
-            final FragmentEvent fragmentEvent1 = fectx1.getFragmentEventContext()
-                .getFragmentEvent();
-            final FragmentEvent fragmentEvent2 = fectx2.getFragmentEventContext()
-                .getFragmentEvent();
-
-            //reduce fragment body and payload
-            final Fragment fragment = fragmentEvent1.getFragment();
-            final Fragment fragment2 = fragmentEvent2.getFragment();
-            fragment.mergeInPayload(fragment2.getPayload());
-            fragment.setBody(fragment2.getBody());
-
-            //reduce status and logs
-            fragmentEvent1.setStatus(fragmentEvent2.getStatus());
-            fragmentEvent1.appendLog(fragmentEvent2.getLog());
-
-            return fectx1;
-          })
-          .flatMap(mergedExecutionContext -> {
-            Node currentNode = mergedExecutionContext.getCurrent();
-            FragmentEvent fr = mergedExecutionContext.getFragmentEventContext().getFragmentEvent();
-            // Fixme Update log
-//            updateEvent(context, fr);
-            updateFragment(context, fr.getFragment());
-            // Fixme not alway _success
-            return currentNode.next(DEFAULT_TRANSITION).map(context::setCurrent)
-                .map(this::processNode).orElseGet(() -> endProcessing(context,
-                    new FragmentResult(fr.getFragment(), DEFAULT_TRANSITION)));
-          });
+      return parallelOperationAction(context, current);
     }
   }
 
-  private Single<FragmentExecutionContext> nodeAction(FragmentExecutionContext context,
+  private Single<FragmentExecutionContext> parallelOperationAction(FragmentExecutionContext context,
+      ParallelOperationsNode current) {
+    return Observable.fromIterable(current.getParallelNodes())
+        .flatMap(graphNode -> {
+          FragmentExecutionContext newContext = new FragmentExecutionContext(context, graphNode);
+          //fixme cast
+          if (graphNode instanceof SingleOperationNode) {
+            return singleOperationAction(newContext, (SingleOperationNode) graphNode)
+                .toObservable();
+          } else {
+            return parallelOperationAction(newContext, (ParallelOperationsNode) graphNode)
+                .toObservable();
+          }
+        })
+        .reduce(context, (fectx1, fectx2) -> {
+          final FragmentEvent fragmentEvent1 = fectx1.getFragmentEventContext()
+              .getFragmentEvent();
+          final FragmentEvent fragmentEvent2 = fectx2.getFragmentEventContext()
+              .getFragmentEvent();
+
+          //reduce fragment body and payload
+          final Fragment fragment = fragmentEvent1.getFragment();
+          final Fragment fragment2 = fragmentEvent2.getFragment();
+          fragment.mergeInPayload(fragment2.getPayload());
+          fragment.setBody(fragment2.getBody());
+
+          //reduce status and logs
+          if (Status.FAILURE != fragmentEvent1.getStatus()) {
+            fragmentEvent1.setStatus(fragmentEvent2.getStatus());
+          }
+          fragmentEvent1.appendLog(fragmentEvent2.getLog());
+
+          return fectx1;
+        })
+        .flatMap(mergedExecutionContext -> {
+          Node currentNode = mergedExecutionContext.getCurrent();
+          FragmentEvent fr = mergedExecutionContext.getFragmentEventContext().getFragmentEvent();
+          // Fixme Update log
+//            updateEvent(context, fr);
+          updateFragment(context, fr.getFragment());
+
+          final Optional<Node> nextOperation;
+          if (fr.getStatus() == Status.FAILURE) {
+            nextOperation = currentNode.next(ERROR_TRANSITION);
+          } else {
+            nextOperation = currentNode.next(DEFAULT_TRANSITION);
+          }
+          return nextOperation.map(context::setCurrent)
+              .map(this::processNode).orElseGet(() -> endProcessing(context,
+                  new FragmentResult(fr.getFragment(), DEFAULT_TRANSITION)));
+        });
+  }
+
+  private Single<FragmentExecutionContext> singleOperationAction(FragmentExecutionContext context,
       SingleOperationNode graphNode) {
     return Single.just(graphNode)
         .observeOn(RxHelper.blockingScheduler(vertx))
@@ -158,8 +177,7 @@ class GraphEngine {
       Throwable error) {
     FragmentEvent fragmentEvent = context.getFragmentEventContext().getFragmentEvent();
     if (isFatal(error)) {
-      LOGGER.error("Processing failed with fatal error [{}].", fragmentEvent,
-          error);
+      LOGGER.error("Processing failed with fatal error [{}].", fragmentEvent, error);
       throw (KnotProcessingFatalException) error;
     } else {
       LOGGER.warn("Knot processing failed [{}], trying to process with the 'error' transition.",
