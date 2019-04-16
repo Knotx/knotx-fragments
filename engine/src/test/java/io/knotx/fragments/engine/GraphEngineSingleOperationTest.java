@@ -28,7 +28,6 @@ import static org.mockito.Mockito.when;
 import io.knotx.fragment.Fragment;
 import io.knotx.fragments.engine.FragmentEvent.Status;
 import io.knotx.fragments.engine.FragmentEventLogVerifier.Operation;
-import io.knotx.fragments.engine.graph.SingleOperationNode;
 import io.knotx.fragments.handler.api.fragment.FragmentContext;
 import io.knotx.fragments.handler.api.fragment.FragmentResult;
 import io.knotx.server.api.context.ClientRequest;

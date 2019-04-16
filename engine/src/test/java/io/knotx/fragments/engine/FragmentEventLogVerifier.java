@@ -24,13 +24,13 @@ import java.util.Iterator;
 
 class FragmentEventLogVerifier {
 
-  private static final String ASSERTION_MESSAGE = "They are equal, \ncurrent: \n[%s],\n expected: \n[%s]";
+  private static final String ASSERTION_MESSAGE = "Log entry is incorrect!\nExpected:\n%s,\ncurrent:\n%s";
 
   static void verifyLogEntries(JsonObject log, Operation... expectedOperations) {
     JsonArray logArray = log.getJsonArray("operations", new JsonArray());
     if (logArray.size() != expectedOperations.length) {
       throw new AssertionError(
-          String.format(ASSERTION_MESSAGE, logArray, Arrays.toString(expectedOperations)));
+          String.format(ASSERTION_MESSAGE, Arrays.toString(expectedOperations), logArray));
     }
     Iterator<JsonObject> operationsItr = logArray.stream()
         .map(operation -> (JsonObject) operation)
@@ -43,11 +43,11 @@ class FragmentEventLogVerifier {
             expectedOperation.status.equals(operation.getString("status"));
         if (!equal) {
           throw new AssertionError(
-              String.format(ASSERTION_MESSAGE, logArray, Arrays.toString(expectedOperations)));
+              String.format(ASSERTION_MESSAGE, Arrays.toString(expectedOperations), logArray));
         }
       } else {
         throw new AssertionError(
-            String.format(ASSERTION_MESSAGE, logArray, Arrays.toString(expectedOperations)));
+            String.format(ASSERTION_MESSAGE, Arrays.toString(expectedOperations), logArray));
       }
     }
   }

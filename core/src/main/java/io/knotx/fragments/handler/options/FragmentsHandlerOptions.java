@@ -24,11 +24,11 @@ import java.util.Objects;
 @DataObject(generateConverter = true)
 public class FragmentsHandlerOptions {
 
-  private Map<String, GraphNodeOptions> tasks;
+  private Map<String, NodeOptions> tasks;
 
   private Map<String, ActionOptions> actions;
 
-  public FragmentsHandlerOptions(Map<String, GraphNodeOptions> flows) {
+  public FragmentsHandlerOptions(Map<String, NodeOptions> flows) {
     this.tasks = flows;
   }
 
@@ -42,7 +42,7 @@ public class FragmentsHandlerOptions {
     return jsonObject;
   }
 
-  public Map<String, GraphNodeOptions> getTasks() {
+  public Map<String, NodeOptions> getTasks() {
     return tasks;
   }
 
@@ -52,7 +52,7 @@ public class FragmentsHandlerOptions {
    * @param tasks list of defined {@code Tasks}.
    * @return reference to this, so the API can be used fluently
    */
-  public FragmentsHandlerOptions setTasks(Map<String, GraphNodeOptions> tasks) {
+  public FragmentsHandlerOptions setTasks(Map<String, NodeOptions> tasks) {
     this.tasks = tasks;
     return this;
   }

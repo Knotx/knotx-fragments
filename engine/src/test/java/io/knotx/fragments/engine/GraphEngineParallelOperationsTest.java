@@ -17,6 +17,7 @@
  */
 package io.knotx.fragments.engine;
 
+import static io.knotx.fragments.engine.FragmentEventLogVerifier.verifyLogEntries;
 import static io.knotx.fragments.handler.api.fragment.FragmentResult.DEFAULT_TRANSITION;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -24,9 +25,8 @@ import static org.mockito.Mockito.when;
 
 import io.knotx.fragment.Fragment;
 import io.knotx.fragments.engine.FragmentEvent.Status;
+import io.knotx.fragments.engine.FragmentEventLogVerifier.Operation;
 import io.knotx.fragments.engine.graph.Node;
-import io.knotx.fragments.engine.graph.ParallelOperationsNode;
-import io.knotx.fragments.engine.graph.SingleOperationNode;
 import io.knotx.fragments.handler.api.exception.KnotProcessingFatalException;
 import io.knotx.fragments.handler.api.fragment.FragmentContext;
 import io.knotx.fragments.handler.api.fragment.FragmentResult;
@@ -45,7 +45,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -117,6 +116,29 @@ class GraphEngineParallelOperationsTest {
   }
 
   @Test
+  @DisplayName("Expect success event log entry when parallel action processing ends")
+  void expectSuccessEventLogEntry(VertxTestContext testContext, Vertx vertx)
+      throws Throwable {
+    // given
+    Node rootNode = new ParallelOperationsNode(
+        parallel(
+            new SingleOperationNode("task", "action", success(), Collections.emptyMap())
+        ),
+        null,
+        null
+    );
+    // when
+    Single<FragmentEvent> result = new GraphEngine(vertx).start(eventContext, rootNode);
+
+    // then
+    verifyExecution(result, testContext,
+        event -> verifyLogEntries(event.getLogAsJson(),
+            Operation.of("task", "action", "SUCCESS")
+        ));
+  }
+
+
+  @Test
   @DisplayName("Expect failure status when single parallel action processing fails")
   void expectErrorWhenSingleProcessingFails(VertxTestContext testContext, Vertx vertx)
       throws Throwable {
@@ -136,6 +158,29 @@ class GraphEngineParallelOperationsTest {
     // then
     verifyExecution(result, testContext,
         fragmentEvent -> assertEquals(Status.FAILURE, fragmentEvent.getStatus()));
+  }
+
+  @Test
+  @DisplayName("EExpect unsupported event log entries when error transition not handled")
+  void expectUnsupportedEventLogEntryWhenError(VertxTestContext testContext, Vertx vertx)
+      throws Throwable {
+    // given
+    Node rootNode = new ParallelOperationsNode(
+        parallel(
+            new SingleOperationNode("task", "action", failure(), Collections.emptyMap())
+        ),
+        null,
+        null
+    );
+    // when
+    Single<FragmentEvent> result = new GraphEngine(vertx).start(eventContext, rootNode);
+
+    // then
+    verifyExecution(result, testContext,
+        event -> verifyLogEntries(event.getLogAsJson(),
+            Operation.of("task", "action", "ERROR"),
+            Operation.of("task", "action", "UNSUPPORTED_TRANSITION")
+        ));
   }
 
   @Test
@@ -244,7 +289,7 @@ class GraphEngineParallelOperationsTest {
 
   @Test
   @DisplayName("Expect success when only one of parallel actions ends and another is empty")
-  void expectSuccessWhenOnlyOneOfParallelActionsSuccess(VertxTestContext testContext,
+  void expectSuccessWhenParallelConsistsOfEmptyAndSuccessActions(VertxTestContext testContext,
       Vertx vertx) throws Throwable {
     // given
     Node rootNode = new ParallelOperationsNode(
@@ -268,8 +313,7 @@ class GraphEngineParallelOperationsTest {
 
   @Test
   @DisplayName("Expect error when one of parallel actions ends with error")
-  void expectError(VertxTestContext testContext,
-      Vertx vertx) throws Throwable {
+  void expectError(VertxTestContext testContext, Vertx vertx) throws Throwable {
     // given
     Node rootNode = new ParallelOperationsNode(
         parallel(
@@ -285,6 +329,34 @@ class GraphEngineParallelOperationsTest {
     // then
     verifyExecution(result, testContext,
         fragmentEvent -> assertEquals(Status.FAILURE, fragmentEvent.getStatus()));
+  }
+
+  @Test
+  @DisplayName("Expect all parallel log entries when one of parallel actions ends with error")
+  void expectLogEntriesOfAllParallelActions(VertxTestContext testContext, Vertx vertx)
+      throws Throwable {
+    // given
+    Node rootNode = new ParallelOperationsNode(
+        parallel(
+            new SingleOperationNode("task", "failing", failure(),
+                Collections.emptyMap()),
+            new SingleOperationNode("task", "success", success(),
+                Collections.emptyMap())
+        ), null, null);
+
+    // when
+    Single<FragmentEvent> result = new GraphEngine(vertx).start(eventContext, rootNode);
+
+    // then
+    verifyExecution(result, testContext,
+        event -> verifyLogEntries(event.getLogAsJson(),
+            Operation.of("task", "failing", "ERROR"),
+            Operation.of("task", "success", "SUCCESS"),
+            // Operation.of("task", "parallel", "UNSUPPORTED_TRANSITION")
+            // ToDo: should be the last log UNSUPPORTED_TRANSITION when ERROR in parallel?
+            Operation.of("task", "failing", "UNSUPPORTED_TRANSITION"),
+            Operation.of("task", "parallel", "UNSUPPORTED_TRANSITION")
+        ));
   }
 
   @Test
@@ -313,6 +385,33 @@ class GraphEngineParallelOperationsTest {
         fragmentEvent -> assertEquals(Status.SUCCESS, fragmentEvent.getStatus()));
   }
 
+  @Test
+  @DisplayName("Expect success operation applied when parallel processing ends with success")
+  void expectSuccessAppliedAfterParallelProcessingSuccess(VertxTestContext testContext, Vertx vertx)
+      throws Throwable {
+    // given
+
+    Node rootNode = new ParallelOperationsNode(
+        parallel(
+            new SingleOperationNode("task", "A", success(),
+                Collections.emptyMap()),
+            new SingleOperationNode("task", "B", success(),
+                Collections.emptyMap())
+        ),
+        new SingleOperationNode("task", "last", appendBody(":last"),
+            Collections.emptyMap()),
+        null
+    );
+
+    // when
+    Single<FragmentEvent> result = new GraphEngine(vertx).start(eventContext, rootNode);
+
+    // then
+    verifyExecution(result, testContext,
+        fragmentEvent -> assertEquals(INITIAL_BODY + ":last", fragmentEvent.getFragment().getBody()));
+  }
+
+  //ToDo extract to separate enum with instances
   interface TestFunction extends Function<FragmentContext, Single<FragmentResult>> {
 
   }

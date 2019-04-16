@@ -23,10 +23,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
 import io.knotx.fragment.Fragment;
-import io.knotx.fragments.engine.FragmentEvent.Status;
 import io.knotx.fragments.engine.graph.Node;
-import io.knotx.fragments.engine.graph.ParallelOperationsNode;
-import io.knotx.fragments.engine.graph.SingleOperationNode;
 import io.knotx.fragments.handler.api.exception.KnotProcessingFatalException;
 import io.knotx.fragments.handler.api.fragment.FragmentContext;
 import io.knotx.fragments.handler.api.fragment.FragmentResult;

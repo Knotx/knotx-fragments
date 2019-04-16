@@ -15,65 +15,69 @@
  *
  * The code comes from https://github.com/tomaszmichalak/vertx-rx-map-reduce.
  */
-package io.knotx.fragments.graph;
+package io.knotx.fragments.task;
 
 import io.knotx.fragment.Fragment;
+import io.knotx.fragments.engine.Task;
 import io.knotx.fragments.engine.graph.Node;
-import io.knotx.fragments.engine.graph.SingleOperationNode;
 import io.knotx.fragments.handler.action.ActionProvider;
 import io.knotx.fragments.handler.api.fragment.Action;
 import io.knotx.fragments.handler.api.fragment.FragmentContext;
 import io.knotx.fragments.handler.api.fragment.FragmentResult;
 import io.knotx.fragments.handler.exception.GraphConfigurationException;
-import io.knotx.fragments.handler.options.GraphNodeOptions;
+import io.knotx.fragments.handler.options.NodeOptions;
 import io.reactivex.Single;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
-public class GraphBuilder {
+public class TaskBuilder {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(GraphBuilder.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(TaskBuilder.class);
   static final String TASK_KEY = "data-knotx-task";
 
-  private final Map<String, GraphNodeOptions> graphOptionsMap;
+  private final Map<String, NodeOptions> tasks;
   private final ActionProvider actionProvider;
 
-  public GraphBuilder(Map<String, GraphNodeOptions> graphOptionsMap,
-      ActionProvider proxyProvider) {
-    this.graphOptionsMap = graphOptionsMap;
+  public TaskBuilder(Map<String, NodeOptions> tasks, ActionProvider proxyProvider) {
+    this.tasks = tasks;
     this.actionProvider = proxyProvider;
   }
 
-  public Optional<SingleOperationNode> build(Fragment fragment) {
-    Optional<SingleOperationNode> result = Optional.empty();
+  public Optional<Task> build(Fragment fragment) {
+    Optional<Task> result = Optional.empty();
     if (fragment.getConfiguration().containsKey(TASK_KEY)) {
       String task = fragment.getConfiguration().getString(TASK_KEY);
-      GraphNodeOptions options = graphOptionsMap.get(task);
+      NodeOptions options = tasks.get(task);
       if (options == null) {
         LOGGER.warn("Task [{}] not defined in configuration!", task);
         return Optional.empty();
       }
 
-      result = Optional.of(initGraphNode(task, options));
+      Node rootNode = initGraphNode(options);
+      result = Optional.of(new Task(task, rootNode));
     }
     return result;
   }
 
-  private SingleOperationNode initGraphNode(String task, GraphNodeOptions options) {
+  private Node initGraphNode(NodeOptions options) {
     Action action = actionProvider.get(options.getAction()).orElseThrow(
         () -> new GraphConfigurationException("No provider for action " + options.getAction()));
 
-    Map<String, GraphNodeOptions> transitions = options.getOnTransitions();
-    Map<String, Node> edges = new HashMap<>();
+    Map<String, List<NodeOptions>> transitions = options.getOnTransitions();
+    Map<String, List<Node>> edges = new HashMap<>();
     transitions.forEach((transition, childGraphOptions) -> {
-      SingleOperationNode node = initGraphNode(task, childGraphOptions);
-      edges.put(transition, node);
+      List<Node> childNodes = childGraphOptions.stream()
+          .map(this::initGraphNode)
+          .collect(Collectors.toList());
+      edges.put(transition, childNodes);
     });
-    return new SingleOperationNode(task, options.getAction(), toRxFunction(action), edges);
+    return new Node(options.getAction(), toRxFunction(action), edges);
 
   }
 

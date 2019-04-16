@@ -18,21 +18,21 @@ package io.knotx.fragments.handler.options;
 import io.vertx.codegen.annotations.DataObject;
 import io.vertx.core.json.JsonObject;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 
 /**
  * Defines graph's verticle with outgoing directed edges ({@code Transitions}).
  */
 @DataObject(generateConverter = true)
-public class GraphNodeOptions {
+public class NodeOptions {
 
   private String action;
 
-  private Map<String, GraphNodeOptions> onTransitions;
+  private Map<String, List<NodeOptions>> onTransitions;
 
-  public GraphNodeOptions(String action, Map<String, GraphNodeOptions> transitions) {
+  public NodeOptions(String action, Map<String, List<NodeOptions>> transitions) {
     if (action == null) {
       throw new IllegalStateException("Proxy can not be null");
     }
@@ -40,7 +40,7 @@ public class GraphNodeOptions {
     this.onTransitions = transitions;
   }
 
-  public GraphNodeOptions(JsonObject json) {
+  public NodeOptions(JsonObject json) {
     GraphNodeOptionsConverter.fromJson(json, this);
     if (this.onTransitions == null) {
       this.onTransitions = Collections.emptyMap();
@@ -63,16 +63,16 @@ public class GraphNodeOptions {
    * @param action action name
    * @return reference to this, so the API can be used fluently
    */
-  public GraphNodeOptions setAction(String action) {
+  public NodeOptions setAction(String action) {
     this.action = action;
     return this;
   }
 
-  public Optional<GraphNodeOptions> get(String transition) {
-    return Optional.ofNullable(onTransitions.get(transition));
+  public List<NodeOptions> get(String transition) {
+    return onTransitions.getOrDefault(transition, Collections.emptyList());
   }
 
-  public Map<String, GraphNodeOptions> getOnTransitions() {
+  public Map<String, List<NodeOptions>> getOnTransitions() {
     return onTransitions;
   }
 
@@ -82,8 +82,8 @@ public class GraphNodeOptions {
    * @param onTransitions map of possible transitions.
    * @return reference to this, so the API can be used fluently
    */
-  public GraphNodeOptions setOnTransitions(
-      Map<String, GraphNodeOptions> onTransitions) {
+  public NodeOptions setOnTransitions(
+      Map<String, List<NodeOptions>> onTransitions) {
     this.onTransitions = onTransitions;
     return this;
   }
@@ -96,7 +96,7 @@ public class GraphNodeOptions {
     if (o == null || getClass() != o.getClass()) {
       return false;
     }
-    GraphNodeOptions that = (GraphNodeOptions) o;
+    NodeOptions that = (NodeOptions) o;
     return Objects.equals(action, that.action) &&
         Objects.equals(onTransitions, that.onTransitions);
   }
@@ -108,7 +108,7 @@ public class GraphNodeOptions {
 
   @Override
   public String toString() {
-    return "GraphNodeOptions{" +
+    return "NodeOptions{" +
         "action='" + action + '\'' +
         ", onTransitions=" + onTransitions +
         '}';

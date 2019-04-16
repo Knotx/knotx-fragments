@@ -15,21 +15,21 @@
  *
  * The code comes from https://github.com/tomaszmichalak/vertx-rx-map-reduce.
  */
-package io.knotx.fragments.graph;
+package io.knotx.fragments.task;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 
 import io.knotx.fragment.Fragment;
+import io.knotx.fragments.engine.Task;
 import io.knotx.fragments.engine.graph.Node;
-import io.knotx.fragments.engine.graph.SingleOperationNode;
 import io.knotx.fragments.handler.action.ActionProvider;
 import io.knotx.fragments.handler.api.fragment.Action;
 import io.knotx.fragments.handler.api.fragment.FragmentContext;
 import io.knotx.fragments.handler.api.fragment.FragmentResult;
 import io.knotx.fragments.handler.exception.GraphConfigurationException;
-import io.knotx.fragments.handler.options.GraphNodeOptions;
+import io.knotx.fragments.handler.options.NodeOptions;
 import io.knotx.server.api.context.ClientRequest;
 import io.reactivex.Single;
 import io.vertx.core.Future;
@@ -46,7 +46,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
 
 @ExtendWith(VertxExtension.class)
-class GraphBuilderTest {
+class TaskBuilderTest {
 
   @Test
   @DisplayName("Expect empty graph node when task not defined.")
@@ -55,16 +55,16 @@ class GraphBuilderTest {
     ActionProvider actionProvider = mock(ActionProvider.class);
     Mockito.when(actionProvider.get(Mockito.eq("actionA"))).thenReturn(Optional.empty());
 
-    GraphBuilder tested = new GraphBuilder(Collections.singletonMap("taskB",
-        new GraphNodeOptions("actionA", Collections.emptyMap())), actionProvider);
+    TaskBuilder tested = new TaskBuilder(Collections.singletonMap("taskB",
+        new NodeOptions("actionA", Collections.emptyMap())), actionProvider);
 
     // when
-    Fragment fragment = new Fragment("type", new JsonObject().put(GraphBuilder.TASK_KEY, "taskA"),
+    Fragment fragment = new Fragment("type", new JsonObject().put(TaskBuilder.TASK_KEY, "taskA"),
         "initial body");
-    Optional<SingleOperationNode> graphNode = tested.build(fragment);
+    Optional<Task> task = tested.build(fragment);
 
     // then
-    Assertions.assertFalse(graphNode.isPresent());
+    Assertions.assertFalse(task.isPresent());
   }
 
   @Test
@@ -74,11 +74,11 @@ class GraphBuilderTest {
     ActionProvider actionProvider = mock(ActionProvider.class);
     Mockito.when(actionProvider.get(Mockito.eq("actionA"))).thenReturn(Optional.empty());
 
-    GraphBuilder tested = new GraphBuilder(Collections.singletonMap("taskA",
-        new GraphNodeOptions("actionA", Collections.emptyMap())), actionProvider);
+    TaskBuilder tested = new TaskBuilder(Collections.singletonMap("taskA",
+        new NodeOptions("actionA", Collections.emptyMap())), actionProvider);
 
     // when, then
-    Fragment fragment = new Fragment("type", new JsonObject().put(GraphBuilder.TASK_KEY, "taskA"),
+    Fragment fragment = new Fragment("type", new JsonObject().put(TaskBuilder.TASK_KEY, "taskA"),
         "initial body");
 
     Assertions.assertThrows(GraphConfigurationException.class, () -> tested.build(fragment));
@@ -100,18 +100,19 @@ class GraphBuilderTest {
     ActionProvider actionProvider = mock(ActionProvider.class);
     Mockito.when(actionProvider.get(Mockito.eq("actionA"))).thenReturn(Optional.of(
         expectedAction));
-    GraphBuilder tested = new GraphBuilder(
-        Collections.singletonMap("taskA", new GraphNodeOptions("actionA", Collections.emptyMap())),
+    TaskBuilder tested = new TaskBuilder(
+        Collections.singletonMap("taskA", new NodeOptions("actionA", Collections.emptyMap())),
         actionProvider);
 
     // when
-    Fragment fragment = new Fragment("type", new JsonObject().put(GraphBuilder.TASK_KEY, "taskA"),
+    Fragment fragment = new Fragment("type", new JsonObject().put(TaskBuilder.TASK_KEY, "taskA"),
         initialBody);
-    Optional<SingleOperationNode> graphNode = tested.build(fragment);
+    Optional<Task> task = tested.build(fragment);
 
     // then
-    assertTrue(graphNode.isPresent());
-    Single<FragmentResult> operationResult = graphNode.get()
+    assertTrue(task.isPresent());
+    Single<FragmentResult> operationResult = task.get()
+        .getRootNode().get()
         .doOperation(new FragmentContext(fragment, new ClientRequest()));
 
     operationResult.subscribe(result -> {
@@ -136,21 +137,23 @@ class GraphBuilderTest {
     Mockito.when(actionProvider.get(Mockito.eq("actionB"))).thenReturn(Optional.of(
         anyAction));
 
-    GraphBuilder tested = new GraphBuilder(
-        Collections.singletonMap("taskA", new GraphNodeOptions("actionA", Collections
+    TaskBuilder tested = new TaskBuilder(
+        Collections.singletonMap("taskA", new NodeOptions("actionA", Collections
             .singletonMap("customTransition",
-                new GraphNodeOptions("actionB", Collections.emptyMap())))),
+                new NodeOptions("actionB", Collections.emptyMap())))),
         actionProvider);
 
     // when
-    Fragment fragment = new Fragment("type", new JsonObject().put(GraphBuilder.TASK_KEY, "taskA"),
+    Fragment fragment = new Fragment("type", new JsonObject().put(TaskBuilder.TASK_KEY, "taskA"),
         "some body");
-    Optional<SingleOperationNode> graphNode = tested.build(fragment);
+    Optional<Task> optionalTask = tested.build(fragment);
 
     // then
-    assertTrue(graphNode.isPresent());
-    SingleOperationNode rootNode = graphNode.get();
-    assertEquals("taskA", rootNode.getTask());
+    assertTrue(optionalTask.isPresent());
+    Task task = optionalTask.get();
+    assertTrue(task.getRootNode().isPresent());
+    Node rootNode = task.getRootNode().get();
+    assertEquals("taskA", task.getName());
     assertEquals("actionA", rootNode.getAction());
     Optional<Node> customNode = rootNode.next("customTransition");
     assertTrue(customNode.isPresent());

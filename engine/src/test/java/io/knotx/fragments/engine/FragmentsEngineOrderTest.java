@@ -19,7 +19,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.knotx.fragment.Fragment;
-import io.knotx.fragments.engine.graph.SingleOperationNode;
 import io.knotx.fragments.handler.api.fragment.FragmentContext;
 import io.knotx.fragments.handler.api.fragment.FragmentResult;
 import io.knotx.server.api.context.ClientRequest;
@@ -60,7 +59,7 @@ class FragmentsEngineOrderTest {
   void expectCorrectOrder(VertxTestContext testContext, Vertx vertx)
       throws Throwable {
     // given
-    List<FragmentEventContextGraphAware> events = Arrays.asList(
+    List<Task> events = Arrays.asList(
         initEventContextGraphAware("first fragment", TIME_CONSUMING_OPERATION),
         initEventContextGraphAware("second fragment", SIMPLE_OPERATION)
     );
@@ -76,13 +75,13 @@ class FragmentsEngineOrderTest {
     }), testContext);
   }
 
-  private FragmentEventContextGraphAware initEventContextGraphAware(
+  private Task initEventContextGraphAware(
       String fragmentBody,
       Function<FragmentContext, Single<FragmentResult>> operation) {
     SingleOperationNode graphNode = new SingleOperationNode("taskA", "id", operation, Collections.emptyMap());
     Fragment fragment = new Fragment("snippet", new JsonObject(), fragmentBody);
 
-    return new FragmentEventContextGraphAware(
+    return new Task(
         new FragmentEventContext(new FragmentEvent(fragment), new ClientRequest()), graphNode);
   }
 

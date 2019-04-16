@@ -15,10 +15,35 @@
  */
 package io.knotx.fragments.engine.graph;
 
-import java.util.Optional;
+import io.knotx.fragments.handler.api.fragment.FragmentContext;
+import io.knotx.fragments.handler.api.fragment.FragmentResult;
+import io.reactivex.Single;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
 
-public interface Node {
+public class Node {
 
-  Optional<Node> next(String transition);
+  private String action;
+
+  private Function<FragmentContext, Single<FragmentResult>> operation;
+
+  private Map<String, List<Node>> outgoingEdges;
+
+  public Node(String action, Function<FragmentContext, Single<FragmentResult>> operation,
+      Map<String, List<Node>> edges) {
+    this.action = action;
+    this.operation = operation;
+    this.outgoingEdges = edges;
+  }
+
+  public Single<FragmentResult> doOperation(FragmentContext fragmentContext) {
+    return operation.apply(fragmentContext);
+  }
+
+  public List<Node> next(String transition) {
+    return outgoingEdges.getOrDefault(transition, Collections.emptyList());
+  }
 
 }

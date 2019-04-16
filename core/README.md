@@ -19,12 +19,12 @@ Actions implements the interface above and can:
 - add some behaviour to fragment logic.
 
 ### Example
-Fragments can contain `data-knotx-task` entry in their configuration. If it is present, then
+Fragments can contain `data-knotx-name` entry in their configuration. If it is present, then
 the graph processing logic is applied.
 
 The example HTML markup:
 ```html
-<knotx:snippet data-knotx-task="pdp">
+<knotx:snippet data-knotx-name="pdp">
 </knotx:snippet>
 ```
 
