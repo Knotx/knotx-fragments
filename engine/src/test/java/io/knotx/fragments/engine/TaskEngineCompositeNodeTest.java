@@ -52,7 +52,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 @ExtendWith(VertxExtension.class)
-class GraphEngineCompositeNodeTest {
+class TaskEngineCompositeNodeTest {
 
   private static final String INITIAL_BODY = "initial body";
   private FragmentEventContext eventContext;
@@ -76,7 +76,7 @@ class GraphEngineCompositeNodeTest {
     );
 
     // when
-    Single<FragmentEvent> result = new GraphEngine(vertx).start("task", rootNode, eventContext);
+    Single<FragmentEvent> result = new TaskEngine(vertx).start("task", rootNode, eventContext);
 
     // then
     verifyExecution(result, testContext,
@@ -96,7 +96,7 @@ class GraphEngineCompositeNodeTest {
     );
 
     // when
-    Single<FragmentEvent> result = new GraphEngine(vertx).start("task", rootNode, eventContext);
+    Single<FragmentEvent> result = new TaskEngine(vertx).start("task", rootNode, eventContext);
 
     // then
     verifyExecution(result, testContext,
@@ -115,7 +115,7 @@ class GraphEngineCompositeNodeTest {
         null
     );
     // when
-    Single<FragmentEvent> result = new GraphEngine(vertx).start("task", rootNode, eventContext);
+    Single<FragmentEvent> result = new TaskEngine(vertx).start("task", rootNode, eventContext);
 
     // then
     verifyExecution(result, testContext,
@@ -137,7 +137,7 @@ class GraphEngineCompositeNodeTest {
     );
 
     // when
-    Single<FragmentEvent> result = new GraphEngine(vertx).start("task", rootNode, eventContext);
+    Single<FragmentEvent> result = new TaskEngine(vertx).start("task", rootNode, eventContext);
 
     // then
     verifyExecution(result, testContext,
@@ -155,7 +155,7 @@ class GraphEngineCompositeNodeTest {
         null
     );
     // when
-    Single<FragmentEvent> result = new GraphEngine(vertx).start("task", rootNode, eventContext);
+    Single<FragmentEvent> result = new TaskEngine(vertx).start("task", rootNode, eventContext);
 
     // then
     verifyExecution(result, testContext,
@@ -179,7 +179,7 @@ class GraphEngineCompositeNodeTest {
     );
 
     // when
-    Single<FragmentEvent> result = new GraphEngine(vertx).start("task", rootNode, eventContext);
+    Single<FragmentEvent> result = new TaskEngine(vertx).start("task", rootNode, eventContext);
 
     // then
     verifyError(result, testContext,
@@ -203,7 +203,7 @@ class GraphEngineCompositeNodeTest {
     );
 
     // when
-    Single<FragmentEvent> result = new GraphEngine(vertx).start("task", rootNode, eventContext);
+    Single<FragmentEvent> result = new TaskEngine(vertx).start("task", rootNode, eventContext);
 
     // then
     verifyExecution(result, testContext,
@@ -225,7 +225,7 @@ class GraphEngineCompositeNodeTest {
         )), null, null);
 
     // when
-    Single<FragmentEvent> result = new GraphEngine(vertx).start("task", rootNode, eventContext);
+    Single<FragmentEvent> result = new TaskEngine(vertx).start("task", rootNode, eventContext);
 
     // then
     verifyExecution(result, testContext,
@@ -247,7 +247,7 @@ class GraphEngineCompositeNodeTest {
         )), null, null);
 
     // when
-    Single<FragmentEvent> result = new GraphEngine(vertx).start("task", rootNode, eventContext);
+    Single<FragmentEvent> result = new TaskEngine(vertx).start("task", rootNode, eventContext);
 
     // then
     verifyExecution(result, testContext,
@@ -269,7 +269,7 @@ class GraphEngineCompositeNodeTest {
             Collections.emptyMap())), null, null);
 
     // when
-    Single<FragmentEvent> result = new GraphEngine(vertx).start("task", rootNode, eventContext);
+    Single<FragmentEvent> result = new TaskEngine(vertx).start("task", rootNode, eventContext);
 
     // then
     verifyExecution(result, testContext,
@@ -287,7 +287,7 @@ class GraphEngineCompositeNodeTest {
         null);
 
     // when
-    Single<FragmentEvent> result = new GraphEngine(vertx).start("task", rootNode, eventContext);
+    Single<FragmentEvent> result = new TaskEngine(vertx).start("task", rootNode, eventContext);
 
     // then
     verifyExecution(result, testContext,
@@ -305,7 +305,7 @@ class GraphEngineCompositeNodeTest {
                 Collections.emptyMap())), null, null);
 
     // when
-    Single<FragmentEvent> result = new GraphEngine(vertx).start("task", rootNode, eventContext);
+    Single<FragmentEvent> result = new TaskEngine(vertx).start("task", rootNode, eventContext);
 
     // then
     verifyExecution(result, testContext,
@@ -331,7 +331,7 @@ class GraphEngineCompositeNodeTest {
     );
 
     // when
-    Single<FragmentEvent> result = new GraphEngine(vertx).start("task", rootNode, eventContext);
+    Single<FragmentEvent> result = new TaskEngine(vertx).start("task", rootNode, eventContext);
 
     // then
     verifyExecution(result, testContext,
@@ -354,7 +354,7 @@ class GraphEngineCompositeNodeTest {
     );
 
     // when
-    Single<FragmentEvent> result = new GraphEngine(vertx).start("task", rootNode, eventContext);
+    Single<FragmentEvent> result = new TaskEngine(vertx).start("task", rootNode, eventContext);
 
     // then
     verifyExecution(result, testContext,
@@ -375,7 +375,7 @@ class GraphEngineCompositeNodeTest {
     );
 
     // when
-    Single<FragmentEvent> result = new GraphEngine(vertx).start("task", rootNode, eventContext);
+    Single<FragmentEvent> result = new TaskEngine(vertx).start("task", rootNode, eventContext);
 
     // then
     verifyExecution(result, testContext,

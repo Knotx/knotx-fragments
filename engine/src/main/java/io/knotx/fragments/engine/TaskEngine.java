@@ -36,13 +36,13 @@ import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import io.vertx.reactivex.RxHelper;
 
-class GraphEngine {
+class TaskEngine {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(GraphEngine.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(TaskEngine.class);
 
   private final Vertx vertx;
 
-  GraphEngine(Vertx vertx) {
+  TaskEngine(Vertx vertx) {
     this.vertx = vertx;
   }
 

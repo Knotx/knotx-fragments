@@ -38,10 +38,10 @@ public class FragmentsEngine {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(FragmentsEngine.class);
 
-  private final GraphEngine graphEngine;
+  private final TaskEngine taskEngine;
 
   public FragmentsEngine(Vertx vertx) {
-    this.graphEngine = new GraphEngine(vertx.getDelegate());
+    this.taskEngine = new TaskEngine(vertx.getDelegate());
   }
 
   /**
@@ -58,7 +58,7 @@ public class FragmentsEngine {
         .map(fecta -> {
           Optional<Node> rootNode = fecta.getTask().getRootNode();
           if (rootNode.isPresent()) {
-            return graphEngine
+            return taskEngine
                 .start(fecta.getTask().getName(), rootNode.get(), fecta.getFragmentEventContext());
           } else {
             return Single.just(fecta.getFragmentEventContext().getFragmentEvent());

@@ -49,7 +49,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 @ExtendWith(VertxExtension.class)
-class GraphEngineSingleOperationTest {
+class TaskEngineSingleOperationTest {
 
   private static final String INITIAL_BODY = "initial body";
   private FragmentEventContext eventContext;
@@ -72,7 +72,7 @@ class GraphEngineSingleOperationTest {
         Collections.emptyMap());
 
     // when
-    Single<FragmentEvent> result = new GraphEngine(vertx).start("task", rootNode, eventContext);
+    Single<FragmentEvent> result = new TaskEngine(vertx).start("task", rootNode, eventContext);
 
     // then
     verifyExecution(result, testContext,
@@ -88,7 +88,7 @@ class GraphEngineSingleOperationTest {
         Collections.emptyMap());
 
     // when
-    Single<FragmentEvent> result = new GraphEngine(vertx).start("task", rootNode, eventContext);
+    Single<FragmentEvent> result = new TaskEngine(vertx).start("task", rootNode, eventContext);
 
     // then
     verifyExecution(result, testContext,
@@ -105,7 +105,7 @@ class GraphEngineSingleOperationTest {
             new ActionNode("second", appendBody(":B"), Collections.emptyMap())));
 
     // when
-    Single<FragmentEvent> result = new GraphEngine(vertx).start("task", rootNode, eventContext);
+    Single<FragmentEvent> result = new TaskEngine(vertx).start("task", rootNode, eventContext);
 
     // then
     verifyExecution(result, testContext,
@@ -124,7 +124,7 @@ class GraphEngineSingleOperationTest {
         Collections.emptyMap());
 
     // when
-    Single<FragmentEvent> result = new GraphEngine(vertx).start("task", rootNode, eventContext);
+    Single<FragmentEvent> result = new TaskEngine(vertx).start("task", rootNode, eventContext);
 
     // then
     verifyExecution(result, testContext, event -> assertEquals(Status.SUCCESS, event.getStatus()));
@@ -140,7 +140,7 @@ class GraphEngineSingleOperationTest {
             new ActionNode("second", success(), Collections.emptyMap())));
 
     // when
-    Single<FragmentEvent> result = new GraphEngine(vertx).start("task", rootNode, eventContext);
+    Single<FragmentEvent> result = new TaskEngine(vertx).start("task", rootNode, eventContext);
 
     // then
     verifyExecution(result, testContext, event -> assertEquals(Status.SUCCESS, event.getStatus()));
@@ -155,7 +155,7 @@ class GraphEngineSingleOperationTest {
         Collections.emptyMap());
 
     // when
-    Single<FragmentEvent> result = new GraphEngine(vertx).start("task", rootNode, eventContext);
+    Single<FragmentEvent> result = new TaskEngine(vertx).start("task", rootNode, eventContext);
 
     // then
     verifyExecution(result, testContext, event -> assertEquals(Status.FAILURE, event.getStatus()));
@@ -171,7 +171,7 @@ class GraphEngineSingleOperationTest {
             new ActionNode("second", success(), Collections.emptyMap())));
 
     // when
-    Single<FragmentEvent> result = new GraphEngine(vertx).start("task", rootNode, eventContext);
+    Single<FragmentEvent> result = new TaskEngine(vertx).start("task", rootNode, eventContext);
 
     // then
     verifyExecution(result, testContext, event -> assertEquals(Status.SUCCESS, event.getStatus()));
@@ -189,7 +189,7 @@ class GraphEngineSingleOperationTest {
         Collections.emptyMap());
 
     // when
-    Single<FragmentEvent> result = new GraphEngine(vertx).start("task", rootNode, eventContext);
+    Single<FragmentEvent> result = new TaskEngine(vertx).start("task", rootNode, eventContext);
 
     // then
     verifyExecution(result, testContext, event -> assertEquals(Status.FAILURE, event.getStatus()));
@@ -204,7 +204,7 @@ class GraphEngineSingleOperationTest {
         Collections.emptyMap());
 
     // when
-    Single<FragmentEvent> result = new GraphEngine(vertx).start("task", rootNode, eventContext);
+    Single<FragmentEvent> result = new TaskEngine(vertx).start("task", rootNode, eventContext);
 
     // then
     verifyExecution(result, testContext,
@@ -221,7 +221,7 @@ class GraphEngineSingleOperationTest {
         Collections.emptyMap());
 
     // when
-    Single<FragmentEvent> result = new GraphEngine(vertx).start("task", rootNode, eventContext);
+    Single<FragmentEvent> result = new TaskEngine(vertx).start("task", rootNode, eventContext);
 
     // then
     verifyExecution(result, testContext,
@@ -242,7 +242,7 @@ class GraphEngineSingleOperationTest {
         Collections.emptyMap());
 
     // when
-    Single<FragmentEvent> result = new GraphEngine(vertx).start("task", rootNode, eventContext);
+    Single<FragmentEvent> result = new TaskEngine(vertx).start("task", rootNode, eventContext);
 
     // then
     verifyExecution(result, testContext,
@@ -262,7 +262,7 @@ class GraphEngineSingleOperationTest {
             new ActionNode("second", success(), Collections.emptyMap())));
 
     // when
-    Single<FragmentEvent> result = new GraphEngine(vertx).start("task", rootNode, eventContext);
+    Single<FragmentEvent> result = new TaskEngine(vertx).start("task", rootNode, eventContext);
 
     // then
     verifyExecution(result, testContext,

@@ -50,7 +50,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 @ExtendWith(VertxExtension.class)
-class GraphEngineScenariosTest {
+class TaskEngineScenariosTest {
 
   private static final String INITIAL_BODY = "initial body";
   private FragmentEventContext eventContext;
@@ -91,7 +91,7 @@ class GraphEngineScenariosTest {
     String expectedBody = INITIAL_BODY + ":first:last";
 
     // when
-    Single<FragmentEvent> result = new GraphEngine(vertx).start("task", rootNode, eventContext);
+    Single<FragmentEvent> result = new TaskEngine(vertx).start("task", rootNode, eventContext);
 
     // then
     verifyExecution(result, testContext,
@@ -141,7 +141,7 @@ class GraphEngineScenariosTest {
             )
         ));
     // when
-    Single<FragmentEvent> result = new GraphEngine(vertx).start("task", rootNode, eventContext);
+    Single<FragmentEvent> result = new TaskEngine(vertx).start("task", rootNode, eventContext);
     String expectedBody = INITIAL_BODY + ":payloadAwithX:payloadBwithY";
 
     // then
@@ -187,7 +187,7 @@ class GraphEngineScenariosTest {
             )
         ));
     // when
-    Single<FragmentEvent> result = new GraphEngine(vertx).start("task", rootNode, eventContext);
+    Single<FragmentEvent> result = new TaskEngine(vertx).start("task", rootNode, eventContext);
 
     // then
     verifyExecution(result, testContext,
@@ -229,7 +229,7 @@ class GraphEngineScenariosTest {
             )
         ));
     // when
-    Single<FragmentEvent> result = new GraphEngine(vertx).start("task", rootNode, eventContext);
+    Single<FragmentEvent> result = new TaskEngine(vertx).start("task", rootNode, eventContext);
 
     // then
     verifyExecution(result, testContext,
