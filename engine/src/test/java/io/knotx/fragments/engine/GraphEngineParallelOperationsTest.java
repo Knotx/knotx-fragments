@@ -18,10 +18,13 @@
 package io.knotx.fragments.engine;
 
 import static io.knotx.fragments.engine.FragmentEventLogVerifier.verifyLogEntries;
-import static io.knotx.fragments.handler.api.fragment.FragmentResult.DEFAULT_TRANSITION;
+import static io.knotx.fragments.engine.helpers.TestFunction.appendBody;
+import static io.knotx.fragments.engine.helpers.TestFunction.appendPayload;
+import static io.knotx.fragments.engine.helpers.TestFunction.failure;
+import static io.knotx.fragments.engine.helpers.TestFunction.fatal;
+import static io.knotx.fragments.engine.helpers.TestFunction.successWithDefaultTransition;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.when;
 
 import io.knotx.fragment.Fragment;
 import io.knotx.fragments.engine.FragmentEvent.Status;
@@ -30,8 +33,6 @@ import io.knotx.fragments.engine.graph.Node;
 import io.knotx.fragments.engine.graph.ParallelOperationsNode;
 import io.knotx.fragments.engine.graph.SingleOperationNode;
 import io.knotx.fragments.handler.api.exception.KnotProcessingFatalException;
-import io.knotx.fragments.handler.api.fragment.FragmentContext;
-import io.knotx.fragments.handler.api.fragment.FragmentResult;
 import io.knotx.server.api.context.ClientRequest;
 import io.reactivex.Single;
 import io.reactivex.exceptions.CompositeException;
@@ -44,14 +45,10 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
-import java.util.function.Function;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
@@ -65,15 +62,10 @@ class GraphEngineParallelOperationsTest {
   private FragmentEventContext eventContext;
   private Fragment initialFragment = new Fragment("snippet", new JsonObject(), INITIAL_BODY);
 
-  @Mock
-  private TestFunction invalidOperation;
-
   @BeforeEach
   void setUp() {
     eventContext = new FragmentEventContext(new FragmentEvent(initialFragment),
         new ClientRequest());
-
-    when(invalidOperation.apply(Mockito.any())).thenThrow(new RuntimeException());
   }
 
   @Test
@@ -102,7 +94,8 @@ class GraphEngineParallelOperationsTest {
     // given
     Node rootNode = new ParallelOperationsNode(
         parallel(
-            new SingleOperationNode("action", success(), Collections.emptyMap())
+            new SingleOperationNode("action", successWithDefaultTransition(),
+                Collections.emptyMap())
         ),
         null,
         null
@@ -123,7 +116,8 @@ class GraphEngineParallelOperationsTest {
     // given
     Node rootNode = new ParallelOperationsNode(
         parallel(
-            new SingleOperationNode("action", success(), Collections.emptyMap())
+            new SingleOperationNode("action", successWithDefaultTransition(),
+                Collections.emptyMap())
         ),
         null,
         null
@@ -242,7 +236,8 @@ class GraphEngineParallelOperationsTest {
         parallel(
             new ParallelOperationsNode(
                 parallel(
-                    new SingleOperationNode("action", success(), Collections.emptyMap())
+                    new SingleOperationNode("action", successWithDefaultTransition(),
+                        Collections.emptyMap())
                 ),
                 null,
                 null
@@ -296,7 +291,8 @@ class GraphEngineParallelOperationsTest {
                 null,
                 null
             ),
-            new SingleOperationNode("action", success(), Collections.emptyMap())
+            new SingleOperationNode("action", successWithDefaultTransition(),
+                Collections.emptyMap())
         ), null, null);
 
     // when
@@ -314,7 +310,8 @@ class GraphEngineParallelOperationsTest {
     Node rootNode = new ParallelOperationsNode(
         parallel(
             new SingleOperationNode("failing", failure(), Collections.emptyMap()),
-            new SingleOperationNode("success", success(), Collections.emptyMap())
+            new SingleOperationNode("success", successWithDefaultTransition(),
+                Collections.emptyMap())
         ), null,
         null);
 
@@ -334,7 +331,8 @@ class GraphEngineParallelOperationsTest {
     Node rootNode = new ParallelOperationsNode(
         parallel(
             new SingleOperationNode("failing", failure(), Collections.emptyMap()),
-            new SingleOperationNode("success", success(), Collections.emptyMap())
+            new SingleOperationNode("success", successWithDefaultTransition(),
+                Collections.emptyMap())
         ), null, null);
 
     // when
@@ -358,11 +356,11 @@ class GraphEngineParallelOperationsTest {
     // given
     Node rootNode = new ParallelOperationsNode(
         parallel(
-            new SingleOperationNode("A", success(), Collections.emptyMap()),
+            new SingleOperationNode("A", successWithDefaultTransition(), Collections.emptyMap()),
             new SingleOperationNode("B", failure(), Collections.emptyMap())
         ),
         null,
-        new SingleOperationNode("fallback", success(), Collections.emptyMap())
+        new SingleOperationNode("fallback", successWithDefaultTransition(), Collections.emptyMap())
     );
 
     // when
@@ -380,9 +378,10 @@ class GraphEngineParallelOperationsTest {
     // given
     Node rootNode = new ParallelOperationsNode(
         parallel(
-            new SingleOperationNode("A", success(), Collections.emptyMap()),
+            new SingleOperationNode("A", successWithDefaultTransition(), Collections.emptyMap()),
             new SingleOperationNode("B", failure(), Collections.singletonMap(
-                "_error", new SingleOperationNode("fallback", success(), Collections.emptyMap())
+                "_error", new SingleOperationNode("fallback", successWithDefaultTransition(),
+                    Collections.emptyMap())
             ))
         ),
         null,
@@ -405,8 +404,8 @@ class GraphEngineParallelOperationsTest {
 
     Node rootNode = new ParallelOperationsNode(
         parallel(
-            new SingleOperationNode("A", success(), Collections.emptyMap()),
-            new SingleOperationNode("B", success(), Collections.emptyMap())
+            new SingleOperationNode("A", successWithDefaultTransition(), Collections.emptyMap()),
+            new SingleOperationNode("B", successWithDefaultTransition(), Collections.emptyMap())
         ),
         new SingleOperationNode("last", appendBody(":last"), Collections.emptyMap()),
         null
@@ -419,49 +418,6 @@ class GraphEngineParallelOperationsTest {
     verifyExecution(result, testContext,
         fragmentEvent -> assertEquals(INITIAL_BODY + ":last",
             fragmentEvent.getFragment().getBody()));
-  }
-
-  //ToDo extract to separate enum with instances
-  interface TestFunction extends Function<FragmentContext, Single<FragmentResult>> {
-
-  }
-
-  private TestFunction success() {
-    return fragmentContext -> {
-      Fragment fragment = fragmentContext.getFragment();
-      FragmentResult result = new FragmentResult(fragment, DEFAULT_TRANSITION);
-      return Single.just(result);
-    };
-  }
-
-  private TestFunction failure() {
-    return fragmentContext -> {
-      throw new RuntimeException();
-    };
-  }
-
-  private TestFunction fatal(Fragment fragment) {
-    return fragmentContext -> {
-      throw new KnotProcessingFatalException(fragment);
-    };
-  }
-
-  private TestFunction appendPayload(String payloadKey, JsonObject payloadValue) {
-    return fragmentContext -> {
-      Fragment fragment = fragmentContext.getFragment();
-      fragment.appendPayload(payloadKey, payloadValue);
-      FragmentResult result = new FragmentResult(fragment, DEFAULT_TRANSITION);
-      return Single.just(result);
-    };
-  }
-
-  private TestFunction appendBody(String postfix) {
-    return fragmentContext -> {
-      Fragment fragment = fragmentContext.getFragment();
-      fragment.setBody(fragment.getBody() + postfix);
-      FragmentResult result = new FragmentResult(fragment, DEFAULT_TRANSITION);
-      return Single.just(result);
-    };
   }
 
   private List<Node> parallel(Node... nodes) {
