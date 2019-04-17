@@ -16,28 +16,27 @@
 package io.knotx.fragments.engine;
 
 import io.knotx.fragments.engine.graph.Node;
-import java.util.List;
 
 class TaskExecutionContext {
 
   private final String taskName;
   private final FragmentEventContext fragmentEventContext;
-  private List<Node> currentNodes;
+  private Node currentNode;
 
-  public TaskExecutionContext(String taskName, List<Node> graphRoot,
+  public TaskExecutionContext(String taskName, Node graphRoot,
       FragmentEventContext fragmentEventContext) {
     this.taskName = taskName;
-    this.currentNodes = graphRoot;
+    this.currentNode = graphRoot;
     this.fragmentEventContext = fragmentEventContext;
   }
 
   //ToDo refactor to factory method
-  public TaskExecutionContext(TaskExecutionContext context, List<Node> currentNodes) {
+  public TaskExecutionContext(TaskExecutionContext context, Node currentNode) {
     FragmentEvent fragmentEvent = new FragmentEvent(
         context.getFragmentEventContext().getFragmentEvent().getFragment());
     this.fragmentEventContext = new FragmentEventContext(fragmentEvent,
         context.getFragmentEventContext().getClientRequest());
-    this.currentNodes = currentNodes;
+    this.currentNode = currentNode;
     this.taskName = context.getTaskName();
   }
 
@@ -45,12 +44,12 @@ class TaskExecutionContext {
     return fragmentEventContext;
   }
 
-  public List<Node> getCurrentNodes() {
-    return currentNodes;
+  public Node getCurrentNode() {
+    return currentNode;
   }
 
-  public TaskExecutionContext setCurrentNodes(List<Node> currentNodes) {
-    this.currentNodes = currentNodes;
+  public TaskExecutionContext setCurrentNode(Node currentNode) {
+    this.currentNode = currentNode;
     return this;
   }
 

@@ -30,13 +30,13 @@ Sets <code>Action</code> factory name.
 |[[actions]]`@actions`|`link:dataobjects.html#ActionOptions[ActionOptions]`|+++
 Sets named actions with their factory configuration.
 +++
-|[[tasks]]`@tasks`|`link:dataobjects.html#GraphNodeOptions[GraphNodeOptions]`|+++
+|[[tasks]]`@tasks`|`link:dataobjects.html#NodeOptions[NodeOptions]`|+++
 Sets <code>Task</code> list, which are named, directed graphs of <code>Actions</code>.
 +++
 |===
 
-[[GraphNodeOptions]]
-== GraphNodeOptions
+[[NodeOptions]]
+== NodeOptions
 
 ++++
  Defines graph's verticle with outgoing directed edges (<code>Transitions</code>).
@@ -50,7 +50,7 @@ Sets <code>Task</code> list, which are named, directed graphs of <code>Actions</
 |[[action]]`@action`|`String`|+++
 Sets <code>Action</code> name. This action will be executed during processing given graph node.
 +++
-|[[onTransitions]]`@onTransitions`|`link:dataobjects.html#GraphNodeOptions[GraphNodeOptions]`|+++
+|[[onTransitions]]`@onTransitions`|`link:dataobjects.html#NodeOptions[NodeOptions]`|+++
 Sets the <code>Map</code> of possible onTransitions for the given graph node.
 +++
 |===

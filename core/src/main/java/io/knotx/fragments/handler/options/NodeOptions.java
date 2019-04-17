@@ -18,9 +18,9 @@ package io.knotx.fragments.handler.options;
 import io.vertx.codegen.annotations.DataObject;
 import io.vertx.core.json.JsonObject;
 import java.util.Collections;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 
 /**
  * Defines graph's verticle with outgoing directed edges ({@code Transitions}).
@@ -30,9 +30,9 @@ public class NodeOptions {
 
   private String action;
 
-  private Map<String, List<NodeOptions>> onTransitions;
+  private Map<String, NodeOptions> onTransitions;
 
-  public NodeOptions(String action, Map<String, List<NodeOptions>> transitions) {
+  public NodeOptions(String action, Map<String, NodeOptions> transitions) {
     if (action == null) {
       throw new IllegalStateException("Proxy can not be null");
     }
@@ -41,7 +41,7 @@ public class NodeOptions {
   }
 
   public NodeOptions(JsonObject json) {
-    GraphNodeOptionsConverter.fromJson(json, this);
+    NodeOptionsConverter.fromJson(json, this);
     if (this.onTransitions == null) {
       this.onTransitions = Collections.emptyMap();
     }
@@ -49,7 +49,7 @@ public class NodeOptions {
 
   public JsonObject toJson() {
     JsonObject result = new JsonObject();
-    GraphNodeOptionsConverter.toJson(this, result);
+    NodeOptionsConverter.toJson(this, result);
     return result;
   }
 
@@ -68,11 +68,11 @@ public class NodeOptions {
     return this;
   }
 
-  public List<NodeOptions> get(String transition) {
-    return onTransitions.getOrDefault(transition, Collections.emptyList());
+  public Optional<NodeOptions> get(String transition) {
+    return Optional.ofNullable(onTransitions.get(transition));
   }
 
-  public Map<String, List<NodeOptions>> getOnTransitions() {
+  public Map<String, NodeOptions> getOnTransitions() {
     return onTransitions;
   }
 
@@ -83,7 +83,7 @@ public class NodeOptions {
    * @return reference to this, so the API can be used fluently
    */
   public NodeOptions setOnTransitions(
-      Map<String, List<NodeOptions>> onTransitions) {
+      Map<String, NodeOptions> onTransitions) {
     this.onTransitions = onTransitions;
     return this;
   }

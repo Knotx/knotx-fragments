@@ -20,6 +20,7 @@ package io.knotx.fragments.task;
 import io.knotx.fragment.Fragment;
 import io.knotx.fragments.engine.Task;
 import io.knotx.fragments.engine.graph.Node;
+import io.knotx.fragments.engine.graph.SingleOperationNode;
 import io.knotx.fragments.handler.action.ActionProvider;
 import io.knotx.fragments.handler.api.fragment.Action;
 import io.knotx.fragments.handler.api.fragment.FragmentContext;
@@ -30,11 +31,9 @@ import io.reactivex.Single;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
 public class TaskBuilder {
 
@@ -68,17 +67,13 @@ public class TaskBuilder {
   private Node initGraphNode(NodeOptions options) {
     Action action = actionProvider.get(options.getAction()).orElseThrow(
         () -> new GraphConfigurationException("No provider for action " + options.getAction()));
-
-    Map<String, List<NodeOptions>> transitions = options.getOnTransitions();
-    Map<String, List<Node>> edges = new HashMap<>();
+    Map<String, NodeOptions> transitions = options.getOnTransitions();
+    Map<String, Node> edges = new HashMap<>();
     transitions.forEach((transition, childGraphOptions) -> {
-      List<Node> childNodes = childGraphOptions.stream()
-          .map(this::initGraphNode)
-          .collect(Collectors.toList());
-      edges.put(transition, childNodes);
+      edges.put(transition, initGraphNode(childGraphOptions));
     });
-    return new Node(options.getAction(), toRxFunction(action), edges);
-
+    //ToDo - create single operation or parallel here
+    return new SingleOperationNode(options.getAction(), toRxFunction(action), edges);
   }
 
   private Function<FragmentContext, Single<FragmentResult>> toRxFunction(

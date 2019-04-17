@@ -25,6 +25,7 @@ import io.vertx.reactivex.core.Vertx;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -56,8 +57,8 @@ public class FragmentsEngine {
     return Flowable.just(fragments)
         .concatMap(Flowable::fromIterable)
         .map(fecta -> {
-          Collection<Node> rootNode = fecta.getTask().getRootNode();
-          if (rootNode.isEmpty()) {
+          Optional<Node> rootNode = fecta.getTask().getRootNode();
+          if (rootNode.isPresent()) {
             return Single.just(fecta.getFragmentEventContext().getFragmentEvent());
           } else {
             return graphEngine.start(fecta);

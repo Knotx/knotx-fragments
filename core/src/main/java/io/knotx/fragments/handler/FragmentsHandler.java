@@ -19,12 +19,14 @@ package io.knotx.fragments.handler;
 
 import io.knotx.fragment.Fragment;
 import io.knotx.fragments.engine.FragmentEvent;
+import io.knotx.fragments.engine.FragmentEventContext;
+import io.knotx.fragments.engine.FragmentEventContextTaskAware;
 import io.knotx.fragments.engine.FragmentsEngine;
 import io.knotx.fragments.engine.Task;
-import io.knotx.fragments.graph.TaskBuilder;
 import io.knotx.fragments.handler.action.ActionProvider;
 import io.knotx.fragments.handler.api.fragment.ActionFactory;
 import io.knotx.fragments.handler.options.FragmentsHandlerOptions;
+import io.knotx.fragments.task.TaskBuilder;
 import io.knotx.server.api.context.ClientRequest;
 import io.knotx.server.api.context.RequestContext;
 import io.knotx.server.api.context.RequestEvent;
@@ -45,14 +47,14 @@ public class FragmentsHandler implements Handler<RoutingContext> {
 
   private final FragmentsEngine engine;
   private final RequestContextEngine requestContextEngine;
-  private final TaskBuilder graphBuilder;
+  private final TaskBuilder taskBuilder;
 
   FragmentsHandler(Vertx vertx, JsonObject config) {
     FragmentsHandlerOptions options = new FragmentsHandlerOptions(config);
 
     ActionProvider proxyProvider = new ActionProvider(options.getActions(),
         supplyFactories(), vertx.getDelegate());
-    graphBuilder = new TaskBuilder(options.getTasks(), proxyProvider);
+    taskBuilder = new TaskBuilder(options.getTasks(), proxyProvider);
     engine = new FragmentsEngine(vertx);
     requestContextEngine = new DefaultRequestContextEngine(getClass().getSimpleName());
   }
@@ -61,8 +63,9 @@ public class FragmentsHandler implements Handler<RoutingContext> {
   public void handle(RoutingContext routingContext) {
     RequestContext requestContext = routingContext.get(RequestContext.KEY);
     List<Fragment> fragments = requestContext.getRequestEvent().getFragments();
+    ClientRequest clientRequest = requestContext.getRequestEvent().getClientRequest();
 
-    engine.execute(toTasks(fragments))
+    engine.execute(toEvents(fragments, clientRequest))
         .map(events -> toHandlerResult(events, requestContext))
         .subscribe(
             result -> requestContextEngine
@@ -92,11 +95,19 @@ public class FragmentsHandler implements Handler<RoutingContext> {
     return new RequestEvent(requestEvent.getClientRequest(), fragments, requestEvent.getPayload());
   }
 
-  private List<Task> toTasks(List<Fragment> fragments) {
+  private List<FragmentEventContextTaskAware> toEvents(List<Fragment> fragments,
+      ClientRequest clientRequest) {
     return fragments.stream()
         .map(
-            fragment -> graphBuilder.build(fragment)
-                .orElseGet(() -> new Task("_NOT_DEFINED")))
-        .collect(Collectors.toList());
+            fragment -> {
+              FragmentEventContext fragmentEventContext = new FragmentEventContext(
+                  new FragmentEvent(fragment), clientRequest);
+              return taskBuilder.build(fragment).map(
+                  task -> new FragmentEventContextTaskAware(task, fragmentEventContext))
+                  .orElseGet(() -> new FragmentEventContextTaskAware(new Task("_NOT_DEFINED"),
+                      fragmentEventContext));
+            })
+        .collect(
+            Collectors.toList());
   }
 }

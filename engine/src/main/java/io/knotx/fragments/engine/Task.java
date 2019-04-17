@@ -16,30 +16,24 @@
 package io.knotx.fragments.engine;
 
 import io.knotx.fragments.engine.graph.Node;
-import java.util.Collections;
-import java.util.List;
+import java.util.Optional;
 
 public class Task {
 
   private final String name;
-  private final List<Node> rootNode;
+  private final Node rootNode;
 
   public Task(String name) {
-    this(name, Collections.emptyList());
-  }
-
-  public Task(String name, List<Node> rootNode) {
-    this.name = name;
-    this.rootNode = rootNode;
+    this(name, null);
   }
 
   public Task(String name, Node rootNode) {
     this.name = name;
-    this.rootNode = Collections.singletonList(rootNode);
+    this.rootNode = rootNode;
   }
 
-  public List<Node> getRootNode() {
-    return rootNode;
+  public Optional<Node> getRootNode() {
+    return Optional.ofNullable(rootNode);
   }
 
   public String getName() {
