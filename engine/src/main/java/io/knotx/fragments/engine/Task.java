@@ -40,4 +40,11 @@ public class Task {
     return name;
   }
 
+  @Override
+  public String toString() {
+    return "Task{" +
+        "name='" + name + '\'' +
+        ", rootNode=" + rootNode +
+        '}';
+  }
 }

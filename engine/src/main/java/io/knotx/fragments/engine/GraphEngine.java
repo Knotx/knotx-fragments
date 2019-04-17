@@ -47,10 +47,8 @@ class GraphEngine {
     this.vertx = vertx;
   }
 
-  Single<FragmentEvent> start(FragmentEventContextTaskAware fragmentContext) {
-    Task task = fragmentContext.getTask();
-    TaskExecutionContext executionContext = new TaskExecutionContext(task.getName(), task
-        .getRootNode().get(), fragmentContext.getFragmentEventContext());
+  Single<FragmentEvent> start(String taskName, Node rootNode, FragmentEventContext fec) {
+    TaskExecutionContext executionContext = new TaskExecutionContext(taskName, rootNode, fec);
 
     return processNode(executionContext)
         .map(ctx -> ctx.getFragmentEventContext().getFragmentEvent());

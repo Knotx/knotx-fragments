@@ -51,4 +51,12 @@ public class SingleOperationNode implements Node {
     return action;
   }
 
+  @Override
+  public String toString() {
+    return "SingleOperationNode{" +
+        "action='" + action + '\'' +
+        ", operation=" + operation +
+        ", outgoingEdges=" + outgoingEdges +
+        '}';
+  }
 }

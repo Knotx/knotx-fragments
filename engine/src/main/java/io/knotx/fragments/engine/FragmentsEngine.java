@@ -23,7 +23,6 @@ import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import io.vertx.reactivex.core.Vertx;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -59,9 +58,10 @@ public class FragmentsEngine {
         .map(fecta -> {
           Optional<Node> rootNode = fecta.getTask().getRootNode();
           if (rootNode.isPresent()) {
-            return Single.just(fecta.getFragmentEventContext().getFragmentEvent());
+            return graphEngine
+                .start(fecta.getTask().getName(), rootNode.get(), fecta.getFragmentEventContext());
           } else {
-            return graphEngine.start(fecta);
+            return Single.just(fecta.getFragmentEventContext().getFragmentEvent());
           }
         })
         .flatMap(Single::toFlowable)

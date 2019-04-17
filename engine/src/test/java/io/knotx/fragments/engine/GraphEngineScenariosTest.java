@@ -24,6 +24,8 @@ import static org.mockito.Mockito.when;
 
 import io.knotx.fragment.Fragment;
 import io.knotx.fragments.engine.graph.Node;
+import io.knotx.fragments.engine.graph.ParallelOperationsNode;
+import io.knotx.fragments.engine.graph.SingleOperationNode;
 import io.knotx.fragments.handler.api.exception.KnotProcessingFatalException;
 import io.knotx.fragments.handler.api.fragment.FragmentContext;
 import io.knotx.fragments.handler.api.fragment.FragmentResult;
@@ -36,8 +38,7 @@ import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -83,25 +84,24 @@ class GraphEngineScenariosTest {
     JsonObject taskBPayload = new JsonObject().put("key", "taskBOperation");
     JsonObject taskCPayload = new JsonObject().put("key", "taskCOperation");
 
-    Node rootNode = new SingleOperationNode("task", "first", appendBody(":first"),
+    Node rootNode = new SingleOperationNode("first", appendBody(":first"),
         Collections.singletonMap(DEFAULT_TRANSITION, new ParallelOperationsNode(
                 parallel(
-                    new SingleOperationNode("task", "A", appendPayload("A", taskAPayload),
+                    new SingleOperationNode("A", appendPayload("A", taskAPayload),
                         Collections.emptyMap()),
-                    new SingleOperationNode("task", "B", appendPayload("B", taskBPayload),
+                    new SingleOperationNode("B", appendPayload("B", taskBPayload),
                         Collections.emptyMap()),
-                    new SingleOperationNode("task", "C", appendPayload("C", taskCPayload),
+                    new SingleOperationNode("C", appendPayload("C", taskCPayload),
                         Collections.emptyMap())
                 ),
-                new SingleOperationNode("task", "last", appendBody(":last"),
-                    Collections.emptyMap()),
+                new SingleOperationNode("last", appendBody(":last"), Collections.emptyMap()),
                 null
             )
         ));
     String expectedBody = INITIAL_BODY + ":first:last";
 
     // when
-    Single<FragmentEvent> result = new GraphEngine(vertx).start(eventContext, rootNode);
+    Single<FragmentEvent> result = new GraphEngine(vertx).start("task", rootNode, eventContext);
 
     // then
     verifyExecution(result, testContext,
@@ -264,8 +264,8 @@ class GraphEngineScenariosTest {
     };
   }
 
-  private Set<Node> parallel(Node... nodes) {
-    return new HashSet<>(Arrays.asList(nodes));
+  private List<Node> parallel(Node... nodes) {
+    return Arrays.asList(nodes);
   }
 
   private void verifyExecution(Single<FragmentEvent> result, VertxTestContext testContext,

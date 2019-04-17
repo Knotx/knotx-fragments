@@ -54,4 +54,13 @@ public class ParallelOperationsNode implements Node {
   public List<Node> getParallelNodes() {
     return parallelNodes;
   }
+
+  @Override
+  public String toString() {
+    return "ParallelOperationsNode{" +
+        "parallelNodes=" + parallelNodes +
+        ", successTransition=" + successTransition +
+        ", errorTransition=" + errorTransition +
+        '}';
+  }
 }

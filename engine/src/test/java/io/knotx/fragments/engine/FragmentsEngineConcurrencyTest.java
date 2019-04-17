@@ -18,6 +18,7 @@ package io.knotx.fragments.engine;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.knotx.fragment.Fragment;
+import io.knotx.fragments.engine.graph.SingleOperationNode;
 import io.knotx.fragments.handler.api.fragment.FragmentContext;
 import io.knotx.fragments.handler.api.fragment.FragmentResult;
 import io.knotx.server.api.context.ClientRequest;
@@ -35,7 +36,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.DisplayName;
@@ -70,9 +70,9 @@ class FragmentsEngineConcurrencyTest {
   void expectParallelEvaluationStrategy(VertxTestContext testContext, Vertx vertx)
       throws Throwable {
     // given
-    Supplier<Task> supplier = this::initEventContextGraphAware;
 
-    List<Task> events = Stream.generate(supplier)
+    List<FragmentEventContextTaskAware> events = Stream
+        .generate(this::initFragmentEventContextTaskAware)
         .limit(NUMBER_OF_PROCESSED_EVENTS).collect(
             Collectors.toList());
 
@@ -85,12 +85,13 @@ class FragmentsEngineConcurrencyTest {
     verifyExecution(completableFuture, testContext);
   }
 
-  private Task initEventContextGraphAware() {
-    SingleOperationNode graphNode = new SingleOperationNode("taskA", "id", BLOCKING_OPERATION, Collections.emptyMap());
+  private FragmentEventContextTaskAware initFragmentEventContextTaskAware() {
+    SingleOperationNode graphNode = new SingleOperationNode("id", BLOCKING_OPERATION,
+        Collections.emptyMap());
     Fragment fragment = new Fragment("snippet", new JsonObject(), "some body");
 
-    return new Task("taskA",
-        new FragmentEventContext(new FragmentEvent(fragment), new ClientRequest()), graphNode);
+    return new FragmentEventContextTaskAware(new Task("task", graphNode),
+        new FragmentEventContext(new FragmentEvent(fragment), new ClientRequest()));
   }
 
   private void verifyExecution(CompletableFuture<Single<List<FragmentEvent>>> future,
