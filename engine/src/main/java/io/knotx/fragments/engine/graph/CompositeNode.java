@@ -15,52 +15,51 @@
  */
 package io.knotx.fragments.engine.graph;
 
-import static io.knotx.fragments.handler.api.fragment.FragmentResult.DEFAULT_TRANSITION;
+import static io.knotx.fragments.handler.api.fragment.FragmentResult.SUCCESS_TRANSITION;
 import static io.knotx.fragments.handler.api.fragment.FragmentResult.ERROR_TRANSITION;
 
 import java.util.List;
 import java.util.Optional;
 
-public class ParallelOperationsNode implements Node {
+public class CompositeNode implements Node {
 
-  private final List<Node> parallelNodes;
-  private final Node successTransition;
-  private final Node errorTransition;
+  public static final String COMPOSITE_NODE_ID = "composite";
+  private final List<Node> nodes;
+  private final Node onSuccess;
+  private final Node onError;
 
-  public ParallelOperationsNode(List<Node> parallelNodes, Node successTransition,
-      Node errorTransition) {
-    this.parallelNodes = parallelNodes;
-    this.successTransition = successTransition;
-    this.errorTransition = errorTransition;
+  public CompositeNode(List<Node> nodes, Node onSuccess, Node onError) {
+    this.nodes = nodes;
+    this.onSuccess = onSuccess;
+    this.onError = onError;
+  }
+
+  @Override
+  public String getId() {
+    return COMPOSITE_NODE_ID;
   }
 
   @Override
   public Optional<Node> next(String transition) {
     Node nextNode = null;
     if (ERROR_TRANSITION.equals(transition)) {
-      nextNode = errorTransition;
-    } else if (DEFAULT_TRANSITION.equals(transition)) {
-      nextNode = successTransition;
+      nextNode = onError;
+    } else if (SUCCESS_TRANSITION.equals(transition)) {
+      nextNode = onSuccess;
     }
-
     return Optional.ofNullable(nextNode);
   }
 
-  @Override
-  public String getId() {
-    return "parallel";
-  }
-
-  public List<Node> getParallelNodes() {
-    return parallelNodes;
+  public List<Node> getNodes() {
+    return nodes;
   }
 
   @Override
   public String toString() {
-    return "ParallelOperationsNode{" +
-        "parallelNodes=" + parallelNodes +
-        ", successTransition=" + successTransition +
-        ", errorTransition=" + errorTransition +
+    return "CompositeNode{" +
+        "nodes=" + nodes +
+        ", onSuccess=" + onSuccess +
+        ", onError=" + onError +
         '}';
   }
 }

@@ -15,14 +15,14 @@
  */
 package io.knotx.fragments.engine;
 
-import static io.knotx.fragments.handler.api.fragment.FragmentResult.DEFAULT_TRANSITION;
+import static io.knotx.fragments.handler.api.fragment.FragmentResult.SUCCESS_TRANSITION;
 import static io.knotx.fragments.handler.api.fragment.FragmentResult.ERROR_TRANSITION;
 
 import io.knotx.fragment.Fragment;
 import io.knotx.fragments.engine.FragmentEvent.Status;
 import io.knotx.fragments.engine.graph.ActionNode;
 import io.knotx.fragments.engine.graph.Node;
-import io.knotx.fragments.engine.graph.ParallelOperationsNode;
+import io.knotx.fragments.engine.graph.CompositeNode;
 import io.knotx.fragments.handler.api.exception.KnotProcessingFatalException;
 import io.knotx.fragments.handler.api.fragment.FragmentContext;
 import io.knotx.fragments.handler.api.fragment.FragmentResult;
@@ -57,8 +57,8 @@ class GraphEngine {
     traceEvent(context);
     if (context.getCurrentNode() instanceof ActionNode) {
       return singleOperationAction(context, (ActionNode) context.getCurrentNode());
-    } else if (context.getCurrentNode() instanceof ParallelOperationsNode) {
-      return parallelOperationAction(context, (ParallelOperationsNode) context.getCurrentNode());
+    } else if (context.getCurrentNode() instanceof CompositeNode) {
+      return parallelOperationAction(context, (CompositeNode) context.getCurrentNode());
     } else {
       throw new KnotProcessingFatalException(
           context.getFragmentEventContext().getFragmentEvent().getFragment());
@@ -83,8 +83,8 @@ class GraphEngine {
   }
 
   private Single<TaskExecutionContext> parallelOperationAction(TaskExecutionContext context,
-      ParallelOperationsNode current) {
-    return Observable.fromIterable(current.getParallelNodes())
+      CompositeNode current) {
+    return Observable.fromIterable(current.getNodes())
         .flatMap(
             graphNode -> executeTask(new TaskExecutionContext(context, graphNode)).toObservable())
         .reduce(context, (fectx1, fectx2) -> {
@@ -118,7 +118,7 @@ class GraphEngine {
           if (fr.getStatus() == Status.FAILURE) {
             nextTransition = ERROR_TRANSITION;
           } else {
-            nextTransition = DEFAULT_TRANSITION;
+            nextTransition = SUCCESS_TRANSITION;
           }
           return currentNode.next(nextTransition).map(context::setCurrentNode)
               .map(this::executeTask).orElseGet(() -> endProcessing(context, nextTransition));
@@ -148,7 +148,7 @@ class GraphEngine {
 
   private Single<TaskExecutionContext> endProcessing(TaskExecutionContext context,
       String transition) {
-    if (!DEFAULT_TRANSITION.equals(transition)) {
+    if (!SUCCESS_TRANSITION.equals(transition)) {
       FragmentEvent fragmentEvent = context.getFragmentEventContext().getFragmentEvent();
       fragmentEvent.setStatus(Status.FAILURE);
       fragmentEvent

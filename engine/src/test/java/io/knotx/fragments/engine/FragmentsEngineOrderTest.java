@@ -50,11 +50,11 @@ class FragmentsEngineOrderTest {
           e.printStackTrace();
         }
         return Single.just(
-            new FragmentResult(fragmentContext.getFragment(), FragmentResult.DEFAULT_TRANSITION));
+            new FragmentResult(fragmentContext.getFragment(), FragmentResult.SUCCESS_TRANSITION));
       };
   private static final Function<FragmentContext, Single<FragmentResult>> SIMPLE_OPERATION =
       fragmentContext -> Single.just(
-          new FragmentResult(fragmentContext.getFragment(), FragmentResult.DEFAULT_TRANSITION));
+          new FragmentResult(fragmentContext.getFragment(), FragmentResult.SUCCESS_TRANSITION));
 
   @Test
   @DisplayName("Expect fragments in incoming order")

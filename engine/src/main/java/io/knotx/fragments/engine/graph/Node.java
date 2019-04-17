@@ -19,7 +19,8 @@ import java.util.Optional;
 
 public interface Node {
 
+  String getId();
+
   Optional<Node> next(String transition);
 
-  String getId();
 }

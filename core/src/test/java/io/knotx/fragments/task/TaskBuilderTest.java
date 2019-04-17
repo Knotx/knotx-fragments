@@ -17,7 +17,7 @@
  */
 package io.knotx.fragments.task;
 
-import static io.knotx.fragments.handler.api.fragment.FragmentResult.DEFAULT_TRANSITION;
+import static io.knotx.fragments.handler.api.fragment.FragmentResult.SUCCESS_TRANSITION;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -86,7 +86,7 @@ class TaskBuilderTest {
 //    Action expectedAction = (fragmentContext, resultHandler) -> {
 //      Fragment fragment = fragmentContext.getFragment();
 //      FragmentResult result = new FragmentResult(fragment.setBody(expectedBody),
-//          FragmentResult.DEFAULT_TRANSITION);
+//          FragmentResult.SUCCESS_TRANSITION);
 //      Future.succeededFuture(result).setHandler(resultHandler);
 //    };
 //
@@ -144,7 +144,7 @@ class TaskBuilderTest {
     Node rootNode = task.getRootNode().get();
     assertTrue(rootNode instanceof ActionNode);
     assertEquals("actionA", rootNode.getId());
-    assertFalse(rootNode.next(DEFAULT_TRANSITION).isPresent());
+    assertFalse(rootNode.next(SUCCESS_TRANSITION).isPresent());
   }
 
   @Test

@@ -62,7 +62,7 @@ class FragmentsEngineConcurrencyTest {
       LOGGER.warn("Unexpected interrupted error!", e);
     }
     return Single.just(
-        new FragmentResult(fragmentContext.getFragment(), FragmentResult.DEFAULT_TRANSITION));
+        new FragmentResult(fragmentContext.getFragment(), FragmentResult.SUCCESS_TRANSITION));
   };
 
   @Test

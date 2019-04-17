@@ -21,7 +21,7 @@ import static io.knotx.fragments.engine.FragmentEventLogVerifier.verifyLogEntrie
 import static io.knotx.fragments.engine.helpers.TestFunction.appendBody;
 import static io.knotx.fragments.engine.helpers.TestFunction.failure;
 import static io.knotx.fragments.engine.helpers.TestFunction.success;
-import static io.knotx.fragments.handler.api.fragment.FragmentResult.DEFAULT_TRANSITION;
+import static io.knotx.fragments.handler.api.fragment.FragmentResult.SUCCESS_TRANSITION;
 import static io.knotx.fragments.handler.api.fragment.FragmentResult.ERROR_TRANSITION;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -101,7 +101,7 @@ class GraphEngineSingleOperationTest {
       throws Throwable {
     // given
     ActionNode rootNode = new ActionNode("first", appendBody(":A"),
-        Collections.singletonMap(DEFAULT_TRANSITION,
+        Collections.singletonMap(SUCCESS_TRANSITION,
             new ActionNode("second", appendBody(":B"), Collections.emptyMap())));
 
     // when
@@ -136,7 +136,7 @@ class GraphEngineSingleOperationTest {
       throws Throwable {
     // given
     ActionNode rootNode = new ActionNode("first", success(),
-        Collections.singletonMap(DEFAULT_TRANSITION,
+        Collections.singletonMap(SUCCESS_TRANSITION,
             new ActionNode("second", success(), Collections.emptyMap())));
 
     // when

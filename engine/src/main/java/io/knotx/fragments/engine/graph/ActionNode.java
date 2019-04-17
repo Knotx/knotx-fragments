@@ -37,8 +37,9 @@ public class ActionNode implements Node {
     this.transitions = transitions;
   }
 
-  public Single<FragmentResult> doAction(FragmentContext fragmentContext) {
-    return action.apply(fragmentContext);
+  @Override
+  public String getId() {
+    return id;
   }
 
   @Override
@@ -46,9 +47,8 @@ public class ActionNode implements Node {
     return Optional.ofNullable(transitions.get(transition));
   }
 
-  @Override
-  public String getId() {
-    return id;
+  public Single<FragmentResult> doAction(FragmentContext fragmentContext) {
+    return action.apply(fragmentContext);
   }
 
   @Override

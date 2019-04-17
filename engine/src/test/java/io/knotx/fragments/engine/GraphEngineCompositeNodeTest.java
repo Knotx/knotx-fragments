@@ -18,6 +18,7 @@
 package io.knotx.fragments.engine;
 
 import static io.knotx.fragments.engine.FragmentEventLogVerifier.verifyLogEntries;
+import static io.knotx.fragments.engine.graph.CompositeNode.COMPOSITE_NODE_ID;
 import static io.knotx.fragments.engine.helpers.TestFunction.appendBody;
 import static io.knotx.fragments.engine.helpers.TestFunction.appendPayload;
 import static io.knotx.fragments.engine.helpers.TestFunction.failure;
@@ -31,8 +32,8 @@ import io.knotx.fragment.Fragment;
 import io.knotx.fragments.engine.FragmentEvent.Status;
 import io.knotx.fragments.engine.FragmentEventLogVerifier.Operation;
 import io.knotx.fragments.engine.graph.ActionNode;
+import io.knotx.fragments.engine.graph.CompositeNode;
 import io.knotx.fragments.engine.graph.Node;
-import io.knotx.fragments.engine.graph.ParallelOperationsNode;
 import io.knotx.fragments.handler.api.exception.KnotProcessingFatalException;
 import io.knotx.server.api.context.ClientRequest;
 import io.reactivex.Single;
@@ -43,7 +44,6 @@ import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import org.junit.jupiter.api.BeforeEach;
@@ -52,7 +52,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 @ExtendWith(VertxExtension.class)
-class GraphEngineParallelOperationsTest {
+class GraphEngineCompositeNodeTest {
 
   private static final String INITIAL_BODY = "initial body";
   private FragmentEventContext eventContext;
@@ -69,8 +69,8 @@ class GraphEngineParallelOperationsTest {
   void expectUnprocessedWhenEmptyParallelEnds(VertxTestContext testContext, Vertx vertx)
       throws Throwable {
     // given
-    Node rootNode = new ParallelOperationsNode(
-        parallel(),
+    Node rootNode = new CompositeNode(
+        Arrays.asList(),
         null,
         null
     );
@@ -88,11 +88,9 @@ class GraphEngineParallelOperationsTest {
   void expectSuccessWhenSingleProcessingEnds(VertxTestContext testContext, Vertx vertx)
       throws Throwable {
     // given
-    Node rootNode = new ParallelOperationsNode(
-        parallel(
-            new ActionNode("action", success(),
-                Collections.emptyMap())
-        ),
+    Node rootNode = new CompositeNode(
+        Arrays.asList(new ActionNode("action", success(),
+            Collections.emptyMap())),
         null,
         null
     );
@@ -110,11 +108,9 @@ class GraphEngineParallelOperationsTest {
   void expectSuccessEventLogEntry(VertxTestContext testContext, Vertx vertx)
       throws Throwable {
     // given
-    Node rootNode = new ParallelOperationsNode(
-        parallel(
-            new ActionNode("action", success(),
-                Collections.emptyMap())
-        ),
+    Node rootNode = new CompositeNode(
+        Arrays.asList(new ActionNode("action", success(),
+            Collections.emptyMap())),
         null,
         null
     );
@@ -134,10 +130,8 @@ class GraphEngineParallelOperationsTest {
   void expectErrorWhenSingleProcessingFails(VertxTestContext testContext, Vertx vertx)
       throws Throwable {
     // given
-    Node rootNode = new ParallelOperationsNode(
-        parallel(
-            new ActionNode("action", failure(), Collections.emptyMap())
-        ),
+    Node rootNode = new CompositeNode(
+        Arrays.asList(new ActionNode("action", failure(), Collections.emptyMap())),
         null,
         null
     );
@@ -155,10 +149,8 @@ class GraphEngineParallelOperationsTest {
   void expectUnsupportedEventLogEntryWhenError(VertxTestContext testContext, Vertx vertx)
       throws Throwable {
     // given
-    Node rootNode = new ParallelOperationsNode(
-        parallel(
-            new ActionNode("action", failure(), Collections.emptyMap())
-        ),
+    Node rootNode = new CompositeNode(
+        Arrays.asList(new ActionNode("action", failure(), Collections.emptyMap())),
         null,
         null
     );
@@ -170,7 +162,7 @@ class GraphEngineParallelOperationsTest {
         event -> verifyLogEntries(event.getLogAsJson(),
             Operation.of("task", "action", "ERROR"),
             Operation.of("task", "action", "UNSUPPORTED_TRANSITION"),
-            Operation.of("task", "parallel", "UNSUPPORTED_TRANSITION")
+            Operation.of("task", COMPOSITE_NODE_ID, "UNSUPPORTED_TRANSITION")
         ));
   }
 
@@ -179,11 +171,9 @@ class GraphEngineParallelOperationsTest {
   void expectExceptionWhenSingleProcessingThrowsFatal(VertxTestContext testContext, Vertx vertx)
       throws Throwable {
     // given
-    Node rootNode = new ParallelOperationsNode(
-        parallel(
-            new ActionNode("action", fatal(eventContext.getFragmentEvent().getFragment()),
-                Collections.emptyMap())
-        ),
+    Node rootNode = new CompositeNode(
+        Arrays.asList(new ActionNode("action", fatal(eventContext.getFragmentEvent().getFragment()),
+            Collections.emptyMap())),
         null,
         null
     );
@@ -205,11 +195,9 @@ class GraphEngineParallelOperationsTest {
     // given
     JsonObject taskAPayload = new JsonObject().put("key", "taskAOperation");
 
-    Node rootNode = new ParallelOperationsNode(
-        parallel(
-            new ActionNode("A", appendPayload("A", taskAPayload),
-                Collections.emptyMap())
-        ),
+    Node rootNode = new CompositeNode(
+        Arrays.asList(new ActionNode("A", appendPayload("A", taskAPayload),
+            Collections.emptyMap())),
         null,
         null
     );
@@ -228,17 +216,13 @@ class GraphEngineParallelOperationsTest {
   @DisplayName("Expect success status when parallel inside parallel ends successfully")
   void inception(VertxTestContext testContext, Vertx vertx) throws Throwable {
     // given
-    Node rootNode = new ParallelOperationsNode(
-        parallel(
-            new ParallelOperationsNode(
-                parallel(
-                    new ActionNode("action", success(),
-                        Collections.emptyMap())
-                ),
-                null,
-                null
-            )
-        ), null, null);
+    Node rootNode = new CompositeNode(
+        Arrays.asList(new CompositeNode(
+            Arrays.asList(new ActionNode("action", success(),
+                Collections.emptyMap())),
+            null,
+            null
+        )), null, null);
 
     // when
     Single<FragmentEvent> result = new GraphEngine(vertx).start("task", rootNode, eventContext);
@@ -254,17 +238,13 @@ class GraphEngineParallelOperationsTest {
       Vertx vertx) throws Throwable {
     // given
     JsonObject taskAPayload = new JsonObject().put("key", "taskAOperation");
-    Node rootNode = new ParallelOperationsNode(
-        parallel(
-            new ParallelOperationsNode(
-                parallel(
-                    new ActionNode("action", appendPayload("A", taskAPayload),
-                        Collections.emptyMap())
-                ),
-                null,
-                null
-            )
-        ), null, null);
+    Node rootNode = new CompositeNode(
+        Arrays.asList(new CompositeNode(
+            Arrays.asList(new ActionNode("action", appendPayload("A", taskAPayload),
+                Collections.emptyMap())),
+            null,
+            null
+        )), null, null);
 
     // when
     Single<FragmentEvent> result = new GraphEngine(vertx).start("task", rootNode, eventContext);
@@ -280,16 +260,13 @@ class GraphEngineParallelOperationsTest {
   void expectSuccessWhenParallelConsistsOfEmptyAndSuccessActions(VertxTestContext testContext,
       Vertx vertx) throws Throwable {
     // given
-    Node rootNode = new ParallelOperationsNode(
-        parallel(
-            new ParallelOperationsNode(
-                parallel(),
-                null,
-                null
-            ),
-            new ActionNode("action", success(),
-                Collections.emptyMap())
-        ), null, null);
+    Node rootNode = new CompositeNode(
+        Arrays.asList(new CompositeNode(
+            Arrays.asList(),
+            null,
+            null
+        ), new ActionNode("action", success(),
+            Collections.emptyMap())), null, null);
 
     // when
     Single<FragmentEvent> result = new GraphEngine(vertx).start("task", rootNode, eventContext);
@@ -303,12 +280,10 @@ class GraphEngineParallelOperationsTest {
   @DisplayName("Expect error when one of parallel actions ends with error")
   void expectError(VertxTestContext testContext, Vertx vertx) throws Throwable {
     // given
-    Node rootNode = new ParallelOperationsNode(
-        parallel(
-            new ActionNode("failing", failure(), Collections.emptyMap()),
+    Node rootNode = new CompositeNode(
+        Arrays.asList(new ActionNode("failing", failure(), Collections.emptyMap()),
             new ActionNode("success", success(),
-                Collections.emptyMap())
-        ), null,
+                Collections.emptyMap())), null,
         null);
 
     // when
@@ -324,12 +299,10 @@ class GraphEngineParallelOperationsTest {
   void expectLogEntriesOfAllParallelActions(VertxTestContext testContext, Vertx vertx)
       throws Throwable {
     // given
-    Node rootNode = new ParallelOperationsNode(
-        parallel(
-            new ActionNode("failing", failure(), Collections.emptyMap()),
+    Node rootNode = new CompositeNode(
+        Arrays.asList(new ActionNode("failing", failure(), Collections.emptyMap()),
             new ActionNode("success", success(),
-                Collections.emptyMap())
-        ), null, null);
+                Collections.emptyMap())), null, null);
 
     // when
     Single<FragmentEvent> result = new GraphEngine(vertx).start("task", rootNode, eventContext);
@@ -341,7 +314,7 @@ class GraphEngineParallelOperationsTest {
             Operation.of("task", "success", "SUCCESS"),
             Operation.of("task", "failing", "ERROR"),
             Operation.of("task", "failing", "UNSUPPORTED_TRANSITION"),
-            Operation.of("task", "parallel", "UNSUPPORTED_TRANSITION")
+            Operation.of("task", COMPOSITE_NODE_ID, "UNSUPPORTED_TRANSITION")
         ));
   }
 
@@ -350,11 +323,9 @@ class GraphEngineParallelOperationsTest {
   void expectFallbackAppliedAfterParallelProcessing(VertxTestContext testContext, Vertx vertx)
       throws Throwable {
     // given
-    Node rootNode = new ParallelOperationsNode(
-        parallel(
-            new ActionNode("A", success(), Collections.emptyMap()),
-            new ActionNode("B", failure(), Collections.emptyMap())
-        ),
+    Node rootNode = new CompositeNode(
+        Arrays.asList(new ActionNode("A", success(), Collections.emptyMap()),
+            new ActionNode("B", failure(), Collections.emptyMap())),
         null,
         new ActionNode("fallback", success(), Collections.emptyMap())
     );
@@ -372,14 +343,12 @@ class GraphEngineParallelOperationsTest {
   void expectFallbackAppliedDuringParallelProcessing(VertxTestContext testContext, Vertx vertx)
       throws Throwable {
     // given
-    Node rootNode = new ParallelOperationsNode(
-        parallel(
-            new ActionNode("A", success(), Collections.emptyMap()),
+    Node rootNode = new CompositeNode(
+        Arrays.asList(new ActionNode("A", success(), Collections.emptyMap()),
             new ActionNode("B", failure(), Collections.singletonMap(
                 ERROR_TRANSITION, new ActionNode("fallback", success(),
                     Collections.emptyMap())
-            ))
-        ),
+            ))),
         null,
         null
     );
@@ -398,11 +367,9 @@ class GraphEngineParallelOperationsTest {
       throws Throwable {
     // given
 
-    Node rootNode = new ParallelOperationsNode(
-        parallel(
-            new ActionNode("A", success(), Collections.emptyMap()),
-            new ActionNode("B", success(), Collections.emptyMap())
-        ),
+    Node rootNode = new CompositeNode(
+        Arrays.asList(new ActionNode("A", success(), Collections.emptyMap()),
+            new ActionNode("B", success(), Collections.emptyMap())),
         new ActionNode("last", appendBody(":last"), Collections.emptyMap()),
         null
     );
@@ -414,10 +381,6 @@ class GraphEngineParallelOperationsTest {
     verifyExecution(result, testContext,
         fragmentEvent -> assertEquals(INITIAL_BODY + ":last",
             fragmentEvent.getFragment().getBody()));
-  }
-
-  private List<Node> parallel(Node... nodes) {
-    return Arrays.asList(nodes);
   }
 
   private void verifyExecution(Single<FragmentEvent> result, VertxTestContext testContext,

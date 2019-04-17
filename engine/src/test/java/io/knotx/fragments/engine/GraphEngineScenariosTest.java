@@ -23,15 +23,15 @@ import static io.knotx.fragments.engine.helpers.TestFunction.appendPayload;
 import static io.knotx.fragments.engine.helpers.TestFunction.appendPayloadBasingOnContext;
 import static io.knotx.fragments.engine.helpers.TestFunction.success;
 import static io.knotx.fragments.engine.helpers.TestFunction.successWithDelay;
-import static io.knotx.fragments.handler.api.fragment.FragmentResult.DEFAULT_TRANSITION;
+import static io.knotx.fragments.handler.api.fragment.FragmentResult.SUCCESS_TRANSITION;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.knotx.fragment.Fragment;
 import io.knotx.fragments.engine.FragmentEvent.Status;
 import io.knotx.fragments.engine.graph.ActionNode;
+import io.knotx.fragments.engine.graph.CompositeNode;
 import io.knotx.fragments.engine.graph.Node;
-import io.knotx.fragments.engine.graph.ParallelOperationsNode;
 import io.knotx.server.api.context.ClientRequest;
 import io.reactivex.Single;
 import io.vertx.core.Vertx;
@@ -75,7 +75,7 @@ class GraphEngineScenariosTest {
     JsonObject taskCPayload = new JsonObject().put("key", "taskCOperation");
 
     Node rootNode = new ActionNode("first", appendBody(":first"),
-        Collections.singletonMap(DEFAULT_TRANSITION, new ParallelOperationsNode(
+        Collections.singletonMap(SUCCESS_TRANSITION, new CompositeNode(
                 parallel(
                     new ActionNode("A", appendPayload("A", taskAPayload),
                         Collections.emptyMap()),
@@ -116,7 +116,7 @@ class GraphEngineScenariosTest {
   void expectSuccessMultipleParallel(VertxTestContext testContext, Vertx vertx) throws Throwable {
     // given
     Node rootNode = new ActionNode("first", success(),
-        Collections.singletonMap(DEFAULT_TRANSITION, new ParallelOperationsNode(
+        Collections.singletonMap(SUCCESS_TRANSITION, new CompositeNode(
                 parallel(
                     new ActionNode("A", appendPayload("A", ":payloadA"),
                         Collections.emptyMap()),
@@ -124,7 +124,7 @@ class GraphEngineScenariosTest {
                         Collections.emptyMap())
                 ),
                 new ActionNode("middle", success(),
-                    Collections.singletonMap("_next", new ParallelOperationsNode(
+                    Collections.singletonMap(SUCCESS_TRANSITION, new CompositeNode(
                         parallel(
                             new ActionNode("X",
                                 appendPayloadBasingOnContext("A", "X", "withX"),
@@ -173,7 +173,7 @@ class GraphEngineScenariosTest {
   void verifyParallelExecution(VertxTestContext testContext, Vertx vertx) throws Throwable {
     // given
     Node rootNode = new ActionNode("first", success(),
-        Collections.singletonMap(DEFAULT_TRANSITION, new ParallelOperationsNode(
+        Collections.singletonMap(SUCCESS_TRANSITION, new CompositeNode(
                 parallel(
                     new ActionNode("A", successWithDelay(500),
                         Collections.emptyMap()),
@@ -205,14 +205,14 @@ class GraphEngineScenariosTest {
   void verifyNestedParallelExecution(VertxTestContext testContext, Vertx vertx) throws Throwable {
     // given
     Node rootNode = new ActionNode("first", success(),
-        Collections.singletonMap(DEFAULT_TRANSITION, new ParallelOperationsNode(
+        Collections.singletonMap(SUCCESS_TRANSITION, new CompositeNode(
                 parallel(
                     new ActionNode("A", successWithDelay(500),
                         Collections.emptyMap()),
-                    new ParallelOperationsNode(
+                    new CompositeNode(
                         parallel(
                             new ActionNode("B", successWithDelay(500),
-                                Collections.singletonMap(DEFAULT_TRANSITION,
+                                Collections.singletonMap(SUCCESS_TRANSITION,
                                     new ActionNode("B1", appendPayload("B1", "B1Payload"),
                                         Collections.emptyMap()))),
                             new ActionNode("C", successWithDelay(500),

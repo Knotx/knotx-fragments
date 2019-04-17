@@ -17,7 +17,7 @@
  */
 package io.knotx.fragments.engine.helpers;
 
-import static io.knotx.fragments.handler.api.fragment.FragmentResult.DEFAULT_TRANSITION;
+import static io.knotx.fragments.handler.api.fragment.FragmentResult.SUCCESS_TRANSITION;
 
 import io.knotx.fragment.Fragment;
 import io.knotx.fragments.handler.api.exception.KnotProcessingFatalException;
@@ -33,7 +33,7 @@ public interface TestFunction extends Function<FragmentContext, Single<FragmentR
   static TestFunction success() {
     return fragmentContext -> {
       Fragment fragment = fragmentContext.getFragment();
-      FragmentResult result = new FragmentResult(fragment, DEFAULT_TRANSITION);
+      FragmentResult result = new FragmentResult(fragment, SUCCESS_TRANSITION);
       return Single.just(result);
     };
   }
@@ -41,7 +41,7 @@ public interface TestFunction extends Function<FragmentContext, Single<FragmentR
   static TestFunction successWithDelay(long delayInMs) {
     return fragmentContext -> {
       Fragment fragment = fragmentContext.getFragment();
-      FragmentResult result = new FragmentResult(fragment, DEFAULT_TRANSITION);
+      FragmentResult result = new FragmentResult(fragment, SUCCESS_TRANSITION);
       return Single.just(result).delay(delayInMs, TimeUnit.MILLISECONDS);
     };
   }
@@ -62,7 +62,7 @@ public interface TestFunction extends Function<FragmentContext, Single<FragmentR
     return fragmentContext -> {
       Fragment fragment = fragmentContext.getFragment();
       fragment.appendPayload(payloadKey, payloadValue);
-      FragmentResult result = new FragmentResult(fragment, DEFAULT_TRANSITION);
+      FragmentResult result = new FragmentResult(fragment, SUCCESS_TRANSITION);
       return Single.just(result);
     };
   }
@@ -71,7 +71,7 @@ public interface TestFunction extends Function<FragmentContext, Single<FragmentR
     return fragmentContext -> {
       Fragment fragment = fragmentContext.getFragment();
       fragment.appendPayload(payloadKey, payloadValue);
-      FragmentResult result = new FragmentResult(fragment, DEFAULT_TRANSITION);
+      FragmentResult result = new FragmentResult(fragment, SUCCESS_TRANSITION);
       return Single.just(result);
     };
   }
@@ -82,7 +82,7 @@ public interface TestFunction extends Function<FragmentContext, Single<FragmentR
       Fragment fragment = fragmentContext.getFragment();
       String payloadValue = fragment.getPayload().getString(expectedPayloadKey);
       fragment.appendPayload(updatedPayloadKey, payloadValue + updatedPayloadValue);
-      FragmentResult result = new FragmentResult(fragment, DEFAULT_TRANSITION);
+      FragmentResult result = new FragmentResult(fragment, SUCCESS_TRANSITION);
       return Single.just(result);
     };
   }
@@ -91,7 +91,7 @@ public interface TestFunction extends Function<FragmentContext, Single<FragmentR
     return fragmentContext -> {
       Fragment fragment = fragmentContext.getFragment();
       fragment.setBody(fragment.getBody() + postfix);
-      FragmentResult result = new FragmentResult(fragment, DEFAULT_TRANSITION);
+      FragmentResult result = new FragmentResult(fragment, SUCCESS_TRANSITION);
       return Single.just(result);
     };
   }
@@ -103,7 +103,7 @@ public interface TestFunction extends Function<FragmentContext, Single<FragmentR
         String payloadValue = fragment.getPayload().getString(expectedPayloadKey);
         fragment.setBody(fragment.getBody() + payloadValue);
       }
-      FragmentResult result = new FragmentResult(fragment, DEFAULT_TRANSITION);
+      FragmentResult result = new FragmentResult(fragment, SUCCESS_TRANSITION);
       return Single.just(result);
     };
   }
