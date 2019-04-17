@@ -17,18 +17,21 @@
  */
 package io.knotx.fragments.engine;
 
+import static io.knotx.fragments.engine.helpers.TestFunction.appendBody;
+import static io.knotx.fragments.engine.helpers.TestFunction.appendBodyWithPayload;
+import static io.knotx.fragments.engine.helpers.TestFunction.appendPayload;
+import static io.knotx.fragments.engine.helpers.TestFunction.appendPayloadBasingOnContext;
+import static io.knotx.fragments.engine.helpers.TestFunction.success;
+import static io.knotx.fragments.engine.helpers.TestFunction.successWithDelay;
 import static io.knotx.fragments.handler.api.fragment.FragmentResult.DEFAULT_TRANSITION;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.when;
 
 import io.knotx.fragment.Fragment;
 import io.knotx.fragments.engine.FragmentEvent.Status;
 import io.knotx.fragments.engine.graph.Node;
 import io.knotx.fragments.engine.graph.ParallelOperationsNode;
 import io.knotx.fragments.engine.graph.SingleOperationNode;
-import io.knotx.fragments.handler.api.fragment.FragmentContext;
-import io.knotx.fragments.handler.api.fragment.FragmentResult;
 import io.knotx.server.api.context.ClientRequest;
 import io.reactivex.Single;
 import io.vertx.core.Vertx;
@@ -40,36 +43,24 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
-import java.util.function.Function;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.mockito.junit.jupiter.MockitoSettings;
-import org.mockito.quality.Strictness;
 
 @ExtendWith(VertxExtension.class)
-@ExtendWith(MockitoExtension.class)
-@MockitoSettings(strictness = Strictness.LENIENT)
 class GraphEngineScenariosTest {
 
   private static final String INITIAL_BODY = "initial body";
   private FragmentEventContext eventContext;
   private Fragment initialFragment = new Fragment("snippet", new JsonObject(), INITIAL_BODY);
 
-  @Mock
-  private TestFunction invalidOperation;
 
   @BeforeEach
   void setUp() {
     eventContext = new FragmentEventContext(new FragmentEvent(initialFragment),
         new ClientRequest());
-
-    when(invalidOperation.apply(Mockito.any())).thenThrow(new RuntimeException());
   }
 
   /*
@@ -170,7 +161,7 @@ class GraphEngineScenariosTest {
   @Disabled
   @DisplayName("Expect fatal status when body is modified during parallel processing")
   void ensureBodyImmutableDuringParallelProcessing(VertxTestContext testContext, Vertx vertx) {
-    // ToDo
+    // ToDo: TBD if we want to implement it
   }
 
   /*
@@ -205,74 +196,48 @@ class GraphEngineScenariosTest {
         }, 1);
   }
 
-  interface TestFunction extends Function<FragmentContext, Single<FragmentResult>> {
+  /*
+   * scenario: parallel[A, parallel[B -> B1, C], D] -> last
+   *  A, B, C, D all with 500 ms delay, 1s for parallel section
+   */
+  @Test
+  @DisplayName("Expect nested parallel nodes processed in parallel when delays")
+  void verifyNestedParallelExecution(VertxTestContext testContext, Vertx vertx) throws Throwable {
+    // given
+    Node rootNode = new SingleOperationNode("first", success(),
+        Collections.singletonMap(DEFAULT_TRANSITION, new ParallelOperationsNode(
+                parallel(
+                    new SingleOperationNode("A", successWithDelay(500),
+                        Collections.emptyMap()),
+                    new ParallelOperationsNode(
+                        parallel(
+                            new SingleOperationNode("B", successWithDelay(500),
+                                Collections.singletonMap(DEFAULT_TRANSITION,
+                                    new SingleOperationNode("B1", appendPayload("B1", "B1Payload"),
+                                        Collections.emptyMap()))),
+                            new SingleOperationNode("C", successWithDelay(500),
+                                Collections.emptyMap())
+                        ),
+                        null,
+                        null
+                    ),
+                    new SingleOperationNode("D", successWithDelay(500),
+                        Collections.emptyMap())
+                ),
+                new SingleOperationNode("last", success(), Collections.emptyMap()),
+                null
+            )
+        ));
+    // when
+    Single<FragmentEvent> result = new GraphEngine(vertx).start("task", rootNode, eventContext);
 
-  }
-
-  private TestFunction success() {
-    return fragmentContext -> {
-      Fragment fragment = fragmentContext.getFragment();
-      FragmentResult result = new FragmentResult(fragment, DEFAULT_TRANSITION);
-      return Single.just(result);
-    };
-  }
-
-  private TestFunction successWithDelay(long delayInMs) {
-    return fragmentContext -> {
-      Fragment fragment = fragmentContext.getFragment();
-      FragmentResult result = new FragmentResult(fragment, DEFAULT_TRANSITION);
-      return Single.just(result).delay(delayInMs, TimeUnit.MILLISECONDS);
-    };
-  }
-
-  private TestFunction appendPayload(String payloadKey, String payloadValue) {
-    return fragmentContext -> {
-      Fragment fragment = fragmentContext.getFragment();
-      fragment.appendPayload(payloadKey, payloadValue);
-      FragmentResult result = new FragmentResult(fragment, DEFAULT_TRANSITION);
-      return Single.just(result);
-    };
-  }
-
-  private TestFunction appendPayload(String payloadKey, JsonObject payloadValue) {
-    return fragmentContext -> {
-      Fragment fragment = fragmentContext.getFragment();
-      fragment.appendPayload(payloadKey, payloadValue);
-      FragmentResult result = new FragmentResult(fragment, DEFAULT_TRANSITION);
-      return Single.just(result);
-    };
-  }
-
-  private TestFunction appendPayloadBasingOnContext(String expectedPayloadKey,
-      String updatedPayloadKey, String updatedPayloadValue) {
-    return fragmentContext -> {
-      Fragment fragment = fragmentContext.getFragment();
-      String payloadValue = fragment.getPayload().getString(expectedPayloadKey);
-      fragment.appendPayload(updatedPayloadKey, payloadValue + updatedPayloadValue);
-      FragmentResult result = new FragmentResult(fragment, DEFAULT_TRANSITION);
-      return Single.just(result);
-    };
-  }
-
-  private TestFunction appendBody(String postfix) {
-    return fragmentContext -> {
-      Fragment fragment = fragmentContext.getFragment();
-      fragment.setBody(fragment.getBody() + postfix);
-      FragmentResult result = new FragmentResult(fragment, DEFAULT_TRANSITION);
-      return Single.just(result);
-    };
-  }
-
-  private TestFunction appendBodyWithPayload(String... expectedPayloadKeys) {
-    return fragmentContext -> {
-      Fragment fragment = fragmentContext.getFragment();
-      for (String expectedPayloadKey : expectedPayloadKeys) {
-        String payloadValue = fragment.getPayload().getString(expectedPayloadKey);
-        fragment.setBody(fragment.getBody() + payloadValue);
-      }
-      FragmentResult result = new FragmentResult(fragment, DEFAULT_TRANSITION);
-      return Single.just(result);
-    };
+    // then
+    verifyExecution(result, testContext,
+        fragmentEvent -> {
+          assertEquals(Status.SUCCESS, fragmentEvent.getStatus());
+          JsonObject payload = fragmentEvent.getFragment().getPayload();
+          assertEquals("B1Payload", payload.getString("B1"));
+        }, 1);
   }
 
   private List<Node> parallel(Node... nodes) {

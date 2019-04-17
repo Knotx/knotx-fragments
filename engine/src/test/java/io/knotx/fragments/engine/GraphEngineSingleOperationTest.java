@@ -18,16 +18,17 @@
 package io.knotx.fragments.engine;
 
 import static io.knotx.fragments.engine.FragmentEventLogVerifier.verifyLogEntries;
+import static io.knotx.fragments.engine.helpers.TestFunction.appendBody;
+import static io.knotx.fragments.engine.helpers.TestFunction.failure;
+import static io.knotx.fragments.engine.helpers.TestFunction.success;
 import static io.knotx.fragments.handler.api.fragment.FragmentResult.DEFAULT_TRANSITION;
 import static io.knotx.fragments.handler.api.fragment.FragmentResult.ERROR_TRANSITION;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 import io.knotx.fragment.Fragment;
 import io.knotx.fragments.engine.FragmentEvent.Status;
 import io.knotx.fragments.engine.FragmentEventLogVerifier.Operation;
+import io.knotx.fragments.engine.graph.Node;
 import io.knotx.fragments.engine.graph.SingleOperationNode;
 import io.knotx.fragments.handler.api.fragment.FragmentContext;
 import io.knotx.fragments.handler.api.fragment.FragmentResult;
@@ -46,36 +47,20 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.mockito.junit.jupiter.MockitoSettings;
-import org.mockito.quality.Strictness;
 
 @ExtendWith(VertxExtension.class)
-@ExtendWith(MockitoExtension.class)
-@MockitoSettings(strictness = Strictness.LENIENT)
 class GraphEngineSingleOperationTest {
 
+  private static final String INITIAL_BODY = "initial body";
   private FragmentEventContext eventContext;
-  private Fragment initialFragment = new Fragment("snippet", new JsonObject(), "some body");
+  private Fragment initialFragment = new Fragment("snippet", new JsonObject(), INITIAL_BODY);
   private Fragment evaluatedFragment = new Fragment(initialFragment.toJson())
-      .setBody("updated body");
-
-  @Mock
-  private TestFunction successOperation;
-
-  @Mock
-  private TestFunction invalidOperation;
+      .setBody("initial body:updated");
 
   @BeforeEach
   void setUp() {
     eventContext = new FragmentEventContext(new FragmentEvent(initialFragment),
         new ClientRequest());
-
-    when(successOperation.apply(Mockito.any())).thenReturn(Single.just(
-        new FragmentResult(evaluatedFragment, DEFAULT_TRANSITION)));
-    when(invalidOperation.apply(Mockito.any())).thenThrow(new RuntimeException());
   }
 
   @Test
@@ -83,7 +68,7 @@ class GraphEngineSingleOperationTest {
   void expectEvaluatedFragment(VertxTestContext testContext, Vertx vertx)
       throws Throwable {
     // given
-    SingleOperationNode rootNode = new SingleOperationNode("first", successOperation,
+    Node rootNode = new SingleOperationNode("first", appendBody(":updated"),
         Collections.emptyMap());
 
     // when
@@ -99,7 +84,7 @@ class GraphEngineSingleOperationTest {
   void expectInitialFragment(VertxTestContext testContext, Vertx vertx)
       throws Throwable {
     // given
-    SingleOperationNode rootNode = new SingleOperationNode("first", invalidOperation,
+    SingleOperationNode rootNode = new SingleOperationNode("first", failure(),
         Collections.emptyMap());
 
     // when
@@ -115,16 +100,19 @@ class GraphEngineSingleOperationTest {
   void expectrootNodeOperations(VertxTestContext testContext, Vertx vertx)
       throws Throwable {
     // given
-    SingleOperationNode rootNode = new SingleOperationNode("first", successOperation,
+    SingleOperationNode rootNode = new SingleOperationNode("first", appendBody(":A"),
         Collections.singletonMap(DEFAULT_TRANSITION,
-            new SingleOperationNode("second", successOperation, Collections.emptyMap())));
+            new SingleOperationNode("second", appendBody(":B"), Collections.emptyMap())));
 
     // when
     Single<FragmentEvent> result = new GraphEngine(vertx).start("task", rootNode, eventContext);
 
     // then
     verifyExecution(result, testContext,
-        event -> verify(successOperation, times(2)).apply(Mockito.any()));
+        event -> {
+          String body = event.getFragment().getBody();
+          assertEquals(INITIAL_BODY + ":A:B", body);
+        });
   }
 
   @Test
@@ -132,7 +120,7 @@ class GraphEngineSingleOperationTest {
   void expectSuccessEventWhenOperationEnds(VertxTestContext testContext, Vertx vertx)
       throws Throwable {
     // given
-    SingleOperationNode rootNode = new SingleOperationNode("first", successOperation,
+    SingleOperationNode rootNode = new SingleOperationNode("first", success(),
         Collections.emptyMap());
 
     // when
@@ -147,9 +135,9 @@ class GraphEngineSingleOperationTest {
   void expectSuccessEventWhenAllOperationsEnds(VertxTestContext testContext, Vertx vertx)
       throws Throwable {
     // given
-    SingleOperationNode rootNode = new SingleOperationNode("first", successOperation,
+    SingleOperationNode rootNode = new SingleOperationNode("first", success(),
         Collections.singletonMap(DEFAULT_TRANSITION,
-            new SingleOperationNode("second", successOperation, Collections.emptyMap())));
+            new SingleOperationNode("second", success(), Collections.emptyMap())));
 
     // when
     Single<FragmentEvent> result = new GraphEngine(vertx).start("task", rootNode, eventContext);
@@ -163,7 +151,7 @@ class GraphEngineSingleOperationTest {
   void expectFailureEventWhenUnhandledException(VertxTestContext testContext, Vertx vertx)
       throws Throwable {
     // given
-    SingleOperationNode rootNode = new SingleOperationNode("first", invalidOperation,
+    SingleOperationNode rootNode = new SingleOperationNode("first", failure(),
         Collections.emptyMap());
 
     // when
@@ -178,9 +166,9 @@ class GraphEngineSingleOperationTest {
   void expectSuccessEventWhenExceptionHandled(VertxTestContext testContext, Vertx vertx)
       throws Throwable {
     // given
-    SingleOperationNode rootNode = new SingleOperationNode("first", invalidOperation,
+    SingleOperationNode rootNode = new SingleOperationNode("first", failure(),
         Collections.singletonMap(ERROR_TRANSITION,
-            new SingleOperationNode("second", successOperation, Collections.emptyMap())));
+            new SingleOperationNode("second", success(), Collections.emptyMap())));
 
     // when
     Single<FragmentEvent> result = new GraphEngine(vertx).start("task", rootNode, eventContext);
@@ -212,7 +200,7 @@ class GraphEngineSingleOperationTest {
   void expectSuccessEventLogEntry(VertxTestContext testContext, Vertx vertx)
       throws Throwable {
     // given
-    SingleOperationNode rootNode = new SingleOperationNode("first", successOperation,
+    SingleOperationNode rootNode = new SingleOperationNode("first", success(),
         Collections.emptyMap());
 
     // when
@@ -229,7 +217,7 @@ class GraphEngineSingleOperationTest {
   void expectUnsupportedEventLogEntryWhenError(VertxTestContext testContext, Vertx vertx)
       throws Throwable {
     // given
-    SingleOperationNode rootNode = new SingleOperationNode("first", invalidOperation,
+    SingleOperationNode rootNode = new SingleOperationNode("first", failure(),
         Collections.emptyMap());
 
     // when
@@ -269,9 +257,9 @@ class GraphEngineSingleOperationTest {
   void expectErrorAndSuccessEventLogEntries(VertxTestContext testContext, Vertx vertx)
       throws Throwable {
     // given
-    SingleOperationNode rootNode = new SingleOperationNode("first", invalidOperation,
+    SingleOperationNode rootNode = new SingleOperationNode("first", failure(),
         Collections.singletonMap(ERROR_TRANSITION,
-            new SingleOperationNode("second", successOperation, Collections.emptyMap())));
+            new SingleOperationNode("second", success(), Collections.emptyMap())));
 
     // when
     Single<FragmentEvent> result = new GraphEngine(vertx).start("task", rootNode, eventContext);
@@ -298,10 +286,6 @@ class GraphEngineSingleOperationTest {
     if (testContext.failed()) {
       throw testContext.causeOfFailure();
     }
-  }
-
-  interface TestFunction extends Function<FragmentContext, Single<FragmentResult>> {
-
   }
 
 }

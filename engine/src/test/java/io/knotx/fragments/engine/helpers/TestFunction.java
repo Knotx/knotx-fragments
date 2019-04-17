@@ -25,15 +25,24 @@ import io.knotx.fragments.handler.api.fragment.FragmentContext;
 import io.knotx.fragments.handler.api.fragment.FragmentResult;
 import io.reactivex.Single;
 import io.vertx.core.json.JsonObject;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
 public interface TestFunction extends Function<FragmentContext, Single<FragmentResult>> {
 
-  static TestFunction successWithDefaultTransition() {
+  static TestFunction success() {
     return fragmentContext -> {
       Fragment fragment = fragmentContext.getFragment();
       FragmentResult result = new FragmentResult(fragment, DEFAULT_TRANSITION);
       return Single.just(result);
+    };
+  }
+
+  static TestFunction successWithDelay(long delayInMs) {
+    return fragmentContext -> {
+      Fragment fragment = fragmentContext.getFragment();
+      FragmentResult result = new FragmentResult(fragment, DEFAULT_TRANSITION);
+      return Single.just(result).delay(delayInMs, TimeUnit.MILLISECONDS);
     };
   }
 
@@ -58,10 +67,42 @@ public interface TestFunction extends Function<FragmentContext, Single<FragmentR
     };
   }
 
+  static TestFunction appendPayload(String payloadKey, String payloadValue) {
+    return fragmentContext -> {
+      Fragment fragment = fragmentContext.getFragment();
+      fragment.appendPayload(payloadKey, payloadValue);
+      FragmentResult result = new FragmentResult(fragment, DEFAULT_TRANSITION);
+      return Single.just(result);
+    };
+  }
+
+  static TestFunction appendPayloadBasingOnContext(String expectedPayloadKey,
+      String updatedPayloadKey, String updatedPayloadValue) {
+    return fragmentContext -> {
+      Fragment fragment = fragmentContext.getFragment();
+      String payloadValue = fragment.getPayload().getString(expectedPayloadKey);
+      fragment.appendPayload(updatedPayloadKey, payloadValue + updatedPayloadValue);
+      FragmentResult result = new FragmentResult(fragment, DEFAULT_TRANSITION);
+      return Single.just(result);
+    };
+  }
+
   static TestFunction appendBody(String postfix) {
     return fragmentContext -> {
       Fragment fragment = fragmentContext.getFragment();
       fragment.setBody(fragment.getBody() + postfix);
+      FragmentResult result = new FragmentResult(fragment, DEFAULT_TRANSITION);
+      return Single.just(result);
+    };
+  }
+
+  static TestFunction appendBodyWithPayload(String... expectedPayloadKeys) {
+    return fragmentContext -> {
+      Fragment fragment = fragmentContext.getFragment();
+      for (String expectedPayloadKey : expectedPayloadKeys) {
+        String payloadValue = fragment.getPayload().getString(expectedPayloadKey);
+        fragment.setBody(fragment.getBody() + payloadValue);
+      }
       FragmentResult result = new FragmentResult(fragment, DEFAULT_TRANSITION);
       return Single.just(result);
     };
