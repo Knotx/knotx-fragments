@@ -19,8 +19,8 @@ package io.knotx.fragments.task;
 
 import io.knotx.fragment.Fragment;
 import io.knotx.fragments.engine.Task;
+import io.knotx.fragments.engine.graph.ActionNode;
 import io.knotx.fragments.engine.graph.Node;
-import io.knotx.fragments.engine.graph.SingleOperationNode;
 import io.knotx.fragments.handler.action.ActionProvider;
 import io.knotx.fragments.handler.api.fragment.Action;
 import io.knotx.fragments.handler.api.fragment.FragmentContext;
@@ -73,7 +73,7 @@ public class TaskBuilder {
       edges.put(transition, initGraphNode(childGraphOptions));
     });
     //ToDo - create single operation or parallel here
-    return new SingleOperationNode(options.getAction(), toRxFunction(action), edges);
+    return new ActionNode(options.getAction(), toRxFunction(action), edges);
   }
 
   private Function<FragmentContext, Single<FragmentResult>> toRxFunction(

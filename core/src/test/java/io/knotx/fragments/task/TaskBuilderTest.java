@@ -25,23 +25,16 @@ import static org.mockito.Mockito.mock;
 
 import io.knotx.fragment.Fragment;
 import io.knotx.fragments.engine.Task;
+import io.knotx.fragments.engine.graph.ActionNode;
 import io.knotx.fragments.engine.graph.Node;
-import io.knotx.fragments.engine.graph.SingleOperationNode;
 import io.knotx.fragments.handler.action.ActionProvider;
 import io.knotx.fragments.handler.api.fragment.Action;
-import io.knotx.fragments.handler.api.fragment.FragmentContext;
-import io.knotx.fragments.handler.api.fragment.FragmentResult;
 import io.knotx.fragments.handler.exception.GraphConfigurationException;
 import io.knotx.fragments.handler.options.NodeOptions;
-import io.knotx.server.api.context.ClientRequest;
-import io.reactivex.Single;
-import io.vertx.core.Future;
 import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.VertxExtension;
-import io.vertx.junit5.VertxTestContext;
 import java.util.Collections;
 import java.util.Optional;
-import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -113,7 +106,7 @@ class TaskBuilderTest {
 //    assertTrue(task.isPresent());
 //    Single<FragmentResult> operationResult = task.get()
 //        .getRootNode().get()
-//        .doOperation(new FragmentContext(fragment, new ClientRequest()));
+//        .doAction(new FragmentContext(fragment, new ClientRequest()));
 //
 //    operationResult.subscribe(result -> {
 //      assertEquals(expectedBody, result.getFragment().getBody());
@@ -149,7 +142,7 @@ class TaskBuilderTest {
     assertEquals("task", task.getName());
     assertTrue(task.getRootNode().isPresent());
     Node rootNode = task.getRootNode().get();
-    assertTrue(rootNode instanceof SingleOperationNode);
+    assertTrue(rootNode instanceof ActionNode);
     assertEquals("actionA", rootNode.getId());
     assertFalse(rootNode.next(DEFAULT_TRANSITION).isPresent());
   }
@@ -181,12 +174,12 @@ class TaskBuilderTest {
 
     assertTrue(task.getRootNode().isPresent());
     Node rootNode = task.getRootNode().get();
-    assertTrue(rootNode instanceof SingleOperationNode);
+    assertTrue(rootNode instanceof ActionNode);
     assertEquals("actionA", rootNode.getId());
     Optional<Node> customNode = rootNode.next("customTransition");
     assertTrue(customNode.isPresent());
-    assertTrue(customNode.get() instanceof SingleOperationNode);
-    SingleOperationNode customSingleNode = (SingleOperationNode) customNode.get();
+    assertTrue(customNode.get() instanceof ActionNode);
+    ActionNode customSingleNode = (ActionNode) customNode.get();
     assertEquals("actionB", customSingleNode.getId());
   }
 

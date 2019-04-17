@@ -22,41 +22,41 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 
-public class SingleOperationNode implements Node {
+public class ActionNode implements Node {
 
-  private String action;
+  private String id;
 
-  private Function<FragmentContext, Single<FragmentResult>> operation;
+  private Function<FragmentContext, Single<FragmentResult>> action;
 
-  private Map<String, Node> outgoingEdges;
+  private Map<String, Node> transitions;
 
-  public SingleOperationNode(String action,
-      Function<FragmentContext, Single<FragmentResult>> operation, Map<String, Node> edges) {
+  public ActionNode(String id, Function<FragmentContext, Single<FragmentResult>> action,
+      Map<String, Node> transitions) {
+    this.id = id;
     this.action = action;
-    this.operation = operation;
-    this.outgoingEdges = edges;
+    this.transitions = transitions;
   }
 
-  public Single<FragmentResult> doOperation(FragmentContext fragmentContext) {
-    return operation.apply(fragmentContext);
+  public Single<FragmentResult> doAction(FragmentContext fragmentContext) {
+    return action.apply(fragmentContext);
   }
 
   @Override
   public Optional<Node> next(String transition) {
-    return Optional.ofNullable(outgoingEdges.get(transition));
+    return Optional.ofNullable(transitions.get(transition));
   }
 
   @Override
   public String getId() {
-    return action;
+    return id;
   }
 
   @Override
   public String toString() {
-    return "SingleOperationNode{" +
-        "action='" + action + '\'' +
-        ", operation=" + operation +
-        ", outgoingEdges=" + outgoingEdges +
+    return "ActionNode{" +
+        "id='" + id + '\'' +
+        ", action=" + action +
+        ", transitions=" + transitions +
         '}';
   }
 }

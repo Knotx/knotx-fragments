@@ -29,9 +29,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.knotx.fragment.Fragment;
 import io.knotx.fragments.engine.FragmentEvent.Status;
+import io.knotx.fragments.engine.graph.ActionNode;
 import io.knotx.fragments.engine.graph.Node;
 import io.knotx.fragments.engine.graph.ParallelOperationsNode;
-import io.knotx.fragments.engine.graph.SingleOperationNode;
 import io.knotx.server.api.context.ClientRequest;
 import io.reactivex.Single;
 import io.vertx.core.Vertx;
@@ -74,17 +74,17 @@ class GraphEngineScenariosTest {
     JsonObject taskBPayload = new JsonObject().put("key", "taskBOperation");
     JsonObject taskCPayload = new JsonObject().put("key", "taskCOperation");
 
-    Node rootNode = new SingleOperationNode("first", appendBody(":first"),
+    Node rootNode = new ActionNode("first", appendBody(":first"),
         Collections.singletonMap(DEFAULT_TRANSITION, new ParallelOperationsNode(
                 parallel(
-                    new SingleOperationNode("A", appendPayload("A", taskAPayload),
+                    new ActionNode("A", appendPayload("A", taskAPayload),
                         Collections.emptyMap()),
-                    new SingleOperationNode("B", appendPayload("B", taskBPayload),
+                    new ActionNode("B", appendPayload("B", taskBPayload),
                         Collections.emptyMap()),
-                    new SingleOperationNode("C", appendPayload("C", taskCPayload),
+                    new ActionNode("C", appendPayload("C", taskCPayload),
                         Collections.emptyMap())
                 ),
-                new SingleOperationNode("last", appendBody(":last"), Collections.emptyMap()),
+                new ActionNode("last", appendBody(":last"), Collections.emptyMap()),
                 null
             )
         ));
@@ -115,25 +115,25 @@ class GraphEngineScenariosTest {
   @DisplayName("Expect body updated after complex processing")
   void expectSuccessMultipleParallel(VertxTestContext testContext, Vertx vertx) throws Throwable {
     // given
-    Node rootNode = new SingleOperationNode("first", success(),
+    Node rootNode = new ActionNode("first", success(),
         Collections.singletonMap(DEFAULT_TRANSITION, new ParallelOperationsNode(
                 parallel(
-                    new SingleOperationNode("A", appendPayload("A", ":payloadA"),
+                    new ActionNode("A", appendPayload("A", ":payloadA"),
                         Collections.emptyMap()),
-                    new SingleOperationNode("B", appendPayload("B", ":payloadB"),
+                    new ActionNode("B", appendPayload("B", ":payloadB"),
                         Collections.emptyMap())
                 ),
-                new SingleOperationNode("middle", success(),
+                new ActionNode("middle", success(),
                     Collections.singletonMap("_next", new ParallelOperationsNode(
                         parallel(
-                            new SingleOperationNode("X",
+                            new ActionNode("X",
                                 appendPayloadBasingOnContext("A", "X", "withX"),
                                 Collections.emptyMap()),
-                            new SingleOperationNode("Y",
+                            new ActionNode("Y",
                                 appendPayloadBasingOnContext("B", "Y", "withY"),
                                 Collections.emptyMap())
                         ),
-                        new SingleOperationNode("last", appendBodyWithPayload("X", "Y"),
+                        new ActionNode("last", appendBodyWithPayload("X", "Y"),
                             Collections.emptyMap()),
                         null
                     ))),
@@ -172,17 +172,17 @@ class GraphEngineScenariosTest {
   @DisplayName("Expect parallel nodes processed in parallel when delays")
   void verifyParallelExecution(VertxTestContext testContext, Vertx vertx) throws Throwable {
     // given
-    Node rootNode = new SingleOperationNode("first", success(),
+    Node rootNode = new ActionNode("first", success(),
         Collections.singletonMap(DEFAULT_TRANSITION, new ParallelOperationsNode(
                 parallel(
-                    new SingleOperationNode("A", successWithDelay(500),
+                    new ActionNode("A", successWithDelay(500),
                         Collections.emptyMap()),
-                    new SingleOperationNode("B", successWithDelay(500),
+                    new ActionNode("B", successWithDelay(500),
                         Collections.emptyMap()),
-                    new SingleOperationNode("C", successWithDelay(500),
+                    new ActionNode("C", successWithDelay(500),
                         Collections.emptyMap())
                 ),
-                new SingleOperationNode("last", success(), Collections.emptyMap()),
+                new ActionNode("last", success(), Collections.emptyMap()),
                 null
             )
         ));
@@ -204,27 +204,27 @@ class GraphEngineScenariosTest {
   @DisplayName("Expect nested parallel nodes processed in parallel when delays")
   void verifyNestedParallelExecution(VertxTestContext testContext, Vertx vertx) throws Throwable {
     // given
-    Node rootNode = new SingleOperationNode("first", success(),
+    Node rootNode = new ActionNode("first", success(),
         Collections.singletonMap(DEFAULT_TRANSITION, new ParallelOperationsNode(
                 parallel(
-                    new SingleOperationNode("A", successWithDelay(500),
+                    new ActionNode("A", successWithDelay(500),
                         Collections.emptyMap()),
                     new ParallelOperationsNode(
                         parallel(
-                            new SingleOperationNode("B", successWithDelay(500),
+                            new ActionNode("B", successWithDelay(500),
                                 Collections.singletonMap(DEFAULT_TRANSITION,
-                                    new SingleOperationNode("B1", appendPayload("B1", "B1Payload"),
+                                    new ActionNode("B1", appendPayload("B1", "B1Payload"),
                                         Collections.emptyMap()))),
-                            new SingleOperationNode("C", successWithDelay(500),
+                            new ActionNode("C", successWithDelay(500),
                                 Collections.emptyMap())
                         ),
                         null,
                         null
                     ),
-                    new SingleOperationNode("D", successWithDelay(500),
+                    new ActionNode("D", successWithDelay(500),
                         Collections.emptyMap())
                 ),
-                new SingleOperationNode("last", success(), Collections.emptyMap()),
+                new ActionNode("last", success(), Collections.emptyMap()),
                 null
             )
         ));

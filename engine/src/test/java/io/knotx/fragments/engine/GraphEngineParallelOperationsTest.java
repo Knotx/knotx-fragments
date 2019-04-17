@@ -30,9 +30,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import io.knotx.fragment.Fragment;
 import io.knotx.fragments.engine.FragmentEvent.Status;
 import io.knotx.fragments.engine.FragmentEventLogVerifier.Operation;
+import io.knotx.fragments.engine.graph.ActionNode;
 import io.knotx.fragments.engine.graph.Node;
 import io.knotx.fragments.engine.graph.ParallelOperationsNode;
-import io.knotx.fragments.engine.graph.SingleOperationNode;
 import io.knotx.fragments.handler.api.exception.KnotProcessingFatalException;
 import io.knotx.server.api.context.ClientRequest;
 import io.reactivex.Single;
@@ -90,7 +90,7 @@ class GraphEngineParallelOperationsTest {
     // given
     Node rootNode = new ParallelOperationsNode(
         parallel(
-            new SingleOperationNode("action", success(),
+            new ActionNode("action", success(),
                 Collections.emptyMap())
         ),
         null,
@@ -112,7 +112,7 @@ class GraphEngineParallelOperationsTest {
     // given
     Node rootNode = new ParallelOperationsNode(
         parallel(
-            new SingleOperationNode("action", success(),
+            new ActionNode("action", success(),
                 Collections.emptyMap())
         ),
         null,
@@ -136,7 +136,7 @@ class GraphEngineParallelOperationsTest {
     // given
     Node rootNode = new ParallelOperationsNode(
         parallel(
-            new SingleOperationNode("action", failure(), Collections.emptyMap())
+            new ActionNode("action", failure(), Collections.emptyMap())
         ),
         null,
         null
@@ -157,7 +157,7 @@ class GraphEngineParallelOperationsTest {
     // given
     Node rootNode = new ParallelOperationsNode(
         parallel(
-            new SingleOperationNode("action", failure(), Collections.emptyMap())
+            new ActionNode("action", failure(), Collections.emptyMap())
         ),
         null,
         null
@@ -181,7 +181,7 @@ class GraphEngineParallelOperationsTest {
     // given
     Node rootNode = new ParallelOperationsNode(
         parallel(
-            new SingleOperationNode("action", fatal(eventContext.getFragmentEvent().getFragment()),
+            new ActionNode("action", fatal(eventContext.getFragmentEvent().getFragment()),
                 Collections.emptyMap())
         ),
         null,
@@ -207,7 +207,7 @@ class GraphEngineParallelOperationsTest {
 
     Node rootNode = new ParallelOperationsNode(
         parallel(
-            new SingleOperationNode("A", appendPayload("A", taskAPayload),
+            new ActionNode("A", appendPayload("A", taskAPayload),
                 Collections.emptyMap())
         ),
         null,
@@ -232,7 +232,7 @@ class GraphEngineParallelOperationsTest {
         parallel(
             new ParallelOperationsNode(
                 parallel(
-                    new SingleOperationNode("action", success(),
+                    new ActionNode("action", success(),
                         Collections.emptyMap())
                 ),
                 null,
@@ -258,7 +258,7 @@ class GraphEngineParallelOperationsTest {
         parallel(
             new ParallelOperationsNode(
                 parallel(
-                    new SingleOperationNode("action", appendPayload("A", taskAPayload),
+                    new ActionNode("action", appendPayload("A", taskAPayload),
                         Collections.emptyMap())
                 ),
                 null,
@@ -287,7 +287,7 @@ class GraphEngineParallelOperationsTest {
                 null,
                 null
             ),
-            new SingleOperationNode("action", success(),
+            new ActionNode("action", success(),
                 Collections.emptyMap())
         ), null, null);
 
@@ -305,8 +305,8 @@ class GraphEngineParallelOperationsTest {
     // given
     Node rootNode = new ParallelOperationsNode(
         parallel(
-            new SingleOperationNode("failing", failure(), Collections.emptyMap()),
-            new SingleOperationNode("success", success(),
+            new ActionNode("failing", failure(), Collections.emptyMap()),
+            new ActionNode("success", success(),
                 Collections.emptyMap())
         ), null,
         null);
@@ -326,8 +326,8 @@ class GraphEngineParallelOperationsTest {
     // given
     Node rootNode = new ParallelOperationsNode(
         parallel(
-            new SingleOperationNode("failing", failure(), Collections.emptyMap()),
-            new SingleOperationNode("success", success(),
+            new ActionNode("failing", failure(), Collections.emptyMap()),
+            new ActionNode("success", success(),
                 Collections.emptyMap())
         ), null, null);
 
@@ -352,11 +352,11 @@ class GraphEngineParallelOperationsTest {
     // given
     Node rootNode = new ParallelOperationsNode(
         parallel(
-            new SingleOperationNode("A", success(), Collections.emptyMap()),
-            new SingleOperationNode("B", failure(), Collections.emptyMap())
+            new ActionNode("A", success(), Collections.emptyMap()),
+            new ActionNode("B", failure(), Collections.emptyMap())
         ),
         null,
-        new SingleOperationNode("fallback", success(), Collections.emptyMap())
+        new ActionNode("fallback", success(), Collections.emptyMap())
     );
 
     // when
@@ -374,9 +374,9 @@ class GraphEngineParallelOperationsTest {
     // given
     Node rootNode = new ParallelOperationsNode(
         parallel(
-            new SingleOperationNode("A", success(), Collections.emptyMap()),
-            new SingleOperationNode("B", failure(), Collections.singletonMap(
-                ERROR_TRANSITION, new SingleOperationNode("fallback", success(),
+            new ActionNode("A", success(), Collections.emptyMap()),
+            new ActionNode("B", failure(), Collections.singletonMap(
+                ERROR_TRANSITION, new ActionNode("fallback", success(),
                     Collections.emptyMap())
             ))
         ),
@@ -400,10 +400,10 @@ class GraphEngineParallelOperationsTest {
 
     Node rootNode = new ParallelOperationsNode(
         parallel(
-            new SingleOperationNode("A", success(), Collections.emptyMap()),
-            new SingleOperationNode("B", success(), Collections.emptyMap())
+            new ActionNode("A", success(), Collections.emptyMap()),
+            new ActionNode("B", success(), Collections.emptyMap())
         ),
-        new SingleOperationNode("last", appendBody(":last"), Collections.emptyMap()),
+        new ActionNode("last", appendBody(":last"), Collections.emptyMap()),
         null
     );
 
