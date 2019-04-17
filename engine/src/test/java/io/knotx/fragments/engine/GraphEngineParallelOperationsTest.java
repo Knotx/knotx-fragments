@@ -46,6 +46,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -355,7 +356,6 @@ class GraphEngineParallelOperationsTest {
   void expectFallbackAppliedAfterParallelProcessing(VertxTestContext testContext, Vertx vertx)
       throws Throwable {
     // given
-
     Node rootNode = new ParallelOperationsNode(
         parallel(
             new SingleOperationNode("A", success(), Collections.emptyMap()),
@@ -363,6 +363,30 @@ class GraphEngineParallelOperationsTest {
         ),
         null,
         new SingleOperationNode("fallback", success(), Collections.emptyMap())
+    );
+
+    // when
+    Single<FragmentEvent> result = new GraphEngine(vertx).start("task", rootNode, eventContext);
+
+    // then
+    verifyExecution(result, testContext,
+        fragmentEvent -> assertEquals(Status.SUCCESS, fragmentEvent.getStatus()));
+  }
+
+  @Test
+  @DisplayName("Expect success status when parallel processing and one of parallel actions returns error that is handled by action fallback")
+  void expectFallbackAppliedDuringParallelProcessing(VertxTestContext testContext, Vertx vertx)
+      throws Throwable {
+    // given
+    Node rootNode = new ParallelOperationsNode(
+        parallel(
+            new SingleOperationNode("A", success(), Collections.emptyMap()),
+            new SingleOperationNode("B", failure(), Collections.singletonMap(
+                "_error", new SingleOperationNode("fallback", success(), Collections.emptyMap())
+            ))
+        ),
+        null,
+        null
     );
 
     // when
