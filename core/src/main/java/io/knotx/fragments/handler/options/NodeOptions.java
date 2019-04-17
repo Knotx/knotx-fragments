@@ -18,6 +18,7 @@ package io.knotx.fragments.handler.options;
 import io.vertx.codegen.annotations.DataObject;
 import io.vertx.core.json.JsonObject;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -30,6 +31,8 @@ public class NodeOptions {
 
   private String action;
 
+  private List<NodeOptions> actions;
+
   private Map<String, NodeOptions> onTransitions;
 
   public NodeOptions(String action, Map<String, NodeOptions> transitions) {
@@ -37,6 +40,14 @@ public class NodeOptions {
       throw new IllegalStateException("Proxy can not be null");
     }
     this.action = action;
+    this.onTransitions = transitions;
+  }
+
+  public NodeOptions(List<NodeOptions> actions, Map<String, NodeOptions> transitions) {
+    if (actions == null) {
+      throw new IllegalStateException("No actions defined");
+    }
+    this.actions = actions;
     this.onTransitions = transitions;
   }
 
@@ -65,6 +76,21 @@ public class NodeOptions {
    */
   public NodeOptions setAction(String action) {
     this.action = action;
+    return this;
+  }
+
+  public List<NodeOptions> getActions() {
+    return actions;
+  }
+
+  /**
+   * Sets list of {@code NodeOptions} that represents {@code Actions} that will be executed in parallel.
+   *
+   * @param actions list of {@link NodeOptions}
+   * @return reference to this, so the API can be used fluently
+   */
+  public NodeOptions setActions(List<NodeOptions> actions) {
+    this.actions = actions;
     return this;
   }
 
@@ -98,18 +124,20 @@ public class NodeOptions {
     }
     NodeOptions that = (NodeOptions) o;
     return Objects.equals(action, that.action) &&
+        Objects.equals(actions, that.actions) &&
         Objects.equals(onTransitions, that.onTransitions);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(action, onTransitions);
+    return Objects.hash(action, actions, onTransitions);
   }
 
   @Override
   public String toString() {
     return "NodeOptions{" +
         "action='" + action + '\'' +
+        ", actions=" + actions +
         ", onTransitions=" + onTransitions +
         '}';
   }

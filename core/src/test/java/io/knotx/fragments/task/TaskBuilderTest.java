@@ -17,7 +17,9 @@
  */
 package io.knotx.fragments.task;
 
+import static io.knotx.fragments.handler.api.fragment.FragmentResult.DEFAULT_TRANSITION;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 
@@ -53,15 +55,11 @@ class TaskBuilderTest {
   @DisplayName("Expect empty graph node when task not defined.")
   void expectEmptyGraphNodeWhenTaskNotConfigured() {
     // given
-    ActionProvider actionProvider = mock(ActionProvider.class);
-    Mockito.when(actionProvider.get(Mockito.eq("actionA"))).thenReturn(Optional.empty());
-
-    TaskBuilder tested = new TaskBuilder(Collections.singletonMap("taskB",
-        new NodeOptions("actionA", Collections.emptyMap())), actionProvider);
+    TaskBuilder tested = new TaskBuilder(Collections.emptyMap(), mock(ActionProvider.class));
 
     // when
-    Fragment fragment = new Fragment("type", new JsonObject().put(TaskBuilder.TASK_KEY, "taskA"),
-        "initial body");
+    Fragment fragment = new Fragment("type", new JsonObject()
+        .put(TaskBuilder.TASK_KEY, "not-existing-task"), "body");
     Optional<Task> task = tested.build(fragment);
 
     // then
@@ -70,7 +68,7 @@ class TaskBuilderTest {
 
   @Test
   @DisplayName("Expect exception when action not defined.")
-  void expectEmptyGraphNodeWhenActionNotConfigured() {
+  void expectExceptionWhenActionNotConfigured() {
     // given
     ActionProvider actionProvider = mock(ActionProvider.class);
     Mockito.when(actionProvider.get(Mockito.eq("actionA"))).thenReturn(Optional.empty());
@@ -129,34 +127,61 @@ class TaskBuilderTest {
 //  }
 
   @Test
-  @DisplayName("Expect graph node with transition.")
-  void expectGraphNodeWithTransition() {
+  @DisplayName("Expect graph of single operation without transitions.")
+  void expectSingleOperationNodeGraph() {
     // given
     Action anyAction = Mockito.mock(Action.class);
     ActionProvider actionProvider = mock(ActionProvider.class);
-    Mockito.when(actionProvider.get(Mockito.eq("actionA"))).thenReturn(Optional.of(
-        anyAction));
-    Mockito.when(actionProvider.get(Mockito.eq("actionB"))).thenReturn(Optional.of(
-        anyAction));
+    Mockito.when(actionProvider.get(Mockito.eq("actionA"))).thenReturn(Optional.of(anyAction));
 
     TaskBuilder tested = new TaskBuilder(
-        Collections.singletonMap("taskA", new NodeOptions("actionA", Collections
-            .singletonMap("customTransition",
-                new NodeOptions("actionB", Collections.emptyMap())))),
+        Collections.singletonMap("task", new NodeOptions("actionA", Collections.emptyMap())),
         actionProvider);
 
     // when
-    Fragment fragment = new Fragment("type", new JsonObject().put(TaskBuilder.TASK_KEY, "taskA"),
+    Fragment fragment = new Fragment("type", new JsonObject().put(TaskBuilder.TASK_KEY, "task"),
         "some body");
     Optional<Task> optionalTask = tested.build(fragment);
 
     // then
     assertTrue(optionalTask.isPresent());
     Task task = optionalTask.get();
+    assertEquals("task", task.getName());
     assertTrue(task.getRootNode().isPresent());
-    assertTrue(task.getRootNode().get() instanceof SingleOperationNode);
-    SingleOperationNode rootNode = (SingleOperationNode) task.getRootNode().get();
-    assertEquals("taskA", task.getName());
+    Node rootNode = task.getRootNode().get();
+    assertTrue(rootNode instanceof SingleOperationNode);
+    assertEquals("actionA", rootNode.getId());
+    assertFalse(rootNode.next(DEFAULT_TRANSITION).isPresent());
+  }
+
+  @Test
+  @DisplayName("Expect graph node of two single operations with transition between.")
+  void expectGraphNodeWithTransition() {
+    // given
+    Action anyAction = Mockito.mock(Action.class);
+    ActionProvider actionProvider = mock(ActionProvider.class);
+    Mockito.when(actionProvider.get(Mockito.eq("actionA"))).thenReturn(Optional.of(anyAction));
+    Mockito.when(actionProvider.get(Mockito.eq("actionB"))).thenReturn(Optional.of(anyAction));
+
+    TaskBuilder tested = new TaskBuilder(
+        Collections.singletonMap("task", new NodeOptions("actionA", Collections
+            .singletonMap("customTransition",
+                new NodeOptions("actionB", Collections.emptyMap())))),
+        actionProvider);
+
+    // when
+    Fragment fragment = new Fragment("type", new JsonObject().put(TaskBuilder.TASK_KEY, "task"),
+        "some body");
+    Optional<Task> optionalTask = tested.build(fragment);
+
+    // then
+    assertTrue(optionalTask.isPresent());
+    Task task = optionalTask.get();
+    assertEquals("task", task.getName());
+
+    assertTrue(task.getRootNode().isPresent());
+    Node rootNode = task.getRootNode().get();
+    assertTrue(rootNode instanceof SingleOperationNode);
     assertEquals("actionA", rootNode.getId());
     Optional<Node> customNode = rootNode.next("customTransition");
     assertTrue(customNode.isPresent());
@@ -165,4 +190,18 @@ class TaskBuilderTest {
     assertEquals("actionB", customSingleNode.getId());
   }
 
+  @Test
+  void expectSingleParallelGraph() {
+
+  }
+
+  @Test
+  void expectParallelAndSingleGraph() {
+
+  }
+
+  @Test
+  void expectNestedParallelGraph() {
+
+  }
 }
