@@ -21,7 +21,6 @@ import io.knotx.fragments.engine.graph.Node;
 import io.knotx.fragments.handler.api.fragment.FragmentResult;
 import io.reactivex.Observable;
 import io.reactivex.Single;
-import io.reactivex.SingleSource;
 import io.vertx.core.Vertx;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
@@ -46,39 +45,36 @@ class TaskEngine {
 
   private Single<TaskExecutionContext> processTask(TaskExecutionContext context) {
     traceEvent(context);
+    final Single<FragmentResult> result;
     if (context.getCurrentNode().isComposite()) {
-      return mapReduce(context);
+      result = mapReduce(context);
     } else {
-      return execute(context);
+      result = execute(context);
     }
+    return result.flatMap(fragmentResult -> {
+      context.updateResult(fragmentResult);
+      if (context.hasNext()) {
+        return processTask(context);
+      } else {
+        return Single.just(context);
+      }
+    });
   }
 
-  private Single<TaskExecutionContext> execute(TaskExecutionContext context) {
+  private Single<FragmentResult> execute(TaskExecutionContext context) {
     return Single.just((ActionNode) context.getCurrentNode())
         .observeOn(RxHelper.blockingScheduler(vertx))
         .flatMap(gn -> gn.doAction(context.fragmentContextInstance()))
         .doOnSuccess(fr -> context.handleSuccess(fr.getTransition()))
-        .onErrorResumeNext(context::handleError)
-        .flatMap(fragmentResult -> endOrContinue(context, fragmentResult));
+        .onErrorResumeNext(context::handleError);
   }
 
-  private Single<TaskExecutionContext> mapReduce(TaskExecutionContext context) {
+  private Single<FragmentResult> mapReduce(TaskExecutionContext context) {
     return Observable.fromIterable(((CompositeNode) context.getCurrentNode()).getNodes())
         .flatMap(
             graphNode -> processTask(new TaskExecutionContext(context, graphNode)).toObservable())
         .reduce(context, TaskExecutionContext::merge)
-        .map(TaskExecutionContext::toFragmentResult)
-        .flatMap(fragmentResult -> endOrContinue(context, fragmentResult));
-  }
-
-  private SingleSource<? extends TaskExecutionContext> endOrContinue(TaskExecutionContext context,
-      FragmentResult fragmentResult) {
-    context.updateFragment(fragmentResult.getFragment());
-    if (context.hasNext(fragmentResult.getTransition())) {
-      return processTask(context);
-    } else {
-      return Single.just(context);
-    }
+        .map(TaskExecutionContext::toFragmentResult);
   }
 
   private void traceEvent(TaskExecutionContext context) {
