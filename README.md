@@ -24,6 +24,9 @@ In that case, Action's output is **error Transition** and some **fallback Action
 
 <img src="https://github.com/Knotx/knotx-fragments-handler/raw/master/assets/images/graph_processing_failure.png" width="500">
 
+Additionally, **Actions**  may be composed into **Composed Structure** that will be executed in parallel when they
+all independent.
+
 ---
 
 The diagram belows depicts Fragments Engine logic (map-reduce).
