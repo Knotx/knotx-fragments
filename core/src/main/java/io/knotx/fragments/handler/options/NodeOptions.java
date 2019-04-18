@@ -114,6 +114,10 @@ public class NodeOptions {
     return this;
   }
 
+  public boolean isComposite() {
+    return action == null && actions != null;
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) {

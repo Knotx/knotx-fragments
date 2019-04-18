@@ -107,7 +107,7 @@ class TaskEngineCompositeNodeTest {
   }
 
   @Test
-  @DisplayName("Expect success event log entry when parallel action processing ends")
+  @DisplayName("Expect success parallel event log entry when parallel action processing ends")
   void expectSuccessEventLogEntry(VertxTestContext testContext, Vertx vertx)
       throws Throwable {
     // given
@@ -365,7 +365,6 @@ class TaskEngineCompositeNodeTest {
   void expectSuccessAppliedAfterParallelProcessingSuccess(VertxTestContext testContext, Vertx vertx)
       throws Throwable {
     // given
-
     Node rootNode = new CompositeNode(
         parallel(
             new ActionNode("A", success(), NO_TRANSITIONS),
@@ -380,6 +379,33 @@ class TaskEngineCompositeNodeTest {
     verifyExecution(result, testContext,
         fragmentEvent -> assertEquals(INITIAL_BODY + ":last",
             fragmentEvent.getFragment().getBody()));
+  }
+
+  @Test
+  @DisplayName("Expect success after composite action applied on parallel processing success")
+  void expectSuccessAfterParallelProcessingAppliedAfterSuccessParallel(VertxTestContext testContext,
+      Vertx vertx) throws Throwable {
+    // given
+
+    JsonObject expectedPayload = new JsonObject().put("key", "value");
+    Node rootNode = new CompositeNode(
+        parallel(
+            new ActionNode("A", success(), NO_TRANSITIONS),
+            new ActionNode("B", success(), NO_TRANSITIONS)
+        ), new CompositeNode(
+        parallel(
+            new ActionNode("last", appendPayload("last", expectedPayload), NO_TRANSITIONS)
+        ), null, null),
+        null
+    );
+
+    // when
+    Single<FragmentEvent> result = new TaskEngine(vertx).start("task", rootNode, eventContext);
+
+    // then
+    verifyExecution(result, testContext,
+        fragmentEvent -> assertEquals(expectedPayload,
+            fragmentEvent.getFragment().getPayload().getJsonObject("last")));
   }
 
   private List<Node> parallel(Node... nodes) {

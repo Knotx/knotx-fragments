@@ -17,9 +17,13 @@
  */
 package io.knotx.fragments.task;
 
+import static io.knotx.fragments.handler.api.fragment.FragmentResult.ERROR_TRANSITION;
+import static io.knotx.fragments.handler.api.fragment.FragmentResult.SUCCESS_TRANSITION;
+
 import io.knotx.fragment.Fragment;
 import io.knotx.fragments.engine.Task;
 import io.knotx.fragments.engine.graph.ActionNode;
+import io.knotx.fragments.engine.graph.CompositeNode;
 import io.knotx.fragments.engine.graph.Node;
 import io.knotx.fragments.handler.action.ActionProvider;
 import io.knotx.fragments.handler.api.fragment.Action;
@@ -31,9 +35,11 @@ import io.reactivex.Single;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 public class TaskBuilder {
 
@@ -65,15 +71,31 @@ public class TaskBuilder {
   }
 
   private Node initGraphNode(NodeOptions options) {
-    Action action = actionProvider.get(options.getAction()).orElseThrow(
-        () -> new GraphConfigurationException("No provider for action " + options.getAction()));
     Map<String, NodeOptions> transitions = options.getOnTransitions();
     Map<String, Node> edges = new HashMap<>();
     transitions.forEach((transition, childGraphOptions) -> {
       edges.put(transition, initGraphNode(childGraphOptions));
     });
-    //ToDo - create single operation or parallel here
+    final Node node;
+    if (options.isComposite()) {
+      node = buildCompositeNode(options, edges);
+    } else {
+      node = buildActionNode(options, edges);
+    }
+    return node;
+  }
+
+  private Node buildActionNode(NodeOptions options, Map<String, Node> edges) {
+    Action action = actionProvider.get(options.getAction()).orElseThrow(
+        () -> new GraphConfigurationException("No provider for action " + options.getAction()));
     return new ActionNode(options.getAction(), toRxFunction(action), edges);
+  }
+
+  private Node buildCompositeNode(NodeOptions options, Map<String, Node> edges) {
+    List<Node> nodes = options.getActions().stream()
+        .map(this::initGraphNode)
+        .collect(Collectors.toList());
+    return new CompositeNode(nodes, edges.get(SUCCESS_TRANSITION), edges.get(ERROR_TRANSITION));
   }
 
   private Function<FragmentContext, Single<FragmentResult>> toRxFunction(

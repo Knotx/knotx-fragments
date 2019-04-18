@@ -17,15 +17,18 @@
  */
 package io.knotx.fragments.task;
 
+import static io.knotx.fragments.engine.graph.CompositeNode.COMPOSITE_NODE_ID;
+import static io.knotx.fragments.handler.api.fragment.FragmentResult.ERROR_TRANSITION;
 import static io.knotx.fragments.handler.api.fragment.FragmentResult.SUCCESS_TRANSITION;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import io.knotx.fragment.Fragment;
 import io.knotx.fragments.engine.Task;
 import io.knotx.fragments.engine.graph.ActionNode;
+import io.knotx.fragments.engine.graph.CompositeNode;
 import io.knotx.fragments.engine.graph.Node;
 import io.knotx.fragments.handler.action.ActionProvider;
 import io.knotx.fragments.handler.api.fragment.Action;
@@ -33,27 +36,45 @@ import io.knotx.fragments.handler.exception.GraphConfigurationException;
 import io.knotx.fragments.handler.options.NodeOptions;
 import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.VertxExtension;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 @ExtendWith(VertxExtension.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 class TaskBuilderTest {
 
+  private static final Map<String, NodeOptions> NO_TRANSITIONS = Collections.emptyMap();
+  private static final String TASK_NAME = "task";
+  private static final Fragment SAMPLE_FRAGMENT =
+      new Fragment("type", new JsonObject().put(TaskBuilder.TASK_KEY, TASK_NAME), "body");
+
+  @Mock
+  private ActionProvider actionProvider;
+
+  @Mock
+  Action actionMock;
+
   @Test
-  @DisplayName("Expect empty graph node when task not defined.")
+  @DisplayName("Expect empty graph when task not defined.")
   void expectEmptyGraphNodeWhenTaskNotConfigured() {
     // given
-    TaskBuilder tested = new TaskBuilder(Collections.emptyMap(), mock(ActionProvider.class));
+    TaskBuilder tested = new TaskBuilder(Collections.emptyMap(), actionProvider);
 
     // when
-    Fragment fragment = new Fragment("type", new JsonObject()
-        .put(TaskBuilder.TASK_KEY, "not-existing-task"), "body");
-    Optional<Task> task = tested.build(fragment);
+    Optional<Task> task = tested.build(SAMPLE_FRAGMENT);
 
     // then
     Assertions.assertFalse(task.isPresent());
@@ -63,114 +84,59 @@ class TaskBuilderTest {
   @DisplayName("Expect exception when action not defined.")
   void expectExceptionWhenActionNotConfigured() {
     // given
-    ActionProvider actionProvider = mock(ActionProvider.class);
-    Mockito.when(actionProvider.get(Mockito.eq("actionA"))).thenReturn(Optional.empty());
+    when(actionProvider.get(Mockito.eq("simpleAction"))).thenReturn(Optional.empty());
 
-    TaskBuilder tested = new TaskBuilder(Collections.singletonMap("taskA",
-        new NodeOptions("actionA", Collections.emptyMap())), actionProvider);
+    TaskBuilder tested = new TaskBuilder(Collections.singletonMap(TASK_NAME,
+        new NodeOptions("simpleAction", NO_TRANSITIONS)), actionProvider);
 
     // when, then
-    Fragment fragment = new Fragment("type", new JsonObject().put(TaskBuilder.TASK_KEY, "taskA"),
-        "initial body");
-
-    Assertions.assertThrows(GraphConfigurationException.class, () -> tested.build(fragment));
+    Assertions.assertThrows(GraphConfigurationException.class, () -> tested.build(SAMPLE_FRAGMENT));
   }
 
-  // ToDo probably to remove
-//  @Test
-//  @DisplayName("Expect graph node with correct operation.")
-//  void expectGraphNode(VertxTestContext testContext) throws Throwable {
-//    // given
-//    String initialBody = "initial body";
-//    String expectedBody = "expected body";
-//    Action expectedAction = (fragmentContext, resultHandler) -> {
-//      Fragment fragment = fragmentContext.getFragment();
-//      FragmentResult result = new FragmentResult(fragment.setBody(expectedBody),
-//          FragmentResult.SUCCESS_TRANSITION);
-//      Future.succeededFuture(result).setHandler(resultHandler);
-//    };
-//
-//    ActionProvider actionProvider = mock(ActionProvider.class);
-//    Mockito.when(actionProvider.get(Mockito.eq("actionA"))).thenReturn(Optional.of(
-//        expectedAction));
-//    TaskBuilder tested = new TaskBuilder(
-//        Collections.singletonMap("taskA", new NodeOptions("actionA", Collections.emptyMap())),
-//        actionProvider);
-//
-//    // when
-//    Fragment fragment = new Fragment("type", new JsonObject().put(TaskBuilder.TASK_KEY, "taskA"),
-//        initialBody);
-//    Optional<Task> task = tested.build(fragment);
-//
-//    // then
-//    assertTrue(task.isPresent());
-//    Single<FragmentResult> operationResult = task.get()
-//        .getRootNode().get()
-//        .doAction(new FragmentContext(fragment, new ClientRequest()));
-//
-//    operationResult.subscribe(result -> {
-//      assertEquals(expectedBody, result.getFragment().getBody());
-//      testContext.completeNow();
-//    });
-//
-//    assertTrue(testContext.awaitCompletion(5, TimeUnit.SECONDS));
-//    if (testContext.failed()) {
-//      throw testContext.causeOfFailure();
-//    }
-//  }
-
   @Test
-  @DisplayName("Expect graph of single operation without transitions.")
-  void expectSingleOperationNodeGraph() {
+  @DisplayName("Expect graph with single action node without transitions.")
+  void expectSingleActionNodeGraph() {
     // given
-    Action anyAction = Mockito.mock(Action.class);
-    ActionProvider actionProvider = mock(ActionProvider.class);
-    Mockito.when(actionProvider.get(Mockito.eq("actionA"))).thenReturn(Optional.of(anyAction));
+    when(actionProvider.get(Mockito.eq("simpleAction"))).thenReturn(Optional.of(actionMock));
 
     TaskBuilder tested = new TaskBuilder(
-        Collections.singletonMap("task", new NodeOptions("actionA", Collections.emptyMap())),
+        Collections.singletonMap(TASK_NAME, new NodeOptions("simpleAction", NO_TRANSITIONS)),
         actionProvider);
 
     // when
-    Fragment fragment = new Fragment("type", new JsonObject().put(TaskBuilder.TASK_KEY, "task"),
-        "some body");
-    Optional<Task> optionalTask = tested.build(fragment);
+    Optional<Task> optionalTask = tested.build(SAMPLE_FRAGMENT);
 
     // then
     assertTrue(optionalTask.isPresent());
     Task task = optionalTask.get();
-    assertEquals("task", task.getName());
+    assertEquals(TASK_NAME, task.getName());
     assertTrue(task.getRootNode().isPresent());
     Node rootNode = task.getRootNode().get();
     assertTrue(rootNode instanceof ActionNode);
-    assertEquals("actionA", rootNode.getId());
+    assertEquals("simpleAction", rootNode.getId());
     assertFalse(rootNode.next(SUCCESS_TRANSITION).isPresent());
   }
 
   @Test
-  @DisplayName("Expect graph node of two single operations with transition between.")
-  void expectGraphNodeWithTransition() {
+  @DisplayName("Expect graph of two action nodes with transition between.")
+  void expectActionNodesGraphWithTransition() {
     // given
-    Action anyAction = Mockito.mock(Action.class);
-    ActionProvider actionProvider = mock(ActionProvider.class);
-    Mockito.when(actionProvider.get(Mockito.eq("actionA"))).thenReturn(Optional.of(anyAction));
-    Mockito.when(actionProvider.get(Mockito.eq("actionB"))).thenReturn(Optional.of(anyAction));
+    when(actionProvider.get("actionA")).thenReturn(Optional.of(actionMock));
+    when(actionProvider.get("actionB")).thenReturn(Optional.of(actionMock));
 
     TaskBuilder tested = new TaskBuilder(
-        Collections.singletonMap("task", new NodeOptions("actionA", Collections
+        Collections.singletonMap(TASK_NAME, new NodeOptions("actionA", Collections
             .singletonMap("customTransition",
-                new NodeOptions("actionB", Collections.emptyMap())))),
+                new NodeOptions("actionB", NO_TRANSITIONS)))),
         actionProvider);
 
     // when
-    Fragment fragment = new Fragment("type", new JsonObject().put(TaskBuilder.TASK_KEY, "task"),
-        "some body");
-    Optional<Task> optionalTask = tested.build(fragment);
+    Optional<Task> optionalTask = tested.build(SAMPLE_FRAGMENT);
 
     // then
     assertTrue(optionalTask.isPresent());
     Task task = optionalTask.get();
-    assertEquals("task", task.getName());
+    assertEquals(TASK_NAME, task.getName());
 
     assertTrue(task.getRootNode().isPresent());
     Node rootNode = task.getRootNode().get();
@@ -184,17 +150,146 @@ class TaskBuilderTest {
   }
 
   @Test
-  void expectSingleParallelGraph() {
+  @DisplayName("Expect graph with single composite node without transitions.")
+  void expectSingleCompositeNodeGraphWithNoEdges() {
+    // given
+    when(actionProvider.get(Mockito.eq("simpleAction"))).thenReturn(Optional.of(actionMock));
 
+    TaskBuilder tested = new TaskBuilder(
+        Collections.singletonMap(TASK_NAME,
+            new NodeOptions(
+                actions(new NodeOptions("simpleAction", NO_TRANSITIONS)),
+                NO_TRANSITIONS
+            )), actionProvider);
+
+    // when
+    Optional<Task> optionalTask = tested.build(SAMPLE_FRAGMENT);
+
+    // then
+    assertTrue(optionalTask.isPresent());
+    Task task = optionalTask.get();
+    assertEquals(TASK_NAME, task.getName());
+    assertTrue(task.getRootNode().isPresent());
+    Node rootNode = task.getRootNode().get();
+    assertTrue(rootNode instanceof CompositeNode);
+    assertEquals(COMPOSITE_NODE_ID, rootNode.getId());
+    assertFalse(rootNode.next(SUCCESS_TRANSITION).isPresent());
+    assertFalse(rootNode.next(ERROR_TRANSITION).isPresent());
+
+    CompositeNode compositeRootNode = (CompositeNode) rootNode;
+    assertEquals(1, compositeRootNode.getNodes().size());
+    Node node = compositeRootNode.getNodes().get(0);
+    assertTrue(node instanceof ActionNode);
+    assertEquals("simpleAction", node.getId());
   }
 
   @Test
-  void expectParallelAndSingleGraph() {
+  @DisplayName("Expect graph with composite node and success transition to action node.")
+  void expectCompositeNodeWithSingleNodeOnSuccessGraph() {
+    // given
+    when(actionProvider.get(Mockito.eq("simpleAction"))).thenReturn(Optional.of(actionMock));
+    when(actionProvider.get(Mockito.eq("lastAction"))).thenReturn(Optional.of(actionMock));
 
+    TaskBuilder tested = new TaskBuilder(
+        Collections.singletonMap(TASK_NAME,
+            new NodeOptions(
+                actions(new NodeOptions("simpleAction", NO_TRANSITIONS)),
+                Collections
+                    .singletonMap(SUCCESS_TRANSITION, new NodeOptions("lastAction", NO_TRANSITIONS))
+            )), actionProvider);
+
+    // when
+    Optional<Task> optionalTask = tested.build(SAMPLE_FRAGMENT);
+
+    // then
+    assertTrue(optionalTask.isPresent());
+    Task task = optionalTask.get();
+    assertEquals(TASK_NAME, task.getName());
+    assertTrue(task.getRootNode().isPresent());
+    Node rootNode = task.getRootNode().get();
+    assertTrue(rootNode instanceof CompositeNode);
+    assertEquals(COMPOSITE_NODE_ID, rootNode.getId());
+    Optional<Node> onSuccess = rootNode.next(SUCCESS_TRANSITION);
+    assertTrue(onSuccess.isPresent());
+    Node onSuccessNode = onSuccess.get();
+    assertTrue(onSuccessNode instanceof ActionNode);
+    assertEquals("lastAction", onSuccessNode.getId());
   }
 
   @Test
-  void expectNestedParallelGraph() {
+  @DisplayName("Expect graph with composite node and error transition to action node.")
+  void expectCompositeNodeWithSingleNodeOnErrorGraph() {
+    // given
+    when(actionProvider.get(Mockito.eq("simpleAction"))).thenReturn(Optional.of(actionMock));
+    when(actionProvider.get(Mockito.eq("fallbackAction"))).thenReturn(Optional.of(actionMock));
 
+    TaskBuilder tested = new TaskBuilder(
+        Collections.singletonMap(TASK_NAME,
+            new NodeOptions(
+                actions(new NodeOptions("simpleAction", NO_TRANSITIONS)),
+                Collections.singletonMap(ERROR_TRANSITION,
+                    new NodeOptions("fallbackAction", NO_TRANSITIONS))
+            )), actionProvider);
+
+    // when
+    Optional<Task> optionalTask = tested.build(SAMPLE_FRAGMENT);
+
+    // then
+    assertTrue(optionalTask.isPresent());
+    Task task = optionalTask.get();
+    assertEquals(TASK_NAME, task.getName());
+    assertTrue(task.getRootNode().isPresent());
+    Node rootNode = task.getRootNode().get();
+    assertTrue(rootNode instanceof CompositeNode);
+    assertEquals(COMPOSITE_NODE_ID, rootNode.getId());
+    Optional<Node> onError = rootNode.next(ERROR_TRANSITION);
+    assertTrue(onError.isPresent());
+    Node onErrorNode = onError.get();
+    assertTrue(onErrorNode instanceof ActionNode);
+    assertEquals("fallbackAction", onErrorNode.getId());
+  }
+
+  @Test
+  @DisplayName("Expect graph with nested composite nodes")
+  void expectNestedCompositeNodesGraph() {
+    // given
+    when(actionProvider.get(Mockito.eq("simpleAction"))).thenReturn(Optional.of(actionMock));
+
+    TaskBuilder tested = new TaskBuilder(
+        Collections.singletonMap(TASK_NAME,
+            new NodeOptions(
+                actions(
+                    new NodeOptions(actions(new NodeOptions("simpleAction", NO_TRANSITIONS)),
+                    NO_TRANSITIONS)),
+                NO_TRANSITIONS
+            )), actionProvider);
+
+    // when
+    Optional<Task> optionalTask = tested.build(SAMPLE_FRAGMENT);
+
+    // then
+    assertTrue(optionalTask.isPresent());
+    Task task = optionalTask.get();
+    assertEquals(TASK_NAME, task.getName());
+    assertTrue(task.getRootNode().isPresent());
+    Node rootNode = task.getRootNode().get();
+    assertTrue(rootNode instanceof CompositeNode);
+    assertEquals(COMPOSITE_NODE_ID, rootNode.getId());
+
+    CompositeNode compositeRootNode = (CompositeNode) rootNode;
+    assertEquals(1, compositeRootNode.getNodes().size());
+    Node childNode = compositeRootNode.getNodes().get(0);
+    assertEquals(COMPOSITE_NODE_ID, childNode.getId());
+    assertTrue(childNode instanceof CompositeNode);
+    CompositeNode compositeChildNode = (CompositeNode) childNode;
+
+    assertEquals(1, compositeChildNode.getNodes().size());
+    Node node = compositeChildNode.getNodes().get(0);
+    assertTrue(node instanceof ActionNode);
+    assertEquals("simpleAction", node.getId());
+  }
+
+  private List<NodeOptions> actions(NodeOptions... nodes) {
+    return Arrays.asList(nodes);
   }
 }

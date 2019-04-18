@@ -53,6 +53,7 @@ Sets <code>Action</code> name. This action will be executed during processing gi
 |[[actions]]`@actions`|`Array of link:dataobjects.html#NodeOptions[NodeOptions]`|+++
 Sets list of <code>NodeOptions</code> that represents <code>Actions</code> that will be executed in parallel.
 +++
+|[[composite]]`@composite`|`Boolean`|-
 |[[onTransitions]]`@onTransitions`|`link:dataobjects.html#NodeOptions[NodeOptions]`|+++
 Sets the <code>Map</code> of possible onTransitions for the given graph node.
 +++
