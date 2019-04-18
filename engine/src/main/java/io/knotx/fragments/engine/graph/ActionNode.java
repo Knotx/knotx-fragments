@@ -47,6 +47,11 @@ public class ActionNode implements Node {
     return Optional.ofNullable(transitions.get(transition));
   }
 
+  @Override
+  public boolean isComposite() {
+    return false;
+  }
+
   public Single<FragmentResult> doAction(FragmentContext fragmentContext) {
     return action.apply(fragmentContext);
   }

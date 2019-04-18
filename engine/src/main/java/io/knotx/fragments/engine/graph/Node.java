@@ -23,4 +23,6 @@ public interface Node {
 
   Optional<Node> next(String transition);
 
+  boolean isComposite();
+
 }

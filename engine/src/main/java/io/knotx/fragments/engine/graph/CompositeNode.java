@@ -50,6 +50,11 @@ public class CompositeNode implements Node {
     return Optional.ofNullable(nextNode);
   }
 
+  @Override
+  public boolean isComposite() {
+    return true;
+  }
+
   public List<Node> getNodes() {
     return nodes;
   }
