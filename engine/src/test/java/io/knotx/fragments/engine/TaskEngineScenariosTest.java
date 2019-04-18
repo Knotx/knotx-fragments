@@ -17,18 +17,23 @@
  */
 package io.knotx.fragments.engine;
 
+import static io.knotx.fragments.engine.FragmentEventLogVerifier.verifyLogEntries;
+import static io.knotx.fragments.engine.graph.CompositeNode.COMPOSITE_NODE_ID;
 import static io.knotx.fragments.engine.helpers.TestFunction.appendBody;
 import static io.knotx.fragments.engine.helpers.TestFunction.appendBodyWithPayload;
 import static io.knotx.fragments.engine.helpers.TestFunction.appendPayload;
 import static io.knotx.fragments.engine.helpers.TestFunction.appendPayloadBasingOnContext;
+import static io.knotx.fragments.engine.helpers.TestFunction.failure;
 import static io.knotx.fragments.engine.helpers.TestFunction.success;
 import static io.knotx.fragments.engine.helpers.TestFunction.successWithDelay;
+import static io.knotx.fragments.handler.api.fragment.FragmentResult.ERROR_TRANSITION;
 import static io.knotx.fragments.handler.api.fragment.FragmentResult.SUCCESS_TRANSITION;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.knotx.fragment.Fragment;
 import io.knotx.fragments.engine.FragmentEvent.Status;
+import io.knotx.fragments.engine.FragmentEventLogVerifier.Operation;
 import io.knotx.fragments.engine.graph.ActionNode;
 import io.knotx.fragments.engine.graph.CompositeNode;
 import io.knotx.fragments.engine.graph.Node;
@@ -41,6 +46,7 @@ import io.vertx.junit5.VertxTestContext;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import org.junit.jupiter.api.BeforeEach;
@@ -53,9 +59,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 class TaskEngineScenariosTest {
 
   private static final String INITIAL_BODY = "initial body";
+  private static final Map<String, Node> NO_TRANSITIONS = Collections.emptyMap();
+
   private FragmentEventContext eventContext;
   private Fragment initialFragment = new Fragment("snippet", new JsonObject(), INITIAL_BODY);
-
 
   @BeforeEach
   void setUp() {
@@ -75,16 +82,13 @@ class TaskEngineScenariosTest {
     JsonObject taskCPayload = new JsonObject().put("key", "taskCOperation");
 
     Node rootNode = new ActionNode("first", appendBody(":first"),
-        Collections.singletonMap(SUCCESS_TRANSITION, new CompositeNode(
+        successTransition(new CompositeNode(
                 parallel(
-                    new ActionNode("A", appendPayload("A", taskAPayload),
-                        Collections.emptyMap()),
-                    new ActionNode("B", appendPayload("B", taskBPayload),
-                        Collections.emptyMap()),
-                    new ActionNode("C", appendPayload("C", taskCPayload),
-                        Collections.emptyMap())
+                    new ActionNode("A", appendPayload("A", taskAPayload), NO_TRANSITIONS),
+                    new ActionNode("B", appendPayload("B", taskBPayload), NO_TRANSITIONS),
+                    new ActionNode("C", appendPayload("C", taskCPayload), NO_TRANSITIONS)
                 ),
-                new ActionNode("last", appendBody(":last"), Collections.emptyMap()),
+                new ActionNode("last", appendBody(":last"), NO_TRANSITIONS),
                 null
             )
         ));
@@ -116,25 +120,20 @@ class TaskEngineScenariosTest {
   void expectSuccessMultipleParallel(VertxTestContext testContext, Vertx vertx) throws Throwable {
     // given
     Node rootNode = new ActionNode("first", success(),
-        Collections.singletonMap(SUCCESS_TRANSITION, new CompositeNode(
+        successTransition(new CompositeNode(
                 parallel(
-                    new ActionNode("A", appendPayload("A", ":payloadA"),
-                        Collections.emptyMap()),
-                    new ActionNode("B", appendPayload("B", ":payloadB"),
-                        Collections.emptyMap())
+                    new ActionNode("A", appendPayload("A", ":payloadA"), NO_TRANSITIONS),
+                    new ActionNode("B", appendPayload("B", ":payloadB"), NO_TRANSITIONS)
                 ),
                 new ActionNode("middle", success(),
-                    Collections.singletonMap(SUCCESS_TRANSITION, new CompositeNode(
+                    successTransition(new CompositeNode(
                         parallel(
                             new ActionNode("X",
-                                appendPayloadBasingOnContext("A", "X", "withX"),
-                                Collections.emptyMap()),
+                                appendPayloadBasingOnContext("A", "X", "withX"), NO_TRANSITIONS),
                             new ActionNode("Y",
-                                appendPayloadBasingOnContext("B", "Y", "withY"),
-                                Collections.emptyMap())
+                                appendPayloadBasingOnContext("B", "Y", "withY"), NO_TRANSITIONS)
                         ),
-                        new ActionNode("last", appendBodyWithPayload("X", "Y"),
-                            Collections.emptyMap()),
+                        new ActionNode("last", appendBodyWithPayload("X", "Y"), NO_TRANSITIONS),
                         null
                     ))),
                 null
@@ -150,6 +149,62 @@ class TaskEngineScenariosTest {
           assertEquals(Status.SUCCESS, fragmentEvent.getStatus());
           final Fragment fragment = fragmentEvent.getFragment();
           assertEquals(expectedBody, fragment.getBody());
+        });
+  }
+
+  /*
+   * scenario: scenario: first -> parallel[A1 -> A2 -error-> A3(fallback), B] -> middle -> parallel[X, Y1 -> Y2] -> last
+   */
+  @Test
+  @DisplayName("Expect logs in order after complex processing")
+  void expectProcessingLogsInOrder(VertxTestContext testContext, Vertx vertx) throws Throwable {
+    // given
+    Node rootNode = new ActionNode("first", success(),
+        successTransition(new CompositeNode(
+                parallel(
+                    new ActionNode("A1", success(), successTransition(
+                        new ActionNode("A2", failure(), errorTransition(
+                            new ActionNode("A3-fallback", success(), NO_TRANSITIONS)
+                        ))
+                    )),
+                    new ActionNode("B", success(), NO_TRANSITIONS)
+                ),
+                new ActionNode("middle", success(),
+                    successTransition(new CompositeNode(
+                        parallel(
+                            new ActionNode("X", success(), NO_TRANSITIONS),
+                            new ActionNode("Y1", success(), successTransition(
+                                new ActionNode("Y2", success(), NO_TRANSITIONS)
+
+                            ))
+                        ),
+                        new ActionNode("last", success(), NO_TRANSITIONS),
+                        null
+                    ))),
+                null
+            )
+        ));
+    // when
+    Single<FragmentEvent> result = new TaskEngine(vertx).start("task", rootNode, eventContext);
+
+    // then
+    verifyExecution(result, testContext,
+        fragmentEvent -> {
+          assertEquals(Status.SUCCESS, fragmentEvent.getStatus());
+          verifyLogEntries(fragmentEvent.getLogAsJson(),
+              Operation.exact("task", "first", "SUCCESS", 0),
+              Operation.range("task", "A1", "SUCCESS", 1, 4),
+              Operation.range("task", "A2", "ERROR", 1, 4),
+              Operation.range("task", "A3-fallback", "SUCCESS", 1, 4),
+              Operation.range("task", "B", "SUCCESS", 1, 4),
+              Operation.exact("task", COMPOSITE_NODE_ID, "SUCCESS", 5),
+              Operation.exact("task", "middle", "SUCCESS", 6),
+              Operation.range("task", "X", "SUCCESS", 7, 9),
+              Operation.range("task", "Y1", "SUCCESS", 7, 9),
+              Operation.range("task", "Y2", "SUCCESS", 7, 9),
+              Operation.exact("task", COMPOSITE_NODE_ID, "SUCCESS", 10),
+              Operation.exact("task", "last", "SUCCESS", 11)
+          );
         });
   }
 
@@ -173,16 +228,13 @@ class TaskEngineScenariosTest {
   void verifyParallelExecution(VertxTestContext testContext, Vertx vertx) throws Throwable {
     // given
     Node rootNode = new ActionNode("first", success(),
-        Collections.singletonMap(SUCCESS_TRANSITION, new CompositeNode(
+        successTransition(new CompositeNode(
                 parallel(
-                    new ActionNode("A", successWithDelay(500),
-                        Collections.emptyMap()),
-                    new ActionNode("B", successWithDelay(500),
-                        Collections.emptyMap()),
-                    new ActionNode("C", successWithDelay(500),
-                        Collections.emptyMap())
+                    new ActionNode("A", successWithDelay(500), NO_TRANSITIONS),
+                    new ActionNode("B", successWithDelay(500), NO_TRANSITIONS),
+                    new ActionNode("C", successWithDelay(500), NO_TRANSITIONS)
                 ),
-                new ActionNode("last", success(), Collections.emptyMap()),
+                new ActionNode("last", success(), NO_TRANSITIONS),
                 null
             )
         ));
@@ -205,26 +257,22 @@ class TaskEngineScenariosTest {
   void verifyNestedParallelExecution(VertxTestContext testContext, Vertx vertx) throws Throwable {
     // given
     Node rootNode = new ActionNode("first", success(),
-        Collections.singletonMap(SUCCESS_TRANSITION, new CompositeNode(
+        successTransition(new CompositeNode(
                 parallel(
-                    new ActionNode("A", successWithDelay(500),
-                        Collections.emptyMap()),
+                    new ActionNode("A", successWithDelay(500), NO_TRANSITIONS),
                     new CompositeNode(
                         parallel(
                             new ActionNode("B", successWithDelay(500),
-                                Collections.singletonMap(SUCCESS_TRANSITION,
-                                    new ActionNode("B1", appendPayload("B1", "B1Payload"),
-                                        Collections.emptyMap()))),
-                            new ActionNode("C", successWithDelay(500),
-                                Collections.emptyMap())
+                                successTransition(new ActionNode("B1", appendPayload("B1", "B1Payload"),
+                                    NO_TRANSITIONS))),
+                            new ActionNode("C", successWithDelay(500), NO_TRANSITIONS)
                         ),
                         null,
                         null
                     ),
-                    new ActionNode("D", successWithDelay(500),
-                        Collections.emptyMap())
+                    new ActionNode("D", successWithDelay(500), NO_TRANSITIONS)
                 ),
-                new ActionNode("last", success(), Collections.emptyMap()),
+                new ActionNode("last", success(), NO_TRANSITIONS),
                 null
             )
         ));
@@ -242,6 +290,14 @@ class TaskEngineScenariosTest {
 
   private List<Node> parallel(Node... nodes) {
     return Arrays.asList(nodes);
+  }
+
+  private Map<String, Node> successTransition(Node node) {
+    return Collections.singletonMap(SUCCESS_TRANSITION, node);
+  }
+
+  private Map<String, Node> errorTransition(Node node) {
+    return Collections.singletonMap(ERROR_TRANSITION, node);
   }
 
   private void verifyExecution(Single<FragmentEvent> result, VertxTestContext testContext,

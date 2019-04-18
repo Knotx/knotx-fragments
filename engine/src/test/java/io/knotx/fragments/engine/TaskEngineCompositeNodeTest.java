@@ -122,7 +122,8 @@ class TaskEngineCompositeNodeTest {
     // then
     verifyExecution(result, testContext,
         event -> verifyLogEntries(event.getLogAsJson(),
-            Operation.exact("task", "action", "SUCCESS", 0)
+            Operation.exact("task", "action", "SUCCESS", 0),
+            Operation.exact("task", COMPOSITE_NODE_ID, "SUCCESS", 1)
         ));
   }
 

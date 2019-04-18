@@ -67,13 +67,13 @@ class TaskEngine {
 
   // ToDo: ======================== cleanup below =======================
 
-  private void updateEvent(TaskExecutionContext context, FragmentResult result) {
+  private void updateEvent(TaskExecutionContext context, String transition) {
     FragmentEvent fragmentEvent = context.getFragmentEventContext().getFragmentEvent();
-    if (!result.getTransition().equals(ERROR_TRANSITION)) {
+    if (!ERROR_TRANSITION.equals(transition)) {
       fragmentEvent.setStatus(Status.SUCCESS);
       fragmentEvent
           .log(EventLogEntry.success(context.getTaskName(), context.getCurrentNode().getId(),
-              result.getTransition()));
+              transition));
     }
   }
 
@@ -110,16 +110,19 @@ class TaskEngine {
         .flatMap(mergedExecutionContext -> {
           Node currentNode = mergedExecutionContext.getCurrentNode();
           FragmentEvent fr = mergedExecutionContext.getFragmentEventContext().getFragmentEvent();
-          // Fixme Update log
-//          updateEvent(context, fr);
-          updateFragment(context, fr.getFragment());
 
           final String nextTransition;
           if (fr.getStatus() == Status.FAILURE) {
             nextTransition = ERROR_TRANSITION;
           } else {
             nextTransition = SUCCESS_TRANSITION;
+            if (fr.getStatus() == Status.SUCCESS) {
+              updateEvent(context, nextTransition);
+            }
           }
+
+          updateFragment(context, fr.getFragment());
+
           return currentNode.next(nextTransition).map(context::setCurrentNode)
               .map(this::executeTask).orElseGet(() -> endProcessing(context, nextTransition));
         });
@@ -139,7 +142,7 @@ class TaskEngine {
         })
         .onErrorResumeNext(error -> handleError(context, error))
         .flatMap(fr -> {
-          updateEvent(context, fr);
+          updateEvent(context, fr.getTransition());
           updateFragment(context, fr.getFragment());
           return graphNode.next(fr.getTransition()).map(context::setCurrentNode)
               .map(this::executeTask).orElseGet(() -> endProcessing(context, fr.getTransition()));
