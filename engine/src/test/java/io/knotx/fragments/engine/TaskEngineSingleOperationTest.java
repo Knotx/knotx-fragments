@@ -21,8 +21,8 @@ import static io.knotx.fragments.engine.FragmentEventLogVerifier.verifyLogEntrie
 import static io.knotx.fragments.engine.helpers.TestFunction.appendBody;
 import static io.knotx.fragments.engine.helpers.TestFunction.failure;
 import static io.knotx.fragments.engine.helpers.TestFunction.success;
-import static io.knotx.fragments.handler.api.fragment.FragmentResult.SUCCESS_TRANSITION;
 import static io.knotx.fragments.handler.api.fragment.FragmentResult.ERROR_TRANSITION;
+import static io.knotx.fragments.handler.api.fragment.FragmentResult.SUCCESS_TRANSITION;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import io.knotx.fragment.Fragment;
@@ -208,7 +208,8 @@ class TaskEngineSingleOperationTest {
 
     // then
     verifyExecution(result, testContext,
-        event -> verifyLogEntries(event.getLogAsJson(), Operation.of("task", "first", "SUCCESS")
+        event -> verifyLogEntries(event.getLogAsJson(),
+            Operation.exact("task", "first", "SUCCESS", 0)
         ));
   }
 
@@ -226,8 +227,8 @@ class TaskEngineSingleOperationTest {
     // then
     verifyExecution(result, testContext,
         event -> FragmentEventLogVerifier.verifyLogEntries(event.getLogAsJson(),
-            Operation.of("task", "first", "ERROR"),
-            Operation.of("task", "first", "UNSUPPORTED_TRANSITION")
+            Operation.exact("task", "first", "ERROR", 0),
+            Operation.exact("task", "first", "UNSUPPORTED_TRANSITION", 1)
         ));
   }
 
@@ -247,8 +248,8 @@ class TaskEngineSingleOperationTest {
     // then
     verifyExecution(result, testContext,
         event -> FragmentEventLogVerifier.verifyLogEntries(event.getLogAsJson(),
-            Operation.of("task", "first", "SUCCESS"),
-            Operation.of("task", "first", "UNSUPPORTED_TRANSITION")
+            Operation.exact("task", "first", "SUCCESS", 0),
+            Operation.exact("task", "first", "UNSUPPORTED_TRANSITION", 1)
         ));
   }
 
@@ -267,8 +268,8 @@ class TaskEngineSingleOperationTest {
     // then
     verifyExecution(result, testContext,
         event -> FragmentEventLogVerifier.verifyLogEntries(event.getLogAsJson(),
-            Operation.of("task", "first", "ERROR"),
-            Operation.of("task", "second", "SUCCESS")
+            Operation.exact("task", "first", "ERROR", 0),
+            Operation.exact("task", "second", "SUCCESS", 1)
         ));
   }
 

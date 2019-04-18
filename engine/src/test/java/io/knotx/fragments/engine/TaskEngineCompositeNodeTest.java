@@ -44,6 +44,8 @@ import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import org.junit.jupiter.api.BeforeEach;
@@ -55,6 +57,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 class TaskEngineCompositeNodeTest {
 
   private static final String INITIAL_BODY = "initial body";
+  private static final Map<String, Node> NO_TRANSITIONS = Collections.emptyMap();
+
   private FragmentEventContext eventContext;
   private Fragment initialFragment = new Fragment("snippet", new JsonObject(), INITIAL_BODY);
 
@@ -70,7 +74,7 @@ class TaskEngineCompositeNodeTest {
       throws Throwable {
     // given
     Node rootNode = new CompositeNode(
-        Arrays.asList(),
+        Collections.emptyList(),
         null,
         null
     );
@@ -89,10 +93,9 @@ class TaskEngineCompositeNodeTest {
       throws Throwable {
     // given
     Node rootNode = new CompositeNode(
-        Arrays.asList(new ActionNode("action", success(),
-            Collections.emptyMap())),
-        null,
-        null
+        parallel(
+            new ActionNode("action", success(), NO_TRANSITIONS)
+        ), null, null
     );
 
     // when
@@ -109,10 +112,9 @@ class TaskEngineCompositeNodeTest {
       throws Throwable {
     // given
     Node rootNode = new CompositeNode(
-        Arrays.asList(new ActionNode("action", success(),
-            Collections.emptyMap())),
-        null,
-        null
+        parallel(
+            new ActionNode("action", success(), NO_TRANSITIONS)
+        ), null, null
     );
     // when
     Single<FragmentEvent> result = new TaskEngine(vertx).start("task", rootNode, eventContext);
@@ -120,7 +122,7 @@ class TaskEngineCompositeNodeTest {
     // then
     verifyExecution(result, testContext,
         event -> verifyLogEntries(event.getLogAsJson(),
-            Operation.of("task", "action", "SUCCESS")
+            Operation.exact("task", "action", "SUCCESS", 0)
         ));
   }
 
@@ -131,9 +133,9 @@ class TaskEngineCompositeNodeTest {
       throws Throwable {
     // given
     Node rootNode = new CompositeNode(
-        Arrays.asList(new ActionNode("action", failure(), Collections.emptyMap())),
-        null,
-        null
+        parallel(
+            new ActionNode("action", failure(), NO_TRANSITIONS)
+        ), null, null
     );
 
     // when
@@ -150,9 +152,9 @@ class TaskEngineCompositeNodeTest {
       throws Throwable {
     // given
     Node rootNode = new CompositeNode(
-        Arrays.asList(new ActionNode("action", failure(), Collections.emptyMap())),
-        null,
-        null
+        parallel(
+            new ActionNode("action", failure(), NO_TRANSITIONS)
+        ), null, null
     );
     // when
     Single<FragmentEvent> result = new TaskEngine(vertx).start("task", rootNode, eventContext);
@@ -160,9 +162,9 @@ class TaskEngineCompositeNodeTest {
     // then
     verifyExecution(result, testContext,
         event -> verifyLogEntries(event.getLogAsJson(),
-            Operation.of("task", "action", "ERROR"),
-            Operation.of("task", "action", "UNSUPPORTED_TRANSITION"),
-            Operation.of("task", COMPOSITE_NODE_ID, "UNSUPPORTED_TRANSITION")
+            Operation.exact("task", "action", "ERROR", 0),
+            Operation.exact("task", "action", "UNSUPPORTED_TRANSITION", 1),
+            Operation.exact("task", COMPOSITE_NODE_ID, "UNSUPPORTED_TRANSITION", 2)
         ));
   }
 
@@ -172,10 +174,10 @@ class TaskEngineCompositeNodeTest {
       throws Throwable {
     // given
     Node rootNode = new CompositeNode(
-        Arrays.asList(new ActionNode("action", fatal(eventContext.getFragmentEvent().getFragment()),
-            Collections.emptyMap())),
-        null,
-        null
+        parallel(
+            new ActionNode("action", fatal(eventContext.getFragmentEvent().getFragment()),
+                NO_TRANSITIONS)
+        ), null, null
     );
 
     // when
@@ -196,10 +198,9 @@ class TaskEngineCompositeNodeTest {
     JsonObject taskAPayload = new JsonObject().put("key", "taskAOperation");
 
     Node rootNode = new CompositeNode(
-        Arrays.asList(new ActionNode("A", appendPayload("A", taskAPayload),
-            Collections.emptyMap())),
-        null,
-        null
+        parallel(
+            new ActionNode("A", appendPayload("A", taskAPayload), NO_TRANSITIONS)
+        ), null, null
     );
 
     // when
@@ -217,12 +218,12 @@ class TaskEngineCompositeNodeTest {
   void inception(VertxTestContext testContext, Vertx vertx) throws Throwable {
     // given
     Node rootNode = new CompositeNode(
-        Arrays.asList(new CompositeNode(
-            Arrays.asList(new ActionNode("action", success(),
-                Collections.emptyMap())),
-            null,
-            null
-        )), null, null);
+        parallel(
+            new CompositeNode(
+                parallel(
+                    new ActionNode("action", success(), NO_TRANSITIONS)
+                ), null, null)
+        ), null, null);
 
     // when
     Single<FragmentEvent> result = new TaskEngine(vertx).start("task", rootNode, eventContext);
@@ -239,12 +240,12 @@ class TaskEngineCompositeNodeTest {
     // given
     JsonObject taskAPayload = new JsonObject().put("key", "taskAOperation");
     Node rootNode = new CompositeNode(
-        Arrays.asList(new CompositeNode(
-            Arrays.asList(new ActionNode("action", appendPayload("A", taskAPayload),
-                Collections.emptyMap())),
-            null,
-            null
-        )), null, null);
+        parallel(
+            new CompositeNode(
+                parallel(
+                    new ActionNode("action", appendPayload("A", taskAPayload), NO_TRANSITIONS)
+                ), null, null)
+        ), null, null);
 
     // when
     Single<FragmentEvent> result = new TaskEngine(vertx).start("task", rootNode, eventContext);
@@ -261,12 +262,10 @@ class TaskEngineCompositeNodeTest {
       Vertx vertx) throws Throwable {
     // given
     Node rootNode = new CompositeNode(
-        Arrays.asList(new CompositeNode(
-            Arrays.asList(),
-            null,
-            null
-        ), new ActionNode("action", success(),
-            Collections.emptyMap())), null, null);
+        parallel(
+            new CompositeNode(parallel(), null, null),
+            new ActionNode("action", success(), NO_TRANSITIONS)
+        ), null, null);
 
     // when
     Single<FragmentEvent> result = new TaskEngine(vertx).start("task", rootNode, eventContext);
@@ -281,10 +280,10 @@ class TaskEngineCompositeNodeTest {
   void expectError(VertxTestContext testContext, Vertx vertx) throws Throwable {
     // given
     Node rootNode = new CompositeNode(
-        Arrays.asList(new ActionNode("failing", failure(), Collections.emptyMap()),
-            new ActionNode("success", success(),
-                Collections.emptyMap())), null,
-        null);
+        parallel(
+            new ActionNode("failing", failure(), NO_TRANSITIONS),
+            new ActionNode("success", success(), NO_TRANSITIONS)
+        ), null, null);
 
     // when
     Single<FragmentEvent> result = new TaskEngine(vertx).start("task", rootNode, eventContext);
@@ -300,9 +299,10 @@ class TaskEngineCompositeNodeTest {
       throws Throwable {
     // given
     Node rootNode = new CompositeNode(
-        Arrays.asList(new ActionNode("failing", failure(), Collections.emptyMap()),
-            new ActionNode("success", success(),
-                Collections.emptyMap())), null, null);
+        parallel(
+            new ActionNode("failing", failure(), NO_TRANSITIONS),
+            new ActionNode("success", success(), NO_TRANSITIONS)
+        ), null, null);
 
     // when
     Single<FragmentEvent> result = new TaskEngine(vertx).start("task", rootNode, eventContext);
@@ -310,11 +310,10 @@ class TaskEngineCompositeNodeTest {
     // then
     verifyExecution(result, testContext,
         event -> verifyLogEntries(event.getLogAsJson(),
-            //FixMe parallel section unordered logs
-            Operation.of("task", "success", "SUCCESS"),
-            Operation.of("task", "failing", "ERROR"),
-            Operation.of("task", "failing", "UNSUPPORTED_TRANSITION"),
-            Operation.of("task", COMPOSITE_NODE_ID, "UNSUPPORTED_TRANSITION")
+            Operation.range("task", "success", "SUCCESS", 0, 3),
+            Operation.range("task", "failing", "ERROR", 0, 3),
+            Operation.range("task", "failing", "UNSUPPORTED_TRANSITION", 0, 3),
+            Operation.exact("task", COMPOSITE_NODE_ID, "UNSUPPORTED_TRANSITION", 3)
         ));
   }
 
@@ -324,10 +323,10 @@ class TaskEngineCompositeNodeTest {
       throws Throwable {
     // given
     Node rootNode = new CompositeNode(
-        Arrays.asList(new ActionNode("A", success(), Collections.emptyMap()),
-            new ActionNode("B", failure(), Collections.emptyMap())),
-        null,
-        new ActionNode("fallback", success(), Collections.emptyMap())
+        parallel(
+            new ActionNode("A", success(), NO_TRANSITIONS),
+            new ActionNode("B", failure(), NO_TRANSITIONS)
+        ), null, new ActionNode("fallback", success(), NO_TRANSITIONS)
     );
 
     // when
@@ -344,13 +343,12 @@ class TaskEngineCompositeNodeTest {
       throws Throwable {
     // given
     Node rootNode = new CompositeNode(
-        Arrays.asList(new ActionNode("A", success(), Collections.emptyMap()),
+        parallel(
+            new ActionNode("A", success(), NO_TRANSITIONS),
             new ActionNode("B", failure(), Collections.singletonMap(
-                ERROR_TRANSITION, new ActionNode("fallback", success(),
-                    Collections.emptyMap())
-            ))),
-        null,
-        null
+                ERROR_TRANSITION, new ActionNode("fallback", success(), NO_TRANSITIONS)
+            ))
+        ), null, null
     );
 
     // when
@@ -368,10 +366,10 @@ class TaskEngineCompositeNodeTest {
     // given
 
     Node rootNode = new CompositeNode(
-        Arrays.asList(new ActionNode("A", success(), Collections.emptyMap()),
-            new ActionNode("B", success(), Collections.emptyMap())),
-        new ActionNode("last", appendBody(":last"), Collections.emptyMap()),
-        null
+        parallel(
+            new ActionNode("A", success(), NO_TRANSITIONS),
+            new ActionNode("B", success(), NO_TRANSITIONS)
+        ), new ActionNode("last", appendBody(":last"), NO_TRANSITIONS), null
     );
 
     // when
@@ -381,6 +379,10 @@ class TaskEngineCompositeNodeTest {
     verifyExecution(result, testContext,
         fragmentEvent -> assertEquals(INITIAL_BODY + ":last",
             fragmentEvent.getFragment().getBody()));
+  }
+
+  private List<Node> parallel(Node... nodes) {
+    return Arrays.asList(nodes);
   }
 
   private void verifyExecution(Single<FragmentEvent> result, VertxTestContext testContext,
