@@ -69,7 +69,8 @@ public class NodeOptions {
   }
 
   /**
-   * Sets {@code Action} name. This action will be executed during processing given graph node.
+   * Sets {@code Action} name. This action will be executed during processing given graph node. If
+   * {@code action} field is defined, Node configured by it will be treated as Action Node.
    *
    * @param action action name
    * @return reference to this, so the API can be used fluently
@@ -84,7 +85,9 @@ public class NodeOptions {
   }
 
   /**
-   * Sets list of {@code NodeOptions} that represents {@code Actions} that will be executed in parallel.
+   * Sets list of {@code NodeOptions} that represents {@code Actions} that will be executed in
+   * parallel. If this array is defined and {@code action} field is left empty, Node will be treated
+   * as Composite.
    *
    * @param actions list of {@link NodeOptions}
    * @return reference to this, so the API can be used fluently
@@ -103,7 +106,8 @@ public class NodeOptions {
   }
 
   /**
-   * Sets the {@code Map} of possible onTransitions for the given graph node.
+   * Sets the {@code Map} of possible onTransitions for the given graph node. If the Node is {@code
+   * Composite} only {@code _success} and {@code _error} transitions can be configured.
    *
    * @param onTransitions map of possible transitions.
    * @return reference to this, so the API can be used fluently
