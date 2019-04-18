@@ -1,0 +1,8 @@
+{
+  "action": "simple",
+  "actions": [
+    {
+      "action": "childAction"
+    }
+  ]
+}

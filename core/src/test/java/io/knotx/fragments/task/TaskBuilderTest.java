@@ -250,6 +250,34 @@ class TaskBuilderTest {
   }
 
   @Test
+  void expectCompositeNodeAcceptsOnlySuccessAndErrorTransitions() {
+    // given
+    when(actionProvider.get(Mockito.eq("simpleAction"))).thenReturn(Optional.of(actionMock));
+    when(actionProvider.get(Mockito.eq("lastAction"))).thenReturn(Optional.of(actionMock));
+
+    TaskBuilder tested = new TaskBuilder(
+        Collections.singletonMap(TASK_NAME,
+            new NodeOptions(
+                actions(new NodeOptions("simpleAction", NO_TRANSITIONS)),
+                Collections
+                    .singletonMap("customTransition", new NodeOptions("lastAction", NO_TRANSITIONS))
+            )), actionProvider);
+
+    // when
+    Optional<Task> optionalTask = tested.build(SAMPLE_FRAGMENT);
+
+    // then
+    assertTrue(optionalTask.isPresent());
+    Task task = optionalTask.get();
+    assertTrue(task.getRootNode().isPresent());
+    Node rootNode = task.getRootNode().get();
+    assertTrue(rootNode instanceof CompositeNode);
+    assertFalse(rootNode.next(SUCCESS_TRANSITION).isPresent());
+    assertFalse(rootNode.next(ERROR_TRANSITION).isPresent());
+    assertFalse(rootNode.next("customTransition").isPresent());
+  }
+
+  @Test
   @DisplayName("Expect graph with nested composite nodes")
   void expectNestedCompositeNodesGraph() {
     // given
