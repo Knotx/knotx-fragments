@@ -30,6 +30,7 @@ import io.knotx.fragments.handler.api.fragment.Action;
 import io.knotx.fragments.handler.api.fragment.FragmentContext;
 import io.knotx.fragments.handler.api.fragment.FragmentResult;
 import io.knotx.fragments.handler.exception.GraphConfigurationException;
+import io.knotx.fragments.handler.options.FragmentsHandlerOptions;
 import io.knotx.fragments.handler.options.NodeOptions;
 import io.reactivex.Single;
 import io.vertx.core.logging.Logger;
@@ -44,20 +45,27 @@ import java.util.stream.Collectors;
 public class TaskBuilder {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(TaskBuilder.class);
-  static final String TASK_KEY = "data-knotx-task";
 
+  private final String taskKey;
   private final Map<String, NodeOptions> tasks;
   private final ActionProvider actionProvider;
 
-  public TaskBuilder(Map<String, NodeOptions> tasks, ActionProvider proxyProvider) {
+  public TaskBuilder(String taskKey, Map<String, NodeOptions> tasks, ActionProvider proxyProvider) {
+    this.taskKey = taskKey;
+    this.tasks = tasks;
+    this.actionProvider = proxyProvider;
+  }
+
+  TaskBuilder(Map<String, NodeOptions> tasks, ActionProvider proxyProvider) {
+    this.taskKey = FragmentsHandlerOptions.DEFAULT_TASK_KEY;
     this.tasks = tasks;
     this.actionProvider = proxyProvider;
   }
 
   public Optional<Task> build(Fragment fragment) {
     Optional<Task> result = Optional.empty();
-    if (fragment.getConfiguration().containsKey(TASK_KEY)) {
-      String task = fragment.getConfiguration().getString(TASK_KEY);
+    if (fragment.getConfiguration().containsKey(taskKey)) {
+      String task = fragment.getConfiguration().getString(taskKey);
       NodeOptions options = tasks.get(task);
       if (options == null) {
         LOGGER.warn("Task [{}] not defined in configuration!", task);

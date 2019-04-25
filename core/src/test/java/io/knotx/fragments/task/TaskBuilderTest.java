@@ -33,6 +33,7 @@ import io.knotx.fragments.engine.graph.Node;
 import io.knotx.fragments.handler.action.ActionProvider;
 import io.knotx.fragments.handler.api.fragment.Action;
 import io.knotx.fragments.handler.exception.GraphConfigurationException;
+import io.knotx.fragments.handler.options.FragmentsHandlerOptions;
 import io.knotx.fragments.handler.options.NodeOptions;
 import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.VertxExtension;
@@ -59,7 +60,12 @@ class TaskBuilderTest {
   private static final Map<String, NodeOptions> NO_TRANSITIONS = Collections.emptyMap();
   private static final String TASK_NAME = "task";
   private static final Fragment SAMPLE_FRAGMENT =
-      new Fragment("type", new JsonObject().put(TaskBuilder.TASK_KEY, TASK_NAME), "body");
+      new Fragment("type",
+          new JsonObject().put(FragmentsHandlerOptions.DEFAULT_TASK_KEY, TASK_NAME), "body");
+  public static final String MY_TASK_KEY = "myTaskKey";
+  private static final Fragment SAMPLE_FRAGMENT_WITH_CUSTOM_TASK_KEY =
+      new Fragment("type",
+          new JsonObject().put(MY_TASK_KEY, TASK_NAME), "body");
 
   @Mock
   private ActionProvider actionProvider;
@@ -288,7 +294,7 @@ class TaskBuilderTest {
             new NodeOptions(
                 actions(
                     new NodeOptions(actions(new NodeOptions("simpleAction", NO_TRANSITIONS)),
-                    NO_TRANSITIONS)),
+                        NO_TRANSITIONS)),
                 NO_TRANSITIONS
             )), actionProvider);
 
@@ -315,6 +321,25 @@ class TaskBuilderTest {
     Node node = compositeChildNode.getNodes().get(0);
     assertTrue(node instanceof ActionNode);
     assertEquals("simpleAction", node.getId());
+  }
+
+  @Test
+  @DisplayName("Expect graph when custom task key is defined.")
+  void expectGraphWhenCustomTaskKey() {
+    // given
+    when(actionProvider.get(Mockito.eq("simpleAction"))).thenReturn(Optional.of(actionMock));
+
+    TaskBuilder tested = new TaskBuilder(MY_TASK_KEY,
+        Collections.singletonMap(TASK_NAME, new NodeOptions("simpleAction", NO_TRANSITIONS)),
+        actionProvider);
+
+    // when
+    Optional<Task> optionalTask = tested.build(SAMPLE_FRAGMENT_WITH_CUSTOM_TASK_KEY);
+
+    // then
+    assertTrue(optionalTask.isPresent());
+    Task task = optionalTask.get();
+    assertEquals(TASK_NAME, task.getName());
   }
 
   private List<NodeOptions> actions(NodeOptions... nodes) {

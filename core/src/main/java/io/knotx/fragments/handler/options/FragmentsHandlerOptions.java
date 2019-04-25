@@ -24,22 +24,41 @@ import java.util.Objects;
 @DataObject(generateConverter = true)
 public class FragmentsHandlerOptions {
 
+  public static final String DEFAULT_TASK_KEY = "data-knotx-task";
+
+  private String taskKey;
+
   private Map<String, NodeOptions> tasks;
 
   private Map<String, ActionOptions> actions;
 
-  public FragmentsHandlerOptions(Map<String, NodeOptions> flows) {
-    this.tasks = flows;
+  public FragmentsHandlerOptions(Map<String, NodeOptions> tasks) {
+    init();
+    this.tasks = tasks;
   }
 
   public FragmentsHandlerOptions(JsonObject json) {
+    init();
     FragmentsHandlerOptionsConverter.fromJson(json, this);
+  }
+
+  private void init() {
+    this.taskKey = DEFAULT_TASK_KEY;
   }
 
   public JsonObject toJson() {
     JsonObject jsonObject = new JsonObject();
     FragmentsHandlerOptionsConverter.toJson(this, jsonObject);
     return jsonObject;
+  }
+
+  public String getTaskKey() {
+    return taskKey;
+  }
+
+  public FragmentsHandlerOptions setTaskKey(String taskKey) {
+    this.taskKey = taskKey;
+    return this;
   }
 
   public Map<String, NodeOptions> getTasks() {
