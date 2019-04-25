@@ -12,23 +12,17 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * The code comes from https://github.com/tomaszmichalak/vertx-rx-map-reduce.
  */
-package io.knotx.fragments.handler.api.exception;
+package io.knotx.fragments.engine.graph;
 
-import io.knotx.fragment.Fragment;
+import java.util.Optional;
 
-public class KnotProcessingFatalException extends IllegalStateException {
+public interface Node {
 
-  private Fragment fragment;
+  String getId();
 
-  public KnotProcessingFatalException(Fragment fragment) {
-    super("Failed during fragment processing [" + fragment.getId() + "]");
-    this.fragment = fragment;
-  }
+  Optional<Node> next(String transition);
 
-  public Fragment getFragment() {
-    return fragment;
-  }
+  boolean isComposite();
+
 }

@@ -18,6 +18,7 @@ package io.knotx.fragments.engine;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.knotx.fragment.Fragment;
+import io.knotx.fragments.engine.graph.ActionNode;
 import io.knotx.fragments.handler.api.fragment.FragmentContext;
 import io.knotx.fragments.handler.api.fragment.FragmentResult;
 import io.knotx.server.api.context.ClientRequest;
@@ -35,7 +36,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.DisplayName;
@@ -62,7 +62,7 @@ class FragmentsEngineConcurrencyTest {
       LOGGER.warn("Unexpected interrupted error!", e);
     }
     return Single.just(
-        new FragmentResult(fragmentContext.getFragment(), FragmentResult.DEFAULT_TRANSITION));
+        new FragmentResult(fragmentContext.getFragment(), FragmentResult.SUCCESS_TRANSITION));
   };
 
   @Test
@@ -70,9 +70,9 @@ class FragmentsEngineConcurrencyTest {
   void expectParallelEvaluationStrategy(VertxTestContext testContext, Vertx vertx)
       throws Throwable {
     // given
-    Supplier<FragmentEventContextGraphAware> supplier = this::initEventContextGraphAware;
 
-    List<FragmentEventContextGraphAware> events = Stream.generate(supplier)
+    List<FragmentEventContextTaskAware> events = Stream
+        .generate(this::initFragmentEventContextTaskAware)
         .limit(NUMBER_OF_PROCESSED_EVENTS).collect(
             Collectors.toList());
 
@@ -85,12 +85,13 @@ class FragmentsEngineConcurrencyTest {
     verifyExecution(completableFuture, testContext);
   }
 
-  private FragmentEventContextGraphAware initEventContextGraphAware() {
-    GraphNode graphNode = new GraphNode("taskA", "id", BLOCKING_OPERATION, Collections.emptyMap());
+  private FragmentEventContextTaskAware initFragmentEventContextTaskAware() {
+    ActionNode graphNode = new ActionNode("id", BLOCKING_OPERATION,
+        Collections.emptyMap());
     Fragment fragment = new Fragment("snippet", new JsonObject(), "some body");
 
-    return new FragmentEventContextGraphAware(
-        new FragmentEventContext(new FragmentEvent(fragment), new ClientRequest()), graphNode);
+    return new FragmentEventContextTaskAware(new Task("task", graphNode),
+        new FragmentEventContext(new FragmentEvent(fragment), new ClientRequest()));
   }
 
   private void verifyExecution(CompletableFuture<Single<List<FragmentEvent>>> future,

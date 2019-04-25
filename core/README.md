@@ -1,26 +1,8 @@
 # Fragments Handler
+This module contains logic of building a *Task* (a directed graph) consisting of *Actions*.
 
-## Action
-A graph node delegates fragment processing to  
-`java.util.function.Function<FragmentContext, Single<FragmentResult>>`. It represents a function 
-that accepts FragmentContext as an argument and produces Single<FragmentResult> as a result.
-
-So a graph node executes a method:
-```java
-Single<FragmentResult> apply(FragmentContext fragmentContext);
-```
-The method is RXfied version of: 
-```java
-void apply(FragmentContext fragmentContext, Handler<AsyncResult<FragmentResult>> resultHandler);
-```
-
-Actions implements the interface above and can:
-- do some fragment logic
-- add some behaviour to fragment logic.
-
-### Example
 Fragments can contain `data-knotx-task` entry in their configuration. If it is present, then
-the graph processing logic is applied.
+the processing logic of defined *Task* is applied.
 
 The example HTML markup:
 ```html
@@ -30,6 +12,17 @@ The example HTML markup:
 
 And in the configuration we have:
 ```hocon
+tasks {
+  pdp {
+    action = fetch-product-with-cache
+    onTransition {
+      _error {
+        action = product-fallback
+      }
+    }
+  }
+}
+
 actions {
   fetch-product-with-cache {
     factory = "cache"
@@ -63,10 +56,10 @@ actions {
     }
   }
   
-  apply-fallback {
+  product-fallback {
     factory = "static"
     config {
-      class = <div>Product not available at the moment</div>
+      markup = <div>Product not available at the moment</div>
     }
   }
 }

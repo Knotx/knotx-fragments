@@ -18,6 +18,7 @@ package io.knotx.fragments.handler.options;
 import io.vertx.codegen.annotations.DataObject;
 import io.vertx.core.json.JsonObject;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -26,13 +27,15 @@ import java.util.Optional;
  * Defines graph's verticle with outgoing directed edges ({@code Transitions}).
  */
 @DataObject(generateConverter = true)
-public class GraphNodeOptions {
+public class NodeOptions {
 
   private String action;
 
-  private Map<String, GraphNodeOptions> onTransitions;
+  private List<NodeOptions> actions;
 
-  public GraphNodeOptions(String action, Map<String, GraphNodeOptions> transitions) {
+  private Map<String, NodeOptions> onTransitions;
+
+  public NodeOptions(String action, Map<String, NodeOptions> transitions) {
     if (action == null) {
       throw new IllegalStateException("Proxy can not be null");
     }
@@ -40,8 +43,16 @@ public class GraphNodeOptions {
     this.onTransitions = transitions;
   }
 
-  public GraphNodeOptions(JsonObject json) {
-    GraphNodeOptionsConverter.fromJson(json, this);
+  public NodeOptions(List<NodeOptions> actions, Map<String, NodeOptions> transitions) {
+    if (actions == null) {
+      throw new IllegalStateException("No actions defined");
+    }
+    this.actions = actions;
+    this.onTransitions = transitions;
+  }
+
+  public NodeOptions(JsonObject json) {
+    NodeOptionsConverter.fromJson(json, this);
     if (this.onTransitions == null) {
       this.onTransitions = Collections.emptyMap();
     }
@@ -49,7 +60,7 @@ public class GraphNodeOptions {
 
   public JsonObject toJson() {
     JsonObject result = new JsonObject();
-    GraphNodeOptionsConverter.toJson(this, result);
+    NodeOptionsConverter.toJson(this, result);
     return result;
   }
 
@@ -58,34 +69,57 @@ public class GraphNodeOptions {
   }
 
   /**
-   * Sets {@code Action} name. This action will be executed during processing given graph node.
+   * Sets {@code Action} name. This action will be executed during processing given graph node. If
+   * {@code action} field is defined, Node configured by it will be treated as Action Node.
    *
    * @param action action name
    * @return reference to this, so the API can be used fluently
    */
-  public GraphNodeOptions setAction(String action) {
+  public NodeOptions setAction(String action) {
     this.action = action;
     return this;
   }
 
-  public Optional<GraphNodeOptions> get(String transition) {
+  public List<NodeOptions> getActions() {
+    return actions;
+  }
+
+  /**
+   * Sets list of {@code NodeOptions} that represents {@code Actions} that will be executed in
+   * parallel. If this array is defined and {@code action} field is left empty, Node will be treated
+   * as Composite.
+   *
+   * @param actions list of {@link NodeOptions}
+   * @return reference to this, so the API can be used fluently
+   */
+  public NodeOptions setActions(List<NodeOptions> actions) {
+    this.actions = actions;
+    return this;
+  }
+
+  public Optional<NodeOptions> get(String transition) {
     return Optional.ofNullable(onTransitions.get(transition));
   }
 
-  public Map<String, GraphNodeOptions> getOnTransitions() {
+  public Map<String, NodeOptions> getOnTransitions() {
     return onTransitions;
   }
 
   /**
-   * Sets the {@code Map} of possible onTransitions for the given graph node.
+   * Sets the {@code Map} of possible onTransitions for the given graph node. If the Node is {@code
+   * Composite} only {@code _success} and {@code _error} transitions can be configured.
    *
    * @param onTransitions map of possible transitions.
    * @return reference to this, so the API can be used fluently
    */
-  public GraphNodeOptions setOnTransitions(
-      Map<String, GraphNodeOptions> onTransitions) {
+  public NodeOptions setOnTransitions(
+      Map<String, NodeOptions> onTransitions) {
     this.onTransitions = onTransitions;
     return this;
+  }
+
+  public boolean isComposite() {
+    return action == null && actions != null;
   }
 
   @Override
@@ -96,20 +130,22 @@ public class GraphNodeOptions {
     if (o == null || getClass() != o.getClass()) {
       return false;
     }
-    GraphNodeOptions that = (GraphNodeOptions) o;
+    NodeOptions that = (NodeOptions) o;
     return Objects.equals(action, that.action) &&
+        Objects.equals(actions, that.actions) &&
         Objects.equals(onTransitions, that.onTransitions);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(action, onTransitions);
+    return Objects.hash(action, actions, onTransitions);
   }
 
   @Override
   public String toString() {
-    return "GraphNodeOptions{" +
+    return "NodeOptions{" +
         "action='" + action + '\'' +
+        ", actions=" + actions +
         ", onTransitions=" + onTransitions +
         '}';
   }

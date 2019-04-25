@@ -17,7 +17,7 @@
  */
 package io.knotx.fragments.handler.action;
 
-import static io.knotx.fragments.handler.api.fragment.FragmentResult.DEFAULT_TRANSITION;
+import static io.knotx.fragments.handler.api.fragment.FragmentResult.SUCCESS_TRANSITION;
 import static io.knotx.fragments.handler.action.CircuitBreakerActionFactory.FALLBACK_TRANSITION;
 
 import io.knotx.fragments.handler.api.fragment.FragmentContext;
@@ -62,7 +62,7 @@ class CircuitBreakerActionTest {
     tested.apply(new FragmentContext(FRAGMENT, new ClientRequest()),
         testContext.succeeding(result -> {
           testContext
-              .verify(() -> Assertions.assertEquals(DEFAULT_TRANSITION, result.getTransition()));
+              .verify(() -> Assertions.assertEquals(SUCCESS_TRANSITION, result.getTransition()));
           testContext.completeNow();
         }));
 
@@ -86,7 +86,7 @@ class CircuitBreakerActionTest {
             vertx.setTimer(1000,
                 l ->
                     Future.succeededFuture(
-                        new FragmentResult(fragmentContext.getFragment(), DEFAULT_TRANSITION)
+                        new FragmentResult(fragmentContext.getFragment(), SUCCESS_TRANSITION)
                     ).setHandler(resultHandler)));
 
     // when
@@ -116,7 +116,7 @@ class CircuitBreakerActionTest {
             vertx.setTimer(1000,
                 l ->
                     Future.succeededFuture(
-                        new FragmentResult(fragmentContext.getFragment(), DEFAULT_TRANSITION)
+                        new FragmentResult(fragmentContext.getFragment(), SUCCESS_TRANSITION)
                     ).setHandler(resultHandler)));
 
     // when
@@ -136,7 +136,7 @@ class CircuitBreakerActionTest {
 
   private static void apply(FragmentContext fragmentContext,
       Handler<AsyncResult<FragmentResult>> resultHandler) {
-    Future.succeededFuture(new FragmentResult(fragmentContext.getFragment(), DEFAULT_TRANSITION))
+    Future.succeededFuture(new FragmentResult(fragmentContext.getFragment(), SUCCESS_TRANSITION))
         .setHandler(resultHandler);
   }
 

@@ -15,38 +15,22 @@
  */
 package io.knotx.fragments.engine;
 
-class FragmentExecutionContext {
+public class FragmentEventContextTaskAware {
 
-  private FragmentEventContext fragmentEventContext;
+  private final Task task;
+  private final FragmentEventContext fragmentEventContext;
 
-  private GraphNode currentNode;
+  public FragmentEventContextTaskAware(Task task,
+      FragmentEventContext fragmentEventContext) {
+    this.task = task;
+    this.fragmentEventContext = fragmentEventContext;
+  }
 
-  FragmentEventContext getFragmentEventContext() {
+  public Task getTask() {
+    return task;
+  }
+
+  public FragmentEventContext getFragmentEventContext() {
     return fragmentEventContext;
   }
-
-  FragmentExecutionContext setFragmentEventContext(
-      FragmentEventContext fragmentEventContext) {
-    this.fragmentEventContext = fragmentEventContext;
-    return this;
-  }
-
-  GraphNode getCurrentNode() {
-    return currentNode;
-  }
-
-  FragmentExecutionContext setCurrentNode(GraphNode graphNode) {
-    this.currentNode = graphNode;
-    return this;
-  }
-
-  FragmentExecutionContext end() {
-    currentNode = null;
-    return this;
-  }
-
-  boolean isLast() {
-    return currentNode == null;
-  }
-
 }

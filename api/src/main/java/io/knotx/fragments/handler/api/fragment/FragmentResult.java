@@ -27,7 +27,7 @@ import org.apache.commons.lang3.StringUtils;
 @DataObject
 public class FragmentResult {
 
-  public static final String DEFAULT_TRANSITION = "_next";
+  public static final String SUCCESS_TRANSITION = "_success";
   public static final String ERROR_TRANSITION = "_error";
 
   private static final String FRAGMENT_KEY = "fragment";
@@ -68,7 +68,7 @@ public class FragmentResult {
    */
   public String getTransition() {
     if (StringUtils.isBlank(transition)) {
-      return DEFAULT_TRANSITION;
+      return SUCCESS_TRANSITION;
     } else {
       return transition;
     }

@@ -1,31 +1,54 @@
 # Fragments Engine
-
-// TODO documentation
+This module is a heart of the *Fragment Processing*. It actually does the work of independent 
+[**Fragments**](https://github.com/Knotx/knotx-fragment-api#knotx-fragment-api) processing,
+by routing each *Fragment* throught the graph and applying [**Actions**](https://github.com/Knotx/knotx-fragments-handler/tree/master/api#action)
+ during that processing.
 
 ## Graph Engine
+Any *Fragment* can define its own processing path - a **Task** (which is a **directed graph** of **Nodes**).
+A **Task** specify the nodes through which Fragments will be routed by the Graph Engine. 
+Each Node may define possible *outgoing edges* - **Transitions**.
 
-Each *Fragment* defines its own processing path, which is configured as a **directed graph**. A graph
-specify the nodes (vertices) through which Fragments will be routed by Graph Engine. Each node 
-contains fragment transformation logic and possible *arrows* / *outgoing edges* (then called *transitions*). 
-Fragment transformation logic is defines as a function 
-`java.util.function.Function<FragmentContext, Single<FragmentResult>>`. It transforms one Fragment 
+Additionally, a **Node** can do one of the following:
+  - define an [**Action**](https://github.com/Knotx/knotx-fragments-handler/tree/master/api#action) 
+  that will be applied to *Fragment* (we call it **Action Node**),
+  - consist of other **Nodes** (we call it **Composite Node**).
+
+### Action Node
+Action that is applied on the node is a transformation function 
+`java.util.function.Function<FragmentContext, Single<FragmentResult>>` that transforms one Fragment 
 into another.
 
-By default, each node has two exits:
-- `next` - the default one, means that operation ends without any exception
-- `error` - when operation throws an exception
+Part of the `FragmentResult` is a *Transition* that defines the next *Node* in the graph that Fragment
+should visit. If there is no transition defined, default `_success` value is used.
+Action Node transformation may return any *Transition*, but all the transitions but `_success` must be
+configured. If there is no **path** configured for the transition, following logic is applied:
+ - if the *Transition* equals `_success` (default value), graph processing finishes
+ - otherwise "Unsupported Transition" error occurs.
+ 
+### Composite Node
+This Node may consists of other Composite Nodes or Action Nodes or a mix of both.
+It enables parallel processing of independent Actions (e.g. calling two external data sources).
+Composite Node may define only two transitions:
+  - `_success` - the default one, means that operation ends without any exception
+  - `_error` - when operation throws an exception
+  
+> Important note!
+> Action Nodes inside Composite Node may only modify Fragment's payload and should not modify Fragment's body.
+> This is because Actions are executed in parallel and the output of modifying single Fragment's body in parallel
+> may differ between different executions.
 
 ![Node with exits](assets/images/graph_node.png)
 
-If a node does not declare a `next` transition, processing is finished and Graph Engine responds with
+If a node does not declare a `_success` transition, processing is finished and Graph Engine responds with
 `SUCCESS` status.
 
-Let's see the example above. *Node A* declares two transitions: next and error. If the transformation 
-logic defined in *Node A* ends correctly, then the `next` transition is set (if *Node A* does
-not set a custom transition) and *Node B* will continue processing.
-If *Node B* ends correctly then Graph Engine responds with the `SUCCESS` status. Otherwise, the `error` 
+Let's see the example above. *Node A* declares two transitions: `_success` and `_error`. 
+If the transformation logic defined in *Node A* ends correctly, then the `_success` transition 
+is set (if *Node A* does not set a custom transition) and *Node B* will continue processing.
+If *Node B* ends correctly then Graph Engine responds with the `SUCCESS` status. Otherwise, the `_error` 
 transition is set, *Node B* does not declare it so the `FAILURE` state is returned.
-If the transformation logic from *Node A* raises an exception, the `error` transition is set and
+If the transformation logic from *Node A* raises an exception, the `_error` transition is set and
 *Node C* continue processing. *Node C* may end correctly, and then the entire processing is marked 
 with the `SUCCESS` state.
 

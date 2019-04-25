@@ -16,6 +16,7 @@
 package io.knotx.fragments.engine;
 
 import io.knotx.fragments.engine.FragmentEvent.Status;
+import io.knotx.fragments.engine.graph.Node;
 import io.reactivex.Flowable;
 import io.reactivex.Single;
 import io.vertx.core.logging.Logger;
@@ -23,6 +24,7 @@ import io.vertx.core.logging.LoggerFactory;
 import io.vertx.reactivex.core.Vertx;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -36,39 +38,43 @@ public class FragmentsEngine {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(FragmentsEngine.class);
 
-  private final GraphEngine graphEngine;
+  private final TaskEngine taskEngine;
 
   public FragmentsEngine(Vertx vertx) {
-    this.graphEngine = new GraphEngine(vertx.getDelegate());
+    this.taskEngine = new TaskEngine(vertx.getDelegate());
   }
 
   /**
-   * Processes events asynchronously according to the {@link GraphNode}.
+   * Processes fragment events asynchronously.
    *
-   * @param sourceEvents list of fragment events to process with graph context
+   * @param fragments list of fragment events with assigned {@code Task}
    * @return asynchronous response containing processed list of fragment events returned in the same
    * order as the original list
    */
-  public Single<List<FragmentEvent>> execute(List<FragmentEventContextGraphAware> sourceEvents) {
+  public Single<List<FragmentEvent>> execute(List<FragmentEventContextTaskAware> fragments) {
 
-    return Flowable.just(sourceEvents)
+    return Flowable.just(fragments)
         .concatMap(Flowable::fromIterable)
-        .map(eventContext -> {
-          return eventContext.getGraphNode()
-              .map(graphNode -> graphEngine.start(eventContext.getFragmentEventContext(), graphNode))
-              .orElseGet(() -> Single.just(eventContext.getFragmentEventContext().getFragmentEvent()));
+        .map(fecta -> {
+          Optional<Node> rootNode = fecta.getTask().getRootNode();
+          if (rootNode.isPresent()) {
+            return taskEngine
+                .start(fecta.getTask().getName(), rootNode.get(), fecta.getFragmentEventContext());
+          } else {
+            return Single.just(fecta.getFragmentEventContext().getFragmentEvent());
+          }
         })
         .flatMap(Single::toFlowable)
         .reduce(new ArrayList<FragmentEvent>(), (list, item) -> {
           list.add(item);
           return list;
         })
-        .map(list -> incomingOrder(list, sourceEvents))
+        .map(list -> incomingOrder(list, fragments))
         .map(this::traceEngineResults);
   }
 
   private List<FragmentEvent> incomingOrder(
-      List<FragmentEvent> list, List<FragmentEventContextGraphAware> sourceEvents) {
+      List<FragmentEvent> list, List<FragmentEventContextTaskAware> sourceEvents) {
 
     return sourceEvents.stream()
         .map(event -> event.getFragmentEventContext().getFragmentEvent().getFragment().getId())

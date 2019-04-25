@@ -30,13 +30,14 @@ Sets <code>Action</code> factory name.
 |[[actions]]`@actions`|`link:dataobjects.html#ActionOptions[ActionOptions]`|+++
 Sets named actions with their factory configuration.
 +++
-|[[tasks]]`@tasks`|`link:dataobjects.html#GraphNodeOptions[GraphNodeOptions]`|+++
+|[[taskKey]]`@taskKey`|`String`|-
+|[[tasks]]`@tasks`|`link:dataobjects.html#NodeOptions[NodeOptions]`|+++
 Sets <code>Task</code> list, which are named, directed graphs of <code>Actions</code>.
 +++
 |===
 
-[[GraphNodeOptions]]
-== GraphNodeOptions
+[[NodeOptions]]
+== NodeOptions
 
 ++++
  Defines graph's verticle with outgoing directed edges (<code>Transitions</code>).
@@ -48,10 +49,17 @@ Sets <code>Task</code> list, which are named, directed graphs of <code>Actions</
 |===
 ^|Name | Type ^| Description
 |[[action]]`@action`|`String`|+++
-Sets <code>Action</code> name. This action will be executed during processing given graph node.
+Sets <code>Action</code> name. This action will be executed during processing given graph node. If
+ <code>action</code> field is defined, Node configured by it will be treated as Action Node.
 +++
-|[[onTransitions]]`@onTransitions`|`link:dataobjects.html#GraphNodeOptions[GraphNodeOptions]`|+++
-Sets the <code>Map</code> of possible onTransitions for the given graph node.
+|[[actions]]`@actions`|`Array of link:dataobjects.html#NodeOptions[NodeOptions]`|+++
+Sets list of <code>NodeOptions</code> that represents <code>Actions</code> that will be executed in
+ parallel. If this array is defined and <code>action</code> field is left empty, Node will be treated
+ as Composite.
++++
+|[[composite]]`@composite`|`Boolean`|-
+|[[onTransitions]]`@onTransitions`|`link:dataobjects.html#NodeOptions[NodeOptions]`|+++
+Sets the <code>Map</code> of possible onTransitions for the given graph node. If the Node is <code>Composite</code> only <code>_success</code> and <code>_error</code> transitions can be configured.
 +++
 |===
 
