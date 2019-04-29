@@ -31,6 +31,7 @@ public class ActionResponse {
 
   ActionResponse() {
     // hidden
+    metadata = new JsonObject();
   }
 
   public ActionResponse(JsonObject json) {
