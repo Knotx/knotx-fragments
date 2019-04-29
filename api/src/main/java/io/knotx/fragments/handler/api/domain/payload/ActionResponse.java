@@ -73,7 +73,7 @@ public class ActionResponse {
   }
 
   public JsonObject getMetadata() {
-    return metadata;
+    return metadata.copy();
   }
 
   public JsonObject toJson() {
