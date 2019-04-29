@@ -12,19 +12,23 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
+ * The code comes from https://github.com/tomaszmichalak/vertx-rx-map-reduce.
  */
-package io.knotx.fragments.handler.api.fragment;
+package io.knotx.fragments.handler.api.exception;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import io.knotx.fragment.Fragment;
 
-/**
- * Marks {@link ActionFactory} as one delivering cacheable actions.
- */
-@Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.TYPE)
-public @interface Cacheable {
+public class ActionFatalException extends IllegalStateException {
 
+  private Fragment fragment;
+
+  public ActionFatalException(Fragment fragment) {
+    super("Failed during fragment processing [" + fragment.getId() + "]");
+    this.fragment = fragment;
+  }
+
+  public Fragment getFragment() {
+    return fragment;
+  }
 }

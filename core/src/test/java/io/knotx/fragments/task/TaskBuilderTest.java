@@ -18,8 +18,8 @@
 package io.knotx.fragments.task;
 
 import static io.knotx.fragments.engine.graph.CompositeNode.COMPOSITE_NODE_ID;
-import static io.knotx.fragments.handler.api.fragment.FragmentResult.ERROR_TRANSITION;
-import static io.knotx.fragments.handler.api.fragment.FragmentResult.SUCCESS_TRANSITION;
+import static io.knotx.fragments.handler.api.domain.FragmentResult.ERROR_TRANSITION;
+import static io.knotx.fragments.handler.api.domain.FragmentResult.SUCCESS_TRANSITION;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -31,7 +31,7 @@ import io.knotx.fragments.engine.graph.ActionNode;
 import io.knotx.fragments.engine.graph.CompositeNode;
 import io.knotx.fragments.engine.graph.Node;
 import io.knotx.fragments.handler.action.ActionProvider;
-import io.knotx.fragments.handler.api.fragment.Action;
+import io.knotx.fragments.handler.api.Action;
 import io.knotx.fragments.handler.exception.GraphConfigurationException;
 import io.knotx.fragments.handler.options.FragmentsHandlerOptions;
 import io.knotx.fragments.handler.options.NodeOptions;

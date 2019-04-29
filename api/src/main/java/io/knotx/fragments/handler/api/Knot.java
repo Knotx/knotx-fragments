@@ -15,9 +15,8 @@
  */
 package io.knotx.fragments.handler.api;
 
-import io.knotx.fragments.handler.api.fragment.Action;
-import io.knotx.fragments.handler.api.fragment.FragmentContext;
-import io.knotx.fragments.handler.api.fragment.FragmentResult;
+import io.knotx.fragments.handler.api.domain.FragmentContext;
+import io.knotx.fragments.handler.api.domain.FragmentResult;
 import io.vertx.codegen.annotations.ProxyGen;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.AsyncResult;

@@ -26,8 +26,8 @@ import static io.knotx.fragments.engine.helpers.TestFunction.appendPayloadBasing
 import static io.knotx.fragments.engine.helpers.TestFunction.failure;
 import static io.knotx.fragments.engine.helpers.TestFunction.success;
 import static io.knotx.fragments.engine.helpers.TestFunction.successWithDelay;
-import static io.knotx.fragments.handler.api.fragment.FragmentResult.ERROR_TRANSITION;
-import static io.knotx.fragments.handler.api.fragment.FragmentResult.SUCCESS_TRANSITION;
+import static io.knotx.fragments.handler.api.domain.FragmentResult.ERROR_TRANSITION;
+import static io.knotx.fragments.handler.api.domain.FragmentResult.SUCCESS_TRANSITION;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 

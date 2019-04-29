@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.knotx.fragments.handler.api.fragment;
+package io.knotx.fragments.handler.api;
 
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;

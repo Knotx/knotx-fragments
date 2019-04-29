@@ -15,15 +15,15 @@
  */
 package io.knotx.fragments.engine;
 
-import static io.knotx.fragments.handler.api.fragment.FragmentResult.ERROR_TRANSITION;
-import static io.knotx.fragments.handler.api.fragment.FragmentResult.SUCCESS_TRANSITION;
+import static io.knotx.fragments.handler.api.domain.FragmentResult.ERROR_TRANSITION;
+import static io.knotx.fragments.handler.api.domain.FragmentResult.SUCCESS_TRANSITION;
 
 import io.knotx.fragment.Fragment;
 import io.knotx.fragments.engine.FragmentEvent.Status;
 import io.knotx.fragments.engine.graph.Node;
-import io.knotx.fragments.handler.api.exception.KnotProcessingFatalException;
-import io.knotx.fragments.handler.api.fragment.FragmentContext;
-import io.knotx.fragments.handler.api.fragment.FragmentResult;
+import io.knotx.fragments.handler.api.exception.ActionFatalException;
+import io.knotx.fragments.handler.api.domain.FragmentContext;
+import io.knotx.fragments.handler.api.domain.FragmentResult;
 import io.reactivex.Single;
 import io.reactivex.SingleSource;
 import io.vertx.core.eventbus.ReplyException;
@@ -74,7 +74,7 @@ class TaskExecutionContext {
     FragmentEvent fragmentEvent = fragmentEventContext.getFragmentEvent();
     if (isFatal(error)) {
       LOGGER.error("Processing failed with fatal error [{}].", fragmentEvent, error);
-      throw (KnotProcessingFatalException) error;
+      throw (ActionFatalException) error;
     } else {
       LOGGER.warn("Knot processing failed [{}], trying to process with the 'error' transition.",
           fragmentEvent, error);
@@ -149,7 +149,7 @@ class TaskExecutionContext {
   }
 
   private boolean isFatal(Throwable error) {
-    return error instanceof KnotProcessingFatalException;
+    return error instanceof ActionFatalException;
   }
 
   private void ifNotDefaultTransitionEndAsUnsupportedFailure(String transition) {

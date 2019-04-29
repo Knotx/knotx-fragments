@@ -24,7 +24,7 @@ import static io.knotx.fragments.engine.helpers.TestFunction.appendPayload;
 import static io.knotx.fragments.engine.helpers.TestFunction.failure;
 import static io.knotx.fragments.engine.helpers.TestFunction.fatal;
 import static io.knotx.fragments.engine.helpers.TestFunction.success;
-import static io.knotx.fragments.handler.api.fragment.FragmentResult.ERROR_TRANSITION;
+import static io.knotx.fragments.handler.api.domain.FragmentResult.ERROR_TRANSITION;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -34,7 +34,7 @@ import io.knotx.fragments.engine.FragmentEventLogVerifier.Operation;
 import io.knotx.fragments.engine.graph.ActionNode;
 import io.knotx.fragments.engine.graph.CompositeNode;
 import io.knotx.fragments.engine.graph.Node;
-import io.knotx.fragments.handler.api.exception.KnotProcessingFatalException;
+import io.knotx.fragments.handler.api.exception.ActionFatalException;
 import io.knotx.server.api.context.ClientRequest;
 import io.reactivex.Single;
 import io.reactivex.exceptions.CompositeException;
@@ -187,7 +187,7 @@ class TaskEngineCompositeNodeTest {
     // then
     verifyError(result, testContext,
         error -> assertTrue(error.getExceptions().stream()
-            .anyMatch(KnotProcessingFatalException.class::isInstance))
+            .anyMatch(ActionFatalException.class::isInstance))
     );
   }
 

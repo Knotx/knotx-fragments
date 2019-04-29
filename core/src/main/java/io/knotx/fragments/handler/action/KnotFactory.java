@@ -16,9 +16,9 @@
 package io.knotx.fragments.handler.action;
 
 import io.knotx.fragments.handler.api.Knot;
-import io.knotx.fragments.handler.api.fragment.Action;
-import io.knotx.fragments.handler.api.fragment.ActionFactory;
-import io.knotx.fragments.handler.api.fragment.Cacheable;
+import io.knotx.fragments.handler.api.Action;
+import io.knotx.fragments.handler.api.ActionFactory;
+import io.knotx.fragments.handler.api.Cacheable;
 import io.vertx.core.Vertx;
 import io.vertx.core.eventbus.DeliveryOptions;
 import io.vertx.core.json.JsonObject;
