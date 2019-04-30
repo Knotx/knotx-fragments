@@ -42,8 +42,9 @@ public class ActionRequest {
     this.metadata = jsonObject.getJsonObject(METADATA_KEY);
   }
 
-  public void appendMetadata(String key, Object value) {
+  public ActionRequest appendMetadata(String key, Object value) {
     metadata.put(key, value);
+    return this;
   }
 
   public String getType() {

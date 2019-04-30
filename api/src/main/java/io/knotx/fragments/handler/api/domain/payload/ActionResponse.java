@@ -59,8 +59,9 @@ public class ActionResponse {
     return response;
   }
 
-  public void appendMetadata(String key, Object value) {
+  public ActionResponse appendMetadata(String key, Object value) {
     metadata.put(key, value);
+    return this;
   }
 
   public boolean isSuccess() {
