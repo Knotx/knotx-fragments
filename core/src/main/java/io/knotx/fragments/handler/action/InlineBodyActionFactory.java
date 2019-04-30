@@ -2,6 +2,7 @@ package io.knotx.fragments.handler.action;
 
 import io.knotx.fragments.handler.api.Action;
 import io.knotx.fragments.handler.api.ActionFactory;
+import io.knotx.fragments.handler.api.Cacheable;
 import io.knotx.fragments.handler.api.domain.FragmentResult;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
@@ -20,6 +21,7 @@ import io.vertx.core.json.JsonObject;
  * WARNING: This action modifies Fragment body so it should not be used in composite nodes
  * {@link io.knotx.fragments.handler.options.NodeOptions#isComposite()}.
  */
+@Cacheable
 public class InlineBodyActionFactory implements ActionFactory {
 
   private static final String DEFAULT_EMPTY_BODY = "";
