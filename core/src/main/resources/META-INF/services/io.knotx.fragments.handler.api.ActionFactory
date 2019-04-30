@@ -12,5 +12,9 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
-io.knotx.fragments.handler.action.KnotFactory
+# behaviours
 io.knotx.fragments.handler.action.CircuitBreakerActionFactory
+
+# pre-defined actions
+io.knotx.fragments.handler.action.InlineBodyActionFactory
+io.knotx.fragments.handler.action.KnotFactory
