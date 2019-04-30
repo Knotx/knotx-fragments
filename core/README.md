@@ -57,12 +57,30 @@ actions {
   }
   
   product-fallback {
-    factory = "static"
+    factory = "inline-body"
     config {
-      markup = <div>Product not available at the moment</div>
+      body = <div>Product not available at the moment</div>
     }
   }
 }
 ```
 
 Read more about configuring fragment graph in the [Data Object docs](https://github.com/Knotx/knotx-fragments-handler/blob/master/core/docs/asciidoc/dataobjects.adoc).
+
+
+## Actions
+
+### Inline Body Action
+Inline Body Action replaces Fragment body with specified value. Its configuration looks like:
+```hocon
+product-fallback {
+    factory = "inline-body"
+    config {
+      body = <div>Product not available at the moment</div>
+    }
+}
+```
+
+The default `body` value is empty content.
+
+## Behaviours 
