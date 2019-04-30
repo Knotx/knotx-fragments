@@ -13,12 +13,12 @@ import io.vertx.core.json.JsonObject;
  *   inlineBodyFallback {
  *     name = inline-body,
  *     config {
- *       body = "<div>some static content</div>"
+ *       body = "some static content"
  *     }
  *   }
  * </pre>
- * WARNING: This action modifies Fragment body so it should not be used in composite nodes {@see
- * io.knotx.fragments.handler.options.NodeOptions#isComposite()}.
+ * WARNING: This action modifies Fragment body so it should not be used in composite nodes
+ * {@link io.knotx.fragments.handler.options.NodeOptions#isComposite()}.
  */
 public class InlineBodyActionFactory implements ActionFactory {
 
