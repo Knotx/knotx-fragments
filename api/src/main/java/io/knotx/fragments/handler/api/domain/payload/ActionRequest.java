@@ -56,7 +56,7 @@ public class ActionRequest {
   }
 
   public JsonObject getMetadata() {
-    return metadata;
+    return metadata.copy();
   }
 
   public JsonObject toJson() {
