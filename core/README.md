@@ -92,10 +92,8 @@ product-fallback {
   config {
     alias = product
     payload {
-      product {
-        productId = 1234
-        description = "some description"
-      }
+      productId = 1234
+      description = "some description"
     }
     # payload = [
     #   "first product", "second product"
