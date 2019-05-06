@@ -15,6 +15,8 @@
  */
 package io.knotx.fragments.handler.action;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
 import io.knotx.fragment.Fragment;
 import io.knotx.fragments.handler.api.Action;
 import io.knotx.fragments.handler.api.domain.FragmentContext;
@@ -31,15 +33,26 @@ import org.junit.jupiter.api.extension.ExtendWith;
 @ExtendWith(VertxExtension.class)
 class InlineBodyActionFactoryTest {
 
+  private static final String ACTION_ALIAS = "action";
   private static final String EXPECTED_VALUE = "expected value";
   private static final String INITIAL_BODY = "initial body";
+
+  @Test
+  @DisplayName("Expect IllegalArgumentException when doAction specified.")
+  void createActionWithDoAction() {
+    // when, then
+    assertThrows(IllegalArgumentException.class, () -> new InlineBodyActionFactory()
+        .create(ACTION_ALIAS, new JsonObject(), null,
+            (fragmentContext, resultHandler) -> {
+            }));
+  }
 
   @Test
   @DisplayName("Expect not empty Fragment body when Action configuration specifies body.")
   void applyAction(VertxTestContext testContext) throws Throwable {
     // given
     Fragment fragment = new Fragment("type", new JsonObject(), INITIAL_BODY);
-    Action action = new InlineBodyActionFactory().create("action", new JsonObject().put("body",
+    Action action = new InlineBodyActionFactory().create(ACTION_ALIAS, new JsonObject().put("body",
         EXPECTED_VALUE), null, null);
 
     // when

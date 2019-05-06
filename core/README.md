@@ -71,16 +71,37 @@ Read more about configuring fragment graph in the [Data Object docs](https://git
 ## Actions
 
 ### Inline Body Action
-Inline Body Action replaces Fragment body with specified value. Its configuration looks like:
+Inline Body Action replaces Fragment body with specified body. Its configuration looks like:
 ```hocon
 product-fallback {
-    factory = "inline-body"
-    config {
-      body = <div>Product not available at the moment</div>
-    }
+  factory = "inline-body"
+  config {
+    body = <div>Product not available at the moment</div>
+  }
 }
 ```
 
 The default `body` value is empty content.
+
+### Inline Payload Action
+Inline Payload Action puts JSON / JSON Array in Fragment payload with specified key (alias). Its 
+configuration looks like:
+```hocon
+product-fallback {
+  factory = "inline-payload"
+  config {
+    alias = product
+    payload {
+      productId = 1234
+      description = "some description"
+    }
+    # payload = [
+    #   "first product", "second product"
+    # ]
+  }
+}
+```
+
+The default `alias` is action alias.
 
 ## Behaviours 
