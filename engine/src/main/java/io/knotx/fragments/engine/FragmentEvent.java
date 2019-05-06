@@ -21,6 +21,9 @@ import io.vertx.codegen.annotations.DataObject;
 import io.vertx.core.json.JsonObject;
 import java.util.Objects;
 
+import static io.knotx.fragments.handler.api.fragment.FragmentResult.ERROR_TRANSITION;
+import static io.knotx.fragments.handler.api.fragment.FragmentResult.SUCCESS_TRANSITION;
+
 @DataObject
 public class FragmentEvent {
 
@@ -115,7 +118,19 @@ public class FragmentEvent {
   }
 
   public enum Status {
-    UNPROCESSED, SUCCESS, FAILURE
+    UNPROCESSED(null),
+    SUCCESS(SUCCESS_TRANSITION),
+    FAILURE(ERROR_TRANSITION);
+
+    private String dedicatedTransition;
+
+    Status(String dedicatedTransition) {
+      this.dedicatedTransition = dedicatedTransition;
+    }
+
+    public String getDedicatedTransition() {
+      return dedicatedTransition;
+    }
   }
 
 }

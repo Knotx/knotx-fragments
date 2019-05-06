@@ -30,6 +30,10 @@ public class ActionNode implements Node {
 
   private Map<String, Node> transitions;
 
+  public ActionNode(String id, Function<FragmentContext, Single<FragmentResult>> action) {
+    this(id, action, null);
+  }
+
   public ActionNode(String id, Function<FragmentContext, Single<FragmentResult>> action,
       Map<String, Node> transitions) {
     this.id = id;
@@ -44,7 +48,7 @@ public class ActionNode implements Node {
 
   @Override
   public Optional<Node> next(String transition) {
-    return Optional.ofNullable(transitions.get(transition));
+      return Optional.ofNullable(transitions).map(transitions -> transitions.get(transition));
   }
 
   @Override

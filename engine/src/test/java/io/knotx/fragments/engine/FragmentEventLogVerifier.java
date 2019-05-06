@@ -20,7 +20,6 @@ package io.knotx.fragments.engine;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import java.util.Arrays;
-import java.util.Optional;
 import java.util.stream.Stream;
 
 class FragmentEventLogVerifier {
@@ -37,13 +36,11 @@ class FragmentEventLogVerifier {
     }
     for (Operation expectedOperation : expectedOperations) {
       Position position = expectedOperation.getPosition();
-      Optional<JsonObject> matching = getSliceOfLog(logArray, position)
+      getSliceOfLog(logArray, position)
           .filter(expectedOperation::matches)
-          .findAny();
-      if (!matching.isPresent()) {
-        throw new AssertionError(
-            String.format(ASSERTION_NOT_MATCH, Arrays.toString(expectedOperations), logArray));
-      }
+          .findAny()
+          .orElseThrow(() -> new AssertionError(
+                  String.format(ASSERTION_NOT_MATCH, Arrays.toString(expectedOperations), logArray)));
     }
   }
 

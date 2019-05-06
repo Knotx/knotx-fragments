@@ -53,7 +53,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 class TaskEngineSingleOperationTest {
 
   private static final String INITIAL_BODY = "initial body";
-  private static final Map<String, Node> NO_TRANSITIONS = Collections.emptyMap();
+  private static final Map<String, Node> NO_TRANSITIONS = null;
 
   private FragmentEventContext eventContext;
   private Fragment initialFragment = new Fragment("snippet", new JsonObject(), INITIAL_BODY);
@@ -103,7 +103,7 @@ class TaskEngineSingleOperationTest {
     // given
     ActionNode rootNode = new ActionNode("first", appendBody(":A"),
         Collections.singletonMap(SUCCESS_TRANSITION,
-            new ActionNode("second", appendBody(":B"), NO_TRANSITIONS)));
+            new ActionNode("second", appendBody(":B"))));
 
     // when
     Single<FragmentEvent> result = new TaskEngine(vertx).start("task", rootNode, eventContext);
@@ -138,7 +138,7 @@ class TaskEngineSingleOperationTest {
     // given
     ActionNode rootNode = new ActionNode("first", success(),
         Collections.singletonMap(SUCCESS_TRANSITION,
-            new ActionNode("second", success(), NO_TRANSITIONS)));
+            new ActionNode("second", success())));
 
     // when
     Single<FragmentEvent> result = new TaskEngine(vertx).start("task", rootNode, eventContext);
@@ -169,7 +169,7 @@ class TaskEngineSingleOperationTest {
     // given
     ActionNode rootNode = new ActionNode("first", failure(),
         Collections.singletonMap(ERROR_TRANSITION,
-            new ActionNode("second", success(), NO_TRANSITIONS)));
+            new ActionNode("second", success())));
 
     // when
     Single<FragmentEvent> result = new TaskEngine(vertx).start("task", rootNode, eventContext);

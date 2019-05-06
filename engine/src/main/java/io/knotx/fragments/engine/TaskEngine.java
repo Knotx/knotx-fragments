@@ -45,24 +45,31 @@ class TaskEngine {
 
   private Single<TaskExecutionContext> processTask(TaskExecutionContext context) {
     traceEvent(context);
-    final Single<FragmentResult> result;
-    if (context.getCurrentNode().isComposite()) {
-      result = mapReduce(context);
-    } else {
-      result = execute(context);
+
+    if (!context.hasNext()) {
+      return Single.just(context);
     }
-    return result.flatMap(fragmentResult -> {
-      context.updateResult(fragmentResult);
-      if (context.hasNext()) {
-        return processTask(context);
-      } else {
-        return Single.just(context);
-      }
-    });
+
+    return getResult(context)
+            .flatMap(fragmentResult -> {
+              context.updateResult(fragmentResult);
+              return processTask(context);
+            });
+  }
+
+  private Single<TaskExecutionContext> processTask(TaskExecutionContext context, Node currentNode) {
+    return processTask(new TaskExecutionContext(context, currentNode));
+  }
+
+  private Single<FragmentResult> getResult(TaskExecutionContext context) {
+    return context.getCurrentNode().isComposite()
+            ? mapReduce(context)
+            : execute(context);
   }
 
   private Single<FragmentResult> execute(TaskExecutionContext context) {
-    return Single.just((ActionNode) context.getCurrentNode())
+    return Single.just(context.getCurrentNode())
+        .map(ActionNode.class::cast)
         .observeOn(RxHelper.blockingScheduler(vertx))
         .flatMap(gn -> gn.doAction(context.fragmentContextInstance()))
         .doOnSuccess(fr -> context.handleSuccess(fr.getTransition()))
@@ -70,9 +77,9 @@ class TaskEngine {
   }
 
   private Single<FragmentResult> mapReduce(TaskExecutionContext context) {
-    return Observable.fromIterable(((CompositeNode) context.getCurrentNode()).getNodes())
-        .flatMap(
-            graphNode -> processTask(new TaskExecutionContext(context, graphNode)).toObservable())
+    CompositeNode node = (CompositeNode) context.getCurrentNode();
+    return Observable.fromIterable(node.getNodes())
+        .flatMap(graphNode -> processTask(context, graphNode).toObservable())
         .reduce(context, TaskExecutionContext::merge)
         .map(TaskExecutionContext::toFragmentResult);
   }
