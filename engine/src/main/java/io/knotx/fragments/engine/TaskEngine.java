@@ -46,15 +46,12 @@ class TaskEngine {
   private Single<TaskExecutionContext> processTask(TaskExecutionContext context) {
     traceEvent(context);
 
-    if (!context.hasNext()) {
-      return Single.just(context);
-    }
-
-    return getResult(context)
-            .flatMap(fragmentResult -> {
-              context.updateResult(fragmentResult);
-              return processTask(context);
-            });
+    return context.hasNext()
+            ? getResult(context).flatMap(fragmentResult -> {
+                context.updateResult(fragmentResult);
+                return processTask(context);
+            })
+            : Single.just(context);
   }
 
   private Single<TaskExecutionContext> processTask(TaskExecutionContext context, Node currentNode) {

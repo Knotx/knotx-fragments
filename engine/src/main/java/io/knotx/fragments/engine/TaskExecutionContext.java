@@ -114,12 +114,13 @@ class TaskExecutionContext {
   }
 
   FragmentResult toFragmentResult() {
-    FragmentEvent fe = fragmentEventContext.getFragmentEvent();
-    String nextTransition = fe.getStatus().getDedicatedTransition();
-    if (fe.getStatus() == Status.SUCCESS) {
+    FragmentEvent fragmentEvent = fragmentEventContext.getFragmentEvent();
+    Status status = fragmentEvent.getStatus();
+    String nextTransition = status.getDedicatedTransition().orElse(null);
+    if (status == Status.SUCCESS) {
       handleSuccess(nextTransition);
     }
-    return new FragmentResult(fe.getFragment(), nextTransition);
+    return new FragmentResult(fragmentEvent.getFragment(), nextTransition);
   }
 
   boolean hasNext() {

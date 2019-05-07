@@ -54,11 +54,11 @@ public class FragmentsEngine {
 
     return Flowable.just(fragments)
         .concatMap(Flowable::fromIterable)
-        .map(fecta -> fecta
+        .map(fragmentCtx -> fragmentCtx
             .getTask()
             .getRootNode()
-            .map(rootNode -> startTaskEngine(fecta, rootNode))
-            .orElseGet(() -> Single.just(fecta.getFragmentEventContext().getFragmentEvent()))
+            .map(rootNode -> startTaskEngine(fragmentCtx, rootNode))
+            .orElseGet(() -> Single.just(fragmentCtx.getFragmentEventContext().getFragmentEvent()))
         )
         .flatMap(Single::toFlowable)
         .reduce(new ArrayList<FragmentEvent>(), (list, item) -> {
