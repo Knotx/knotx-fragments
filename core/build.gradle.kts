@@ -31,6 +31,7 @@ dependencies {
     implementation(project(":knotx-fragments-engine"))
 
     implementation(group = "org.apache.commons", name = "commons-lang3")
+    implementation(group = "com.google.guava", name = "guava")
     implementation(group = "io.vertx", name = "vertx-circuit-breaker")
 }
 
