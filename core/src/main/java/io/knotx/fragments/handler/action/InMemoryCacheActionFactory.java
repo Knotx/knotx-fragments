@@ -108,7 +108,7 @@ public class InMemoryCacheActionFactory implements ActionFactory {
     String result = config.getString("payloadKey");
     if (StringUtils.isBlank(result)) {
       throw new IllegalArgumentException(
-          "Action requires doActionPayloadKey value in configuration.");
+          "Action requires payloadKey value in configuration.");
     }
     return result;
   }
