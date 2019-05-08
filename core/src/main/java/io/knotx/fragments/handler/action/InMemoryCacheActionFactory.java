@@ -25,7 +25,7 @@ import io.knotx.fragments.handler.api.Cacheable;
 import io.knotx.fragments.handler.api.domain.FragmentContext;
 import io.knotx.fragments.handler.api.domain.FragmentResult;
 import io.knotx.server.api.context.ClientRequest;
-import io.knotx.server.common.placeholders.UriTransformer;
+import io.knotx.server.common.placeholders.PlaceholdersResolver;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
@@ -118,7 +118,7 @@ public class InMemoryCacheActionFactory implements ActionFactory {
     if (StringUtils.isBlank(key)) {
       throw new IllegalArgumentException("Action requires cacheKey value in configuration.");
     }
-    return UriTransformer.resolveServicePath(key, clientRequest);
+    return PlaceholdersResolver.resolve(key, clientRequest);
   }
 
   private Cache<String, Object> createCache(JsonObject config) {
