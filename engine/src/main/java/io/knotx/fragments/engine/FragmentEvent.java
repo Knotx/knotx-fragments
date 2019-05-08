@@ -16,10 +16,14 @@
 package io.knotx.fragments.engine;
 
 
+import static io.knotx.fragments.handler.api.domain.FragmentResult.ERROR_TRANSITION;
+import static io.knotx.fragments.handler.api.domain.FragmentResult.SUCCESS_TRANSITION;
+
 import io.knotx.fragment.Fragment;
 import io.vertx.codegen.annotations.DataObject;
 import io.vertx.core.json.JsonObject;
 import java.util.Objects;
+import java.util.Optional;
 
 @DataObject
 public class FragmentEvent {
@@ -115,7 +119,23 @@ public class FragmentEvent {
   }
 
   public enum Status {
-    UNPROCESSED, SUCCESS, FAILURE
+    UNPROCESSED,
+    SUCCESS(SUCCESS_TRANSITION),
+    FAILURE(ERROR_TRANSITION);
+
+    private String defaultTransition;
+
+    Status() {
+      //empty constructor
+    }
+
+    Status(String defaultTransition) {
+      this.defaultTransition = defaultTransition;
+    }
+
+    public Optional<String> getDefaultTransition() {
+      return Optional.ofNullable(defaultTransition);
+    }
   }
 
 }
