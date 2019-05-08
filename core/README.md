@@ -142,8 +142,12 @@ product-cache {
       # in milliseconds
       ttl = 5000
     }
-    key = product
+    cacheKey = "product-{param.id}"
+    payloadKey = product
   }
   doAction = product-cb
 }
 ```
+Please note that cacheKey can be parametrized with request data like params, headers etc. Read 
+[Knot.x HTTP Server Common Placeholders](https://github.com/Knotx/knotx-server-http/tree/master/common/placeholders)
+documentation for more details. 
