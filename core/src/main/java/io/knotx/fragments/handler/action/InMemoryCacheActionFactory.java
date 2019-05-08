@@ -44,7 +44,7 @@ import org.apache.commons.lang3.StringUtils;
  *         maximumSize = 1000
  *         ttl = 5000
  *       }
- *       cacheKey = product-{params.id}
+ *       cacheKey = product-{param.id}
  *       payloadKey = product
  *     }
  *   }
