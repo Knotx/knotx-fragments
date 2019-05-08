@@ -13,59 +13,65 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.knotx.fragments.handler.api.fragment;
+package io.knotx.fragments.handler.api.domain;
 
 import io.knotx.fragment.Fragment;
-import io.knotx.server.api.context.ClientRequest;
 import io.vertx.codegen.annotations.DataObject;
 import io.vertx.core.json.JsonObject;
 import java.util.Objects;
+import org.apache.commons.lang3.StringUtils;
 
 /**
- * This data structure is passed between {@code Actions} that are vertices of a graph.
+ * Result of the {@code Action} fragment processing.
  */
 @DataObject
-public class FragmentContext {
+public class FragmentResult {
+
+  public static final String SUCCESS_TRANSITION = "_success";
+  public static final String ERROR_TRANSITION = "_error";
 
   private static final String FRAGMENT_KEY = "fragment";
-  private static final String CLIENT_REQUEST_KEY = "clientRequest";
+  private static final String TRANSITION_KEY = "transition";
 
-  private final Fragment fragment;
-  private final ClientRequest clientRequest;
+  private Fragment fragment;
+  private String transition;
 
-  public FragmentContext(Fragment fragment, ClientRequest clientRequest) {
+  public FragmentResult(Fragment fragment, String transition) {
     this.fragment = fragment;
-    this.clientRequest = clientRequest;
+    this.transition = transition;
   }
 
-  public FragmentContext(JsonObject json) {
+  public FragmentResult(JsonObject json) {
     this.fragment = new Fragment(json.getJsonObject(FRAGMENT_KEY));
-    this.clientRequest = new ClientRequest(json.getJsonObject(CLIENT_REQUEST_KEY));
+    this.transition = json.getString(TRANSITION_KEY);
   }
 
   public JsonObject toJson() {
     return new JsonObject()
         .put(FRAGMENT_KEY, fragment.toJson())
-        .put(CLIENT_REQUEST_KEY, clientRequest.toJson());
+        .put(TRANSITION_KEY, transition);
   }
 
   /**
-   * Fragment that is passed between Actions. It might be transformend or updated by any {@code
-   * Action}.
+   * A {@code Fragment} transformed or updated during applying the {@code Action}.
    *
-   * @return a Fragment
+   * @return transformed or updated Fragment
    */
   public Fragment getFragment() {
     return fragment;
   }
 
   /**
-   * Original {@code ClientRequest}. This property is immutable for the Fragments graph processing.
+   * Name of the next step in the graph that is defined as the {@code Action} output.
    *
-   * @return client request
+   * @return next transition
    */
-  public ClientRequest getClientRequest() {
-    return clientRequest;
+  public String getTransition() {
+    if (StringUtils.isBlank(transition)) {
+      return SUCCESS_TRANSITION;
+    } else {
+      return transition;
+    }
   }
 
   @Override
@@ -76,21 +82,21 @@ public class FragmentContext {
     if (o == null || getClass() != o.getClass()) {
       return false;
     }
-    FragmentContext that = (FragmentContext) o;
+    FragmentResult that = (FragmentResult) o;
     return Objects.equals(fragment, that.fragment) &&
-        Objects.equals(clientRequest, that.clientRequest);
+        Objects.equals(transition, that.transition);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(fragment, clientRequest);
+    return Objects.hash(fragment, transition);
   }
 
   @Override
   public String toString() {
-    return "FragmentContext{" +
+    return "FragmentResult{" +
         "fragment=" + fragment +
-        ", clientRequest=" + clientRequest +
+        ", transition='" + transition + '\'' +
         '}';
   }
 }

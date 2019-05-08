@@ -17,8 +17,8 @@
  */
 package io.knotx.fragments.task;
 
-import static io.knotx.fragments.handler.api.fragment.FragmentResult.ERROR_TRANSITION;
-import static io.knotx.fragments.handler.api.fragment.FragmentResult.SUCCESS_TRANSITION;
+import static io.knotx.fragments.handler.api.domain.FragmentResult.ERROR_TRANSITION;
+import static io.knotx.fragments.handler.api.domain.FragmentResult.SUCCESS_TRANSITION;
 
 import io.knotx.fragment.Fragment;
 import io.knotx.fragments.engine.Task;
@@ -26,9 +26,9 @@ import io.knotx.fragments.engine.graph.ActionNode;
 import io.knotx.fragments.engine.graph.CompositeNode;
 import io.knotx.fragments.engine.graph.Node;
 import io.knotx.fragments.handler.action.ActionProvider;
-import io.knotx.fragments.handler.api.fragment.Action;
-import io.knotx.fragments.handler.api.fragment.FragmentContext;
-import io.knotx.fragments.handler.api.fragment.FragmentResult;
+import io.knotx.fragments.handler.api.Action;
+import io.knotx.fragments.handler.api.domain.FragmentContext;
+import io.knotx.fragments.handler.api.domain.FragmentResult;
 import io.knotx.fragments.handler.exception.GraphConfigurationException;
 import io.knotx.fragments.handler.options.FragmentsHandlerOptions;
 import io.knotx.fragments.handler.options.NodeOptions;
@@ -108,7 +108,7 @@ public class TaskBuilder {
 
   private Function<FragmentContext, Single<FragmentResult>> toRxFunction(
       Action action) {
-    io.knotx.fragments.handler.reactivex.api.fragment.Action rxAction = io.knotx.fragments.handler.reactivex.api.fragment.Action
+    io.knotx.fragments.handler.reactivex.api.Action rxAction = io.knotx.fragments.handler.reactivex.api.Action
         .newInstance(action);
     return rxAction::rxApply;
   }

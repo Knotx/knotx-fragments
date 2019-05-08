@@ -15,16 +15,13 @@
  */
 package io.knotx.fragments.engine;
 
-import static io.knotx.fragments.handler.api.fragment.FragmentResult.ERROR_TRANSITION;
-import static io.knotx.fragments.handler.api.fragment.FragmentResult.SUCCESS_TRANSITION;
+import static io.knotx.fragments.handler.api.domain.FragmentResult.ERROR_TRANSITION;
+import static io.knotx.fragments.handler.api.domain.FragmentResult.SUCCESS_TRANSITION;
 
 import io.knotx.fragment.Fragment;
 import io.knotx.fragments.engine.FragmentEvent.Status;
 import io.knotx.fragments.engine.graph.Node;
-import io.knotx.fragments.handler.api.exception.KnotProcessingFatalException;
-import io.knotx.fragments.handler.api.fragment.FragmentContext;
-import io.knotx.fragments.handler.api.fragment.FragmentResult;
-import io.knotx.server.api.context.ClientRequest;
+
 import io.reactivex.Single;
 import io.reactivex.SingleSource;
 import io.vertx.core.eventbus.ReplyException;
@@ -151,7 +148,7 @@ class TaskExecutionContext {
   }
 
   private boolean isFatal(Throwable error) {
-    return error instanceof KnotProcessingFatalException;
+    return error instanceof ActionFatalException;
   }
 
   private void ifNotDefaultTransitionEndAsUnsupportedFailure(String transition) {

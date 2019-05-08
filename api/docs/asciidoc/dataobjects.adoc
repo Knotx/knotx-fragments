@@ -1,5 +1,55 @@
 = Cheatsheets
 
+[[ActionPayload]]
+== ActionPayload
+
+
+[cols=">25%,25%,50%"]
+[frame="topbot"]
+|===
+^|Name | Type ^| Description
+|[[request]]`@request`|`link:dataobjects.html#ActionRequest[ActionRequest]`|-
+|[[response]]`@response`|`link:dataobjects.html#ActionResponse[ActionResponse]`|-
+|===
+
+[[ActionRequest]]
+== ActionRequest
+
+
+[cols=">25%,25%,50%"]
+[frame="topbot"]
+|===
+^|Name | Type ^| Description
+|[[metadata]]`@metadata`|`Json object`|-
+|[[source]]`@source`|`String`|-
+|[[type]]`@type`|`String`|-
+|===
+
+[[ActionResponse]]
+== ActionResponse
+
+
+[cols=">25%,25%,50%"]
+[frame="topbot"]
+|===
+^|Name | Type ^| Description
+|[[error]]`@error`|`link:dataobjects.html#ActionResponseError[ActionResponseError]`|-
+|[[metadata]]`@metadata`|`Json object`|-
+|[[success]]`@success`|`Boolean`|-
+|===
+
+[[ActionResponseError]]
+== ActionResponseError
+
+
+[cols=">25%,25%,50%"]
+[frame="topbot"]
+|===
+^|Name | Type ^| Description
+|[[code]]`@code`|`String`|-
+|[[message]]`@message`|`String`|-
+|===
+
 [[FragmentContext]]
 == FragmentContext
 

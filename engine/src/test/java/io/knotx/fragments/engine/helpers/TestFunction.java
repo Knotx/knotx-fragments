@@ -17,12 +17,12 @@
  */
 package io.knotx.fragments.engine.helpers;
 
-import static io.knotx.fragments.handler.api.fragment.FragmentResult.SUCCESS_TRANSITION;
+import static io.knotx.fragments.handler.api.domain.FragmentResult.SUCCESS_TRANSITION;
 
 import io.knotx.fragment.Fragment;
-import io.knotx.fragments.handler.api.exception.KnotProcessingFatalException;
-import io.knotx.fragments.handler.api.fragment.FragmentContext;
-import io.knotx.fragments.handler.api.fragment.FragmentResult;
+import io.knotx.fragments.handler.api.exception.ActionFatalException;
+import io.knotx.fragments.handler.api.domain.FragmentContext;
+import io.knotx.fragments.handler.api.domain.FragmentResult;
 import io.reactivex.Single;
 import io.vertx.core.json.JsonObject;
 import java.util.concurrent.TimeUnit;
@@ -54,7 +54,7 @@ public interface TestFunction extends Function<FragmentContext, Single<FragmentR
 
   static TestFunction fatal(Fragment fragment) {
     return fragmentContext -> {
-      throw new KnotProcessingFatalException(fragment);
+      throw new ActionFatalException(fragment);
     };
   }
 
