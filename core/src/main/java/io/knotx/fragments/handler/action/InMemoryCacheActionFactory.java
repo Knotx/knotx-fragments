@@ -1,3 +1,18 @@
+/*
+ * Copyright (C) 2019 Knot.x Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package io.knotx.fragments.handler.action;
 
 
@@ -9,6 +24,8 @@ import io.knotx.fragments.handler.api.ActionFactory;
 import io.knotx.fragments.handler.api.Cacheable;
 import io.knotx.fragments.handler.api.domain.FragmentContext;
 import io.knotx.fragments.handler.api.domain.FragmentResult;
+import io.knotx.server.api.context.ClientRequest;
+import io.knotx.server.common.placeholders.UriTransformer;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
@@ -27,7 +44,8 @@ import org.apache.commons.lang3.StringUtils;
  *         maximumSize = 1000
  *         ttl = 5000
  *       }
- *       key = product
+ *       cacheKey = product-{params.id}
+ *       payloadKey = product
  *     }
  *   }
  * </pre>
@@ -49,32 +67,33 @@ public class InMemoryCacheActionFactory implements ActionFactory {
 
     return new Action() {
       private Cache<String, Object> cache = createCache(config);
-      private String key = getPayloadKey(config);
+      private String payloadKey = getPayloadKey(config);
 
       @Override
       public void apply(FragmentContext fragmentContext,
           Handler<AsyncResult<FragmentResult>> resultHandler) {
 
-        Object cachedValue = cache.getIfPresent(key);
+        String cacheKey = getCacheKey(config, fragmentContext.getClientRequest());
+        Object cachedValue = cache.getIfPresent(cacheKey);
         if (cachedValue == null) {
-          callDoActionAndCache(fragmentContext, resultHandler);
+          callDoActionAndCache(fragmentContext, resultHandler, cacheKey);
         } else {
           Fragment fragment = fragmentContext.getFragment();
-          fragment.appendPayload(key, cachedValue);
+          fragment.appendPayload(payloadKey, cachedValue);
           FragmentResult result = new FragmentResult(fragment, FragmentResult.SUCCESS_TRANSITION);
           Future.succeededFuture(result).setHandler(resultHandler);
         }
       }
 
       private void callDoActionAndCache(FragmentContext fragmentContext,
-          Handler<AsyncResult<FragmentResult>> resultHandler) {
+          Handler<AsyncResult<FragmentResult>> resultHandler, String cacheKey) {
         doAction.apply(fragmentContext, asyncResult -> {
           if (asyncResult.succeeded()) {
             FragmentResult fragmentResult = asyncResult.result();
             if (FragmentResult.SUCCESS_TRANSITION.equals(fragmentResult.getTransition())
-                && fragmentResult.getFragment().getPayload().containsKey(key)) {
+                && fragmentResult.getFragment().getPayload().containsKey(payloadKey)) {
               JsonObject resultPayload = fragmentResult.getFragment().getPayload();
-              cache.put(key, resultPayload.getMap().get(key));
+              cache.put(cacheKey, resultPayload.getMap().get(payloadKey));
             }
             Future.succeededFuture(fragmentResult).setHandler(resultHandler);
           } else {
@@ -86,11 +105,20 @@ public class InMemoryCacheActionFactory implements ActionFactory {
   }
 
   private String getPayloadKey(JsonObject config) {
-    String result = config.getString("key");
+    String result = config.getString("payloadKey");
     if (StringUtils.isBlank(result)) {
-      throw new IllegalArgumentException("Action requires key value in configuration.");
+      throw new IllegalArgumentException(
+          "Action requires doActionPayloadKey value in configuration.");
     }
     return result;
+  }
+
+  private String getCacheKey(JsonObject config, ClientRequest clientRequest) {
+    String key = config.getString("cacheKey");
+    if (StringUtils.isBlank(key)) {
+      throw new IllegalArgumentException("Action requires cacheKey value in configuration.");
+    }
+    return UriTransformer.resolveServicePath(key, clientRequest);
   }
 
   private Cache<String, Object> createCache(JsonObject config) {
