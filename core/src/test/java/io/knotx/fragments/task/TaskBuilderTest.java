@@ -23,6 +23,7 @@ import static io.knotx.fragments.handler.api.domain.FragmentResult.SUCCESS_TRANS
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 import io.knotx.fragment.Fragment;
@@ -47,7 +48,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
@@ -90,7 +90,7 @@ class TaskBuilderTest {
   @DisplayName("Expect exception when action not defined.")
   void expectExceptionWhenActionNotConfigured() {
     // given
-    when(actionProvider.get(Mockito.eq("simpleAction"))).thenReturn(Optional.empty());
+    when(actionProvider.get(eq("simpleAction"))).thenReturn(Optional.empty());
 
     TaskBuilder tested = new TaskBuilder(Collections.singletonMap(TASK_NAME,
         new NodeOptions("simpleAction", NO_TRANSITIONS)), actionProvider);
@@ -103,7 +103,7 @@ class TaskBuilderTest {
   @DisplayName("Expect graph with single action node without transitions.")
   void expectSingleActionNodeGraph() {
     // given
-    when(actionProvider.get(Mockito.eq("simpleAction"))).thenReturn(Optional.of(actionMock));
+    when(actionProvider.get(eq("simpleAction"))).thenReturn(Optional.of(actionMock));
 
     TaskBuilder tested = new TaskBuilder(
         Collections.singletonMap(TASK_NAME, new NodeOptions("simpleAction", NO_TRANSITIONS)),
@@ -159,7 +159,7 @@ class TaskBuilderTest {
   @DisplayName("Expect graph with single composite node without transitions.")
   void expectSingleCompositeNodeGraphWithNoEdges() {
     // given
-    when(actionProvider.get(Mockito.eq("simpleAction"))).thenReturn(Optional.of(actionMock));
+    when(actionProvider.get(eq("simpleAction"))).thenReturn(Optional.of(actionMock));
 
     TaskBuilder tested = new TaskBuilder(
         Collections.singletonMap(TASK_NAME,
@@ -193,8 +193,8 @@ class TaskBuilderTest {
   @DisplayName("Expect graph with composite node and success transition to action node.")
   void expectCompositeNodeWithSingleNodeOnSuccessGraph() {
     // given
-    when(actionProvider.get(Mockito.eq("simpleAction"))).thenReturn(Optional.of(actionMock));
-    when(actionProvider.get(Mockito.eq("lastAction"))).thenReturn(Optional.of(actionMock));
+    when(actionProvider.get(eq("simpleAction"))).thenReturn(Optional.of(actionMock));
+    when(actionProvider.get(eq("lastAction"))).thenReturn(Optional.of(actionMock));
 
     TaskBuilder tested = new TaskBuilder(
         Collections.singletonMap(TASK_NAME,
@@ -226,8 +226,8 @@ class TaskBuilderTest {
   @DisplayName("Expect graph with composite node and error transition to action node.")
   void expectCompositeNodeWithSingleNodeOnErrorGraph() {
     // given
-    when(actionProvider.get(Mockito.eq("simpleAction"))).thenReturn(Optional.of(actionMock));
-    when(actionProvider.get(Mockito.eq("fallbackAction"))).thenReturn(Optional.of(actionMock));
+    when(actionProvider.get(eq("simpleAction"))).thenReturn(Optional.of(actionMock));
+    when(actionProvider.get(eq("fallbackAction"))).thenReturn(Optional.of(actionMock));
 
     TaskBuilder tested = new TaskBuilder(
         Collections.singletonMap(TASK_NAME,
@@ -258,8 +258,8 @@ class TaskBuilderTest {
   @Test
   void expectCompositeNodeAcceptsOnlySuccessAndErrorTransitions() {
     // given
-    when(actionProvider.get(Mockito.eq("simpleAction"))).thenReturn(Optional.of(actionMock));
-    when(actionProvider.get(Mockito.eq("lastAction"))).thenReturn(Optional.of(actionMock));
+    when(actionProvider.get(eq("simpleAction"))).thenReturn(Optional.of(actionMock));
+    when(actionProvider.get(eq("lastAction"))).thenReturn(Optional.of(actionMock));
 
     TaskBuilder tested = new TaskBuilder(
         Collections.singletonMap(TASK_NAME,
@@ -287,7 +287,7 @@ class TaskBuilderTest {
   @DisplayName("Expect graph with nested composite nodes")
   void expectNestedCompositeNodesGraph() {
     // given
-    when(actionProvider.get(Mockito.eq("simpleAction"))).thenReturn(Optional.of(actionMock));
+    when(actionProvider.get(eq("simpleAction"))).thenReturn(Optional.of(actionMock));
 
     TaskBuilder tested = new TaskBuilder(
         Collections.singletonMap(TASK_NAME,
@@ -327,7 +327,7 @@ class TaskBuilderTest {
   @DisplayName("Expect graph when custom task key is defined.")
   void expectGraphWhenCustomTaskKey() {
     // given
-    when(actionProvider.get(Mockito.eq("simpleAction"))).thenReturn(Optional.of(actionMock));
+    when(actionProvider.get(eq("simpleAction"))).thenReturn(Optional.of(actionMock));
 
     TaskBuilder tested = new TaskBuilder(MY_TASK_KEY,
         Collections.singletonMap(TASK_NAME, new NodeOptions("simpleAction", NO_TRANSITIONS)),

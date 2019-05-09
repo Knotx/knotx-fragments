@@ -34,6 +34,9 @@ dependencies {
     implementation(group = "org.apache.commons", name = "commons-lang3")
     implementation(group = "com.google.guava", name = "guava")
     implementation(group = "io.vertx", name = "vertx-circuit-breaker")
+
+    testImplementation(group = "org.mockito", name = "mockito-core")
+    testImplementation(group = "org.mockito", name = "mockito-junit-jupiter")
 }
 
 // -----------------------------------------------------------------------------
