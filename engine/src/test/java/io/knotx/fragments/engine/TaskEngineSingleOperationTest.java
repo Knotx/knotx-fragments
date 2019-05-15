@@ -17,7 +17,7 @@
  */
 package io.knotx.fragments.engine;
 
-import static io.knotx.fragments.engine.FragmentEventLogVerifier.verifyLogEntries;
+import static io.knotx.fragments.engine.FragmentEventLogVerifier.verifyAllLogEntries;
 import static io.knotx.fragments.engine.helpers.TestFunction.appendBody;
 import static io.knotx.fragments.engine.helpers.TestFunction.failure;
 import static io.knotx.fragments.engine.helpers.TestFunction.success;
@@ -209,7 +209,7 @@ class TaskEngineSingleOperationTest {
 
     // then
     verifyExecution(result, testContext,
-        event -> verifyLogEntries(event.getLogAsJson(),
+        event -> verifyAllLogEntries(event.getLogAsJson(),
             Operation.exact("task", "first", "SUCCESS", 0)
         ));
   }
@@ -227,7 +227,7 @@ class TaskEngineSingleOperationTest {
 
     // then
     verifyExecution(result, testContext,
-        event -> FragmentEventLogVerifier.verifyLogEntries(event.getLogAsJson(),
+        event -> FragmentEventLogVerifier.verifyAllLogEntries(event.getLogAsJson(),
             Operation.exact("task", "first", "ERROR", 0),
             Operation.exact("task", "first", "UNSUPPORTED_TRANSITION", 1)
         ));
@@ -248,7 +248,7 @@ class TaskEngineSingleOperationTest {
 
     // then
     verifyExecution(result, testContext,
-        event -> FragmentEventLogVerifier.verifyLogEntries(event.getLogAsJson(),
+        event -> FragmentEventLogVerifier.verifyAllLogEntries(event.getLogAsJson(),
             Operation.exact("task", "first", "SUCCESS", 0),
             Operation.exact("task", "first", "UNSUPPORTED_TRANSITION", 1)
         ));
@@ -268,7 +268,7 @@ class TaskEngineSingleOperationTest {
 
     // then
     verifyExecution(result, testContext,
-        event -> FragmentEventLogVerifier.verifyLogEntries(event.getLogAsJson(),
+        event -> FragmentEventLogVerifier.verifyAllLogEntries(event.getLogAsJson(),
             Operation.exact("task", "first", "ERROR", 0),
             Operation.exact("task", "second", "SUCCESS", 1)
         ));
@@ -277,7 +277,7 @@ class TaskEngineSingleOperationTest {
   private void verifyExecution(Single<FragmentEvent> result, VertxTestContext testContext,
       Consumer<FragmentEvent> successConsumer) throws Throwable {
     // execute
-    // verifyLogEntries
+    // verifyAllLogEntries
     result.subscribe(
         onSuccess -> testContext.verify(() -> {
           successConsumer.accept(onSuccess);
