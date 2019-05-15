@@ -17,6 +17,7 @@
  */
 package io.knotx.fragments.engine;
 
+import static io.knotx.fragments.engine.FragmentEventLogVerifier.verifyAllLogEntries;
 import static io.knotx.fragments.engine.FragmentEventLogVerifier.verifyLogEntries;
 import static io.knotx.fragments.engine.graph.CompositeNode.COMPOSITE_NODE_ID;
 import static io.knotx.fragments.engine.helpers.TestFunction.appendBody;
@@ -121,7 +122,7 @@ class TaskEngineCompositeNodeTest {
 
     // then
     verifyExecution(result, testContext,
-        event -> verifyLogEntries(event.getLogAsJson(),
+        event -> verifyAllLogEntries(event.getLogAsJson(),
             Operation.exact("task", "action", "SUCCESS", 0),
             Operation.exact("task", COMPOSITE_NODE_ID, "SUCCESS", 1)
         ));
@@ -148,6 +149,29 @@ class TaskEngineCompositeNodeTest {
   }
 
   @Test
+  @DisplayName("Expect error parallel event log entry when error transition is handled.")
+  void expectErrorEventLogEntry(VertxTestContext testContext, Vertx vertx)
+      throws Throwable {
+    // given
+    Node rootNode = new CompositeNode(
+        parallel(
+            new ActionNode("action", failure(), NO_TRANSITIONS)
+        ),
+        null,
+        new ActionNode("action", success(), NO_TRANSITIONS)
+    );
+
+    // when
+    Single<FragmentEvent> result = new TaskEngine(vertx).start("task", rootNode, eventContext);
+
+    // then
+    verifyExecution(result, testContext,
+        fragmentEvent -> verifyLogEntries(fragmentEvent.getLogAsJson(),
+            Operation.exact("task", COMPOSITE_NODE_ID, "ERROR", 2)
+        ));
+  }
+
+  @Test
   @DisplayName("Expect unsupported event log entries when error transition not handled")
   void expectUnsupportedEventLogEntryWhenError(VertxTestContext testContext, Vertx vertx)
       throws Throwable {
@@ -163,9 +187,7 @@ class TaskEngineCompositeNodeTest {
     // then
     verifyExecution(result, testContext,
         event -> verifyLogEntries(event.getLogAsJson(),
-            Operation.exact("task", "action", "ERROR", 0),
-            Operation.exact("task", "action", "UNSUPPORTED_TRANSITION", 1),
-            Operation.exact("task", COMPOSITE_NODE_ID, "UNSUPPORTED_TRANSITION", 2)
+            Operation.exact("task", COMPOSITE_NODE_ID, "UNSUPPORTED_TRANSITION", 3)
         ));
   }
 
@@ -310,11 +332,12 @@ class TaskEngineCompositeNodeTest {
 
     // then
     verifyExecution(result, testContext,
-        event -> verifyLogEntries(event.getLogAsJson(),
+        event -> verifyAllLogEntries(event.getLogAsJson(),
             Operation.range("task", "success", "SUCCESS", 0, 3),
             Operation.range("task", "failing", "ERROR", 0, 3),
             Operation.range("task", "failing", "UNSUPPORTED_TRANSITION", 0, 3),
-            Operation.exact("task", COMPOSITE_NODE_ID, "UNSUPPORTED_TRANSITION", 3)
+            Operation.exact("task", COMPOSITE_NODE_ID, "ERROR", 3),
+            Operation.exact("task", COMPOSITE_NODE_ID, "UNSUPPORTED_TRANSITION", 4)
         ));
   }
 
@@ -358,6 +381,32 @@ class TaskEngineCompositeNodeTest {
     // then
     verifyExecution(result, testContext,
         fragmentEvent -> assertEquals(Status.SUCCESS, fragmentEvent.getStatus()));
+  }
+
+  /*
+   * scenario: scenario: parallel[A -error-> , B -error-> A3(fallback) ] -error->
+   */
+  @Test
+  @DisplayName("Expect fallback payload entry when parallel processing returns error and one of parallel actions returns error that is handled by action fallback and ")
+  void expectFallbackPayloadWhenParallelProcessingFails(VertxTestContext testContext, Vertx vertx)
+      throws Throwable {
+    // given
+    Node rootNode = new CompositeNode(
+        parallel(
+            new ActionNode("A", failure(), NO_TRANSITIONS),
+            new ActionNode("B", failure(), Collections.singletonMap(
+                ERROR_TRANSITION,
+                new ActionNode("fallback", appendPayload("fallback", "value"), NO_TRANSITIONS)
+            ))
+        ), null, null
+    );
+
+    // when
+    Single<FragmentEvent> result = new TaskEngine(vertx).start("task", rootNode, eventContext);
+
+    // then
+    verifyExecution(result, testContext,
+        fragmentEvent -> assertTrue(fragmentEvent.getFragment().getPayload().containsKey("fallback")));
   }
 
   @Test
@@ -415,7 +464,7 @@ class TaskEngineCompositeNodeTest {
   private void verifyExecution(Single<FragmentEvent> result, VertxTestContext testContext,
       Consumer<FragmentEvent> successConsumer) throws Throwable {
     // execute
-    // verifyLogEntries
+    // verifyAllLogEntries
     result.subscribe(
         onSuccess -> testContext.verify(() -> {
           successConsumer.accept(onSuccess);
@@ -431,7 +480,7 @@ class TaskEngineCompositeNodeTest {
   private void verifyError(Single<FragmentEvent> result, VertxTestContext testContext,
       Consumer<CompositeException> errorConsumer) throws Throwable {
     // execute
-    // verifyLogEntries
+    // verifyAllLogEntries
     result.subscribe(
         onSuccess -> testContext.failNow(new IllegalStateException()),
         onError -> testContext.verify(() -> {

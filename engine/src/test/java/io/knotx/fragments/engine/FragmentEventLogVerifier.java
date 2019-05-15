@@ -28,7 +28,7 @@ class FragmentEventLogVerifier {
   private static final String ASSERTION_DIFFERENT_SIZE = "Log entries does not have the same size!\nExpected:\n%s,\ncurrent:\n%s";
 
 
-  static void verifyLogEntries(JsonObject log, Operation... expectedOperations) {
+  static void verifyAllLogEntries(JsonObject log, Operation... expectedOperations) {
     JsonArray logArray = log.getJsonArray("operations", new JsonArray());
     if (logArray.size() != expectedOperations.length) {
       throw new AssertionError(
@@ -41,6 +41,18 @@ class FragmentEventLogVerifier {
           .findAny()
           .orElseThrow(() -> new AssertionError(
                   String.format(ASSERTION_NOT_MATCH, Arrays.toString(expectedOperations), logArray)));
+    }
+  }
+
+  static void verifyLogEntries(JsonObject log, Operation... expectedOperations) {
+    JsonArray logArray = log.getJsonArray("operations", new JsonArray());
+    for (Operation expectedOperation : expectedOperations) {
+      Position position = expectedOperation.getPosition();
+      getSliceOfLog(logArray, position)
+          .filter(expectedOperation::matches)
+          .findAny()
+          .orElseThrow(() -> new AssertionError(
+              String.format(ASSERTION_NOT_MATCH, Arrays.toString(expectedOperations), logArray)));
     }
   }
 

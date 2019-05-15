@@ -17,7 +17,7 @@
  */
 package io.knotx.fragments.engine;
 
-import static io.knotx.fragments.engine.FragmentEventLogVerifier.verifyLogEntries;
+import static io.knotx.fragments.engine.FragmentEventLogVerifier.verifyAllLogEntries;
 import static io.knotx.fragments.engine.graph.CompositeNode.COMPOSITE_NODE_ID;
 import static io.knotx.fragments.engine.helpers.TestFunction.appendBody;
 import static io.knotx.fragments.engine.helpers.TestFunction.appendBodyWithPayload;
@@ -191,7 +191,7 @@ class TaskEngineScenariosTest {
     verifyExecution(result, testContext,
         fragmentEvent -> {
           assertEquals(Status.SUCCESS, fragmentEvent.getStatus());
-          verifyLogEntries(fragmentEvent.getLogAsJson(),
+          verifyAllLogEntries(fragmentEvent.getLogAsJson(),
               Operation.exact("task", "first", "SUCCESS", 0),
               Operation.range("task", "A1", "SUCCESS", 1, 4),
               Operation.range("task", "A2", "ERROR", 1, 4),
@@ -308,7 +308,7 @@ class TaskEngineScenariosTest {
   private void verifyExecution(Single<FragmentEvent> result, VertxTestContext testContext,
       Consumer<FragmentEvent> successConsumer, int completionTimeout) throws Throwable {
     // execute
-    // verifyLogEntries
+    // verifyAllLogEntries
     result.subscribe(
         onSuccess -> testContext.verify(() -> {
           successConsumer.accept(onSuccess);

@@ -121,6 +121,9 @@ class TaskExecutionContext {
     String nextTransition = status.getDefaultTransition().orElse(null);
     if (status == Status.SUCCESS) {
       handleSuccess(nextTransition);
+    } else {
+      fragmentEvent
+          .log(EventLogEntry.error(taskName, currentNode.getId(), nextTransition));
     }
     return new FragmentResult(fragmentEvent.getFragment(), nextTransition);
   }
