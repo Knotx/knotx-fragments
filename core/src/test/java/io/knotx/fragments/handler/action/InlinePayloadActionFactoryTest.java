@@ -155,4 +155,31 @@ class InlinePayloadActionFactoryTest {
     }
   }
 
+  @Test
+  @DisplayName("Expect all incoming payload entries in result fragment payload.")
+  void expectAllIncomingPayloadEntriesInResult(VertxTestContext testContext) throws Throwable {
+    // given
+    String expectedKey = "input";
+
+    Fragment fragment = new Fragment("type", new JsonObject(), "body");
+    fragment.appendPayload(expectedKey, "any value");
+    Action action = new InlinePayloadActionFactory()
+        .create(ACTION_ALIAS,
+            new JsonObject().put("payload", EXPECTED_JSON_OBJECT), null, null);
+
+    // when
+    action.apply(new FragmentContext(fragment, new ClientRequest()),
+        result -> {
+          // then
+          testContext.verify(
+              () -> assertTrue(result.result().getFragment().getPayload().containsKey(expectedKey)));
+          testContext.completeNow();
+        });
+
+    assertTrue(testContext.awaitCompletion(5, TimeUnit.SECONDS));
+    if (testContext.failed()) {
+      throw testContext.causeOfFailure();
+    }
+  }
+
 }

@@ -15,9 +15,11 @@
  */
 package io.knotx.fragments.handler.action;
 
+import io.knotx.fragment.Fragment;
 import io.knotx.fragments.handler.api.Action;
 import io.knotx.fragments.handler.api.ActionFactory;
 import io.knotx.fragments.handler.api.Cacheable;
+import io.knotx.fragments.handler.api.domain.FragmentContext;
 import io.knotx.fragments.handler.api.domain.FragmentResult;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
@@ -50,11 +52,18 @@ public class InlinePayloadActionFactory implements ActionFactory {
     }
     return (fragmentContext, resultHandler) -> {
       String key = config.getString("alias", alias);
-      fragmentContext.getFragment().appendPayload(key, config.getMap().get("payload"));
-      Future<FragmentResult> resultFuture = Future.succeededFuture(
-          new FragmentResult(fragmentContext.getFragment(), FragmentResult.SUCCESS_TRANSITION));
+      Object payload = config.getMap().get("payload");
+
+      Future<FragmentResult> resultFuture = Future
+          .succeededFuture(toResult(fragmentContext, key, payload));
       resultFuture.setHandler(resultHandler);
     };
+  }
+
+  private FragmentResult toResult(FragmentContext fragmentContext, String key, Object payload) {
+    Fragment fragment = fragmentContext.getFragment();
+    fragment.appendPayload(key, payload);
+    return new FragmentResult(fragment, FragmentResult.SUCCESS_TRANSITION);
   }
 
 }
