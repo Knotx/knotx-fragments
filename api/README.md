@@ -1,9 +1,9 @@
 # Fragments Handler API
 
 ## Action
-**Action** is a simple function that transforms a Fragment (which is part of a 
-[`FragmentContext`](https://github.com/Knotx/knotx-fragments-handler/blob/master/api/docs/asciidoc/dataobjects.adoc#FragmentContext)).
-The result of applying Action logic is [`FragmentResult`](https://github.com/Knotx/knotx-fragments-handler/blob/master/api/docs/asciidoc/dataobjects.adoc#FragmentResult)
+**Action** is a simple function that operates on a [Fragment](https://github.com/Knotx/knotx-fragment-api#knotx-fragment-api) 
+(which is part of a [`FragmentContext`](https://github.com/Knotx/knotx-fragments-handler/blob/master/api/docs/asciidoc/dataobjects.adoc#FragmentContext)).
+The result of applying Action logic is the [`FragmentResult`](https://github.com/Knotx/knotx-fragments-handler/blob/master/api/docs/asciidoc/dataobjects.adoc#FragmentResult)
 which contains the new Fragment and a Transition (which determines an edge in the processing graph).
 
 In other words, you should understand applying an Action as performing the function:

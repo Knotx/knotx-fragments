@@ -1,8 +1,8 @@
 # Fragments Handler
-This module contains logic of building a *Task* (a directed graph) consisting of *Actions*.
+This module contains the logic of building a *Task* (a directed graph) consisting of *Actions*.
 
-Fragments can contain `data-knotx-task` entry in their configuration. If it is present, then
-the processing logic of defined *Task* is applied.
+Fragments can contain a `data-knotx-task` entry in their configuration. If it is present, then
+the processing logic of a defined *Task* is applied.
 
 The example HTML markup:
 ```html
@@ -107,7 +107,7 @@ The default `alias` is action alias.
 ## Behaviours 
 
 ### Circuit Breaker Action
-Circuit Breaker Action uses the Circuit Breaker pattern from [Vert.x](https://vertx.io/docs/vertx-circuit-breaker/java/).
+Circuit Breaker Action uses the [Circuit Breaker pattern from Vert.x](https://vertx.io/docs/vertx-circuit-breaker/java/).
 It implements the solution with a fallback strategy. When doAction throws error or times out then the
 custom `fallback` transition is returned.
 
