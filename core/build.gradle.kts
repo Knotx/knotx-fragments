@@ -30,7 +30,7 @@ dependencies {
     api(project(":knotx-fragments-handler-api"))
     implementation(project(":knotx-fragments-engine"))
 
-    implementation(group = "io.knotx", name = "knotx-server-http-common-placeholders")
+    implementation("io.knotx:knotx-server-http-common-placeholders:${project.version}")
     implementation(group = "org.apache.commons", name = "commons-lang3")
     implementation(group = "com.google.guava", name = "guava")
     implementation(group = "io.vertx", name = "vertx-circuit-breaker")
