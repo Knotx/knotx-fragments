@@ -57,10 +57,13 @@ function bindEvents(knotXNodes) {
             }
           });
 
-          document.getElementById("knotx-fragment-body").innerHTML = "<xmp>" +
+          document.getElementById("knotx-fragment-body").innerHTML = "<h5>Original body</h5><xmp>" +
               debugData[ev.currentTarget.dataset.knotxId].body + "</xmp>";
-          document.getElementById("knotx-fragment-payload").innerHTML = "<xmp>" +
+          document.getElementById("knotx-fragment-payload").innerHTML = "<h5>Payload</h5><xmp>" +
               JSON.stringify(debugData[ev.currentTarget.dataset.knotxId].payload, null, 2) +
+              "</xmp>";
+          document.getElementById("knotx-fragment-logs").innerHTML = "<h5>Logs</h5><xmp>" +
+              JSON.stringify(debugData[ev.currentTarget.dataset.knotxId].logs, null, 2) +
               "</xmp>";
         },
         true
@@ -73,7 +76,7 @@ function createTemplate() {
 
   newDiv.setAttribute("id", "knotx-debug-template");
   newDiv.innerHTML =
-      "<h1>Welcome to Knot.X debug mode</h1><div id='knotx-fragment-body'></div><div id='knotx-fragment-payload'></div>";
+      "<h3>Knot.x Debug Console</h3><div id='knotx-fragment-body'></div><div id='knotx-fragment-payload'></div><div id='knotx-fragment-logs'></div>";
 
   document.body.appendChild(newDiv);
 }

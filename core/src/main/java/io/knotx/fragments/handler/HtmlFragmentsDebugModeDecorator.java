@@ -69,6 +69,7 @@ class HtmlFragmentsDebugModeDecorator {
         .forEach(fragmentEvent -> {
           Fragment fragment = fragmentEvent.getFragment();
           appendFragmentPayload(fragmentEvent);
+          appendFragmentLog(fragmentEvent);
           wrapFragmentBody(fragment);
           debugData.put(fragment.getId(), fragmentEvent.getDebugData());
         });
@@ -98,6 +99,10 @@ class HtmlFragmentsDebugModeDecorator {
 
   private void appendFragmentPayload(FragmentEvent fragmentEvent) {
     fragmentEvent.getDebugData().put("payload", fragmentEvent.getFragment().getPayload());
+  }
+
+  private void appendFragmentLog(FragmentEvent fragmentEvent) {
+    fragmentEvent.getDebugData().put("logs", fragmentEvent.getLogAsJson());
   }
 
   private void wrapFragmentBody(Fragment fragment) {

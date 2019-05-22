@@ -9,11 +9,11 @@
   overflow: auto;
 }
 
-#knotx-debug-template h1 {
+#knotx-debug-template h3, h5 {
   text-align: center;
 }
 
-#knotx-debug-template #knotx-fragment-body, #knotx-debug-template #knotx-fragment-payload {
-  width: 50%;
+#knotx-debug-template #knotx-fragment-body, #knotx-debug-template #knotx-fragment-payload, #knotx-debug-template #knotx-fragment-logs {
+  width: 33%;
   float: left;
 }
