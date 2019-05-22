@@ -101,9 +101,9 @@ class HtmlFragmentsDebugModeDecorator {
   }
 
   private void wrapFragmentBody(Fragment fragment) {
-    fragment.setBody("<!-- " + fragment.getId() + " -->"
+    fragment.setBody("<!-- data-knotx-id='" + fragment.getId() + "' -->"
         + fragment.getBody()
-        + "<!-- " + fragment.getId() + " -->");
+        + "<!-- data-knotx-id='" + fragment.getId() + "' -->");
 
   }
 
