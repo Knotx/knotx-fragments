@@ -31,28 +31,34 @@ public class FragmentEvent {
   private static final String FRAGMENT_KEY = "fragment";
   private static final String LOG_KEY = "log";
   private static final String STATUS_KEY = "status";
+  private static final String DEBUG_DATA_KEY = "debugData";
 
   private final EventLog log;
   private Fragment fragment;
   private Status status;
+  private JsonObject debugData;
+
 
   public FragmentEvent(Fragment fragment) {
     this.fragment = fragment;
     this.log = new EventLog();
     this.status = Status.UNPROCESSED;
+    this.debugData = new JsonObject();
   }
 
   public FragmentEvent(JsonObject json) {
     this.fragment = new Fragment(json.getJsonObject(FRAGMENT_KEY));
     this.log = new EventLog(json.getJsonObject(LOG_KEY));
     this.status = Status.valueOf(json.getString(STATUS_KEY));
+    this.debugData = json.getJsonObject(DEBUG_DATA_KEY);
   }
 
   public JsonObject toJson() {
     return new JsonObject()
         .put(FRAGMENT_KEY, fragment.toJson())
         .put(LOG_KEY, log.toJson())
-        .put(STATUS_KEY, status);
+        .put(STATUS_KEY, status)
+        .put(DEBUG_DATA_KEY, debugData);
   }
 
   public FragmentEvent log(EventLogEntry logEntry) {
@@ -88,6 +94,10 @@ public class FragmentEvent {
   public FragmentEvent setStatus(Status status) {
     this.status = status;
     return this;
+  }
+
+  public JsonObject getDebugData() {
+    return debugData;
   }
 
   @Override

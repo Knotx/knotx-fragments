@@ -48,15 +48,21 @@ public class FragmentsHandler implements Handler<RoutingContext> {
   private final FragmentsEngine engine;
   private final RequestContextEngine requestContextEngine;
   private final TaskBuilder taskBuilder;
+  private final FragmentsHandlerOptions options;
+  private final HtmlFragmentsDebugModeDecorator debugModeDecorator;
 
   FragmentsHandler(Vertx vertx, JsonObject config) {
-    FragmentsHandlerOptions options = new FragmentsHandlerOptions(config);
+    options = new FragmentsHandlerOptions(config);
 
     ActionProvider proxyProvider = new ActionProvider(options.getActions(),
         supplyFactories(), vertx.getDelegate());
     taskBuilder = new TaskBuilder(options.getTaskKey(), options.getTasks(), proxyProvider);
     engine = new FragmentsEngine(vertx);
     requestContextEngine = new DefaultRequestContextEngine(getClass().getSimpleName());
+    debugModeDecorator = new HtmlFragmentsDebugModeDecorator();
+    if (options.isDebugMode()) {
+      debugModeDecorator.init();
+    }
   }
 
   @Override
@@ -65,13 +71,29 @@ public class FragmentsHandler implements Handler<RoutingContext> {
     List<Fragment> fragments = requestContext.getRequestEvent().getFragments();
     ClientRequest clientRequest = requestContext.getRequestEvent().getClientRequest();
 
-    engine.execute(toEvents(fragments, clientRequest))
-        .map(events -> toHandlerResult(events, requestContext))
+    boolean isDebugMode = isDebugModeOn(clientRequest);
+    List<FragmentEventContextTaskAware> events = toEvents(fragments, clientRequest);
+    if (isDebugMode) {
+      events.forEach(e -> debugModeDecorator
+          .appendFragmentBody(e.getFragmentEventContext().getFragmentEvent()));
+    }
+
+    engine.execute(events)
+        .doOnSuccess(fragmentEvents -> {
+          if (isDebugMode) {
+            debugModeDecorator.addDebugAssetsAndData(fragmentEvents);
+          }
+        })
+        .map(fragmentEvents -> toHandlerResult(fragmentEvents, requestContext))
         .subscribe(
             result -> requestContextEngine
                 .processAndSaveResult(result, routingContext, requestContext),
             error -> requestContextEngine.handleFatal(routingContext, requestContext, error)
         );
+  }
+
+  private boolean isDebugModeOn(ClientRequest clientRequest) {
+    return options.isDebugMode() && clientRequest.getParams().contains("debug");
   }
 
   private Supplier<Iterator<ActionFactory>> supplyFactories() {
@@ -107,7 +129,6 @@ public class FragmentsHandler implements Handler<RoutingContext> {
                   .orElseGet(() -> new FragmentEventContextTaskAware(new Task("_NOT_DEFINED"),
                       fragmentEventContext));
             })
-        .collect(
-            Collectors.toList());
+        .collect(Collectors.toList());
   }
 }

@@ -32,6 +32,8 @@ public class FragmentsHandlerOptions {
 
   private Map<String, ActionOptions> actions;
 
+  private boolean debugMode;
+
   public FragmentsHandlerOptions(Map<String, NodeOptions> tasks) {
     init();
     this.tasks = tasks;
@@ -91,29 +93,28 @@ public class FragmentsHandlerOptions {
     return this;
   }
 
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (o == null || getClass() != o.getClass()) {
-      return false;
-    }
-    FragmentsHandlerOptions that = (FragmentsHandlerOptions) o;
-    return Objects.equals(tasks, that.tasks) &&
-        Objects.equals(actions, that.actions);
+  public boolean isDebugMode() {
+    return debugMode;
   }
 
-  @Override
-  public int hashCode() {
-    return Objects.hash(tasks, actions);
+  /**
+   * Sets the debug mode flag value.
+   *
+   * @param debugMode - debug mode
+   * @return reference to this, so the API can be used fluently
+   */
+  public FragmentsHandlerOptions setDebugMode(boolean debugMode) {
+    this.debugMode = debugMode;
+    return this;
   }
 
   @Override
   public String toString() {
     return "FragmentsHandlerOptions{" +
-        "tasks=" + tasks +
+        "taskKey='" + taskKey + '\'' +
+        ", tasks=" + tasks +
         ", actions=" + actions +
+        ", debugMode=" + debugMode +
         '}';
   }
 }

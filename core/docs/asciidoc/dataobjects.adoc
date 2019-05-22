@@ -30,6 +30,9 @@ Sets <code>Action</code> factory name.
 |[[actions]]`@actions`|`link:dataobjects.html#ActionOptions[ActionOptions]`|+++
 Sets named actions with their factory configuration.
 +++
+|[[debugMode]]`@debugMode`|`Boolean`|+++
+Sets the debug mode flag value.
++++
 |[[taskKey]]`@taskKey`|`String`|-
 |[[tasks]]`@tasks`|`link:dataobjects.html#NodeOptions[NodeOptions]`|+++
 Sets <code>Task</code> list, which are named, directed graphs of <code>Actions</code>.

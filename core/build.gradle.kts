@@ -32,6 +32,7 @@ dependencies {
 
     implementation("io.knotx:knotx-server-http-common-placeholders:${project.version}")
     implementation(group = "org.apache.commons", name = "commons-lang3")
+    implementation(group = "commons-io", name = "commons-io")
     implementation(group = "com.google.guava", name = "guava")
     implementation(group = "io.vertx", name = "vertx-circuit-breaker")
 
@@ -51,7 +52,7 @@ sourceSets.named("main") {
 // -----------------------------------------------------------------------------
 tasks {
     named<RatTask>("rat") {
-        excludes.addAll("**/*.json", "**/*.md", "**/*.adoc", "**/build/*", "**/out/*", "**/generated/*")
+        excludes.addAll("**/*.json", "**/*.md", "**/*.adoc", "**/build/*", "**/out/*", "**/generated/*", "**/*.css", "**/*.js")
     }
     getByName("build").dependsOn("rat")
 }
