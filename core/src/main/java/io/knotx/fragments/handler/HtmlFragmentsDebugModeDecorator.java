@@ -53,23 +53,31 @@ class HtmlFragmentsDebugModeDecorator {
   }
 
   void appendFragmentBody(FragmentEvent fragmentEvent) {
-    fragmentEvent.getDebugData().put("body", fragmentEvent.getFragment().getBody());
+    if (isNotStatic(fragmentEvent)) {
+      fragmentEvent.getDebugData().put("body", fragmentEvent.getFragment().getBody());
+    }
   }
 
   void addDebugAssetsAndData(List<FragmentEvent> fragmentEvents) {
     JsonObject debugData = new JsonObject();
-    fragmentEvents.forEach(fragmentEvent -> {
-      Fragment fragment = fragmentEvent.getFragment();
-      appendFragmentPayload(fragmentEvent);
-      wrapFragmentBody(fragment);
-      debugData.put(fragment.getId(), fragmentEvent.getDebugData());
-    });
+    fragmentEvents.stream()
+        .filter(this::isNotStatic)
+        .forEach(fragmentEvent -> {
+          Fragment fragment = fragmentEvent.getFragment();
+          appendFragmentPayload(fragmentEvent);
+          wrapFragmentBody(fragment);
+          debugData.put(fragment.getId(), fragmentEvent.getDebugData());
+        });
     getFragmentWithBodyEndSection(fragmentEvents)
         .ifPresent(fragment -> fragment.setBody(fragment.getBody().replace(BODY_SECTION_END,
             addAsScript("var debugData = " + debugData.encodePrettily() + ";")
                 + addAsStyle(debugCss)
                 + addAsScript(debugJs)
                 + BODY_SECTION_END)));
+  }
+
+  private boolean isNotStatic(FragmentEvent fragmentEvent) {
+    return !fragmentEvent.getFragment().getType().equals("_STATIC");
   }
 
   private String addAsScript(String script) {

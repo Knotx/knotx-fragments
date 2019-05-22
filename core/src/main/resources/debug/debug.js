@@ -45,20 +45,18 @@ function bindEvents(knotXNodes) {
     item.addEventListener(
         "click",
         function(ev) {
-          document.querySelectorAll(`[data-knotx-id]`).forEach(function(el) {
-            el.style.outline = "";
-          });
-          document
-          .querySelectorAll(
-              `[data-knotx-id=${ev.currentTarget.dataset.knotxId}]`
-          )
-          .forEach(function(el) {
-            if (el.style.outline.trim() === "") {
-              el.style.outline = "1px solid orange";
-            } else {
-              el.style.outline = "";
-            }
-          });
+          //FixMe
+          // document.querySelectorAll(`[data-knotx-id]`).forEach(function(el) {
+          //   el.style.outline = "";
+          // });
+          // document.querySelectorAll(`[data-knotx-id=${ev.currentTarget.dataset.knotxId}]`)
+          // .forEach(function(el) {
+          //   if (el.style.outline.trim() === "") {
+          //     el.style.outline = "1px solid orange";
+          //   } else {
+          //     el.style.outline = "";
+          //   }
+          // });
 
           document.getElementById("knotx-fragment-body").innerHTML = "<xmp>" +
               debugData[ev.currentTarget.dataset.knotxId].body + "</xmp>";
