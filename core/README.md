@@ -151,3 +151,19 @@ product-cache {
 Please note that cacheKey can be parametrized with request data like params, headers etc. Read 
 [Knot.x HTTP Server Common Placeholders](https://github.com/Knotx/knotx-server-http/tree/master/common/placeholders)
 documentation for more details. 
+
+## Debug mode
+> Notice!<br>
+> Currently, only Fragments of HTML type have debug support enabled.
+
+You may debug Fragments with defined Tasks using debug mode.
+
+To start debugging, modify [FragmentsHandlerOptions `debug`](https://github.com/Knotx/knotx-fragments-handler/blob/master/core/docs/asciidoc/dataobjects.adoc#fragmentshandleroptions)
+flag and set it to `true`.
+Now, every request that contains `debug` request param will trigger debug mode for the Fragments.
+You may preview the results in the `Knot.x Debug Console` that will appear at the bottom of the page
+in your browser. To display debug data of any Fragment with defined Task, simply click on it.
+You should see be able to see:
+- The original `body` of the Fragment (the one that came to the Fragments Handler),
+- Fragment's `payload`,
+- `Logs` of all Actions that were executed during the Fragment's Task processing.
