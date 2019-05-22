@@ -19,6 +19,7 @@ package io.knotx.fragments.handler;
 
 import io.knotx.fragment.Fragment;
 import io.knotx.fragments.engine.FragmentEvent;
+import io.knotx.fragments.engine.FragmentEventContextTaskAware;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
@@ -52,8 +53,11 @@ class HtmlFragmentsDebugModeDecorator {
     }
   }
 
-  void appendFragmentBody(FragmentEvent fragmentEvent) {
-    if (isNotStatic(fragmentEvent)) {
+  void markAsDebuggable(FragmentEventContextTaskAware fragmentEventContextTaskAware) {
+    if (hasTask(fragmentEventContextTaskAware)) {
+      FragmentEvent fragmentEvent = fragmentEventContextTaskAware.getFragmentEventContext()
+          .getFragmentEvent();
+      fragmentEvent.getDebugData().put("debug", true);
       fragmentEvent.getDebugData().put("body", fragmentEvent.getFragment().getBody());
     }
   }
@@ -61,7 +65,7 @@ class HtmlFragmentsDebugModeDecorator {
   void addDebugAssetsAndData(List<FragmentEvent> fragmentEvents) {
     JsonObject debugData = new JsonObject();
     fragmentEvents.stream()
-        .filter(this::isNotStatic)
+        .filter(this::isDebugged)
         .forEach(fragmentEvent -> {
           Fragment fragment = fragmentEvent.getFragment();
           appendFragmentPayload(fragmentEvent);
@@ -76,8 +80,12 @@ class HtmlFragmentsDebugModeDecorator {
                 + BODY_SECTION_END)));
   }
 
-  private boolean isNotStatic(FragmentEvent fragmentEvent) {
-    return !fragmentEvent.getFragment().getType().equals("_STATIC");
+  private boolean hasTask(FragmentEventContextTaskAware fragmentEventContextTaskAware) {
+    return fragmentEventContextTaskAware.getTask().isPresent();
+  }
+
+  private boolean isDebugged(FragmentEvent fragmentEvent) {
+    return fragmentEvent.getDebugData().containsKey("debug");
   }
 
   private String addAsScript(String script) {

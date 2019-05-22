@@ -90,7 +90,7 @@ class FragmentsEngineConcurrencyTest {
         Collections.emptyMap());
     Fragment fragment = new Fragment("snippet", new JsonObject(), "some body");
 
-    return new FragmentEventContextTaskAware(new Task("task", graphNode),
+    return new FragmentEventContextWithTask(new Task("task", graphNode),
         new FragmentEventContext(new FragmentEvent(fragment), new ClientRequest()));
   }
 

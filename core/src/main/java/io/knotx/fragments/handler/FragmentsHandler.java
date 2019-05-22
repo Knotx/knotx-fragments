@@ -21,8 +21,9 @@ import io.knotx.fragment.Fragment;
 import io.knotx.fragments.engine.FragmentEvent;
 import io.knotx.fragments.engine.FragmentEventContext;
 import io.knotx.fragments.engine.FragmentEventContextTaskAware;
+import io.knotx.fragments.engine.FragmentEventContextWithTask;
+import io.knotx.fragments.engine.FragmentEventContextWithoutTask;
 import io.knotx.fragments.engine.FragmentsEngine;
-import io.knotx.fragments.engine.Task;
 import io.knotx.fragments.handler.action.ActionProvider;
 import io.knotx.fragments.handler.api.ActionFactory;
 import io.knotx.fragments.handler.options.FragmentsHandlerOptions;
@@ -74,8 +75,7 @@ public class FragmentsHandler implements Handler<RoutingContext> {
     boolean isDebugMode = isDebugModeOn(clientRequest);
     List<FragmentEventContextTaskAware> events = toEvents(fragments, clientRequest);
     if (isDebugMode) {
-      events.forEach(e -> debugModeDecorator
-          .appendFragmentBody(e.getFragmentEventContext().getFragmentEvent()));
+      events.forEach(debugModeDecorator::markAsDebuggable);
     }
 
     engine.execute(events)
@@ -110,11 +110,11 @@ public class FragmentsHandler implements Handler<RoutingContext> {
     return RequestEventHandlerResult.success(requestEvent);
   }
 
-  private RequestEvent updateRequestEvent(RequestEvent requestEvent, List<FragmentEvent> events) {
+  private RequestEvent updateRequestEvent(RequestEvent original, List<FragmentEvent> events) {
     // TODO implement error handling: now we process all fragments, even they are invalid
     List<Fragment> fragments = events.stream().map(FragmentEvent::getFragment)
         .collect(Collectors.toList());
-    return new RequestEvent(requestEvent.getClientRequest(), fragments, requestEvent.getPayload());
+    return new RequestEvent(original.getClientRequest(), fragments, original.getPayload());
   }
 
   private List<FragmentEventContextTaskAware> toEvents(List<Fragment> fragments,
@@ -124,10 +124,9 @@ public class FragmentsHandler implements Handler<RoutingContext> {
             fragment -> {
               FragmentEventContext fragmentEventContext = new FragmentEventContext(
                   new FragmentEvent(fragment), clientRequest);
-              return taskBuilder.build(fragment).map(
-                  task -> new FragmentEventContextTaskAware(task, fragmentEventContext))
-                  .orElseGet(() -> new FragmentEventContextTaskAware(new Task("_NOT_DEFINED"),
-                      fragmentEventContext));
+              return taskBuilder.build(fragment).<FragmentEventContextTaskAware>map(
+                  task -> new FragmentEventContextWithTask(task, fragmentEventContext))
+                  .orElseGet(() -> new FragmentEventContextWithoutTask(fragmentEventContext));
             })
         .collect(Collectors.toList());
   }

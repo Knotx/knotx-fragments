@@ -19,8 +19,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.knotx.fragment.Fragment;
-import io.knotx.fragments.engine.graph.Node;
 import io.knotx.fragments.engine.graph.ActionNode;
+import io.knotx.fragments.engine.graph.Node;
 import io.knotx.fragments.handler.api.domain.FragmentContext;
 import io.knotx.fragments.handler.api.domain.FragmentResult;
 import io.knotx.server.api.context.ClientRequest;
@@ -83,7 +83,7 @@ class FragmentsEngineOrderTest {
     Node graphNode = new ActionNode("id", operation, Collections.emptyMap());
     Fragment fragment = new Fragment("snippet", new JsonObject(), fragmentBody);
 
-    return new FragmentEventContextTaskAware(new Task("task", graphNode),
+    return new FragmentEventContextWithTask(new Task("task", graphNode),
         new FragmentEventContext(new FragmentEvent(fragment), new ClientRequest()));
   }
 

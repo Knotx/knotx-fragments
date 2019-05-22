@@ -16,7 +16,6 @@
 package io.knotx.fragments.engine;
 
 import io.knotx.fragments.engine.FragmentEvent.Status;
-import io.knotx.fragments.engine.graph.Node;
 import io.reactivex.Flowable;
 import io.reactivex.Single;
 import io.vertx.core.logging.Logger;
@@ -56,9 +55,11 @@ public class FragmentsEngine {
         .concatMap(Flowable::fromIterable)
         .map(fragmentCtx -> fragmentCtx
             .getTask()
-            .getRootNode()
-            .map(rootNode -> startTaskEngine(fragmentCtx, rootNode))
-            .orElseGet(() -> Single.just(fragmentCtx.getFragmentEventContext().getFragmentEvent()))
+            .map(task -> task.getRootNode()
+                .map(rootNode -> taskEngine
+                    .start(task.getName(), rootNode, fragmentCtx.getFragmentEventContext()))
+                .orElseGet(() -> fragmentEventWithoutTask(fragmentCtx))
+            ).orElseGet(() -> fragmentEventWithoutTask(fragmentCtx))
         )
         .flatMap(Single::toFlowable)
         .reduce(new ArrayList<FragmentEvent>(), (list, item) -> {
@@ -69,8 +70,9 @@ public class FragmentsEngine {
         .map(this::traceEngineResults);
   }
 
-  private Single<FragmentEvent> startTaskEngine(FragmentEventContextTaskAware fragment, Node rootNode) {
-      return taskEngine.start(fragment.getTask().getName(), rootNode, fragment.getFragmentEventContext());
+  private Single<FragmentEvent> fragmentEventWithoutTask(
+      FragmentEventContextTaskAware fragmentCtx) {
+    return Single.just(fragmentCtx.getFragmentEventContext().getFragmentEvent());
   }
 
   private List<FragmentEvent> incomingOrder(
@@ -84,10 +86,10 @@ public class FragmentsEngine {
 
   private FragmentEvent getFragmentFromListById(String id, List<FragmentEvent> events) {
     return events
-            .stream()
-            .filter(event -> id.equals(event.getFragment().getId()))
-            .findFirst()
-            .orElseThrow(() -> new IllegalStateException("Could not find fragment with id: " + id));
+        .stream()
+        .filter(event -> id.equals(event.getFragment().getId()))
+        .findFirst()
+        .orElseThrow(() -> new IllegalStateException("Could not find fragment with id: " + id));
   }
 
   private List<FragmentEvent> traceEngineResults(List<FragmentEvent> results) {

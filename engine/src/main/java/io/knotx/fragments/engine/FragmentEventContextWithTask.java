@@ -17,7 +17,23 @@ package io.knotx.fragments.engine;
 
 import java.util.Optional;
 
-public interface FragmentEventContextTaskAware {
-  Optional<Task> getTask();
-  FragmentEventContext getFragmentEventContext();
+public class FragmentEventContextWithTask implements FragmentEventContextTaskAware {
+
+  private final Task task;
+  private final FragmentEventContext fragmentEventContext;
+
+  public FragmentEventContextWithTask(Task task, FragmentEventContext fragmentEventContext) {
+    this.task = task;
+    this.fragmentEventContext = fragmentEventContext;
+  }
+
+  @Override
+  public Optional<Task> getTask() {
+    return Optional.of(task);
+  }
+
+  @Override
+  public FragmentEventContext getFragmentEventContext() {
+    return fragmentEventContext;
+  }
 }
