@@ -1,5 +1,3 @@
-import org.gradle.kotlin.dsl.apply
-
 /*
  * Copyright (C) 2019 Knot.x Project
  *
@@ -16,22 +14,16 @@ import org.gradle.kotlin.dsl.apply
  * limitations under the License.
  */
 
-plugins {
-    id("maven-publish")
-}
+val publishTask: TaskProvider<Task> = tasks.named("publish")
+val publishLocalTask: TaskProvider<Task> = tasks.named("publishToMavenLocal")
 
 subprojects {
-    group = "io.knotx"
-    repositories {
-        jcenter()
-        mavenLocal()
-        maven { url = uri("https://plugins.gradle.org/m2/") }
-        maven { url = uri("http://repo1.maven.org/maven2") }
-        maven { url = uri("https://oss.sonatype.org/content/groups/staging/") }
-        maven { url = uri("https://oss.sonatype.org/content/repositories/snapshots") }
+    plugins.withId("maven-publish") {
+        publishTask {
+            dependsOn("${this@subprojects.path}:publish")
+        }
+        publishLocalTask {
+            dependsOn("${this@subprojects.path}:publishToMavenLocal")
+        }
     }
 }
-
-apply(from = "gradle/javaAndUnitTests.gradle.kts")
-apply(from = "gradle/jacoco.gradle.kts")
-apply(from = "gradle/compositeParentPublish.gradle.kts")
