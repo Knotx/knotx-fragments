@@ -86,49 +86,51 @@ tasks.register<Jar>("testJar") {
     from(sourceSets.named("junitTest").get().output)
     classifier = "tests"
 }
-
-publishing {
-    publications {
-        create<MavenPublication>("mavenJava") {
-            artifactId = "knotx-fragments-engine"
-            from(components["java"])
-            artifact(tasks["sourcesJar"])
-            artifact(tasks["javadocJar"])
-            artifact(tasks["testJar"])
-            pom {
-                name.set("Knot.x Fragments Engine")
-                description.set("Fragments Engine module containing map-reduce, graph engine implementation.")
-                url.set("http://knotx.io")
-                licenses {
-                    license {
-                        name.set("The Apache Software License, Version 2.0")
-                        url.set("http://www.apache.org/licenses/LICENSE-2.0.txt")
-                    }
-                }
-                developers {
-                    developer {
-                        id.set("marcinczeczko")
-                        name.set("Marcin Czeczko")
-                        email.set("https://github.com/marcinczeczko")
-                    }
-                    developer {
-                        id.set("skejven")
-                        name.set("Maciej Laskowski")
-                        email.set("https://github.com/Skejven")
-                    }
-                    developer {
-                        id.set("tomaszmichalak")
-                        name.set("Tomasz Michalak")
-                        email.set("https://github.com/tomaszmichalak")
-                    }
-                }
-                scm {
-                    connection.set("scm:git:git://github.com/Knotx/knotx-fragments-handler.git")
-                    developerConnection.set("scm:git:ssh://github.com:Knotx/knotx-fragments-handler.git")
-                    url.set("http://knotx.io")
-                }
+val config: MavenPublication.() -> Unit = {
+    artifactId = "knotx-fragments-engine"
+    from(components["java"])
+    artifact(tasks["sourcesJar"])
+    artifact(tasks["javadocJar"])
+    artifact(tasks["testJar"])
+    pom {
+        name.set("Knot.x Fragments Engine")
+        description.set("Fragments Engine module containing map-reduce, graph engine implementation.")
+        url.set("http://knotx.io")
+        licenses {
+            license {
+                name.set("The Apache Software License, Version 2.0")
+                url.set("http://www.apache.org/licenses/LICENSE-2.0.txt")
             }
         }
+        developers {
+            developer {
+                id.set("marcinczeczko")
+                name.set("Marcin Czeczko")
+                email.set("https://github.com/marcinczeczko")
+            }
+            developer {
+                id.set("skejven")
+                name.set("Maciej Laskowski")
+                email.set("https://github.com/Skejven")
+            }
+            developer {
+                id.set("tomaszmichalak")
+                name.set("Tomasz Michalak")
+                email.set("https://github.com/tomaszmichalak")
+            }
+        }
+        scm {
+            connection.set("scm:git:git://github.com/Knotx/knotx-fragments-handler.git")
+            developerConnection.set("scm:git:ssh://github.com:Knotx/knotx-fragments-handler.git")
+            url.set("http://knotx.io")
+        }
+    }
+
+}
+publishing {
+    publications {
+        create("signedKnotx", config)
+        create("unsignedKnotx", config)
         repositories {
             maven {
                 val releasesRepoUrl = "https://oss.sonatype.org/service/local/staging/deploy/maven2/"
@@ -145,7 +147,7 @@ publishing {
 }
 
 signing {
-    sign(publishing.publications["mavenJava"])
+    sign(publishing.publications["unsignedKnotx"])
 }
 
 apply(from = "../gradle/common.deps.gradle.kts")

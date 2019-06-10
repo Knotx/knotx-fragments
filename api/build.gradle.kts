@@ -79,47 +79,50 @@ tasks.named<Javadoc>("javadoc") {
     }
 }
 
-publishing {
-    publications {
-        create<MavenPublication>("mavenJava") {
-            artifactId = "knotx-fragments-handler-api"
-            from(components["java"])
-            artifact(tasks["sourcesJar"])
-            artifact(tasks["javadocJar"])
-            pom {
-                name.set("Knot.x Fragments Handler API")
-                description.set("Fragments Handler API module contains Fragment processing interfaces.")
-                url.set("http://knotx.io")
-                licenses {
-                    license {
-                        name.set("The Apache Software License, Version 2.0")
-                        url.set("http://www.apache.org/licenses/LICENSE-2.0.txt")
-                    }
-                }
-                developers {
-                    developer {
-                        id.set("marcinczeczko")
-                        name.set("Marcin Czeczko")
-                        email.set("https://github.com/marcinczeczko")
-                    }
-                    developer {
-                        id.set("skejven")
-                        name.set("Maciej Laskowski")
-                        email.set("https://github.com/Skejven")
-                    }
-                    developer {
-                        id.set("tomaszmichalak")
-                        name.set("Tomasz Michalak")
-                        email.set("https://github.com/tomaszmichalak")
-                    }
-                }
-                scm {
-                    connection.set("scm:git:git://github.com/Knotx/knotx-fragments-handler.git")
-                    developerConnection.set("scm:git:ssh://github.com:Knotx/knotx-fragments-handler.git")
-                    url.set("http://knotx.io")
-                }
+val config: MavenPublication.() -> Unit = {
+    artifactId = "knotx-fragments-handler-api"
+    from(components["java"])
+    artifact(tasks["sourcesJar"])
+    artifact(tasks["javadocJar"])
+    pom {
+        name.set("Knot.x Fragments Handler API")
+        description.set("Fragments Handler API module contains Fragment processing interfaces.")
+        url.set("http://knotx.io")
+        licenses {
+            license {
+                name.set("The Apache Software License, Version 2.0")
+                url.set("http://www.apache.org/licenses/LICENSE-2.0.txt")
             }
         }
+        developers {
+            developer {
+                id.set("marcinczeczko")
+                name.set("Marcin Czeczko")
+                email.set("https://github.com/marcinczeczko")
+            }
+            developer {
+                id.set("skejven")
+                name.set("Maciej Laskowski")
+                email.set("https://github.com/Skejven")
+            }
+            developer {
+                id.set("tomaszmichalak")
+                name.set("Tomasz Michalak")
+                email.set("https://github.com/tomaszmichalak")
+            }
+        }
+        scm {
+            connection.set("scm:git:git://github.com/Knotx/knotx-fragments-handler.git")
+            developerConnection.set("scm:git:ssh://github.com:Knotx/knotx-fragments-handler.git")
+            url.set("http://knotx.io")
+        }
+    }
+}
+
+publishing {
+    publications {
+        create("signedKnotx", config)
+        create("unsignedKnotx", config)
         repositories {
             maven {
                 val releasesRepoUrl = "https://oss.sonatype.org/service/local/staging/deploy/maven2/"
@@ -136,7 +139,7 @@ publishing {
 }
 
 signing {
-    sign(publishing.publications["mavenJava"])
+    sign(publishing.publications["signedKnotx"])
 }
 
 
