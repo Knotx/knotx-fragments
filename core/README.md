@@ -120,12 +120,12 @@ Payload To Body Action copies to Fragment body specified payload key value. Its 
 If no key specified whole payload will be copied
 Key can direct nested values. For example for payload;
 
-```json
+```hocon
   {
-    someKey: {
-      someNestedKey: {
-        attr1: value1,
-        attr2: value2, 
+    someKey {
+      someNestedKey {
+        attr1 = value1
+        attr2 = value2 
       }
     }
   }
@@ -133,10 +133,10 @@ Key can direct nested values. For example for payload;
 
 and key value `someKey.someNestedKey` body value will look like:
 
-```json
+```hocon
   { 
-    attr1: value1,
-    attr2: value2, 
+    attr1 = value1
+    attr2 = value2 
   }
 ```
 
