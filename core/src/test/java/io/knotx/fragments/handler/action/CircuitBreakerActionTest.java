@@ -46,7 +46,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 class CircuitBreakerActionTest {
 
   private static final Fragment FRAGMENT = new Fragment("type", new JsonObject(), "expectedBody");
-  private static final int TIMEOUT_IN_MS = 1000;
+  private static final int TIMEOUT_IN_MS = 500;
 
   @Test
   @DisplayName("Expect operation ends when doAction ends on time.")
