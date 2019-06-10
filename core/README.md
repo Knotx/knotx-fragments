@@ -101,6 +101,7 @@ product-payload-fallback {
   }
 }
 ```
+The default `alias` is action alias.
 
 ### Payload To Body Action
 Payload To Body Action copies to Fragment body specified payload key value. Its configuration looks like:
