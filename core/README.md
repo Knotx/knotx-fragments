@@ -5,12 +5,14 @@ Fragments can contain a `data-knotx-task` entry in their configuration. If it is
 the processing logic of a defined *Task* is applied.
 
 The example HTML markup:
+
 ```html
 <knotx:snippet data-knotx-task="pdp">
 </knotx:snippet>
 ```
 
 And in the configuration we have:
+
 ```hocon
 tasks {
   pdp {
@@ -67,11 +69,11 @@ actions {
 
 Read more about configuring fragment graph in the [Data Object docs](https://github.com/Knotx/knotx-fragments-handler/blob/master/core/docs/asciidoc/dataobjects.adoc).
 
-
 ## Actions
 
 ### Inline Body Action
 Inline Body Action replaces Fragment body with specified body. Its configuration looks like:
+
 ```hocon
 product-body-fallback {
   factory = "inline-body"
@@ -86,6 +88,7 @@ The default `body` value is empty content.
 ### Inline Payload Action
 Inline Payload Action puts JSON / JSON Array in Fragment payload with specified key (alias). Its 
 configuration looks like:
+
 ```hocon
 product-payload-fallback {
   factory = "inline-payload"
@@ -135,7 +138,8 @@ and key value `someKey.someNestedKey` body value will look like:
     attr1: value1,
     attr2: value2, 
   }
-    
+```
+
 ## Behaviours 
 
 ### Circuit Breaker Action
@@ -144,6 +148,7 @@ It implements the solution with a fallback strategy. When doAction throws error 
 custom `fallback` transition is returned.
 
 The configuration looks like:
+
 ```hocon
 product-cb {
   factory = "cb"
@@ -165,6 +170,7 @@ product-cb {
 ### In-memory Cache Action
 In-memory Cache Action caches doAction payload result and puts cached values in next invocations. It 
 uses in-memory Guava cache implementation. The configuration looks like:
+
 ```hocon
 product-cache {
   factory = "in-memory-cache"
@@ -180,6 +186,7 @@ product-cache {
   doAction = product-cb
 }
 ```
+
 Please note that cacheKey can be parametrized with request data like params, headers etc. Read 
 [Knot.x HTTP Server Common Placeholders](https://github.com/Knotx/knotx-server-http/tree/master/common/placeholders)
 documentation for more details. 
