@@ -29,6 +29,7 @@ import io.vertx.core.Future;
 import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.VertxTestContext;
 import io.vertx.reactivex.core.MultiMap;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -172,7 +173,7 @@ class InMemoryCacheActionFactoryTest {
     // given
     Action doAction = (fragmentContext, resultHandler) -> {
       Fragment fragment = fragmentContext.getFragment();
-      fragment.appendPayload(PAYLOAD_KEY, uniqueValue());
+      fragment.appendPayload(PAYLOAD_KEY, uniqueValue(fragmentContext.hashCode()));
       Future
           .succeededFuture(new FragmentResult(fragment, FragmentResult.SUCCESS_TRANSITION))
           .setHandler(resultHandler);
@@ -204,7 +205,7 @@ class InMemoryCacheActionFactoryTest {
     // given
     Action doAction = (fragmentContext, resultHandler) -> {
       Fragment fragment = fragmentContext.getFragment();
-      fragment.appendPayload(PAYLOAD_KEY, uniqueValue());
+      fragment.appendPayload(PAYLOAD_KEY, uniqueValue(fragmentContext.hashCode()));
       Future
           .succeededFuture(new FragmentResult(fragment, FragmentResult.SUCCESS_TRANSITION))
           .setHandler(resultHandler);
@@ -236,7 +237,7 @@ class InMemoryCacheActionFactoryTest {
     // given
     Action doAction = (fragmentContext, resultHandler) -> {
       Fragment fragment = fragmentContext.getFragment();
-      fragment.appendPayload(PAYLOAD_KEY, uniqueValue());
+      fragment.appendPayload(PAYLOAD_KEY, uniqueValue(fragmentContext.hashCode()));
       Future
           .succeededFuture(new FragmentResult(fragment, FragmentResult.SUCCESS_TRANSITION))
           .setHandler(resultHandler);
@@ -315,8 +316,8 @@ class InMemoryCacheActionFactoryTest {
     }
   }
 
-  private String uniqueValue() {
-    return EXPECTED_PAYLOAD_DATA + " [" + System.currentTimeMillis() + "]";
+  private String uniqueValue(int contextHash) {
+    return EXPECTED_PAYLOAD_DATA + " [" + UUID.randomUUID().toString() + "|" + contextHash + "]";
   }
 
 }
