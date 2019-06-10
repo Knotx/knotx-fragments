@@ -13,12 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.knotx.example.payment.action;
+package io.knotx.fragments.handler.action;
 
 import static io.vertx.core.Future.succeededFuture;
 
 import java.util.Objects;
 import java.util.Optional;
+
+import org.apache.commons.lang3.StringUtils;
+
+import com.google.common.base.Splitter;
 
 import io.knotx.fragment.Fragment;
 import io.knotx.fragments.handler.api.Action;
@@ -27,6 +31,7 @@ import io.knotx.fragments.handler.api.domain.FragmentResult;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
+
 
 public class PayloadToBodyActionFactory implements ActionFactory {
   private static final String KEY = "key";
@@ -42,11 +47,11 @@ public class PayloadToBodyActionFactory implements ActionFactory {
 
     return (fragmentContext, resultHandler) -> {
       Fragment fragment = fragmentContext.getFragment();
-      String payloadKey = config.getString(KEY);
+      String payloadKey = Objects.nonNull(config) ? config.getString(KEY) : null;
 
       FragmentResult result = getBodyFromPayload(payloadKey, fragment.getPayload())
-        .map(body -> toFragmentResult(fragment, body))
-        .orElse(new FragmentResult(fragment, FragmentResult.ERROR_TRANSITION));
+          .map(body -> toFragmentResult(fragment, body))
+          .orElse(new FragmentResult(fragment, FragmentResult.ERROR_TRANSITION));
 
       Future<FragmentResult> resultFuture = succeededFuture(result);
       resultFuture.setHandler(resultHandler);
@@ -54,18 +59,33 @@ public class PayloadToBodyActionFactory implements ActionFactory {
   }
 
   private FragmentResult toFragmentResult(Fragment fragment, String body) {
-    System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> " + body);
     fragment.setBody(body);
     return new FragmentResult(fragment, FragmentResult.SUCCESS_TRANSITION);
   }
 
   private Optional<String> getBodyFromPayload(String key, JsonObject payload){
-    JsonObject body = Objects.isNull(key) ? payload : payload.getJsonObject(key);
-    if (Objects.isNull(body)){
-      return Optional.empty();
+    JsonObject body = Objects.isNull(key) ? payload : getJsonObject(key, payload);
+    return Optional.ofNullable(body)
+        .map(JsonObject::encodePrettily);
+
+  }
+
+  private JsonObject getJsonObject(String key, JsonObject parent){
+    int dotIndex = key.indexOf('.');
+
+    if(dotIndex == -1){
+      return parent.getJsonObject(key);
     }
 
-    return Optional.of(body.encodePrettily());
+    String newKey = key.substring(dotIndex + 1);
+    JsonObject child = getChild(key, parent, dotIndex);
+
+    return child == null ? null : getJsonObject(newKey, child);
+  }
+
+  private JsonObject getChild(String key, JsonObject parent, int dotIndex) {
+    String childKey = key.substring(0, dotIndex);
+    return parent.getJsonObject(childKey);
   }
 
   private void checkArgument(boolean condition, String message){
