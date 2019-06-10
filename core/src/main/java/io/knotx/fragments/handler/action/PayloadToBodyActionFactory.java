@@ -17,13 +17,6 @@ package io.knotx.fragments.handler.action;
 
 import static io.vertx.core.Future.succeededFuture;
 
-import java.util.Objects;
-import java.util.Optional;
-
-import org.apache.commons.lang3.StringUtils;
-
-import com.google.common.base.Splitter;
-
 import io.knotx.fragment.Fragment;
 import io.knotx.fragments.handler.api.Action;
 import io.knotx.fragments.handler.api.ActionFactory;
@@ -31,9 +24,11 @@ import io.knotx.fragments.handler.api.domain.FragmentResult;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
-
+import java.util.Objects;
+import java.util.Optional;
 
 public class PayloadToBodyActionFactory implements ActionFactory {
+
   private static final String KEY = "key";
 
   @Override
@@ -63,17 +58,17 @@ public class PayloadToBodyActionFactory implements ActionFactory {
     return new FragmentResult(fragment, FragmentResult.SUCCESS_TRANSITION);
   }
 
-  private Optional<String> getBodyFromPayload(String key, JsonObject payload){
+  private Optional<String> getBodyFromPayload(String key, JsonObject payload) {
     JsonObject body = Objects.isNull(key) ? payload : getJsonObject(key, payload);
     return Optional.ofNullable(body)
         .map(JsonObject::encodePrettily);
 
   }
 
-  private JsonObject getJsonObject(String key, JsonObject parent){
+  private JsonObject getJsonObject(String key, JsonObject parent) {
     int dotIndex = key.indexOf('.');
 
-    if(dotIndex == -1){
+    if (dotIndex == -1) {
       return parent.getJsonObject(key);
     }
 
@@ -88,8 +83,8 @@ public class PayloadToBodyActionFactory implements ActionFactory {
     return parent.getJsonObject(childKey);
   }
 
-  private void checkArgument(boolean condition, String message){
-    if(condition){
+  private void checkArgument(boolean condition, String message) {
+    if (condition) {
       throw new IllegalArgumentException(message);
     }
   }

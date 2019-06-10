@@ -39,12 +39,11 @@ public class PayloadToBodyActionFactoryTest {
   private static final String ACTION_ALIAS = "action";
   private static final String PAYLOAD_KEY = "key";
 
-  private static final JsonObject user = new JsonObject().put("name", "kovalsky");
-  private static final JsonObject nestedPayload = new JsonObject().put("user", user);
-  private static final JsonObject payload = new JsonObject().put("key", nestedPayload);
-
+  private static final JsonObject USER = new JsonObject().put("name", "kovalsky");
+  private static final JsonObject NESTED_PAYLOAD = new JsonObject().put("user", USER);
+  private static final JsonObject PAYLOAD = new JsonObject().put("key", NESTED_PAYLOAD);
   private static final Fragment FRAGMENT = new Fragment("type", new JsonObject(),
-      "").mergeInPayload(payload);
+      "").mergeInPayload(PAYLOAD);
 
 
   @Test
@@ -71,7 +70,7 @@ public class PayloadToBodyActionFactoryTest {
           testContext.verify(() -> {
             String body = result.result().getFragment().getBody();
             assertTrue(result.succeeded());
-            assertEquals(new JsonObject(body), nestedPayload);
+            assertEquals(new JsonObject(body), NESTED_PAYLOAD);
           });
 
           testContext.completeNow();
@@ -97,7 +96,7 @@ public class PayloadToBodyActionFactoryTest {
           testContext.verify(() -> {
             String body = result.result().getFragment().getBody();
             assertTrue(result.succeeded());
-            assertEquals(new JsonObject(body), user);
+            assertEquals(new JsonObject(body), USER);
           });
           testContext.completeNow();
         });
