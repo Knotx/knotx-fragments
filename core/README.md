@@ -102,8 +102,39 @@ product-payload-fallback {
 }
 ```
 
-The default `alias` is action alias.
+### Payload To Body Action
+Payload To Body Action copies to Fragment body specified payload key value. Its configuration looks like:
 
+```hocon
+  copyToBody {
+    factory = payload-to-body
+    config {
+      key = "smoe payload key"
+    }
+  }
+```
+If no key specified whole payload will be copied
+Key can direct nested values. For example for payload;
+
+```json
+  {
+    someKey: {
+      someNestedKey: {
+        attr1: value1,
+        attr2: value2, 
+      }
+    }
+  }
+```
+
+and key value `someKey.someNestedKey` body value will look like:
+
+```json
+  { 
+    attr1: value1,
+    attr2: value2, 
+  }
+    
 ## Behaviours 
 
 ### Circuit Breaker Action
