@@ -48,7 +48,7 @@ class FragmentsHandlerTest {
   public void shouldSuccess(Vertx vertx, VertxTestContext testContext)
       throws IOException {
     //given
-    int port = 9999;
+    int port = 9998;
     JsonObject config = from("tasks/fragment-handler/successAction.json");
     FragmentsHandler underTest = new FragmentsHandler(vertx, config);
     mockServer(vertx, underTest, fragment("success-task"), port);
