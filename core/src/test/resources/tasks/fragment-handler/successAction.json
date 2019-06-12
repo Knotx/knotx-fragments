@@ -7,7 +7,7 @@
     },
   "actions":
     {
-      "failing-action": {
+      "success-action": {
         "factory": "test-action",
         "config" : {
           "transition": "_success"
