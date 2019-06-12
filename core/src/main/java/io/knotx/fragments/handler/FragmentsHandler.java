@@ -17,8 +17,20 @@
  */
 package io.knotx.fragments.handler;
 
+import static com.google.common.base.Predicates.alwaysTrue;
+
+import java.util.Iterator;
+import java.util.List;
+import java.util.ServiceLoader;
+import java.util.function.Predicate;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
+
+import com.google.common.base.Predicates;
+
 import io.knotx.fragment.Fragment;
 import io.knotx.fragments.engine.FragmentEvent;
+import io.knotx.fragments.engine.FragmentEvent.Status;
 import io.knotx.fragments.engine.FragmentEventContext;
 import io.knotx.fragments.engine.FragmentEventContextTaskAware;
 import io.knotx.fragments.engine.FragmentsEngine;
@@ -37,11 +49,6 @@ import io.vertx.core.Handler;
 import io.vertx.core.json.JsonObject;
 import io.vertx.reactivex.core.Vertx;
 import io.vertx.reactivex.ext.web.RoutingContext;
-import java.util.Iterator;
-import java.util.List;
-import java.util.ServiceLoader;
-import java.util.function.Supplier;
-import java.util.stream.Collectors;
 
 public class FragmentsHandler implements Handler<RoutingContext> {
 
@@ -62,8 +69,10 @@ public class FragmentsHandler implements Handler<RoutingContext> {
   @Override
   public void handle(RoutingContext routingContext) {
     RequestContext requestContext = routingContext.get(RequestContext.KEY);
-    List<Fragment> fragments = requestContext.getRequestEvent().getFragments();
-    ClientRequest clientRequest = requestContext.getRequestEvent().getClientRequest();
+    List<Fragment> fragments = requestContext.getRequestEvent()
+        .getFragments();
+    ClientRequest clientRequest = requestContext.getRequestEvent()
+        .getClientRequest();
 
     engine.execute(toEvents(fragments, clientRequest))
         .map(events -> toHandlerResult(events, requestContext))
@@ -84,15 +93,46 @@ public class FragmentsHandler implements Handler<RoutingContext> {
 
   private RequestEventHandlerResult toHandlerResult(List<FragmentEvent> events,
       RequestContext requestContext) {
-    RequestEvent requestEvent = updateRequestEvent(requestContext.getRequestEvent(), events);
+    List<Fragment> failedFragments = retrieveFragments(events, hasStatus(Status.FAILURE));
+
+    if (!failedFragments.isEmpty()) {
+      return RequestEventHandlerResult.fail(buildErrorMessage(failedFragments));
+    }
+
+    return processValidEvents(events, requestContext);
+  }
+
+  private RequestEventHandlerResult processValidEvents(List<FragmentEvent> events,
+      RequestContext requestContext) {
+    List<Fragment> allFragments = retrieveFragments(events, hasStatus(Status.SUCCESS));
+    RequestEvent requestEvent = updateRequestEvent(requestContext.getRequestEvent(), allFragments);
     return RequestEventHandlerResult.success(requestEvent);
   }
 
-  private RequestEvent updateRequestEvent(RequestEvent requestEvent, List<FragmentEvent> events) {
-    // TODO implement error handling: now we process all fragments, even they are invalid
-    List<Fragment> fragments = events.stream().map(FragmentEvent::getFragment)
-        .collect(Collectors.toList());
+  private String buildErrorMessage(List<Fragment> fragments) {
+    return String.format("Following fragments processing failed: %s", fragmentIds(fragments));
+  }
+
+  private String fragmentIds(List<Fragment> fragments) {
+    return fragments.stream()
+        .map(Fragment::getId)
+        .collect(Collectors.joining(", "));
+  }
+
+  private RequestEvent updateRequestEvent(RequestEvent requestEvent, List<Fragment> fragments) {
     return new RequestEvent(requestEvent.getClientRequest(), fragments, requestEvent.getPayload());
+  }
+
+  private Predicate<FragmentEvent> hasStatus(Status status) {
+    return e -> e.getStatus() == status;
+  }
+
+  private List<Fragment> retrieveFragments(List<FragmentEvent> events,
+      Predicate<FragmentEvent> predicate) {
+    return events.stream()
+        .filter(predicate)
+        .map(FragmentEvent::getFragment)
+        .collect(Collectors.toList());
   }
 
   private List<FragmentEventContextTaskAware> toEvents(List<Fragment> fragments,
@@ -102,8 +142,9 @@ public class FragmentsHandler implements Handler<RoutingContext> {
             fragment -> {
               FragmentEventContext fragmentEventContext = new FragmentEventContext(
                   new FragmentEvent(fragment), clientRequest);
-              return taskBuilder.build(fragment).map(
-                  task -> new FragmentEventContextTaskAware(task, fragmentEventContext))
+              return taskBuilder.build(fragment)
+                  .map(
+                      task -> new FragmentEventContextTaskAware(task, fragmentEventContext))
                   .orElseGet(() -> new FragmentEventContextTaskAware(new Task("_NOT_DEFINED"),
                       fragmentEventContext));
             })
