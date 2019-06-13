@@ -62,11 +62,16 @@ public class FragmentsHandler implements Handler<RoutingContext> {
   @Override
   public void handle(RoutingContext routingContext) {
     RequestContext requestContext = routingContext.get(RequestContext.KEY);
-    List<Fragment> fragments = requestContext.getRequestEvent().getFragments();
+    final List<Fragment> fragments = routingContext.get("fragments");
+
     ClientRequest clientRequest = requestContext.getRequestEvent().getClientRequest();
 
     engine.execute(toEvents(fragments, clientRequest))
-        .map(events -> toHandlerResult(events, requestContext))
+        // TODO implement error handling: now we process all fragments, even they are invalid
+        .doOnSuccess(events -> routingContext
+            .put("fragments", events.stream().map(FragmentEvent::getFragment)
+                .collect(Collectors.toList())))
+        .map(events -> toHandlerResult(requestContext))
         .subscribe(
             result -> requestContextEngine
                 .processAndSaveResult(result, routingContext, requestContext),
@@ -82,17 +87,10 @@ public class FragmentsHandler implements Handler<RoutingContext> {
     };
   }
 
-  private RequestEventHandlerResult toHandlerResult(List<FragmentEvent> events,
-      RequestContext requestContext) {
-    RequestEvent requestEvent = updateRequestEvent(requestContext.getRequestEvent(), events);
-    return RequestEventHandlerResult.success(requestEvent);
-  }
-
-  private RequestEvent updateRequestEvent(RequestEvent requestEvent, List<FragmentEvent> events) {
-    // TODO implement error handling: now we process all fragments, even they are invalid
-    List<Fragment> fragments = events.stream().map(FragmentEvent::getFragment)
-        .collect(Collectors.toList());
-    return new RequestEvent(requestEvent.getClientRequest(), fragments, requestEvent.getPayload());
+  private RequestEventHandlerResult toHandlerResult(RequestContext requestContext) {
+    RequestEvent requestEvent = requestContext.getRequestEvent();
+    return RequestEventHandlerResult
+        .success(new RequestEvent(requestEvent.getClientRequest(), requestEvent.getPayload()));
   }
 
   private List<FragmentEventContextTaskAware> toEvents(List<Fragment> fragments,
