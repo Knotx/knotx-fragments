@@ -19,6 +19,7 @@ import static com.google.common.collect.Lists.newArrayList;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.IOException;
+import java.util.List;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -88,14 +89,12 @@ class FragmentsHandlerTest {
       int port) {
     ClientRequest clientRequest = new ClientRequest();
 
-    RequestEvent requestEvent = new RequestEvent(clientRequest, newArrayList(fragment),
-        new JsonObject());
+    RequestEvent requestEvent = new RequestEvent(clientRequest, new JsonObject());
 
     RequestContext requestContext = new RequestContext(requestEvent);
-
     Router router = Router.router(vertx);
     router.route("/")
-        .handler(prepareRoutingContext(requestContext))
+        .handler(prepareRoutingContext(requestContext, newArrayList(fragment)))
         .handler(fragmentsHandler)
         .handler(prepareResponse());
 
@@ -104,19 +103,19 @@ class FragmentsHandlerTest {
     httpServer.listen(port);
   }
 
-  private Handler<RoutingContext> prepareRoutingContext(RequestContext requestContext) {
+  private Handler<RoutingContext> prepareRoutingContext(RequestContext requestContext, List<Fragment> fragments) {
     return context -> {
       context.put(RequestContext.KEY, requestContext);
+      context.put("fragments", fragments);
       context.next();
     };
   }
 
   private Handler<RoutingContext> prepareResponse() {
     return context -> {
-      RequestContext rq = context.get(RequestContext.KEY);
+      List<Fragment> fragments = context.get("fragments");
       context.response()
-          .end(rq.getRequestEvent()
-              .getFragments()
+          .end(fragments
               .get(0)
               .getBody());
     };

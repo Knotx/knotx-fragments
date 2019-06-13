@@ -26,8 +26,6 @@ import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-import com.google.common.base.Predicates;
-
 import io.knotx.fragment.Fragment;
 import io.knotx.fragments.engine.FragmentEvent;
 import io.knotx.fragments.engine.FragmentEvent.Status;
@@ -69,18 +67,22 @@ public class FragmentsHandler implements Handler<RoutingContext> {
   @Override
   public void handle(RoutingContext routingContext) {
     RequestContext requestContext = routingContext.get(RequestContext.KEY);
-    List<Fragment> fragments = requestContext.getRequestEvent()
-        .getFragments();
-    ClientRequest clientRequest = requestContext.getRequestEvent()
-        .getClientRequest();
+    final List<Fragment> fragments = routingContext.get("fragments");
+
+    ClientRequest clientRequest = requestContext.getRequestEvent().getClientRequest();
 
     engine.execute(toEvents(fragments, clientRequest))
+        .doOnSuccess(events -> putFragments(routingContext, events))
         .map(events -> toHandlerResult(events, requestContext))
         .subscribe(
             result -> requestContextEngine
                 .processAndSaveResult(result, routingContext, requestContext),
             error -> requestContextEngine.handleFatal(routingContext, requestContext, error)
         );
+  }
+
+  private RoutingContext putFragments(RoutingContext routingContext, List<FragmentEvent> events) {
+    return routingContext.put("fragments", retrieveFragments(events, alwaysTrue()));
   }
 
   private Supplier<Iterator<ActionFactory>> supplyFactories() {
@@ -93,20 +95,14 @@ public class FragmentsHandler implements Handler<RoutingContext> {
 
   private RequestEventHandlerResult toHandlerResult(List<FragmentEvent> events,
       RequestContext requestContext) {
+
     List<Fragment> failedFragments = retrieveFragments(events, hasStatus(Status.FAILURE));
 
     if (!failedFragments.isEmpty()) {
       return RequestEventHandlerResult.fail(buildErrorMessage(failedFragments));
     }
 
-    return processValidEvents(events, requestContext);
-  }
-
-  private RequestEventHandlerResult processValidEvents(List<FragmentEvent> events,
-      RequestContext requestContext) {
-    List<Fragment> allFragments = retrieveFragments(events, hasStatus(Status.SUCCESS));
-    RequestEvent requestEvent = updateRequestEvent(requestContext.getRequestEvent(), allFragments);
-    return RequestEventHandlerResult.success(requestEvent);
+    return RequestEventHandlerResult.success(copyRequestEvent(requestContext.getRequestEvent()));
   }
 
   private String buildErrorMessage(List<Fragment> fragments) {
@@ -119,8 +115,8 @@ public class FragmentsHandler implements Handler<RoutingContext> {
         .collect(Collectors.joining(", "));
   }
 
-  private RequestEvent updateRequestEvent(RequestEvent requestEvent, List<Fragment> fragments) {
-    return new RequestEvent(requestEvent.getClientRequest(), fragments, requestEvent.getPayload());
+  private RequestEvent copyRequestEvent(RequestEvent requestEvent) {
+    return new RequestEvent(requestEvent.getClientRequest(), requestEvent.getPayload());
   }
 
   private Predicate<FragmentEvent> hasStatus(Status status) {
