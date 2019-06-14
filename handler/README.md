@@ -1,7 +1,7 @@
 # Fragments Handler
 It is a [**Handler**](https://github.com/Knotx/knotx-server-http/tree/master/api#routing-handlers)
 that processes a request during [HTTP Server request processing](https://github.com/Knotx/knotx-server-http#how-does-it-work) .
-It operates on [**Fragments**](https://github.com/Knotx/knotx-fragment-api#knotx-fragment-api)
+It operates on [**Fragments**](https://github.com/Knotx/knotx-fragments-handler/tree/master/api#knotx-fragment-api)
  that are result of breaking request into smaller, independent parts. 
 
 ![Node with exits](https://github.com/Knotx/knotx-fragments-handler/raw/master/assets/images/case.png)
