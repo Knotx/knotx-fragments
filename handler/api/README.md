@@ -1,4 +1,4 @@
-# Fragments Handler API
+# Fragments Task API
 
 ## Action
 **Action** is a simple function that operates on a [Fragment](https://github.com/Knotx/knotx-fragment-api#knotx-fragment-api) 

@@ -13,51 +13,55 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 import org.nosphere.apache.rat.RatTask
 
 plugins {
     id("java-library")
     id("maven-publish")
     id("signing")
+    id("jacoco")
     id("org.nosphere.apache.rat") version "0.4.0"
 }
 
 // -----------------------------------------------------------------------------
 // Dependencies
 // -----------------------------------------------------------------------------
+
+val junitTestCompile = configurations.create("junitTestCompile")
+
 dependencies {
-    api("io.knotx:knotx-fragment-api:${project.version}")
-    api("io.knotx:knotx-server-http-api:${project.version}")
-
-    annotationProcessor(platform("io.knotx:knotx-dependencies:${project.version}"))
-    annotationProcessor(group = "io.vertx", name = "vertx-codegen")
-    annotationProcessor(group = "io.vertx", name = "vertx-service-proxy", classifier = "processor")
-    annotationProcessor(group = "io.vertx", name = "vertx-rx-java2-gen")
-
-    implementation(group = "io.vertx", name = "vertx-circuit-breaker")
-    implementation(group = "org.apache.commons", name = "commons-lang3")
+    api(project(":knotx-fragments-handler-api"))
 }
+
+junitTestCompile.extendsFrom(configurations.named("testImplementation").get())
 
 // -----------------------------------------------------------------------------
 // Source sets
 // -----------------------------------------------------------------------------
+sourceSets.named("main") {
+    java.srcDir("src/main/generated")
+}
 tasks.named<JavaCompile>("compileJava") {
     options.annotationProcessorGeneratedSourcesDirectory = file("src/main/generated")
 }
 tasks.named<Delete>("clean") {
     delete.add("src/main/generated")
 }
-sourceSets.named("main") {
-    java.srcDir("src/main/generated")
+sourceSets.create("junitTest") {
+    compileClasspath += sourceSets.named("main").get().output
 }
+sourceSets.named("test") {
+    compileClasspath += sourceSets.named("junitTest").get().output
+    runtimeClasspath += sourceSets.named("junitTest").get().output
+}
+
 
 // -----------------------------------------------------------------------------
 // Tasks
 // -----------------------------------------------------------------------------
 tasks {
     named<RatTask>("rat") {
-        excludes.addAll("**/*.md", "**/*.adoc", "**/build/*", "**/out/*", "**/generated/*")
+        excludes.addAll("**/*.json", "**/*.md", "**/*.adoc", "**/build/*", "**/out/*", "**/generated/*", "/src/test/resources/*")
     }
     getByName("build").dependsOn("rat")
 }
@@ -78,17 +82,22 @@ tasks.named<Javadoc>("javadoc") {
         (options as StandardJavadocDocletOptions).addBooleanOption("html5", true)
     }
 }
+tasks.register<Jar>("testJar") {
+    from(sourceSets.named("junitTest").get().output)
+    classifier = "tests"
+}
 
 publishing {
     publications {
         create<MavenPublication>("mavenJava") {
-            artifactId = "knotx-fragments-handler-api"
+            artifactId = "knotx-fragments-engine"
             from(components["java"])
             artifact(tasks["sourcesJar"])
             artifact(tasks["javadocJar"])
+            artifact(tasks["testJar"])
             pom {
-                name.set("Knot.x Fragments Handler API")
-                description.set("Fragments Handler API module contains Fragment processing interfaces.")
+                name.set("Knot.x Fragments Engine")
+                description.set("Fragments Engine module containing map-reduce, graph engine implementation.")
                 url.set("http://knotx.io")
                 licenses {
                     license {
@@ -134,6 +143,7 @@ publishing {
         }
     }
 }
+
 val subProjectPath = this.path
 signing {
     setRequired {
@@ -144,6 +154,4 @@ signing {
     sign(publishing.publications["mavenJava"])
 }
 
-
-apply(from = "../gradle/codegen.deps.gradle.kts")
-apply(from = "../gradle/common.deps.gradle.kts")
+apply(from = "../../gradle/common.deps.gradle.kts")
