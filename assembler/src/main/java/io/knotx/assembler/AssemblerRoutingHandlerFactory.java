@@ -13,14 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-dependencies {
-  "implementation"(platform("io.knotx:knotx-dependencies:${project.version}"))
-  "implementation"(group = "io.vertx", name = "vertx-core")
-  "implementation"(group = "io.vertx", name = "vertx-service-proxy")
-  "implementation"(group = "io.vertx", name = "vertx-rx-java2")
-  "implementation"(group = "io.vertx", name = "vertx-codegen")
+package io.knotx.assembler;
 
-  "testImplementation"("io.knotx:knotx-junit5:${project.version}")
-  "testImplementation"(group = "io.vertx", name = "vertx-junit5")
-  "testImplementation"(group = "io.vertx", name = "vertx-unit")
+import io.knotx.server.api.handler.RoutingHandlerFactory;
+import io.vertx.core.Handler;
+import io.vertx.core.json.JsonObject;
+import io.vertx.reactivex.core.Vertx;
+import io.vertx.reactivex.ext.web.RoutingContext;
+
+public class AssemblerRoutingHandlerFactory implements RoutingHandlerFactory {
+
+  @Override
+  public String getName() {
+    return "assemblerHandler";
+  }
+
+  @Override
+  public Handler<RoutingContext> create(Vertx vertx, JsonObject config) {
+    return new FragmentAssemblerHandler();
+  }
 }
