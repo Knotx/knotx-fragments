@@ -17,7 +17,7 @@ package io.knotx.fragments.handler;
 
 import static io.vertx.core.Future.succeededFuture;
 
-import io.knotx.fragment.Fragment;
+import io.knotx.fragments.api.Fragment;
 import io.knotx.fragments.handler.api.Action;
 import io.knotx.fragments.handler.api.ActionFactory;
 import io.knotx.fragments.handler.api.domain.FragmentResult;

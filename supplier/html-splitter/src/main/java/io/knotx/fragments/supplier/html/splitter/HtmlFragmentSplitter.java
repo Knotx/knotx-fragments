@@ -15,7 +15,7 @@
  */
 package io.knotx.fragments.supplier.html.splitter;
 
-import io.knotx.fragment.Fragment;
+import io.knotx.fragments.api.Fragment;
 import io.vertx.core.json.JsonObject;
 import java.util.ArrayList;
 import java.util.List;

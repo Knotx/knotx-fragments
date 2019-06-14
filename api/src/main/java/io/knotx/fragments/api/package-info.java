@@ -14,6 +14,6 @@
  * limitations under the License.
  */
 @ModuleGen(name = "knotx-fragment-api", groupPackage = "io.knotx")
-package io.knotx.fragment;
+package io.knotx.fragments.api;
 
 import io.vertx.codegen.annotations.ModuleGen;

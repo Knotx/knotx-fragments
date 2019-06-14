@@ -19,10 +19,10 @@ package io.knotx.fragments.engine.helpers;
 
 import static io.knotx.fragments.handler.api.domain.FragmentResult.SUCCESS_TRANSITION;
 
-import io.knotx.fragment.Fragment;
-import io.knotx.fragments.handler.api.exception.ActionFatalException;
+import io.knotx.fragments.api.Fragment;
 import io.knotx.fragments.handler.api.domain.FragmentContext;
 import io.knotx.fragments.handler.api.domain.FragmentResult;
+import io.knotx.fragments.handler.api.exception.ActionFatalException;
 import io.reactivex.Single;
 import io.vertx.core.json.JsonObject;
 import java.util.concurrent.TimeUnit;

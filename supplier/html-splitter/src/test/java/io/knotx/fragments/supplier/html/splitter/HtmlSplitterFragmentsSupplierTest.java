@@ -20,7 +20,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import io.knotx.fragment.Fragment;
+import io.knotx.fragments.api.Fragment;
 import io.knotx.fragments.supplier.api.FragmentsProvisionException;
 import io.knotx.server.api.context.ClientResponse;
 import io.knotx.server.api.context.RequestContext;

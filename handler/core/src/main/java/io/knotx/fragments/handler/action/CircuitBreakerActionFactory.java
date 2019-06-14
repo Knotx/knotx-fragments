@@ -15,13 +15,13 @@
  */
 package io.knotx.fragments.handler.action;
 
+import io.knotx.fragments.api.Fragment;
 import io.knotx.fragments.handler.api.Action;
 import io.knotx.fragments.handler.api.ActionFactory;
 import io.knotx.fragments.handler.api.Cacheable;
 import io.knotx.fragments.handler.api.domain.FragmentContext;
 import io.knotx.fragments.handler.api.domain.FragmentResult;
 import io.knotx.fragments.handler.exception.DoActionNotDefinedException;
-import io.knotx.fragment.Fragment;
 import io.vertx.circuitbreaker.CircuitBreaker;
 import io.vertx.circuitbreaker.CircuitBreakerOptions;
 import io.vertx.circuitbreaker.impl.CircuitBreakerImpl;

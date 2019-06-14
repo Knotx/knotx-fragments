@@ -15,7 +15,7 @@
  */
 package io.knotx.fragments.supplier.api;
 
-import io.knotx.fragment.Fragment;
+import io.knotx.fragments.api.Fragment;
 import io.knotx.server.api.context.RequestContext;
 import io.knotx.server.api.handler.DefaultRequestContextEngine;
 import io.knotx.server.api.handler.RequestContextEngine;
