@@ -37,6 +37,8 @@ dependencies {
 
     testImplementation(group = "org.mockito", name = "mockito-core")
     testImplementation(group = "org.mockito", name = "mockito-junit-jupiter")
+    testImplementation(group = "io.vertx", name = "vertx-web-client")
+    testImplementation(group = "io.vertx", name = "vertx-rx-java2")
 }
 
 // -----------------------------------------------------------------------------
