@@ -91,7 +91,7 @@ class FragmentsHandlerTest {
   }
 
   @Test
-  @DisplayName("Expect continuing processing next handler when task completes on _success.")
+  @DisplayName("Expect continuing processing next handler when no fragment is failed.")
   void shouldSuccess(Vertx vertx, VertxTestContext testContext)
       throws Throwable {
     //given
