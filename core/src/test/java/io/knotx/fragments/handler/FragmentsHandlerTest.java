@@ -25,14 +25,18 @@ import static org.mockito.Mockito.when;
 import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.mockito.invocation.InvocationOnMock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
+import org.mockito.stubbing.Stubber;
 
 import com.google.common.collect.Lists;
 
@@ -58,6 +62,7 @@ import io.vertx.reactivex.ext.web.client.WebClient;
 class FragmentsHandlerTest {
 
   @Test
+  @DisplayName("Expect fail with Status Code 500 when task completes on non exist transition.")
   void shouldFail(Vertx vertx, VertxTestContext testContext)
       throws Throwable {
     //given
@@ -86,6 +91,7 @@ class FragmentsHandlerTest {
   }
 
   @Test
+  @DisplayName("Expect continuing processing next handler when task completes on _success.")
   void shouldSuccess(Vertx vertx, VertxTestContext testContext)
       throws Throwable {
     //given
