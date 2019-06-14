@@ -15,7 +15,7 @@
  */
 package io.knotx.fragments.supplier.html.splitter;
 
-import io.knotx.fragment.Fragment;
+import io.knotx.fragments.api.Fragment;
 import io.knotx.fragments.supplier.api.FragmentsProvisionException;
 import io.knotx.fragments.supplier.api.FragmentsSupplier;
 import io.knotx.server.api.context.ClientResponse;

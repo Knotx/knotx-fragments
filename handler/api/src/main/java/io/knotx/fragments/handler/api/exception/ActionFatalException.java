@@ -17,7 +17,7 @@
  */
 package io.knotx.fragments.handler.api.exception;
 
-import io.knotx.fragment.Fragment;
+import io.knotx.fragments.api.Fragment;
 
 public class ActionFatalException extends IllegalStateException {
 

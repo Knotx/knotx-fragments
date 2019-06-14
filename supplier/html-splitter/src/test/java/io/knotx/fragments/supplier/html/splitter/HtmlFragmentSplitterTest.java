@@ -18,8 +18,7 @@ package io.knotx.fragments.supplier.html.splitter;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import io.knotx.fragment.Fragment;
-import io.knotx.fragments.supplier.html.splitter.HtmlFragmentSplitter;
+import io.knotx.fragments.api.Fragment;
 import io.knotx.junit5.util.FileReader;
 import io.vertx.core.json.JsonObject;
 import java.io.IOException;

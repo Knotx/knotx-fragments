@@ -17,7 +17,7 @@ package io.knotx.fragments.handler.action;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import io.knotx.fragment.Fragment;
+import io.knotx.fragments.api.Fragment;
 import io.knotx.fragments.handler.api.Action;
 import io.knotx.fragments.handler.api.domain.FragmentContext;
 import io.knotx.server.api.context.ClientRequest;

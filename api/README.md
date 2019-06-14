@@ -11,4 +11,4 @@ Fragment is not associated in any way with any particular format, so examples of
 - some (binary) part of an image.
 
 Fragment is a Data Object and you can read more about it composition in the 
-[Fragment Data Object docs](https://github.com/Knotx/knotx-fragment-api/blob/master/docs/asciidoc/dataobjects.adoc).
+[Fragment Data Object docs](https://github.com/Knotx/knotx-fragments/blob/master/api/docs/asciidoc/dataobjects.adoc).
