@@ -23,3 +23,9 @@ include("knotx-fragments-engine")
 project(":knotx-fragments-handler-api").projectDir = file("api")
 project(":knotx-fragments-handler-core").projectDir = file("core")
 project(":knotx-fragments-engine").projectDir = file("engine")
+
+
+include("knotx-fragments-supplier-api")
+project(":knotx-fragments-supplier-api").projectDir = file("supplier/api")
+include("knotx-fragments-supplier-html-splitter")
+project(":knotx-fragments-supplier-html-splitter").projectDir = file("supplier/html-splitter")
