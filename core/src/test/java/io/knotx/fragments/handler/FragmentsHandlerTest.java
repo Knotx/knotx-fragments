@@ -17,13 +17,24 @@ package io.knotx.fragments.handler;
 
 import static com.google.common.collect.Lists.newArrayList;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.when;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
-import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
+
+import com.google.common.collect.Lists;
 
 import io.knotx.fragment.Fragment;
 import io.knotx.fragments.handler.options.FragmentsHandlerOptions;
@@ -42,83 +53,75 @@ import io.vertx.reactivex.ext.web.RoutingContext;
 import io.vertx.reactivex.ext.web.client.WebClient;
 
 @ExtendWith(VertxExtension.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 class FragmentsHandlerTest {
 
   @Test
-  @DisplayName("Expect Status Code 200 when task completes on _success.")
-  public void shouldSuccess(Vertx vertx, VertxTestContext testContext)
-      throws IOException {
+  void shouldFail(Vertx vertx, VertxTestContext testContext)
+      throws Throwable {
     //given
-    int port = 9998;
-    JsonObject config = from("tasks/fragment-handler/successAction.json");
-    FragmentsHandler underTest = new FragmentsHandler(vertx, config);
-    mockServer(vertx, underTest, fragment("success-task"), port);
+    RoutingContext routingContext = mockRoutingContext("failing-task");
+
+    FragmentsHandler underTest = new FragmentsHandler(vertx,
+        from("tasks/fragment-handler/failingAction.json"));
 
     //when
-    WebClient.create(vertx)
-        .get(port, "localhost", "/")
-        .send(testContext.succeeding(response -> testContext.verify(() -> {
-          //then
-          assertEquals(200, response.statusCode());
-          testContext.completeNow();
-        })));
+    underTest.handle(routingContext);
+
+    //then
+    doAnswer(invocation -> {
+      testContext.completeNow();
+      return null;
+    })
+        .when(routingContext)
+        .fail(500);
+
+    assertTrue(testContext.awaitCompletion(5, TimeUnit.SECONDS));
+
+    if (testContext.failed()) {
+      throw testContext.causeOfFailure();
+    }
+
   }
 
   @Test
-  @DisplayName("Expect Status Code 500 when task completes on non exist transition.")
-  public void shouldFail(Vertx vertx, VertxTestContext testContext)
-      throws IOException {
+  void shouldSuccess(Vertx vertx, VertxTestContext testContext)
+      throws Throwable {
     //given
-    int port = 9999;
-    JsonObject config = from("tasks/fragment-handler/failingAction.json");
-    FragmentsHandler underTest = new FragmentsHandler(vertx, config);
-    mockServer(vertx, underTest, fragment("failing-task"), port);
+    RoutingContext routingContext = mockRoutingContext("success-task");
+
+    FragmentsHandler underTest = new FragmentsHandler(vertx,
+        from("tasks/fragment-handler/successAction.json"));
 
     //when
-    WebClient.create(vertx)
-        .get(port, "localhost", "/")
-        .send(testContext.succeeding(response -> testContext.verify(() -> {
+    underTest.handle(routingContext);
 
-          //then
-          assertEquals(500, response.statusCode());
-          testContext.completeNow();
-        })));
+    //then
+    doAnswer(invocation -> {
+      testContext.completeNow();
+      return null;
+    })
+        .when(routingContext)
+        .next();
+
+    assertTrue(testContext.awaitCompletion(5, TimeUnit.SECONDS));
+
+    if (testContext.failed()) {
+      throw testContext.causeOfFailure();
+    }
   }
 
-  private void mockServer(Vertx vertx, FragmentsHandler fragmentsHandler, Fragment fragment,
-      int port) {
-    ClientRequest clientRequest = new ClientRequest();
+  private RoutingContext mockRoutingContext(String task) {
+    RequestContext requestContext = new RequestContext(
+        new RequestEvent(new ClientRequest(), new JsonObject()));
 
-    RequestEvent requestEvent = new RequestEvent(clientRequest, new JsonObject());
+    RoutingContext routingContext = Mockito.mock(RoutingContext.class);
 
-    RequestContext requestContext = new RequestContext(requestEvent);
-    Router router = Router.router(vertx);
-    router.route("/")
-        .handler(prepareRoutingContext(requestContext, newArrayList(fragment)))
-        .handler(fragmentsHandler)
-        .handler(prepareResponse());
-
-    HttpServer httpServer = vertx.createHttpServer();
-    httpServer.requestHandler(router);
-    httpServer.listen(port);
-  }
-
-  private Handler<RoutingContext> prepareRoutingContext(RequestContext requestContext, List<Fragment> fragments) {
-    return context -> {
-      context.put(RequestContext.KEY, requestContext);
-      context.put("fragments", fragments);
-      context.next();
-    };
-  }
-
-  private Handler<RoutingContext> prepareResponse() {
-    return context -> {
-      List<Fragment> fragments = context.get("fragments");
-      context.response()
-          .end(fragments
-              .get(0)
-              .getBody());
-    };
+    when(routingContext.get(eq(RequestContext.KEY))).thenReturn(requestContext);
+    when(routingContext.get(eq("fragments"))).thenReturn(
+        newArrayList(fragment(task)));
+    return routingContext;
   }
 
   private Fragment fragment(String task) {
