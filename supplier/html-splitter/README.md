@@ -17,7 +17,7 @@ This regexp contains 3 matching groups:
 - `body` - actual markup of the fragment.
 
 Finally, `RequestContext` body is cleared (set to `null`) and fragments are saved
-into [`RequestEvent`](https://github.com/Knotx/knotx-server-http/blob/master/api/docs/asciidoc/dataobjects.adoc#requestevent) fragments list.
+into [`RoutingContext`](https://vertx.io/docs/apidocs/io/vertx/ext/web/RoutingContext.html) under `"fragments"` key.
 
 ### How Template is splitted?
 Lets explain the process of the Template splitting using an example.
