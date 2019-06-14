@@ -62,7 +62,7 @@ import io.vertx.reactivex.ext.web.client.WebClient;
 class FragmentsHandlerTest {
 
   @Test
-  @DisplayName("Expect fail with Status Code 500 when task completes on non exist transition.")
+  @DisplayName("Expect fail with Status Code 500 when any fragment is failed.")
   void shouldFail(Vertx vertx, VertxTestContext testContext)
       throws Throwable {
     //given
