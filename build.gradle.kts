@@ -17,7 +17,8 @@ import org.gradle.kotlin.dsl.apply
  */
 
 plugins {
-    id("maven-publish")
+    java
+    id("io.knotx.publish-all-composite") version "0.1.0"
 }
 
 subprojects {
@@ -31,7 +32,3 @@ subprojects {
         maven { url = uri("https://oss.sonatype.org/content/repositories/snapshots") }
     }
 }
-
-apply(from = "gradle/javaAndUnitTests.gradle.kts")
-apply(from = "gradle/jacoco.gradle.kts")
-apply(from = "gradle/compositeParentPublish.gradle.kts")
