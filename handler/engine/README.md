@@ -1,7 +1,7 @@
 # Fragments Engine
 This module is a heart of the *Fragment Processing*. It actually does the work of independent 
 [**Fragments**](https://github.com/Knotx/knotx-fragments/tree/master/api) processing,
-by routing each *Fragment* throught the graph and applying [**Actions**](https://github.com/Knotx/knotx-fragments-handler/tree/master/api#action)
+by routing each *Fragment* throught the graph and applying [**Actions**](https://github.com/Knotx/knotx-fragments/tree/master/handler/api#action)
  during that processing.
 
 ## Graph Engine
@@ -10,7 +10,7 @@ A **Task** specifies the nodes through which Fragments will be routed by the Gra
 Each Node may define possible *outgoing edges* - **Transitions**.
 
 Additionally, a **Node** can do one of the following:
-  - define an [**Action**](https://github.com/Knotx/knotx-fragments-handler/tree/master/api#action) 
+  - define an [**Action**](https://github.com/Knotx/knotx-fragments/tree/master/handler/api#action) 
   that will be applied to *Fragment* (we call it **Action Node**),
   - consist of other **Nodes** (we call it **Composite Node**).
 
@@ -58,23 +58,23 @@ The images below illustrates the above rules.
 
 * *Node A* and *Node B* ends correctly:
 
-![Node with exits](../assets/images/a_next_b.png)
+![Node with exits](assets/images/a_next_b.png)
 
 * *Node A* raises an exception, *Node B* ends correctly 
 
-![Node with exits](../assets/images/a_error_c.png)
+![Node with exits](assets/images/a_error_c.png)
 
 `FAILURE` states:
 
 * *Node A* ends correctly and *Node B* raises exception:
 
-![Node with exits](../assets/images/a_next_b_error.png)
+![Node with exits](assets/images/a_next_b_error.png)
 
 * *Node A* and *Node C* raises exceptions:
 
-![Node with exits](../assets/images/a_error_c_error.png)
+![Node with exits](assets/images/a_error_c_error.png)
 
 A node can also declare its own exits (transitions) but then we need to configure them in a graph. 
 Otherwise, if the custom transition is set but is not declared, then the `FAILURE` status is returned:
 
-![Node with exits](../assets/images/a_custom.png)
+![Node with exits](assets/images/a_custom.png)
