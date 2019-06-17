@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-@ModuleGen(name = "knotx-fragmenta-api", groupPackage = "io.knotx")
+@ModuleGen(name = "knotx-fragments-api", groupPackage = "io.knotx")
 package io.knotx.fragments.api;
 
 import io.vertx.codegen.annotations.ModuleGen;
