@@ -27,7 +27,7 @@ plugins {
 // Dependencies
 // -----------------------------------------------------------------------------
 dependencies {
-    api("io.knotx:knotx-fragment-api:${project.version}")
+    api(project(":knotx-fragments-api"))
     api("io.knotx:knotx-server-http-api:${project.version}")
 
     annotationProcessor(platform("io.knotx:knotx-dependencies:${project.version}"))

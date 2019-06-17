@@ -16,6 +16,11 @@
 
 rootProject.name = "knotx-fragments-handler"
 
+// API
+include("knotx-fragments-api")
+
+project(":knotx-fragments-api").projectDir = file("api")
+
 // Supplier
 include("knotx-fragments-supplier-api")
 include("knotx-fragments-supplier-html-splitter")

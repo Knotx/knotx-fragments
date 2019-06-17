@@ -17,13 +17,13 @@
  */
 package io.knotx.fragments.handler.action;
 
-import static io.knotx.fragments.handler.api.domain.FragmentResult.SUCCESS_TRANSITION;
 import static io.knotx.fragments.handler.action.CircuitBreakerActionFactory.FALLBACK_TRANSITION;
+import static io.knotx.fragments.handler.api.domain.FragmentResult.SUCCESS_TRANSITION;
 
+import io.knotx.fragments.api.Fragment;
+import io.knotx.fragments.handler.action.CircuitBreakerActionFactory.CircuitBreakerAction;
 import io.knotx.fragments.handler.api.domain.FragmentContext;
 import io.knotx.fragments.handler.api.domain.FragmentResult;
-import io.knotx.fragments.handler.action.CircuitBreakerActionFactory.CircuitBreakerAction;
-import io.knotx.fragment.Fragment;
 import io.knotx.server.api.context.ClientRequest;
 import io.vertx.circuitbreaker.CircuitBreaker;
 import io.vertx.circuitbreaker.CircuitBreakerOptions;

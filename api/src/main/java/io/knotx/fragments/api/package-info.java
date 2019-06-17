@@ -12,23 +12,8 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * The code comes from https://github.com/tomaszmichalak/vertx-rx-map-reduce.
  */
-package io.knotx.fragments.handler.api.exception;
+@ModuleGen(name = "knotx-fragment-api", groupPackage = "io.knotx")
+package io.knotx.fragments.api;
 
-import io.knotx.fragments.api.Fragment;
-
-public class ActionFatalException extends IllegalStateException {
-
-  private Fragment fragment;
-
-  public ActionFatalException(Fragment fragment) {
-    super("Failed during fragment processing [" + fragment.getId() + "]");
-    this.fragment = fragment;
-  }
-
-  public Fragment getFragment() {
-    return fragment;
-  }
-}
+import io.vertx.codegen.annotations.ModuleGen;

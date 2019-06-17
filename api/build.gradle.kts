@@ -13,9 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 import org.nosphere.apache.rat.RatTask
 
+repositories {
+    mavenLocal()
+    maven { url = uri("https://plugins.gradle.org/m2/") }
+    maven { url = uri("http://repo1.maven.org/maven2") }
+    maven { url = uri("https://oss.sonatype.org/content/groups/staging/") }
+    maven { url = uri("https://oss.sonatype.org/content/repositories/snapshots") }
+}
 plugins {
     id("java-library")
     id("maven-publish")
@@ -27,23 +33,21 @@ plugins {
 // Dependencies
 // -----------------------------------------------------------------------------
 dependencies {
-    api(project(":knotx-fragments-api"))
-    api("io.knotx:knotx-server-http-api:${project.version}")
-
     annotationProcessor(platform("io.knotx:knotx-dependencies:${project.version}"))
     annotationProcessor(group = "io.vertx", name = "vertx-codegen")
-    annotationProcessor(group = "io.vertx", name = "vertx-service-proxy", classifier = "processor")
-    annotationProcessor(group = "io.vertx", name = "vertx-rx-java2-gen")
 
-    implementation(group = "io.vertx", name = "vertx-circuit-breaker")
+    implementation(platform("io.knotx:knotx-dependencies:${project.version}"))
+    implementation(group = "io.vertx", name = "vertx-core")
+    implementation(group = "io.vertx", name = "vertx-codegen")
+
     implementation(group = "org.apache.commons", name = "commons-lang3")
 }
-
-// -----------------------------------------------------------------------------
-// Source sets
-// -----------------------------------------------------------------------------
 tasks.named<JavaCompile>("compileJava") {
     options.annotationProcessorGeneratedSourcesDirectory = file("src/main/generated")
+    options.compilerArgs = listOf(
+            "-processor", "io.vertx.codegen.CodeGenProcessor",
+            "-Acodegen.output=${project.projectDir}/docs"
+    )
 }
 tasks.named<Delete>("clean") {
     delete.add("src/main/generated")
@@ -57,7 +61,7 @@ sourceSets.named("main") {
 // -----------------------------------------------------------------------------
 tasks {
     named<RatTask>("rat") {
-        excludes.addAll("**/*.md", "**/*.adoc", "**/build/*", "**/out/*", "**/generated/*")
+        excludes.addAll("*.yml", "*.md", "**/*.md", "**/build/*", "**/out/*", "**/generated/*", "gradle/wrapper/*", "gradlew", "gradlew.bat", ".idea/*", "**/*.adoc")
     }
     getByName("build").dependsOn("rat")
 }
@@ -78,17 +82,16 @@ tasks.named<Javadoc>("javadoc") {
         (options as StandardJavadocDocletOptions).addBooleanOption("html5", true)
     }
 }
-
 publishing {
     publications {
         create<MavenPublication>("mavenJava") {
-            artifactId = "knotx-fragments-handler-api"
+            artifactId = "knotx-fragments-api"
             from(components["java"])
             artifact(tasks["sourcesJar"])
             artifact(tasks["javadocJar"])
             pom {
-                name.set("Knot.x Fragments Handler API")
-                description.set("Module contains Fragment processing interfaces.")
+                name.set("Knot.x Fragments API")
+                description.set("Fragments API - Knot.x processing model")
                 url.set("http://knotx.io")
                 licenses {
                     license {
@@ -143,7 +146,4 @@ signing {
 
     sign(publishing.publications["mavenJava"])
 }
-
-
-apply(from = "../../gradle/codegen.deps.gradle.kts")
-apply(from = "../../gradle/common.deps.gradle.kts")
+apply(from = "../gradle/javaAndUnitTests.gradle.kts")

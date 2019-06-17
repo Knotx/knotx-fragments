@@ -4,7 +4,7 @@ that processes a request during [HTTP Server request processing](https://github.
 It operates on [**Fragments**](https://github.com/Knotx/knotx-fragment-api#knotx-fragment-api)
  that are result of breaking request into smaller, independent parts. 
 
-![Node with exits](assets/images/case.png)
+![Node with exits](https://github.com/Knotx/knotx-fragments-handler/raw/master/assets/images/case.png)
 
 ## How does it works
 
@@ -38,7 +38,7 @@ module in the [Handler Core docs](https://github.com/Knotx/knotx-fragments-handl
 
 The diagram belows depicts Fragments Engine logic (map-reduce).
 
-![Node with exits](assets/images/all_in_one_processing.png)
+![Node with exits](https://github.com/Knotx/knotx-fragments-handler/raw/master/assets/images/all_in_one_processing.png)
 
 Read more about it [here](https://github.com/Knotx/knotx-fragments-handler/tree/master/engine).
 

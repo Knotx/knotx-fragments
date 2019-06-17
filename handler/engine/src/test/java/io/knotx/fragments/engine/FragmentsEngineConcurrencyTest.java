@@ -17,7 +17,7 @@ package io.knotx.fragments.engine;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import io.knotx.fragment.Fragment;
+import io.knotx.fragments.api.Fragment;
 import io.knotx.fragments.engine.graph.ActionNode;
 import io.knotx.fragments.handler.api.domain.FragmentContext;
 import io.knotx.fragments.handler.api.domain.FragmentResult;

@@ -18,7 +18,7 @@ package io.knotx.fragments.handler.action;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import io.knotx.fragment.Fragment;
+import io.knotx.fragments.api.Fragment;
 import io.knotx.fragments.handler.api.Action;
 import io.knotx.fragments.handler.api.ActionFactory;
 import io.knotx.fragments.handler.api.Cacheable;
