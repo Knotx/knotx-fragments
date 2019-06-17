@@ -25,7 +25,7 @@ public class AssemblerRoutingHandlerFactory implements RoutingHandlerFactory {
 
   @Override
   public String getName() {
-    return "assemblerHandler";
+    return "fragmentsAssemblerHandler";
   }
 
   @Override
