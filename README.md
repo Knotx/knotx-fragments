@@ -1,3 +1,6 @@
+[![][travis img]][travis]
+[![][license img]][license]
+
 # Knot.x Fragments
 This repository contains all modules that are the core of the Knot.x Fragments processing.
 
@@ -53,3 +56,9 @@ Finally, after all the Fragments were processed, they are combined into a single
 
 Icons come from [https://www.slidescarnival.com](https://www.slidescarnival.com/copyright-and-legal-information#license) and 
 use [Creative Commons License Attribution 4.0 International](https://creativecommons.org/licenses/by/4.0/).
+
+[travis]:https://travis-ci.com/Knotx/knotx-fragments
+[travis img]:https://travis-ci.com/Knotx/knotx-fragments.svg?branch=master
+
+[license]:https://github.com/Knotx/knotx-fragments/blob/master/LICENSE
+[license img]:https://img.shields.io/badge/License-Apache%202.0-blue.svg
