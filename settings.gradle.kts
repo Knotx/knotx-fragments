@@ -14,12 +14,34 @@
  * limitations under the License.
  */
 
+
+pluginManagement {
+    repositories {
+        maven { url = uri("https://plugins.gradle.org/m2/") }
+        mavenLocal()
+    }
+}
+
 rootProject.name = "knotx-fragments-handler"
 
+// API
+include("knotx-fragments-api")
+project(":knotx-fragments-api").projectDir = file("api")
+
+// Supplier
+include("knotx-fragments-supplier-api")
+include("knotx-fragments-supplier-html-splitter")
+project(":knotx-fragments-supplier-api").projectDir = file("supplier/api")
+project(":knotx-fragments-supplier-html-splitter").projectDir = file("supplier/html-splitter")
+
+// Handler
 include("knotx-fragments-handler-api")
 include("knotx-fragments-handler-core")
 include("knotx-fragments-engine")
+project(":knotx-fragments-handler-api").projectDir = file("handler/api")
+project(":knotx-fragments-handler-core").projectDir = file("handler/core")
+project(":knotx-fragments-engine").projectDir = file("handler/engine")
 
-project(":knotx-fragments-handler-api").projectDir = file("api")
-project(":knotx-fragments-handler-core").projectDir = file("core")
-project(":knotx-fragments-engine").projectDir = file("engine")
+// Assembler
+include("knotx-fragments-assembler")
+project(":knotx-fragments-assembler").projectDir = file("assembler")

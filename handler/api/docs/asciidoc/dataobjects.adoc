@@ -1,0 +1,92 @@
+= Cheatsheets
+
+[[ActionPayload]]
+== ActionPayload
+
+
+[cols=">25%,25%,50%"]
+[frame="topbot"]
+|===
+^|Name | Type ^| Description
+|[[request]]`@request`|`link:dataobjects.html#ActionRequest[ActionRequest]`|-
+|[[response]]`@response`|`link:dataobjects.html#ActionResponse[ActionResponse]`|-
+|===
+
+[[ActionRequest]]
+== ActionRequest
+
+
+[cols=">25%,25%,50%"]
+[frame="topbot"]
+|===
+^|Name | Type ^| Description
+|[[metadata]]`@metadata`|`Json object`|-
+|[[source]]`@source`|`String`|-
+|[[type]]`@type`|`String`|-
+|===
+
+[[ActionResponse]]
+== ActionResponse
+
+
+[cols=">25%,25%,50%"]
+[frame="topbot"]
+|===
+^|Name | Type ^| Description
+|[[error]]`@error`|`link:dataobjects.html#ActionResponseError[ActionResponseError]`|-
+|[[metadata]]`@metadata`|`Json object`|-
+|[[success]]`@success`|`Boolean`|-
+|===
+
+[[ActionResponseError]]
+== ActionResponseError
+
+
+[cols=">25%,25%,50%"]
+[frame="topbot"]
+|===
+^|Name | Type ^| Description
+|[[code]]`@code`|`String`|-
+|[[message]]`@message`|`String`|-
+|===
+
+[[FragmentContext]]
+== FragmentContext
+
+++++
+ This data structure is passed between <code>Actions</code> that are vertices of a graph.
+++++
+'''
+
+[cols=">25%,25%,50%"]
+[frame="topbot"]
+|===
+^|Name | Type ^| Description
+|[[clientRequest]]`@clientRequest`|`link:dataobjects.html#ClientRequest[ClientRequest]`|+++
+Original <code>ClientRequest</code>. This property is immutable for the Fragments graph processing.
++++
+|[[fragment]]`@fragment`|`link:dataobjects.html#Fragment[Fragment]`|+++
+Fragment that is passed between Actions. It might be transformend or updated by any <code>Action</code>.
++++
+|===
+
+[[FragmentResult]]
+== FragmentResult
+
+++++
+ Result of the <code>Action</code> fragment processing.
+++++
+'''
+
+[cols=">25%,25%,50%"]
+[frame="topbot"]
+|===
+^|Name | Type ^| Description
+|[[fragment]]`@fragment`|`link:dataobjects.html#Fragment[Fragment]`|+++
+A <code>Fragment</code> transformed or updated during applying the <code>Action</code>.
++++
+|[[transition]]`@transition`|`String`|+++
+Name of the next step in the graph that is defined as the <code>Action</code> output.
++++
+|===
+

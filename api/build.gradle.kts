@@ -13,137 +13,43 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 import org.nosphere.apache.rat.RatTask
 
+repositories {
+    mavenLocal()
+    maven { url = uri("https://plugins.gradle.org/m2/") }
+    maven { url = uri("http://repo1.maven.org/maven2") }
+    maven { url = uri("https://oss.sonatype.org/content/groups/staging/") }
+    maven { url = uri("https://oss.sonatype.org/content/repositories/snapshots") }
+}
+
 plugins {
-    id("java-library")
-    id("maven-publish")
-    id("signing")
+    id("io.knotx.java-library")
+    id("io.knotx.codegen")
+    id("io.knotx.maven-publish")
+    id("io.knotx.jacoco")
     id("org.nosphere.apache.rat") version "0.4.0"
 }
 
-// -----------------------------------------------------------------------------
-// Dependencies
-// -----------------------------------------------------------------------------
 dependencies {
-    api("io.knotx:knotx-fragment-api:${project.version}")
-    api("io.knotx:knotx-server-http-api:${project.version}")
-
-    annotationProcessor(platform("io.knotx:knotx-dependencies:${project.version}"))
-    annotationProcessor(group = "io.vertx", name = "vertx-codegen")
-    annotationProcessor(group = "io.vertx", name = "vertx-service-proxy", classifier = "processor")
-    annotationProcessor(group = "io.vertx", name = "vertx-rx-java2-gen")
-
-    implementation(group = "io.vertx", name = "vertx-circuit-breaker")
+    implementation(platform("io.knotx:knotx-dependencies:${project.version}"))
+    implementation(group = "io.vertx", name = "vertx-core")
     implementation(group = "org.apache.commons", name = "commons-lang3")
 }
 
-// -----------------------------------------------------------------------------
-// Source sets
-// -----------------------------------------------------------------------------
-tasks.named<JavaCompile>("compileJava") {
-    options.annotationProcessorGeneratedSourcesDirectory = file("src/main/generated")
-}
-tasks.named<Delete>("clean") {
-    delete.add("src/main/generated")
-}
-sourceSets.named("main") {
-    java.srcDir("src/main/generated")
-}
-
-// -----------------------------------------------------------------------------
-// Tasks
-// -----------------------------------------------------------------------------
 tasks {
     named<RatTask>("rat") {
-        excludes.addAll("**/*.md", "**/*.adoc", "**/build/*", "**/out/*", "**/generated/*")
+        excludes.addAll("*.yml", "*.md", "**/*.md", "**/build/*", "**/out/*", "**/generated/*", "**/*.adoc")
     }
     getByName("build").dependsOn("rat")
 }
 
-// -----------------------------------------------------------------------------
-// Publication
-// -----------------------------------------------------------------------------
-tasks.register<Jar>("sourcesJar") {
-    from(sourceSets.named("main").get().allJava)
-    classifier = "sources"
-}
-tasks.register<Jar>("javadocJar") {
-    from(tasks.named<Javadoc>("javadoc"))
-    classifier = "javadoc"
-}
-tasks.named<Javadoc>("javadoc") {
-    if (JavaVersion.current().isJava9Compatible) {
-        (options as StandardJavadocDocletOptions).addBooleanOption("html5", true)
-    }
-}
-
 publishing {
     publications {
-        create<MavenPublication>("mavenJava") {
-            artifactId = "knotx-fragments-handler-api"
+        withType(MavenPublication::class) {
             from(components["java"])
             artifact(tasks["sourcesJar"])
             artifact(tasks["javadocJar"])
-            pom {
-                name.set("Knot.x Fragments Handler API")
-                description.set("Fragments Handler API module contains Fragment processing interfaces.")
-                url.set("http://knotx.io")
-                licenses {
-                    license {
-                        name.set("The Apache Software License, Version 2.0")
-                        url.set("http://www.apache.org/licenses/LICENSE-2.0.txt")
-                    }
-                }
-                developers {
-                    developer {
-                        id.set("marcinczeczko")
-                        name.set("Marcin Czeczko")
-                        email.set("https://github.com/marcinczeczko")
-                    }
-                    developer {
-                        id.set("skejven")
-                        name.set("Maciej Laskowski")
-                        email.set("https://github.com/Skejven")
-                    }
-                    developer {
-                        id.set("tomaszmichalak")
-                        name.set("Tomasz Michalak")
-                        email.set("https://github.com/tomaszmichalak")
-                    }
-                }
-                scm {
-                    connection.set("scm:git:git://github.com/Knotx/knotx-fragments-handler.git")
-                    developerConnection.set("scm:git:ssh://github.com:Knotx/knotx-fragments-handler.git")
-                    url.set("http://knotx.io")
-                }
-            }
-        }
-        repositories {
-            maven {
-                val releasesRepoUrl = "https://oss.sonatype.org/service/local/staging/deploy/maven2/"
-                val snapshotsRepoUrl = "https://oss.sonatype.org/content/repositories/snapshots"
-                url = uri(if (version.toString().endsWith("SNAPSHOT")) snapshotsRepoUrl else releasesRepoUrl)
-                credentials {
-                    username = if (project.hasProperty("ossrhUsername")) project.property("ossrhUsername")?.toString() else "UNKNOWN"
-                    password = if (project.hasProperty("ossrhPassword")) project.property("ossrhPassword")?.toString() else "UNKNOWN"
-                    println("Connecting with user: ${username}")
-                }
-            }
         }
     }
 }
-val subProjectPath = this.path
-signing {
-    setRequired {
-        gradle.taskGraph.hasTask("$subProjectPath:publish") ||
-                gradle.taskGraph.hasTask("$subProjectPath:publishMavenJavaPublicationToMavenRepository")
-    }
-
-    sign(publishing.publications["mavenJava"])
-}
-
-
-apply(from = "../gradle/codegen.deps.gradle.kts")
-apply(from = "../gradle/common.deps.gradle.kts")
