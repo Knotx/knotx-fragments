@@ -22,7 +22,7 @@ pluginManagement {
     }
 }
 
-rootProject.name = "knotx-fragments-handler"
+rootProject.name = "knotx-fragments"
 
 // API
 include("knotx-fragments-api")

@@ -1,6 +1,6 @@
 # Knot.x Splitter Handler
 This module contains [Handler](https://vertx.io/docs/apidocs/io/vertx/core/Handler.html)
-implementation that splits a Template into [`Fragments`](https://github.com/Knotx/knotx-fragments-handler/tree/master/api).
+implementation that splits a Template into [`Fragments`](https://github.com/Knotx/knotx-fragments/tree/master/api).
 
 Template is a document that will be later processed by Knot.x instance. Current implementation (`HtmlFragmentSplitter`)
 supports splitting HTML markup, but Template could be any document like PDF file, Office file or even an image.

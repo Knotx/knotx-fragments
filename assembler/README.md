@@ -1,6 +1,6 @@
 # Knot.x Fragments Assembler
 This module contains [Handler](https://vertx.io/docs/apidocs/io/vertx/core/Handler.html)
-that joins all [`Fragments`](https://github.com/Knotx/knotx-fragments-handler/tree/master/api) and
+that joins all [`Fragments`](https://github.com/Knotx/knotx-fragments/tree/master/api) and
 saves the result into the [`ClientResponse`](https://github.com/Knotx/knotx-server-http/blob/master/api/docs/asciidoc/dataobjects.adoc#clientresponse) body.
 
 ## How does it work?

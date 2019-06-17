@@ -67,7 +67,7 @@ actions {
 }
 ```
 
-Read more about configuring fragment graph in the [Data Object docs](https://github.com/Knotx/knotx-fragments-handler/blob/master/core/docs/asciidoc/dataobjects.adoc).
+Read more about configuring fragment graph in the [Data Object docs](https://github.com/Knotx/knotx-fragments/blob/master/handler/core/docs/asciidoc/dataobjects.adoc).
 
 ## Actions
 
