@@ -13,4 +13,4 @@
 #  limitations under the License.
 
 # Knot.x handlers
-io.knotx.assembler.AssemblerRoutingHandlerFactory
+io.knotx.fragments.assembler.AssemblerRoutingHandlerFactory
