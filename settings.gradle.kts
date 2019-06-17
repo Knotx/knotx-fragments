@@ -36,3 +36,8 @@ include("knotx-fragments-engine")
 project(":knotx-fragments-handler-api").projectDir = file("handler/api")
 project(":knotx-fragments-handler-core").projectDir = file("handler/core")
 project(":knotx-fragments-engine").projectDir = file("handler/engine")
+
+// Assembler
+include("knotx-fragments-assembler")
+
+project(":knotx-fragments-assembler").projectDir = file("assembler")
