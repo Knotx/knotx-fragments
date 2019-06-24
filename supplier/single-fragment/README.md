@@ -14,8 +14,11 @@ entry:
 ```hocon
 {
   name = singleFragmentSupplier
-  config = {
+  config {
     type = json
+    configuration {
+      data-knotx-task = my-task
+    }
   }
 }
 ```
