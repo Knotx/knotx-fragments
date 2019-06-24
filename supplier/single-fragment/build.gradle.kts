@@ -38,7 +38,7 @@ dependencies {
 
 tasks {
     named<RatTask>("rat") {
-        excludes.addAll("*.md", "**/*.md", "**/build/*", "**/out/*", "**/generated/*", "/src/test/resources/*")
+        excludes.addAll("*.md", "**/*.md", "**/build/*", "**/out/*", "**/generated/*", "/src/test/resources/*", "**/*.adoc")
     }
     getByName("build").dependsOn("rat")
 }
