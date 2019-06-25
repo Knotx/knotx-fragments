@@ -31,6 +31,7 @@ dependencies {
     implementation(project(":knotx-fragments-engine"))
 
     implementation("io.knotx:knotx-server-http-common-placeholders:${project.version}")
+    implementation("io.knotx:knotx-commons:${project.version}")
     implementation(group = "io.vertx", name = "vertx-circuit-breaker")
     implementation(group = "io.vertx", name = "vertx-core")
     implementation(group = "io.vertx", name = "vertx-service-proxy")

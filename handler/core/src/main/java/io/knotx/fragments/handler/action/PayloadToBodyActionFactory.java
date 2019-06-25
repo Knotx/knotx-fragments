@@ -15,6 +15,7 @@
  */
 package io.knotx.fragments.handler.action;
 
+import static io.knotx.commons.json.JsonObjectUtil.getJsonObject;
 import static io.vertx.core.Future.succeededFuture;
 
 import io.knotx.fragments.api.Fragment;
@@ -63,24 +64,6 @@ public class PayloadToBodyActionFactory implements ActionFactory {
     return Optional.ofNullable(body)
         .map(JsonObject::encodePrettily);
 
-  }
-
-  private JsonObject getJsonObject(String key, JsonObject parent) {
-    int dotIndex = key.indexOf('.');
-
-    if (dotIndex == -1) {
-      return parent.getJsonObject(key);
-    }
-
-    String newKey = key.substring(dotIndex + 1);
-    JsonObject child = getChild(key, parent, dotIndex);
-
-    return child == null ? null : getJsonObject(newKey, child);
-  }
-
-  private JsonObject getChild(String key, JsonObject parent, int dotIndex) {
-    String childKey = key.substring(0, dotIndex);
-    return parent.getJsonObject(childKey);
   }
 
   private void checkArgument(boolean condition, String message) {
