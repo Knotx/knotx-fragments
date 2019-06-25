@@ -5,7 +5,7 @@ implementation that splits a Template into [`Fragments`](https://github.com/Knot
 Template is a document that will be later processed by Knot.x instance. Current implementation (`HtmlFragmentSplitter`)
 supports splitting HTML markup, but Template could be any document like PDF file, Office file or even an image.
 
-## How does it work?
+## How does it work
 HTML Fragment Splitter reads the template (a document) from the [Request Context](https://github.com/Knotx/knotx-server-http/blob/master/api/docs/asciidoc/dataobjects.adoc#requestcontext)
 body. Then it splits the HTML markup with following regexp:
 ```
@@ -19,7 +19,7 @@ This regexp contains 3 matching groups:
 Finally, `RequestContext` body is cleared (set to `null`) and fragments are saved
 into [`RoutingContext`](https://vertx.io/docs/apidocs/io/vertx/ext/web/RoutingContext.html) under `"fragments"` key.
 
-### How Template is splitted?
+### How Template is splitted
 Lets explain the process of the Template splitting using an example.
 
 Let's assume, that following markup is [`ClientRequest`](https://github.com/Knotx/knotx-server-http/blob/master/api/docs/asciidoc/dataobjects.adoc#clientrequest)
@@ -67,4 +67,14 @@ and `configuration`:
 ```html
 </body>
 </html>
+```
+
+## How to use
+Simply add a [Routing Operation](https://github.com/Knotx/knotx-server-http#routing-operations)
+entry:
+
+```hocon
+{
+  name = fragmentsProviderHtmlSplitter
+}
 ```

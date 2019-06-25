@@ -30,8 +30,10 @@ project(":knotx-fragments-api").projectDir = file("api")
 
 // Supplier
 include("knotx-fragments-supplier-api")
+include("knotx-fragments-supplier-single-fragment")
 include("knotx-fragments-supplier-html-splitter")
 project(":knotx-fragments-supplier-api").projectDir = file("supplier/api")
+project(":knotx-fragments-supplier-single-fragment").projectDir = file("supplier/single-fragment")
 project(":knotx-fragments-supplier-html-splitter").projectDir = file("supplier/html-splitter")
 
 // Handler

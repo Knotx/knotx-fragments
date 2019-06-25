@@ -83,6 +83,7 @@ public class ActionProvider {
       Supplier<Iterator<ActionFactory>> factoriesSupplier) {
     Map<String, ActionFactory> result = new HashMap<>();
     factoriesSupplier.get().forEachRemaining(factory -> result.put(factory.getName(), factory));
+    LOGGER.debug("Action Factories: {}", result);
     return result;
   }
 

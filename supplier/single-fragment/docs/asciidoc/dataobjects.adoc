@@ -1,0 +1,28 @@
+= Cheatsheets
+
+[[SingleFragmentSupplierOptions]]
+== SingleFragmentSupplierOptions
+
+++++
+ Describes a single Fragment that is created by the supplier.
+++++
+'''
+
+[cols=">25%,25%,50%"]
+[frame="topbot"]
+|===
+^|Name | Type ^| Description
+|[[body]]`@body`|`String`|+++
+Sets the initial body of the Fragment. By default it is an empty string.
++++
+|[[configuration]]`@configuration`|`Json object`|+++
+Sets the initial configuration of the Fragment. By default it is an empty Json Object.
++++
+|[[payload]]`@payload`|`Json object`|+++
+Sets the initial payload of the Fragment. By default it is an empty Json Object.
++++
+|[[type]]`@type`|`String`|+++
+Sets the initial type of the Fragment. By default it is an empty string.
++++
+|===
+
