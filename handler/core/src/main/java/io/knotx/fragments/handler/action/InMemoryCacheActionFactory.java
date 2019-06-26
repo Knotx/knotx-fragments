@@ -16,9 +16,12 @@
 package io.knotx.fragments.handler.action;
 
 
+import java.util.concurrent.TimeUnit;
+
+import org.apache.commons.lang3.StringUtils;
+
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import com.google.common.collect.Lists;
 
 import io.knotx.fragments.api.Fragment;
 import io.knotx.fragments.handler.api.Action;
@@ -28,13 +31,12 @@ import io.knotx.fragments.handler.api.domain.FragmentContext;
 import io.knotx.fragments.handler.api.domain.FragmentResult;
 import io.knotx.server.api.context.ClientRequest;
 import io.knotx.server.common.placeholders.PlaceholdersResolver;
+import io.knotx.server.common.placeholders.SourceDefinitions;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
-import java.util.concurrent.TimeUnit;
-import org.apache.commons.lang3.StringUtils;
 
 /**
  * Payload Cache Action factory class. It can be initialized with a configuration:
@@ -83,7 +85,8 @@ public class InMemoryCacheActionFactory implements ActionFactory {
           Fragment fragment = fragmentContext.getFragment();
           fragment.appendPayload(payloadKey, cachedValue);
           FragmentResult result = new FragmentResult(fragment, FragmentResult.SUCCESS_TRANSITION);
-          Future.succeededFuture(result).setHandler(resultHandler);
+          Future.succeededFuture(result)
+              .setHandler(resultHandler);
         }
       }
 
@@ -93,11 +96,16 @@ public class InMemoryCacheActionFactory implements ActionFactory {
           if (asyncResult.succeeded()) {
             FragmentResult fragmentResult = asyncResult.result();
             if (FragmentResult.SUCCESS_TRANSITION.equals(fragmentResult.getTransition())
-                && fragmentResult.getFragment().getPayload().containsKey(payloadKey)) {
-              JsonObject resultPayload = fragmentResult.getFragment().getPayload();
-              cache.put(cacheKey, resultPayload.getMap().get(payloadKey));
+                && fragmentResult.getFragment()
+                .getPayload()
+                .containsKey(payloadKey)) {
+              JsonObject resultPayload = fragmentResult.getFragment()
+                  .getPayload();
+              cache.put(cacheKey, resultPayload.getMap()
+                  .get(payloadKey));
             }
-            Future.succeededFuture(fragmentResult).setHandler(resultHandler);
+            Future.succeededFuture(fragmentResult)
+                .setHandler(resultHandler);
           } else {
             Future.<FragmentResult>failedFuture(asyncResult.cause()).setHandler(resultHandler);
           }
@@ -120,7 +128,13 @@ public class InMemoryCacheActionFactory implements ActionFactory {
     if (StringUtils.isBlank(key)) {
       throw new IllegalArgumentException("Action requires cacheKey value in configuration.");
     }
-    return PlaceholdersResolver.resolve(key, Lists.newArrayList(clientRequest));
+    return PlaceholdersResolver.resolve(key, buildSourceDefinitions(clientRequest));
+  }
+
+  private SourceDefinitions buildSourceDefinitions(ClientRequest clientRequest) {
+    return SourceDefinitions.builder()
+        .addClientRequestSource(clientRequest)
+        .build();
   }
 
   private Cache<String, Object> createCache(JsonObject config) {
@@ -128,7 +142,9 @@ public class InMemoryCacheActionFactory implements ActionFactory {
     long maxSize =
         cache == null ? DEFAULT_MAXIMUM_SIZE : cache.getLong("maximumSize", DEFAULT_MAXIMUM_SIZE);
     long ttl = cache == null ? DEFAULT_TTL : cache.getLong("ttl", DEFAULT_TTL);
-    return CacheBuilder.newBuilder().maximumSize(maxSize)
-        .expireAfterWrite(ttl, TimeUnit.MILLISECONDS).build();
+    return CacheBuilder.newBuilder()
+        .maximumSize(maxSize)
+        .expireAfterWrite(ttl, TimeUnit.MILLISECONDS)
+        .build();
   }
 }
