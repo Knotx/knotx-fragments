@@ -1,5 +1,3 @@
-import org.gradle.kotlin.dsl.apply
-
 /*
  * Copyright (C) 2019 Knot.x Project
  *
@@ -15,20 +13,23 @@ import org.gradle.kotlin.dsl.apply
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package io.knotx.fragments.assembler;
 
-plugins {
-    java
-    id("io.knotx.publish-all-composite") version "0.1.1"
-}
+import io.knotx.server.api.handler.RoutingHandlerFactory;
+import io.vertx.core.Handler;
+import io.vertx.core.json.JsonObject;
+import io.vertx.reactivex.core.Vertx;
+import io.vertx.reactivex.ext.web.RoutingContext;
 
-subprojects {
-    group = "io.knotx"
-    repositories {
-        jcenter()
-        mavenLocal()
-        maven { url = uri("https://plugins.gradle.org/m2/") }
-        maven { url = uri("http://repo1.maven.org/maven2") }
-        maven { url = uri("https://oss.sonatype.org/content/groups/staging/") }
-        maven { url = uri("https://oss.sonatype.org/content/repositories/snapshots") }
-    }
+public class AssemblerRoutingHandlerFactory implements RoutingHandlerFactory {
+
+  @Override
+  public String getName() {
+    return "fragmentsAssemblerHandler";
+  }
+
+  @Override
+  public Handler<RoutingContext> create(Vertx vertx, JsonObject config) {
+    return new FragmentAssemblerHandler();
+  }
 }

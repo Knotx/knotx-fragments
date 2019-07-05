@@ -15,17 +15,9 @@
  */
 import org.nosphere.apache.rat.RatTask
 
-repositories {
-    mavenLocal()
-    maven { url = uri("https://plugins.gradle.org/m2/") }
-    maven { url = uri("http://repo1.maven.org/maven2") }
-    maven { url = uri("https://oss.sonatype.org/content/groups/staging/") }
-    maven { url = uri("https://oss.sonatype.org/content/repositories/snapshots") }
-}
-
 plugins {
     id("io.knotx.java-library")
-    id("io.knotx.codegen")
+    id("io.knotx.unit-test")
     id("io.knotx.maven-publish")
     id("io.knotx.jacoco")
     id("org.nosphere.apache.rat") version "0.4.0"
@@ -33,8 +25,12 @@ plugins {
 
 dependencies {
     implementation(platform("io.knotx:knotx-dependencies:${project.version}"))
+
+    api(project(":knotx-fragments-handler-api"))
+
     implementation(group = "io.vertx", name = "vertx-core")
-    implementation(group = "org.apache.commons", name = "commons-lang3")
+    implementation(group = "io.vertx", name = "vertx-service-proxy")
+    implementation(group = "io.vertx", name = "vertx-rx-java2")
 }
 
 tasks {

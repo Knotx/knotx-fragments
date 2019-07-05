@@ -1,5 +1,3 @@
-import org.gradle.kotlin.dsl.apply
-
 /*
  * Copyright (C) 2019 Knot.x Project
  *
@@ -14,21 +12,23 @@ import org.gradle.kotlin.dsl.apply
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
+ * The code comes from https://github.com/tomaszmichalak/vertx-rx-map-reduce.
  */
+package io.knotx.fragments.handler.api.exception;
 
-plugins {
-    java
-    id("io.knotx.publish-all-composite") version "0.1.1"
-}
+import io.knotx.fragments.api.Fragment;
 
-subprojects {
-    group = "io.knotx"
-    repositories {
-        jcenter()
-        mavenLocal()
-        maven { url = uri("https://plugins.gradle.org/m2/") }
-        maven { url = uri("http://repo1.maven.org/maven2") }
-        maven { url = uri("https://oss.sonatype.org/content/groups/staging/") }
-        maven { url = uri("https://oss.sonatype.org/content/repositories/snapshots") }
-    }
+public class ActionFatalException extends IllegalStateException {
+
+  private Fragment fragment;
+
+  public ActionFatalException(Fragment fragment) {
+    super("Failed during fragment processing [" + fragment.getId() + "]");
+    this.fragment = fragment;
+  }
+
+  public Fragment getFragment() {
+    return fragment;
+  }
 }
