@@ -1,60 +1,10 @@
 = Cheatsheets
 
-[[ActionPayload]]
-== ActionPayload
-
-
-[cols=">25%,25%,50%"]
-[frame="topbot"]
-|===
-^|Name | Type ^| Description
-|[[request]]`@request`|`link:dataobjects.html#ActionRequest[ActionRequest]`|-
-|[[response]]`@response`|`link:dataobjects.html#ActionResponse[ActionResponse]`|-
-|===
-
-[[ActionRequest]]
-== ActionRequest
-
-
-[cols=">25%,25%,50%"]
-[frame="topbot"]
-|===
-^|Name | Type ^| Description
-|[[metadata]]`@metadata`|`Json object`|-
-|[[source]]`@source`|`String`|-
-|[[type]]`@type`|`String`|-
-|===
-
-[[ActionResponse]]
-== ActionResponse
-
-
-[cols=">25%,25%,50%"]
-[frame="topbot"]
-|===
-^|Name | Type ^| Description
-|[[error]]`@error`|`link:dataobjects.html#ActionResponseError[ActionResponseError]`|-
-|[[metadata]]`@metadata`|`Json object`|-
-|[[success]]`@success`|`Boolean`|-
-|===
-
-[[ActionResponseError]]
-== ActionResponseError
-
-
-[cols=">25%,25%,50%"]
-[frame="topbot"]
-|===
-^|Name | Type ^| Description
-|[[code]]`@code`|`String`|-
-|[[message]]`@message`|`String`|-
-|===
-
-[[FragmentContext]]
-== FragmentContext
+[[Fragment]]
+== Fragment
 
 ++++
- This data structure is passed between <code>Actions</code> that are vertices of a graph.
+ Represents a small piece of a request that may be processed independently.
 ++++
 '''
 
@@ -62,31 +12,25 @@
 [frame="topbot"]
 |===
 ^|Name | Type ^| Description
-|[[clientRequest]]`@clientRequest`|`link:dataobjects.html#ClientRequest[ClientRequest]`|+++
-Original <code>ClientRequest</code>. This property is immutable for the Fragments graph processing.
+|[[body]]`@body`|`String`|+++
+Contains the body of a Fragment that is the final result of the fragment processing. Body can
+ be updated and transformed many times during processing.
 +++
-|[[fragment]]`@fragment`|`link:dataobjects.html#Fragment[Fragment]`|+++
-Fragment that is passed between Actions. It might be transformend or updated by any <code>Action</code>.
+|[[configuration]]`@configuration`|`Json object`|+++
+Configuration containing all information necessary to process Fragment. Configuration is
+ immutable and can be set only once.
 +++
-|===
-
-[[FragmentResult]]
-== FragmentResult
-
-++++
- Result of the <code>Action</code> fragment processing.
-++++
-'''
-
-[cols=">25%,25%,50%"]
-[frame="topbot"]
-|===
-^|Name | Type ^| Description
-|[[fragment]]`@fragment`|`link:dataobjects.html#Fragment[Fragment]`|+++
-A <code>Fragment</code> transformed or updated during applying the <code>Action</code>.
+|[[id]]`@id`|`String`|+++
+Unique identifier of the Fragment. Its representaion is currently a <code>String</code>
+ representation of <code>UUID</code>. It can never change during processing.
 +++
-|[[transition]]`@transition`|`String`|+++
-Name of the next step in the graph that is defined as the <code>Action</code> output.
+|[[payload]]`@payload`|`Json object`|+++
+Any additional data that is associated with the Fragment. Payload can be appended (and
+ replaced) during processing but never cleared.
++++
+|[[type]]`@type`|`String`|+++
+Type of a Fragment. Different types of Fragments can be processed in separate ways. Example
+ type could be <code>snippet</code>. It can never change during processing.
 +++
 |===
 

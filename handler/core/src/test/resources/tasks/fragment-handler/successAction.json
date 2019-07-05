@@ -1,0 +1,15 @@
+{
+  "tasks": {
+    "success-task": {
+      "action": "success-action"
+    }
+  },
+  "actions": {
+    "success-action": {
+      "factory": "test-action",
+      "config": {
+        "transition": "_success"
+      }
+    }
+  }
+}
