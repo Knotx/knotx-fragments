@@ -15,10 +15,9 @@
  */
 package io.knotx.fragments.handler.action;
 
-import java.util.Objects;
-
 import io.vertx.codegen.annotations.DataObject;
 import io.vertx.core.json.JsonObject;
+import java.util.Objects;
 
 @DataObject(generateConverter = true)
 public class ActionOptions {

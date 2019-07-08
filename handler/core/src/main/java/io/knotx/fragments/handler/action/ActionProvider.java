@@ -15,20 +15,18 @@
  */
 package io.knotx.fragments.handler.action;
 
+import io.knotx.fragments.handler.api.Cacheable;
+import io.knotx.fragments.handler.api.Action;
+import io.knotx.fragments.handler.api.ActionFactory;
+import io.vertx.core.Vertx;
+import io.vertx.core.logging.Logger;
+import io.vertx.core.logging.LoggerFactory;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Supplier;
-
 import org.apache.commons.lang3.StringUtils;
-
-import io.knotx.fragments.handler.api.Action;
-import io.knotx.fragments.handler.api.ActionFactory;
-import io.knotx.fragments.handler.api.Cacheable;
-import io.vertx.core.Vertx;
-import io.vertx.core.logging.Logger;
-import io.vertx.core.logging.LoggerFactory;
 
 public class ActionProvider {
 
