@@ -24,6 +24,8 @@ import io.knotx.fragments.engine.FragmentEvent;
 import io.knotx.fragments.engine.FragmentEvent.Status;
 import io.knotx.fragments.engine.FragmentEventContext;
 import io.knotx.fragments.engine.FragmentEventContextTaskAware;
+import io.knotx.fragments.engine.FragmentEventContextWithTask;
+import io.knotx.fragments.engine.FragmentEventContextWithoutTask;
 import io.knotx.fragments.engine.FragmentsEngine;
 import io.knotx.fragments.engine.Task;
 import io.knotx.fragments.handler.action.ActionProvider;
