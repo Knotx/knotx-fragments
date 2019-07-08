@@ -33,14 +33,14 @@ import java.util.List;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 
-class FragmentAssemblerHandler implements Handler<RoutingContext> {
+class FragmentsAssemblerHandler implements Handler<RoutingContext> {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(FragmentAssemblerHandler.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(FragmentsAssemblerHandler.class);
   private static final String MISSING_FRAGMENTS_PAYLOAD = "Expected 'fragments' in the routing context are missing!";
 
   private final RequestContextEngine engine;
 
-  FragmentAssemblerHandler() {
+  FragmentsAssemblerHandler() {
     engine = new DefaultRequestContextEngine(getClass().getSimpleName());
   }
 

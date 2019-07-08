@@ -37,7 +37,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-public class FragmentAssemblerHandlerTest {
+public class FragmentsAssemblerHandlerTest {
 
   @Mock
   private ClientRequest clientRequest;
@@ -49,7 +49,7 @@ public class FragmentAssemblerHandlerTest {
   @DisplayName("Expect NO_CONTENT and empty body when no fragments in the routing context")
   public void callAssemblerWithNoFragments_expectNoContentStatus() {
     // given
-    FragmentAssemblerHandler assemblerHandler = new FragmentAssemblerHandler();
+    FragmentsAssemblerHandler assemblerHandler = new FragmentsAssemblerHandler();
     RequestEvent requestEvent = new RequestEvent(clientRequest);
 
     // when
@@ -65,7 +65,7 @@ public class FragmentAssemblerHandlerTest {
   public void callAssemblerWithFragment_expectAssemblerResultWithBodyAndOkStatus() {
     // given
     String expectedBody = "<h1>Some text</h1>\n" + "<p>Some text</p>";
-    FragmentAssemblerHandler assemblerHandler = new FragmentAssemblerHandler();
+    FragmentsAssemblerHandler assemblerHandler = new FragmentsAssemblerHandler();
 
     List<Fragment> fragments = Collections
         .singletonList(new Fragment("_STATIC", new JsonObject(), expectedBody));
