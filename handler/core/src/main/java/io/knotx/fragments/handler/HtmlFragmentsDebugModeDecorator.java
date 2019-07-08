@@ -56,11 +56,18 @@ class HtmlFragmentsDebugModeDecorator {
   }
 
   void markAsDebuggable(FragmentEventContextTaskAware fragmentEventContextTaskAware) {
-    FragmentEvent fragmentEvent = fragmentEventContextTaskAware.getFragmentEventContext()
-        .getFragmentEvent();
-    fragmentEvent.getDebugData().put("debug", true);
-    fragmentEvent.getDebugData().put("body", fragmentEvent.getFragment().getBody());
+    if (hasTask(fragmentEventContextTaskAware)) {
+      FragmentEvent fragmentEvent = fragmentEventContextTaskAware.getFragmentEventContext()
+          .getFragmentEvent();
+      fragmentEvent.getDebugData().put("debug", true);
+      fragmentEvent.getDebugData().put("body", fragmentEvent.getFragment().getBody());
+    }
   }
+
+  private boolean hasTask(FragmentEventContextTaskAware fragmentEventContextTaskAware) {
+    return fragmentEventContextTaskAware.getTask().isPresent();
+  }
+
 
   void addDebugAssetsAndData(List<FragmentEvent> fragmentEvents) {
     JsonObject debugData = new JsonObject();
