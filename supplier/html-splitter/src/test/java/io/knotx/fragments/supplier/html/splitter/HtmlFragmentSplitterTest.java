@@ -18,16 +18,14 @@ package io.knotx.fragments.supplier.html.splitter;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.List;
-
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-
 import io.knotx.fragments.api.Fragment;
 import io.knotx.junit5.util.FileReader;
 import io.vertx.core.json.JsonObject;
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 class HtmlFragmentSplitterTest {
 
@@ -66,10 +64,8 @@ class HtmlFragmentSplitterTest {
 
     // then
     assertEquals(1, fragments.size());
-    assertEquals("_STATIC", fragments.get(0)
-        .getType());
-    assertEquals(html, fragments.get(0)
-        .getBody());
+    assertEquals("_STATIC", fragments.get(0).getType());
+    assertEquals(html, fragments.get(0).getBody());
   }
 
   @Test
@@ -84,12 +80,9 @@ class HtmlFragmentSplitterTest {
     assertEquals(1, fragments.size());
     Fragment fragment = fragments.get(0);
     assertEquals("fragmentType", fragment.getType());
-    assertEquals("valueOne", fragment.getConfiguration()
-        .getString("attributeOne"));
-    assertEquals("valueTwo", fragment.getConfiguration()
-        .getString("attributeTwo"));
-    assertEquals("", fragment.getConfiguration()
-        .getString("attributeEmpty"));
+    assertEquals("valueOne", fragment.getConfiguration().getString("attributeOne"));
+    assertEquals("valueTwo", fragment.getConfiguration().getString("attributeTwo"));
+    assertEquals("", fragment.getConfiguration().getString("attributeEmpty"));
     assertEquals(from("dynamic-fragment-result.txt"), fragment.getBody());
   }
 
@@ -107,15 +100,13 @@ class HtmlFragmentSplitterTest {
         new Fragment("auth", new JsonObject().put("secret-key", "pass"),
             from("many-fragments-2.txt")),
         new Fragment("_STATIC", new JsonObject(), from("many-fragments-3.txt")),
-        new Fragment("snippet", new JsonObject().put("knots", "any")
-            .put("any-key", "any-value"),
+        new Fragment("snippet", new JsonObject().put("knots", "any").put("any-key", "any-value"),
             from("many-fragments-4.txt")),
         new Fragment("snippet", new JsonObject().put("knots", "any-second"),
             from("many-fragments-5.txt")),
         new Fragment("_STATIC", new JsonObject(), from("many-fragments-6.txt")),
         new Fragment("fallback",
-            new JsonObject().put("id", "1234")
-                .put("fallback-config", "{\"key\":\"value\"}"),
+            new JsonObject().put("id", "1234").put("fallback-config", "{\"key\":\"value\"}"),
             from("many-fragments-7.txt")),
         new Fragment("_STATIC", new JsonObject(), from("many-fragments-8.txt"))
     );
@@ -126,9 +117,7 @@ class HtmlFragmentSplitterTest {
       Fragment actual = actualFragments.get(i);
       assertEquals(expected.getType(), actual.getType());
       assertEquals(expected.getConfiguration(), actual.getConfiguration());
-      assertEquals(expected.getBody()
-          .trim(), actual.getBody()
-          .trim());
+      assertEquals(expected.getBody().trim(), actual.getBody().trim());
     }
   }
 

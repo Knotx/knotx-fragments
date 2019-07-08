@@ -19,7 +19,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
-
 import org.apache.commons.lang3.tuple.Pair;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -58,10 +57,8 @@ class HtmlAttributesParserTest {
 
     // then
     assertEquals(1, pairs.size());
-    assertEquals("attribute", pairs.get(0)
-        .getKey());
-    assertEquals("value", pairs.get(0)
-        .getValue());
+    assertEquals("attribute", pairs.get(0).getKey());
+    assertEquals("value", pairs.get(0).getValue());
   }
 
   @Test
@@ -71,10 +68,8 @@ class HtmlAttributesParserTest {
 
     // then
     assertEquals(1, pairs.size());
-    assertEquals("attribute", pairs.get(0)
-        .getKey());
-    assertEquals("value", pairs.get(0)
-        .getValue());
+    assertEquals("attribute", pairs.get(0).getKey());
+    assertEquals("value", pairs.get(0).getValue());
   }
 
   @Test
@@ -102,10 +97,8 @@ class HtmlAttributesParserTest {
 
     // then
     assertEquals(1, pairs.size());
-    assertEquals("a-t-t-r-i-b-u-t-e", pairs.get(0)
-        .getKey());
-    assertEquals("value", pairs.get(0)
-        .getValue());
+    assertEquals("a-t-t-r-i-b-u-t-e", pairs.get(0).getKey());
+    assertEquals("value", pairs.get(0).getValue());
   }
 
   @Test
@@ -115,10 +108,8 @@ class HtmlAttributesParserTest {
 
     // then
     assertEquals(1, pairs.size());
-    assertEquals("attribute", pairs.get(0)
-        .getKey());
-    assertEquals("value with space", pairs.get(0)
-        .getValue());
+    assertEquals("attribute", pairs.get(0).getKey());
+    assertEquals("value with space", pairs.get(0).getValue());
   }
 
   @Test
@@ -128,10 +119,8 @@ class HtmlAttributesParserTest {
 
     // then
     assertEquals(1, pairs.size());
-    assertEquals("attribute", pairs.get(0)
-        .getKey());
-    assertEquals("{\\\"key\\\"=\\\"value\\\"}", pairs.get(0)
-        .getValue());
+    assertEquals("attribute", pairs.get(0).getKey());
+    assertEquals("{\\\"key\\\"=\\\"value\\\"}", pairs.get(0).getValue());
   }
 
   @Test
@@ -141,10 +130,8 @@ class HtmlAttributesParserTest {
 
     // then
     assertEquals(1, pairs.size());
-    assertEquals("attribute", pairs.get(0)
-        .getKey());
-    assertEquals("{\"key\"=\"value\"}", pairs.get(0)
-        .getValue());
+    assertEquals("attribute", pairs.get(0).getKey());
+    assertEquals("{\"key\"=\"value\"}", pairs.get(0).getValue());
   }
 
   @Test
@@ -155,27 +142,18 @@ class HtmlAttributesParserTest {
 
     // then
     assertEquals(3, pairs.size());
-    assertEquals("attributeOne", pairs.get(0)
-        .getKey());
-    assertEquals("{\\\"key\\\"=\\\"value\\\"}", pairs.get(0)
-        .getValue());
-    assertEquals("attributeTwo", pairs.get(1)
-        .getKey());
-    assertEquals("valueTwo", pairs.get(1)
-        .getValue());
-    assertEquals("attributeThree", pairs.get(2)
-        .getKey());
-    assertEquals("", pairs.get(2)
-        .getValue());
+    assertEquals("attributeOne", pairs.get(0).getKey());
+    assertEquals("{\\\"key\\\"=\\\"value\\\"}", pairs.get(0).getValue());
+    assertEquals("attributeTwo", pairs.get(1).getKey());
+    assertEquals("valueTwo", pairs.get(1).getValue());
+    assertEquals("attributeThree", pairs.get(2).getKey());
+    assertEquals("", pairs.get(2).getValue());
   }
 
   private void assertEmptyAttribute(List<Pair<String, String>> pairs) {
     assertEquals(1, pairs.size());
-    assertEquals("attribute", pairs.get(0)
-        .getKey());
-    assertTrue(pairs.get(0)
-        .getValue()
-        .isEmpty());
+    assertEquals("attribute", pairs.get(0).getKey());
+    assertTrue(pairs.get(0).getValue().isEmpty());
   }
 
 }

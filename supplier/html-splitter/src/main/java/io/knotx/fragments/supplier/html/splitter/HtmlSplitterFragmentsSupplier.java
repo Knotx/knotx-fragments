@@ -15,11 +15,6 @@
  */
 package io.knotx.fragments.supplier.html.splitter;
 
-import java.util.List;
-import java.util.Optional;
-
-import org.apache.commons.lang3.StringUtils;
-
 import io.knotx.fragments.api.Fragment;
 import io.knotx.fragments.supplier.api.FragmentsProvisionException;
 import io.knotx.fragments.supplier.api.FragmentsSupplier;
@@ -28,6 +23,9 @@ import io.knotx.server.api.context.RequestContext;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
+import java.util.List;
+import java.util.Optional;
+import org.apache.commons.lang3.StringUtils;
 
 public class HtmlSplitterFragmentsSupplier implements FragmentsSupplier {
 
@@ -45,8 +43,7 @@ public class HtmlSplitterFragmentsSupplier implements FragmentsSupplier {
       throws FragmentsProvisionException {
     List<Fragment> fragments;
     ClientResponse clientResponse = requestContext.getClientResponse();
-    final String template = Optional.ofNullable(clientResponse.getBody())
-        .map(Buffer::toString)
+    final String template = Optional.ofNullable(clientResponse.getBody()).map(Buffer::toString)
         .orElse(null);
     if (StringUtils.isNotBlank(template)) {
       fragments = splitter.split(template);

@@ -15,15 +15,14 @@
  */
 package io.knotx.fragments.supplier.single;
 
-import java.util.Collections;
-import java.util.List;
-
 import io.knotx.fragments.api.Fragment;
 import io.knotx.fragments.supplier.api.FragmentsSupplier;
 import io.knotx.server.api.context.RequestContext;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
+import java.util.Collections;
+import java.util.List;
 
 public class SingleFragmentSupplier implements FragmentsSupplier {
 

@@ -15,11 +15,6 @@
  */
 package io.knotx.fragments.supplier.api;
 
-import java.util.Collections;
-import java.util.List;
-
-import org.apache.commons.lang3.ObjectUtils;
-
 import io.knotx.fragments.api.Fragment;
 import io.knotx.server.api.context.RequestContext;
 import io.knotx.server.api.handler.DefaultRequestContextEngine;
@@ -29,6 +24,9 @@ import io.vertx.core.Handler;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import io.vertx.reactivex.ext.web.RoutingContext;
+import java.util.Collections;
+import java.util.List;
+import org.apache.commons.lang3.ObjectUtils;
 
 public class FragmentsSupplierHandler implements Handler<RoutingContext> {
 

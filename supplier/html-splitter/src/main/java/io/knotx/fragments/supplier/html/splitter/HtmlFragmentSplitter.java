@@ -15,16 +15,14 @@
  */
 package io.knotx.fragments.supplier.html.splitter;
 
+import io.knotx.fragments.api.Fragment;
+import io.vertx.core.json.JsonObject;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.MatchResult;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
 import org.apache.commons.lang3.StringUtils;
-
-import io.knotx.fragments.api.Fragment;
-import io.vertx.core.json.JsonObject;
 
 class HtmlFragmentSplitter {
 
@@ -69,8 +67,7 @@ class HtmlFragmentSplitter {
 
   private Fragment toDynamic(String type, String attributes, String body) {
     JsonObject configuration = new JsonObject();
-    attributesParser.get(attributes)
-        .forEach(it -> configuration.put(it.getKey(), it.getValue()));
+    attributesParser.get(attributes).forEach(it -> configuration.put(it.getKey(), it.getValue()));
     return new Fragment(type, configuration, body);
   }
 }

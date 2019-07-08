@@ -20,9 +20,13 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import io.knotx.fragments.api.Fragment;
+import io.knotx.fragments.supplier.api.FragmentsProvisionException;
+import io.knotx.server.api.context.ClientResponse;
+import io.knotx.server.api.context.RequestContext;
+import io.vertx.core.buffer.Buffer;
 import java.util.Collections;
 import java.util.List;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -30,12 +34,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
-
-import io.knotx.fragments.api.Fragment;
-import io.knotx.fragments.supplier.api.FragmentsProvisionException;
-import io.knotx.server.api.context.ClientResponse;
-import io.knotx.server.api.context.RequestContext;
-import io.vertx.core.buffer.Buffer;
 
 @ExtendWith(MockitoExtension.class)
 class HtmlSplitterFragmentsSupplierTest {

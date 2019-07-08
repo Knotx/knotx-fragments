@@ -15,10 +15,9 @@
  */
 package io.knotx.fragments.supplier.api;
 
-import java.util.List;
-
 import io.knotx.fragments.api.Fragment;
 import io.knotx.server.api.context.RequestContext;
+import java.util.List;
 
 @FunctionalInterface
 public interface FragmentsSupplier {

@@ -18,17 +18,15 @@ package io.knotx.fragments.supplier.single;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import io.knotx.fragments.api.Fragment;
+import io.knotx.server.api.context.RequestContext;
+import io.vertx.core.json.JsonObject;
 import java.util.List;
-
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
-import io.knotx.fragments.api.Fragment;
-import io.knotx.server.api.context.RequestContext;
-import io.vertx.core.json.JsonObject;
 
 @ExtendWith(MockitoExtension.class)
 class SingleFragmentSupplierTest {
