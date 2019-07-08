@@ -18,9 +18,6 @@ package io.knotx.fragments.handler.action;
 import static io.knotx.commons.json.JsonObjectUtil.getJsonObject;
 import static io.vertx.core.Future.succeededFuture;
 
-import java.util.Objects;
-import java.util.Optional;
-
 import io.knotx.fragments.api.Fragment;
 import io.knotx.fragments.handler.api.Action;
 import io.knotx.fragments.handler.api.ActionFactory;
@@ -28,6 +25,8 @@ import io.knotx.fragments.handler.api.domain.FragmentResult;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
+import java.util.Objects;
+import java.util.Optional;
 
 public class PayloadToBodyActionFactory implements ActionFactory {
 

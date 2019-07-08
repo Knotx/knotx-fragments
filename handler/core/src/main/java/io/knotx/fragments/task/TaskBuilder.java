@@ -20,13 +20,6 @@ package io.knotx.fragments.task;
 import static io.knotx.fragments.handler.api.domain.FragmentResult.ERROR_TRANSITION;
 import static io.knotx.fragments.handler.api.domain.FragmentResult.SUCCESS_TRANSITION;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-
 import io.knotx.fragments.api.Fragment;
 import io.knotx.fragments.engine.Task;
 import io.knotx.fragments.engine.graph.ActionNode;
@@ -42,6 +35,12 @@ import io.knotx.fragments.handler.options.NodeOptions;
 import io.reactivex.Single;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 public class TaskBuilder {
 

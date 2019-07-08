@@ -19,20 +19,11 @@ package io.knotx.fragments.handler;
 
 import static com.google.common.base.Predicates.alwaysTrue;
 
-import java.util.Iterator;
-import java.util.List;
-import java.util.ServiceLoader;
-import java.util.function.Predicate;
-import java.util.function.Supplier;
-import java.util.stream.Collectors;
-
 import io.knotx.fragments.api.Fragment;
 import io.knotx.fragments.engine.FragmentEvent;
 import io.knotx.fragments.engine.FragmentEvent.Status;
 import io.knotx.fragments.engine.FragmentEventContext;
 import io.knotx.fragments.engine.FragmentEventContextTaskAware;
-import io.knotx.fragments.engine.FragmentEventContextWithTask;
-import io.knotx.fragments.engine.FragmentEventContextWithoutTask;
 import io.knotx.fragments.engine.FragmentsEngine;
 import io.knotx.fragments.engine.Task;
 import io.knotx.fragments.handler.action.ActionProvider;
@@ -49,6 +40,12 @@ import io.vertx.core.Handler;
 import io.vertx.core.json.JsonObject;
 import io.vertx.reactivex.core.Vertx;
 import io.vertx.reactivex.ext.web.RoutingContext;
+import java.util.Iterator;
+import java.util.List;
+import java.util.ServiceLoader;
+import java.util.function.Predicate;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 public class FragmentsHandler implements Handler<RoutingContext> {
 

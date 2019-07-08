@@ -15,14 +15,13 @@
  */
 package io.knotx.fragments.handler.options;
 
+import io.vertx.codegen.annotations.DataObject;
+import io.vertx.core.json.JsonObject;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-
-import io.vertx.codegen.annotations.DataObject;
-import io.vertx.core.json.JsonObject;
 
 /**
  * Defines graph's verticle with outgoing directed edges ({@code Transitions}).

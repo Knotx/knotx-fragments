@@ -19,14 +19,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.util.UUID;
-import java.util.concurrent.TimeUnit;
-
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-
 import io.knotx.fragments.api.Fragment;
 import io.knotx.fragments.handler.api.Action;
 import io.knotx.fragments.handler.api.domain.FragmentContext;
@@ -37,6 +29,12 @@ import io.vertx.core.Future;
 import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.VertxTestContext;
 import io.vertx.reactivex.core.MultiMap;
+import java.util.UUID;
+import java.util.concurrent.TimeUnit;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 @ExtendWith(KnotxExtension.class)
 class InMemoryCacheActionFactoryTest {
@@ -319,8 +317,7 @@ class InMemoryCacheActionFactoryTest {
   }
 
   private String uniqueValue(int contextHash) {
-    return EXPECTED_PAYLOAD_DATA + " [" + UUID.randomUUID()
-        .toString() + "|" + contextHash + "]";
+    return EXPECTED_PAYLOAD_DATA + " [" + UUID.randomUUID().toString() + "|" + contextHash + "]";
   }
 
 }

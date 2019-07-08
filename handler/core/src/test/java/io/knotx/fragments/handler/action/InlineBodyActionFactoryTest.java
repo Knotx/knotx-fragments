@@ -17,13 +17,6 @@ package io.knotx.fragments.handler.action;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import java.util.concurrent.TimeUnit;
-
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-
 import io.knotx.fragments.api.Fragment;
 import io.knotx.fragments.handler.api.Action;
 import io.knotx.fragments.handler.api.domain.FragmentContext;
@@ -31,6 +24,11 @@ import io.knotx.server.api.context.ClientRequest;
 import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
+import java.util.concurrent.TimeUnit;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 @ExtendWith(VertxExtension.class)
 class InlineBodyActionFactoryTest {

@@ -58,11 +58,8 @@ class HtmlFragmentsDebugModeDecorator {
   void markAsDebuggable(FragmentEventContextTaskAware fragmentEventContextTaskAware) {
     FragmentEvent fragmentEvent = fragmentEventContextTaskAware.getFragmentEventContext()
         .getFragmentEvent();
-    fragmentEvent.getDebugData()
-        .put("debug", true);
-    fragmentEvent.getDebugData()
-        .put("body", fragmentEvent.getFragment()
-            .getBody());
+    fragmentEvent.getDebugData().put("debug", true);
+    fragmentEvent.getDebugData().put("body", fragmentEvent.getFragment().getBody());
   }
 
   void addDebugAssetsAndData(List<FragmentEvent> fragmentEvents) {
@@ -86,8 +83,7 @@ class HtmlFragmentsDebugModeDecorator {
   }
 
   private boolean isDebugged(FragmentEvent fragmentEvent) {
-    return fragmentEvent.getDebugData()
-        .containsKey("debug");
+    return fragmentEvent.getDebugData().containsKey("debug");
   }
 
   private String addAsScript(String script) {

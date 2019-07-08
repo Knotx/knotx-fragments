@@ -20,13 +20,6 @@ package io.knotx.fragments.handler.action;
 import static io.knotx.fragments.handler.action.CircuitBreakerActionFactory.FALLBACK_TRANSITION;
 import static io.knotx.fragments.handler.api.domain.FragmentResult.SUCCESS_TRANSITION;
 
-import java.util.concurrent.TimeUnit;
-
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-
 import io.knotx.fragments.api.Fragment;
 import io.knotx.fragments.handler.action.CircuitBreakerActionFactory.CircuitBreakerAction;
 import io.knotx.fragments.handler.api.domain.FragmentContext;
@@ -43,6 +36,11 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
 import io.vertx.rxjava.core.Future;
+import java.util.concurrent.TimeUnit;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 @ExtendWith(VertxExtension.class)
 class CircuitBreakerActionTest {

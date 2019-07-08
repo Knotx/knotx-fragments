@@ -15,11 +15,11 @@
  */
 package io.knotx.fragments.handler.options;
 
-import java.util.Map;
-
 import io.knotx.fragments.handler.action.ActionOptions;
 import io.vertx.codegen.annotations.DataObject;
 import io.vertx.core.json.JsonObject;
+import java.util.Map;
+import java.util.Objects;
 
 @DataObject(generateConverter = true)
 public class FragmentsHandlerOptions {
