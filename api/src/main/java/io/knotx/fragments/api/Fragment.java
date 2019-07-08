@@ -15,13 +15,11 @@
  */
 package io.knotx.fragments.api;
 
-import java.util.Objects;
-import java.util.UUID;
-
-import org.apache.commons.lang3.StringUtils;
-
 import io.vertx.codegen.annotations.DataObject;
 import io.vertx.core.json.JsonObject;
+import java.util.Objects;
+import java.util.UUID;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * Represents a small piece of a request that may be processed independently.
