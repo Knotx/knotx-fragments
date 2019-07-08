@@ -15,16 +15,16 @@
  */
 package io.knotx.fragments.engine;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
-
 import io.knotx.fragments.engine.FragmentEvent.Status;
+import io.knotx.fragments.engine.graph.Node;
 import io.reactivex.Flowable;
 import io.reactivex.Single;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import io.vertx.reactivex.core.Vertx;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Fragments Engine processes fragment events in the request scope. Each fragment event contains a

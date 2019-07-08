@@ -15,13 +15,12 @@
  */
 package io.knotx.fragments.engine.graph;
 
-import java.util.Map;
-import java.util.Optional;
-import java.util.function.Function;
-
 import io.knotx.fragments.handler.api.domain.FragmentContext;
 import io.knotx.fragments.handler.api.domain.FragmentResult;
 import io.reactivex.Single;
+import java.util.Map;
+import java.util.Optional;
+import java.util.function.Function;
 
 public class ActionNode implements Node {
 

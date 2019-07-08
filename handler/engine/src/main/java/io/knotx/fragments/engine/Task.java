@@ -15,9 +15,8 @@
  */
 package io.knotx.fragments.engine;
 
-import java.util.Optional;
-
 import io.knotx.fragments.engine.graph.Node;
+import java.util.Optional;
 
 public class Task {
 

@@ -15,13 +15,12 @@
  */
 package io.knotx.fragments.engine;
 
+import io.vertx.core.json.JsonArray;
+import io.vertx.core.json.JsonObject;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
-
-import io.vertx.core.json.JsonArray;
-import io.vertx.core.json.JsonObject;
 
 public class EventLog {
 

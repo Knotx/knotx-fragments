@@ -15,11 +15,10 @@
  */
 package io.knotx.fragments.engine;
 
-import java.util.Objects;
-
 import io.knotx.server.api.context.ClientRequest;
 import io.vertx.codegen.annotations.DataObject;
 import io.vertx.core.json.JsonObject;
+import java.util.Objects;
 
 @DataObject
 public class FragmentEventContext {
