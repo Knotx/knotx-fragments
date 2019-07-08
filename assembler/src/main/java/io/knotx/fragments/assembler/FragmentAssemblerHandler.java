@@ -50,8 +50,7 @@ class FragmentAssemblerHandler implements Handler<RoutingContext> {
   public void handle(RoutingContext context) {
     RequestContext requestContext = context.get(RequestContext.KEY);
     try {
-      RequestEventHandlerResult result = joinFragmentsBodies(context,
-          requestContext.getRequestEvent());
+      RequestEventHandlerResult result = joinFragmentsBodies(context, requestContext.getRequestEvent());
       engine.processAndSaveResult(result, context, requestContext);
     } catch (Exception e) {
       engine.handleFatal(context, requestContext, e);
@@ -82,8 +81,7 @@ class FragmentAssemblerHandler implements Handler<RoutingContext> {
     if (StringUtils.isBlank(responseBody)) {
       statusCode = HttpResponseStatus.NO_CONTENT.code();
     } else {
-      headers.add(HttpHeaders.CONTENT_LENGTH.toString()
-              .toLowerCase(),
+      headers.add(HttpHeaders.CONTENT_LENGTH.toString().toLowerCase(),
           Integer.toString(responseBody.length()));
       statusCode = HttpResponseStatus.OK.code();
     }

@@ -50,10 +50,8 @@ class SingleFragmentSupplierTest {
     Fragment fragment = fragments.get(0);
     assertEquals("", fragment.getType());
     assertEquals("", fragment.getBody());
-    assertTrue(fragment.getConfiguration()
-        .isEmpty());
-    assertTrue(fragment.getPayload()
-        .isEmpty());
+    assertTrue(fragment.getConfiguration().isEmpty());
+    assertTrue(fragment.getPayload().isEmpty());
 
   }
 

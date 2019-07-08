@@ -44,8 +44,7 @@ public class Fragment {
   private final JsonObject payload;
 
   public Fragment(String type, JsonObject configuration, String body) {
-    this.id = UUID.randomUUID()
-        .toString();
+    this.id = UUID.randomUUID().toString();
     this.type = type;
     this.configuration = configuration;
     this.body = body;

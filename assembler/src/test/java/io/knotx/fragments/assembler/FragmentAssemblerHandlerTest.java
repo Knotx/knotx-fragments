@@ -55,14 +55,11 @@ public class FragmentAssemblerHandlerTest {
     RequestEvent requestEvent = new RequestEvent(clientRequest);
 
     // when
-    RequestEventHandlerResult result = assemblerHandler.joinFragmentsBodies(routingContext,
-        requestEvent);
+    RequestEventHandlerResult result = assemblerHandler.joinFragmentsBodies(routingContext, requestEvent);
 
     // then
-    assertTrue(result.getRequestEvent()
-        .isPresent());
-    assertEquals(HttpResponseStatus.NO_CONTENT.code(), result.getStatusCode()
-        .intValue());
+    assertTrue(result.getRequestEvent().isPresent());
+    assertEquals(HttpResponseStatus.NO_CONTENT.code(), result.getStatusCode().intValue());
   }
 
   @Test
@@ -79,18 +76,14 @@ public class FragmentAssemblerHandlerTest {
     RequestEvent requestEvent = new RequestEvent(clientRequest, new JsonObject());
 
     // when
-    RequestEventHandlerResult result = assemblerHandler.joinFragmentsBodies(routingContext,
-        requestEvent);
+    RequestEventHandlerResult result = assemblerHandler.joinFragmentsBodies(routingContext, requestEvent);
 
     // then
-    assertTrue(result.getRequestEvent()
-        .isPresent());
+    assertTrue(result.getRequestEvent().isPresent());
     assertEquals(Buffer.buffer(expectedBody), result.getBody());
-    assertEquals(HttpResponseStatus.OK.code(), result.getStatusCode()
-        .intValue());
+    assertEquals(HttpResponseStatus.OK.code(), result.getStatusCode().intValue());
     assertEquals(Integer.toString((expectedBody.length())),
-        result.getHeaders()
-            .get(HttpHeaders.CONTENT_LENGTH));
+        result.getHeaders().get(HttpHeaders.CONTENT_LENGTH));
   }
 
 }
