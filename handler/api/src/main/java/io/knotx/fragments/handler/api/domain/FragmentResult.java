@@ -15,13 +15,11 @@
  */
 package io.knotx.fragments.handler.api.domain;
 
-import java.util.Objects;
-
-import org.apache.commons.lang3.StringUtils;
-
 import io.knotx.fragments.api.Fragment;
 import io.vertx.codegen.annotations.DataObject;
 import io.vertx.core.json.JsonObject;
+import java.util.Objects;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * Result of the {@code Action} fragment processing.

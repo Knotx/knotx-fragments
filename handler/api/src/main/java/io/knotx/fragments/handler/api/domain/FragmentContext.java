@@ -15,12 +15,11 @@
  */
 package io.knotx.fragments.handler.api.domain;
 
-import java.util.Objects;
-
 import io.knotx.fragments.api.Fragment;
 import io.knotx.server.api.context.ClientRequest;
 import io.vertx.codegen.annotations.DataObject;
 import io.vertx.core.json.JsonObject;
+import java.util.Objects;
 
 /**
  * This data structure is passed between {@code Actions} that are vertices of a graph.

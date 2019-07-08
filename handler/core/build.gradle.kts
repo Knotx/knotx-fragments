@@ -26,7 +26,7 @@ plugins {
 
 dependencies {
     implementation(platform("io.knotx:knotx-dependencies:${project.version}"))
-
+    
     api(project(":knotx-fragments-handler-api"))
     implementation(project(":knotx-fragments-engine"))
 

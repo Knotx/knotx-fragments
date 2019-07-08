@@ -17,11 +17,10 @@
  */
 package io.knotx.fragments.engine;
 
-import java.util.Arrays;
-import java.util.stream.Stream;
-
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
+import java.util.Arrays;
+import java.util.stream.Stream;
 
 class FragmentEventLogVerifier {
 
