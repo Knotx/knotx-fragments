@@ -206,3 +206,5 @@ You should see be able to see:
 - The original `body` of the Fragment (the one that came to the Fragments Handler),
 - Fragment's `payload`,
 - `Logs` of all Actions that were executed during the Fragment's Task processing.
+
+![debug console](https://github.com/Knotx/knotx-fragments/raw/master/assets/images/debug_console.png)
