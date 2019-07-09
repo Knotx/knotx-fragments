@@ -27,14 +27,14 @@ import java.util.List;
 import java.util.Optional;
 import org.apache.commons.lang3.StringUtils;
 
-public class HtmlSplitterFragmentsSupplier implements FragmentsSupplier {
+public class HtmlFragmentsSupplier implements FragmentsSupplier {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(HtmlSplitterFragmentsSupplier.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(HtmlFragmentsSupplier.class);
   private static final String MISSING_CLIENT_RESPONSE_BODY = "Template body is missing!";
 
   private final HtmlFragmentSplitter splitter;
 
-  HtmlSplitterFragmentsSupplier(HtmlFragmentSplitter splitter) {
+  HtmlFragmentsSupplier(HtmlFragmentSplitter splitter) {
     this.splitter = splitter;
   }
 

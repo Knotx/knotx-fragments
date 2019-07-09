@@ -32,13 +32,13 @@ import io.vertx.core.http.HttpHeaders;
 import io.vertx.reactivex.core.MultiMap;
 import io.vertx.reactivex.ext.web.RoutingContext;
 
-class FragmentAssemblerHandler implements Handler<RoutingContext> {
+class FragmentsAssemblerHandler implements Handler<RoutingContext> {
 
   private static final String MISSING_FRAGMENTS_PAYLOAD = "Expected 'fragments' in the routing context are missing!";
 
   private final RequestContextEngine engine;
 
-  FragmentAssemblerHandler() {
+  FragmentsAssemblerHandler() {
     engine = new DefaultRequestContextEngine(getClass().getSimpleName());
   }
 

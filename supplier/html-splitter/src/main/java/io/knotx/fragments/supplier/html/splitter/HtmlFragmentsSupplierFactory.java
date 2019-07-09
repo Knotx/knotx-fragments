@@ -22,18 +22,18 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.reactivex.core.Vertx;
 import io.vertx.reactivex.ext.web.RoutingContext;
 
-public class HtmlSplitterRoutingHandlerFactory implements RoutingHandlerFactory {
+public class HtmlFragmentsSupplierFactory implements RoutingHandlerFactory {
 
   private final HtmlFragmentSplitter splitter = new HtmlFragmentSplitter();
 
   @Override
   public String getName() {
-    return "fragmentsProviderHtmlSplitter";
+    return "htmlFragmentsSupplier";
   }
 
   @Override
   public Handler<RoutingContext> create(Vertx vertx, JsonObject config) {
-    return new FragmentsSupplierHandler(new HtmlSplitterFragmentsSupplier(splitter));
+    return new FragmentsSupplierHandler(new HtmlFragmentsSupplier(splitter));
   }
 
 }

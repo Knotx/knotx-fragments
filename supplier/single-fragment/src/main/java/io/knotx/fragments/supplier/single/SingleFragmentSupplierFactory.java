@@ -22,7 +22,7 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.reactivex.core.Vertx;
 import io.vertx.reactivex.ext.web.RoutingContext;
 
-public class SingleFragmentSupplierRoutingHandlerFactory implements RoutingHandlerFactory {
+public class SingleFragmentSupplierFactory implements RoutingHandlerFactory {
 
   @Override
   public String getName() {

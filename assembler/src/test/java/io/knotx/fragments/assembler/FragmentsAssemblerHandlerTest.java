@@ -40,7 +40,7 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.reactivex.ext.web.RoutingContext;
 
 @ExtendWith(MockitoExtension.class)
-public class FragmentAssemblerHandlerTest {
+public class FragmentsAssemblerHandlerTest {
 
   @Mock
   private ClientRequest clientRequest;
@@ -52,7 +52,7 @@ public class FragmentAssemblerHandlerTest {
   @DisplayName("Expect IllegalStateException when no fragments in the routing context")
   public void callAssemblerWithNoFragments_expectIllegalStateException() {
     // given
-    FragmentAssemblerHandler assemblerHandler = new FragmentAssemblerHandler();
+    FragmentsAssemblerHandler assemblerHandler = new FragmentsAssemblerHandler();
     RequestEvent requestEvent = new RequestEvent(clientRequest);
 
     // then
@@ -67,7 +67,7 @@ public class FragmentAssemblerHandlerTest {
   public void callAssemblerWithFragment_expectAssemblerResultWithBodyAndOkStatus() {
     // given
     String expectedBody = "<h1>Some text</h1>\n" + "<p>Some text</p>";
-    FragmentAssemblerHandler assemblerHandler = new FragmentAssemblerHandler();
+    FragmentsAssemblerHandler assemblerHandler = new FragmentsAssemblerHandler();
 
     List<Fragment> fragments = Collections
         .singletonList(new Fragment("_STATIC", new JsonObject(), expectedBody));

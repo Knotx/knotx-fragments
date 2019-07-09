@@ -36,7 +36,7 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class HtmlSplitterFragmentsSupplierTest {
+class HtmlFragmentsSupplierTest {
 
   @Mock
   private ClientResponse clientResponse;
@@ -47,11 +47,11 @@ class HtmlSplitterFragmentsSupplierTest {
   @Mock
   private RequestContext requestContext;
 
-  private HtmlSplitterFragmentsSupplier tested;
+  private HtmlFragmentsSupplier tested;
 
   @BeforeEach
   void setUp() {
-    tested = new HtmlSplitterFragmentsSupplier(splitter);
+    tested = new HtmlFragmentsSupplier(splitter);
     when(requestContext.getClientResponse()).thenReturn(clientResponse);
   }
 
