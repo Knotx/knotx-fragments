@@ -75,6 +75,6 @@ entry:
 
 ```hocon
 {
-  name = fragmentsProviderHtmlSplitter
+  name = htmlFragmentsSupplier
 }
 ```

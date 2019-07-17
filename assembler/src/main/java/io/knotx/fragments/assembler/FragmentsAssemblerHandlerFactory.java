@@ -21,15 +21,15 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.reactivex.core.Vertx;
 import io.vertx.reactivex.ext.web.RoutingContext;
 
-public class AssemblerRoutingHandlerFactory implements RoutingHandlerFactory {
+public class FragmentsAssemblerHandlerFactory implements RoutingHandlerFactory {
 
   @Override
   public String getName() {
-    return "fragmentsAssemblerHandler";
+    return "fragmentsAssembler";
   }
 
   @Override
   public Handler<RoutingContext> create(Vertx vertx, JsonObject config) {
-    return new FragmentAssemblerHandler();
+    return new FragmentsAssemblerHandler();
   }
 }

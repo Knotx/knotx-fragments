@@ -16,8 +16,18 @@
 package io.knotx.fragments.assembler;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
+
+import java.util.Collections;
+import java.util.List;
+
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import io.knotx.fragments.api.Fragment;
 import io.knotx.server.api.context.ClientRequest;
@@ -28,16 +38,9 @@ import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.json.JsonObject;
 import io.vertx.reactivex.ext.web.RoutingContext;
-import java.util.Collections;
-import java.util.List;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-public class FragmentAssemblerHandlerTest {
+public class FragmentsAssemblerHandlerTest {
 
   @Mock
   private ClientRequest clientRequest;
@@ -46,18 +49,17 @@ public class FragmentAssemblerHandlerTest {
   private RoutingContext routingContext;
 
   @Test
-  @DisplayName("Expect NO_CONTENT and empty body when no fragments in the routing context")
-  public void callAssemblerWithNoFragments_expectNoContentStatus() {
+  @DisplayName("Expect IllegalStateException when no fragments in the routing context")
+  public void callAssemblerWithNoFragments_expectIllegalStateException() {
     // given
-    FragmentAssemblerHandler assemblerHandler = new FragmentAssemblerHandler();
+    FragmentsAssemblerHandler assemblerHandler = new FragmentsAssemblerHandler();
     RequestEvent requestEvent = new RequestEvent(clientRequest);
 
-    // when
-    RequestEventHandlerResult result = assemblerHandler.joinFragmentsBodies(routingContext, requestEvent);
-
     // then
-    assertTrue(result.getRequestEvent().isPresent());
-    assertEquals(HttpResponseStatus.NO_CONTENT.code(), result.getStatusCode().intValue());
+    assertThrows(IllegalStateException.class, () -> {
+      //when
+      assemblerHandler.joinFragmentsBodies(routingContext, requestEvent);
+    });
   }
 
   @Test
@@ -65,7 +67,7 @@ public class FragmentAssemblerHandlerTest {
   public void callAssemblerWithFragment_expectAssemblerResultWithBodyAndOkStatus() {
     // given
     String expectedBody = "<h1>Some text</h1>\n" + "<p>Some text</p>";
-    FragmentAssemblerHandler assemblerHandler = new FragmentAssemblerHandler();
+    FragmentsAssemblerHandler assemblerHandler = new FragmentsAssemblerHandler();
 
     List<Fragment> fragments = Collections
         .singletonList(new Fragment("_STATIC", new JsonObject(), expectedBody));

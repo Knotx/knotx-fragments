@@ -15,6 +15,10 @@
  */
 package io.knotx.fragments.assembler;
 
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
 import io.knotx.fragments.api.Fragment;
 import io.knotx.server.api.context.RequestContext;
 import io.knotx.server.api.context.RequestEvent;
@@ -25,22 +29,16 @@ import io.netty.handler.codec.http.HttpResponseStatus;
 import io.vertx.core.Handler;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpHeaders;
-import io.vertx.core.logging.Logger;
-import io.vertx.core.logging.LoggerFactory;
 import io.vertx.reactivex.core.MultiMap;
 import io.vertx.reactivex.ext.web.RoutingContext;
-import java.util.List;
-import java.util.stream.Collectors;
-import org.apache.commons.lang3.StringUtils;
 
-class FragmentAssemblerHandler implements Handler<RoutingContext> {
+class FragmentsAssemblerHandler implements Handler<RoutingContext> {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(FragmentAssemblerHandler.class);
   private static final String MISSING_FRAGMENTS_PAYLOAD = "Expected 'fragments' in the routing context are missing!";
 
   private final RequestContextEngine engine;
 
-  FragmentAssemblerHandler() {
+  FragmentsAssemblerHandler() {
     engine = new DefaultRequestContextEngine(getClass().getSimpleName());
   }
 
@@ -48,7 +46,8 @@ class FragmentAssemblerHandler implements Handler<RoutingContext> {
   public void handle(RoutingContext context) {
     RequestContext requestContext = context.get(RequestContext.KEY);
     try {
-      RequestEventHandlerResult result = joinFragmentsBodies(context, requestContext.getRequestEvent());
+      RequestEventHandlerResult result = joinFragmentsBodies(context,
+          requestContext.getRequestEvent());
       engine.processAndSaveResult(result, context, requestContext);
     } catch (Exception e) {
       engine.handleFatal(context, requestContext, e);
@@ -58,17 +57,18 @@ class FragmentAssemblerHandler implements Handler<RoutingContext> {
   RequestEventHandlerResult joinFragmentsBodies(RoutingContext context,
       RequestEvent requestEvent) {
     final List<Fragment> fragments = context.get("fragments");
-    final String responseBody;
 
-    if (fragments != null) {
-      responseBody = fragments.stream()
-          .map(Fragment::getBody)
-          .collect(Collectors.joining());
-    } else {
-      responseBody = "";
-      LOGGER.warn(MISSING_FRAGMENTS_PAYLOAD);
-    }
+    final String responseBody = Optional.ofNullable(fragments)
+        .map(this::toResponseBody)
+        .orElseThrow(() -> new IllegalStateException(MISSING_FRAGMENTS_PAYLOAD));
+
     return createSuccessResponse(requestEvent, responseBody);
+  }
+
+  private String toResponseBody(List<Fragment> fragments) {
+    return fragments.stream()
+        .map(Fragment::getBody)
+        .collect(Collectors.joining());
   }
 
   private RequestEventHandlerResult createSuccessResponse(RequestEvent inputContext,
@@ -76,13 +76,10 @@ class FragmentAssemblerHandler implements Handler<RoutingContext> {
     MultiMap headers = MultiMap.caseInsensitiveMultiMap();
     int statusCode;
 
-    if (StringUtils.isBlank(responseBody)) {
-      statusCode = HttpResponseStatus.NO_CONTENT.code();
-    } else {
-      headers.add(HttpHeaders.CONTENT_LENGTH.toString().toLowerCase(),
-          Integer.toString(responseBody.length()));
-      statusCode = HttpResponseStatus.OK.code();
-    }
+    headers.add(HttpHeaders.CONTENT_LENGTH.toString()
+            .toLowerCase(),
+        Integer.toString(responseBody.length()));
+    statusCode = HttpResponseStatus.OK.code();
 
     return RequestEventHandlerResult.success(inputContext)
         .withBody(Buffer.buffer(responseBody))
