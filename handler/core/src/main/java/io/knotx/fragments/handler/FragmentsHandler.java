@@ -30,6 +30,8 @@ import io.knotx.fragments.engine.FragmentsEngine;
 import io.knotx.fragments.engine.Task;
 import io.knotx.fragments.handler.action.ActionProvider;
 import io.knotx.fragments.handler.api.ActionFactory;
+import io.knotx.fragments.handler.debug.FragmentsDebugModeDecorator;
+import io.knotx.fragments.handler.debug.FragmentsDebugModeDecoratorFactory;
 import io.knotx.fragments.handler.options.FragmentsHandlerOptions;
 import io.knotx.fragments.task.TaskBuilder;
 import io.knotx.server.api.context.ClientRequest;
@@ -55,7 +57,7 @@ public class FragmentsHandler implements Handler<RoutingContext> {
   private final RequestContextEngine requestContextEngine;
   private final TaskBuilder taskBuilder;
   private final FragmentsHandlerOptions options;
-  private final HtmlFragmentsDebugModeDecorator debugModeDecorator;
+  private final FragmentsDebugModeDecoratorFactory debugModeDecoratorFactory;
 
   FragmentsHandler(Vertx vertx, JsonObject config) {
     options = new FragmentsHandlerOptions(config);
@@ -65,10 +67,7 @@ public class FragmentsHandler implements Handler<RoutingContext> {
     taskBuilder = new TaskBuilder(options.getTaskKey(), options.getTasks(), proxyProvider);
     engine = new FragmentsEngine(vertx);
     requestContextEngine = new DefaultRequestContextEngine(getClass().getSimpleName());
-    debugModeDecorator = new HtmlFragmentsDebugModeDecorator();
-    if (options.isDebugMode()) {
-      debugModeDecorator.init();
-    }
+    debugModeDecoratorFactory = new FragmentsDebugModeDecoratorFactory(options.isDebugMode());
   }
 
   @Override
@@ -80,25 +79,19 @@ public class FragmentsHandler implements Handler<RoutingContext> {
 
     boolean isDebugMode = isDebugModeOn(clientRequest);
     List<FragmentEventContextTaskAware> events = toEvents(fragments, clientRequest);
-    if (isDebugMode) {
-      events.forEach(debugModeDecorator::markAsDebuggable);
-    }
+    FragmentsDebugModeDecorator debugModeDecorator = debugModeDecoratorFactory.create(events, isDebugMode);
+    debugModeDecorator.markAsDebuggable(events);
+
 
     engine.execute(events)
         .doOnSuccess(fragmentEvents -> putFragments(routingContext, fragmentEvents))
-        .doOnSuccess(fragmentEvents -> addDebugAssetsAndData(isDebugMode, fragmentEvents))
+        .doOnSuccess(debugModeDecorator::addDebugAssetsAndData)
         .map(fragmentEvents -> toHandlerResult(fragmentEvents, requestContext))
         .subscribe(
             result -> requestContextEngine
                 .processAndSaveResult(result, routingContext, requestContext),
             error -> requestContextEngine.handleFatal(routingContext, requestContext, error)
         );
-  }
-
-  private void addDebugAssetsAndData(boolean isDebugMode, List<FragmentEvent> fragmentEvents) {
-    if (isDebugMode) {
-      debugModeDecorator.addDebugAssetsAndData(fragmentEvents);
-    }
   }
 
   private RoutingContext putFragments(RoutingContext routingContext, List<FragmentEvent> events) {
