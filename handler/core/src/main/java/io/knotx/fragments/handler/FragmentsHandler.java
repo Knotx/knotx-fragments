@@ -18,6 +18,7 @@
 package io.knotx.fragments.handler;
 
 import static com.google.common.base.Predicates.alwaysTrue;
+import static io.knotx.fragments.handler.debug.FragmentsDebugModeDecorator.getFragmentsDebugModeDecorator;
 
 import io.knotx.fragments.api.Fragment;
 import io.knotx.fragments.engine.FragmentEvent;
@@ -31,7 +32,6 @@ import io.knotx.fragments.engine.Task;
 import io.knotx.fragments.handler.action.ActionProvider;
 import io.knotx.fragments.handler.api.ActionFactory;
 import io.knotx.fragments.handler.debug.FragmentsDebugModeDecorator;
-import io.knotx.fragments.handler.debug.FragmentsDebugModeDecoratorFactory;
 import io.knotx.fragments.handler.options.FragmentsHandlerOptions;
 import io.knotx.fragments.task.TaskBuilder;
 import io.knotx.server.api.context.ClientRequest;
@@ -57,7 +57,6 @@ public class FragmentsHandler implements Handler<RoutingContext> {
   private final RequestContextEngine requestContextEngine;
   private final TaskBuilder taskBuilder;
   private final FragmentsHandlerOptions options;
-  private final FragmentsDebugModeDecoratorFactory debugModeDecoratorFactory;
 
   FragmentsHandler(Vertx vertx, JsonObject config) {
     options = new FragmentsHandlerOptions(config);
@@ -67,7 +66,6 @@ public class FragmentsHandler implements Handler<RoutingContext> {
     taskBuilder = new TaskBuilder(options.getTaskKey(), options.getTasks(), proxyProvider);
     engine = new FragmentsEngine(vertx);
     requestContextEngine = new DefaultRequestContextEngine(getClass().getSimpleName());
-    debugModeDecoratorFactory = new FragmentsDebugModeDecoratorFactory(options.isDebugMode());
   }
 
   @Override
@@ -78,14 +76,14 @@ public class FragmentsHandler implements Handler<RoutingContext> {
         .getClientRequest();
 
     boolean isDebugMode = isDebugModeOn(clientRequest);
-    List<FragmentEventContextTaskAware> events = toEvents(fragments, clientRequest);
-    FragmentsDebugModeDecorator debugModeDecorator = debugModeDecoratorFactory.create(events, isDebugMode);
-    debugModeDecorator.markAsDebuggable(events);
 
+    List<FragmentEventContextTaskAware> events = toEvents(fragments, clientRequest);
+    FragmentsDebugModeDecorator debugModeDecorator = getFragmentsDebugModeDecorator(isDebugMode, events);
+    debugModeDecorator.markAsDebuggable(isDebugMode, events);
 
     engine.execute(events)
         .doOnSuccess(fragmentEvents -> putFragments(routingContext, fragmentEvents))
-        .doOnSuccess(debugModeDecorator::addDebugAssetsAndData)
+        .doOnSuccess(fragmentEvents -> debugModeDecorator.addDebugAssetsAndData(isDebugMode, fragmentEvents))
         .map(fragmentEvents -> toHandlerResult(fragmentEvents, requestContext))
         .subscribe(
             result -> requestContextEngine

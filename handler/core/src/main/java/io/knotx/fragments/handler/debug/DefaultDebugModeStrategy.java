@@ -17,37 +17,31 @@
  */
 package io.knotx.fragments.handler.debug;
 
-import static io.knotx.fragments.api.Fragment.JSON_OBJECT_TYPE;
+import static java.util.stream.Collectors.joining;
 
 import java.util.List;
 
-import com.google.common.base.Preconditions;
-
-import io.knotx.fragments.api.Fragment;
 import io.knotx.fragments.engine.FragmentEvent;
-import io.vertx.core.json.DecodeException;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 
-class JsonObjectDebugModeStrategy implements FragmentsDebugModeStrategy{
+class DefaultDebugModeStrategy implements FragmentsDebugModeStrategy {
+
   private static final Logger LOGGER = LoggerFactory
-      .getLogger(JsonObjectDebugModeStrategy.class);
+      .getLogger(DefaultDebugModeStrategy.class);
 
   @Override
   public void updateBodyWithDebugData(JsonObject debugData, List<FragmentEvent> fragmentEvents) {
-    fragmentEvents.stream().map(FragmentEvent::getFragment).forEach(f -> addDebugData(debugData, f));
+    LOGGER.warn(
+        "Debug mode is supported only for snippet amd JsonObject Fragment type. Debug flag must be set to true in tasks configuration. "
+            + "Current context contains following types: {}",
+        getFragmentsType(fragmentEvents));
   }
 
-  private void addDebugData(JsonObject debugData, Fragment fragment){
-    Preconditions.checkArgument(JSON_OBJECT_TYPE.equals(fragment.getType()));
-
-    try {
-      JsonObject body = new JsonObject(fragment.getBody());
-      body.put("debug", debugData);
-      fragment.setBody(body.encode());
-    }catch (DecodeException e){
-      LOGGER.error("Cannot parse body to JsonObject:\n{}", fragment.getBody());
-    }
+  private String getFragmentsType(List<FragmentEvent> fragmentEvents) {
+    return fragmentEvents.stream()
+        .map(event -> event.getFragment().getType())
+        .collect(joining(", "));
   }
 }
