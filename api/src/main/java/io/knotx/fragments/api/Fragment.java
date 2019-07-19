@@ -27,9 +27,6 @@ import org.apache.commons.lang3.StringUtils;
 @DataObject
 public class Fragment {
 
-  public static final String SNIPPET_TYPE = "snippet";
-  public static final String JSON_OBJECT_TYPE = "json";
-
   private static final int DEBUG_MAX_FRAGMENT_CONTENT_LOG_LENGTH = 256;
 
   private static final String ID_KEY = "id";

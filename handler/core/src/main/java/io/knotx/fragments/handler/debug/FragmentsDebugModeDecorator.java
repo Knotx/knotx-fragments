@@ -28,22 +28,26 @@ public enum FragmentsDebugModeDecorator {
   JSON_OBJECT_TYPE(new JsonObjectDebugModeStrategy()),
   DEFAULT(new DefaultDebugModeStrategy());
 
+  static final String FRAGMENT_SNIPPET_TYPE = "snippet";
+  static final String FRAGMENT_JSON_OBJECT_TYPE = "json";
+
   private final FragmentsDebugModeStrategy strategy;
 
   FragmentsDebugModeDecorator(FragmentsDebugModeStrategy strategy) {
     this.strategy = strategy;
   }
 
-  public static FragmentsDebugModeDecorator getFragmentsDebugModeDecorator(boolean debugMode, List<FragmentEventContextTaskAware> events){
-    if (!debugMode){
+  public static FragmentsDebugModeDecorator getFragmentsDebugModeDecorator(boolean debugMode,
+      List<FragmentEventContextTaskAware> events) {
+    if (!debugMode) {
       return DEFAULT;
     }
 
-    return getFragmentsMasterType(events);
+    return getFragmentsDebugModeDecorator(events);
   }
 
   public void markAsDebuggable(boolean debugMode, List<FragmentEventContextTaskAware> events) {
-    if(debugMode) {
+    if (debugMode) {
       events.stream().filter(this::hasTask).forEach(this::markAsDebuggable);
     }
   }
@@ -64,24 +68,27 @@ public enum FragmentsDebugModeDecorator {
     }
   }
 
-  private static FragmentsDebugModeDecorator getFragmentsMasterType(List<FragmentEventContextTaskAware> events){
-    if(hasAnyFragmentType(events, Fragment.SNIPPET_TYPE)){
+  private static FragmentsDebugModeDecorator getFragmentsDebugModeDecorator(
+      List<FragmentEventContextTaskAware> events) {
+    if (hasAnyFragmentType(events, FRAGMENT_SNIPPET_TYPE)) {
       return SNIPPET_TYPE;
     }
 
-    if(isJsonObject(events)){
+    if (isJsonObject(events)) {
       return JSON_OBJECT_TYPE;
     }
 
     return DEFAULT;
   }
-  private static boolean hasAnyFragmentType(List<FragmentEventContextTaskAware> events, String type){
+
+  private static boolean hasAnyFragmentType(List<FragmentEventContextTaskAware> events,
+      String type) {
     return events.stream().anyMatch(event -> type
         .equals(event.getFragmentEventContext().getFragmentEvent().getFragment().getType()));
   }
 
-  private static boolean isJsonObject(List<FragmentEventContextTaskAware> events){
-    return events.size() == 1 && hasAnyFragmentType(events, Fragment.JSON_OBJECT_TYPE);
+  private static boolean isJsonObject(List<FragmentEventContextTaskAware> events) {
+    return events.size() == 1 && hasAnyFragmentType(events, FRAGMENT_JSON_OBJECT_TYPE);
   }
 
   private void appendFragmentPayload(FragmentEvent fragmentEvent) {

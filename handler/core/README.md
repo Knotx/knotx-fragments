@@ -200,7 +200,9 @@ You may debug Fragments with defined Tasks using debug mode.
 To start debugging, modify [FragmentsHandlerOptions `debug`](https://github.com/Knotx/knotx-fragments-handler/blob/master/core/docs/asciidoc/dataobjects.adoc#fragmentshandleroptions)
 flag and set it to `true`.
 Now, every request that contains `debug` request param will trigger debug mode for the Fragments.
-You may preview the results in the `Knot.x Debug Console` that will appear at the bottom of the page
+
+### Snippet
+For your html snippet fragments you may preview the results in the `Knot.x Debug Console` that will appear at the bottom of the page
 in your browser. To display debug data of any Fragment with defined Task, simply click on it.
 You should see be able to see:
 - The original `body` of the Fragment (the one that came to the Fragments Handler),
@@ -208,3 +210,19 @@ You should see be able to see:
 - `Logs` of all Actions that were executed during the Fragment's Task processing.
 
 ![debug console](https://github.com/Knotx/knotx-fragments/raw/master/assets/images/debug_console.png)
+
+### Json Object
+For json object fragments your debug information will be added to your object as a additional field `debug`. 
+Please be aware you need to implicitly set the fragment type to `json`. For example:
+
+```hocon
+      {
+        name = singleFragmentSupplier
+        config = {
+          type = json
+          configuration {
+            data-knotx-task = api-task
+          }
+        }
+      
+```

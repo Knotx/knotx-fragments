@@ -15,7 +15,8 @@
  */
 package io.knotx.fragments.handler.debug;
 
-import static io.knotx.fragments.api.Fragment.JSON_OBJECT_TYPE;
+import static io.knotx.fragments.handler.debug.FragmentsDebugModeDecorator.FRAGMENT_JSON_OBJECT_TYPE;
+import static io.knotx.fragments.handler.debug.FragmentsDebugModeDecorator.FRAGMENT_SNIPPET_TYPE;
 import static java.util.Collections.singletonList;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -103,7 +104,7 @@ class FragmentsDebugModeDecoratorDecoratorTest {
     String body = "test";
     JsonObject expectedPayload = new JsonObject().put("test", "value");
 
-    Fragment fragment = new Fragment(Fragment.SNIPPET_TYPE, new JsonObject(), body);
+    Fragment fragment = new Fragment(FRAGMENT_SNIPPET_TYPE, new JsonObject(), body);
     fragment.mergeInPayload(expectedPayload);
     String expectedBody = "<!-- data-knotx-id='" + fragment.getId() + "' -->"
         + body
@@ -129,7 +130,7 @@ class FragmentsDebugModeDecoratorDecoratorTest {
     FragmentsDebugModeDecorator tested = FragmentsDebugModeDecorator.SNIPPET_TYPE;
 
     String originalBody = "</body>";
-    Fragment fragmentWithBodyEndTag = new Fragment(Fragment.SNIPPET_TYPE, new JsonObject(), originalBody);
+    Fragment fragmentWithBodyEndTag = new Fragment(FRAGMENT_SNIPPET_TYPE, new JsonObject(), originalBody);
     FragmentEvent fragmentEventWithBodyEndTag = new FragmentEvent(fragmentWithBodyEndTag);
     InputStream debugCssIs = getClass().getClassLoader()
         .getResourceAsStream("debug/debug.css");
@@ -156,7 +157,7 @@ class FragmentsDebugModeDecoratorDecoratorTest {
     FragmentsDebugModeDecorator tested = FragmentsDebugModeDecorator.JSON_OBJECT_TYPE;
 
     String originalBody = "{\"debug\":{}}";
-    Fragment jsonObjectFragment = new Fragment(JSON_OBJECT_TYPE, new JsonObject(), originalBody);
+    Fragment jsonObjectFragment = new Fragment(FRAGMENT_JSON_OBJECT_TYPE, new JsonObject(), originalBody);
     FragmentEvent jsonObjectFragmentEvent = new FragmentEvent(jsonObjectFragment);
     jsonObjectFragmentEvent.getDebugData().put("debug", "someValue");
 
@@ -167,5 +168,43 @@ class FragmentsDebugModeDecoratorDecoratorTest {
     JsonObject expectedBody = new JsonObject(jsonObjectFragmentEvent.getFragment().getBody());
 
     assertFalse(expectedBody.getJsonObject("debug").getMap().values().isEmpty());
+  }
+
+  @Test
+  @DisplayName("Expect fragment not changed for default debug decorator")
+  void expectFragmentBodyUnchangedForDefaultDecorator(){
+    //given
+    FragmentsDebugModeDecorator tested = FragmentsDebugModeDecorator.DEFAULT;
+
+    String originalBody = "{\"attr\":\"value\"}";
+    Fragment jsonObjectFragment = new Fragment("type", new JsonObject(), originalBody);
+    FragmentEvent jsonObjectFragmentEvent = new FragmentEvent(jsonObjectFragment);
+    //when
+    tested.addDebugAssetsAndData(true, singletonList(jsonObjectFragmentEvent));
+
+    //then
+    String expectedBody = jsonObjectFragmentEvent.getFragment().getBody();
+
+    assertEquals(expectedBody, originalBody);
+  }
+
+  @Test
+  @DisplayName("Expect fragment not changed for json type with JsonArray as body case")
+  void expectFragmentBodyUnchangedForJsonArrayOriginalBody(){
+    //given
+    FragmentsDebugModeDecorator tested = FragmentsDebugModeDecorator.JSON_OBJECT_TYPE;
+
+    String originalBody = "[{\"attr\":\"value\"}]";
+    Fragment jsonObjectFragment = new Fragment(FRAGMENT_JSON_OBJECT_TYPE, new JsonObject(), originalBody);
+    FragmentEvent jsonObjectFragmentEvent = new FragmentEvent(jsonObjectFragment);
+    jsonObjectFragmentEvent.getDebugData().put("debug", "someValue");
+
+    //when
+    tested.addDebugAssetsAndData(true, singletonList(jsonObjectFragmentEvent));
+
+    //then
+    String expectedBody = jsonObjectFragmentEvent.getFragment().getBody();
+
+    assertEquals(expectedBody, originalBody);
   }
 }
