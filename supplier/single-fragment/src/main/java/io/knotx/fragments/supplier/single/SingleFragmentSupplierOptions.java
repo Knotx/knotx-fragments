@@ -15,6 +15,8 @@
  */
 package io.knotx.fragments.supplier.single;
 
+import static io.knotx.fragments.api.Fragment.JSON_OBJECT_TYPE;
+
 import io.vertx.codegen.annotations.DataObject;
 import io.vertx.core.json.JsonObject;
 
@@ -43,9 +45,9 @@ public class SingleFragmentSupplierOptions {
   }
 
   private void init() {
-    this.type = "";
+    this.type = JSON_OBJECT_TYPE;
     this.configuration = new JsonObject();
-    this.body = "";
+    this.body = "{}";
     this.payload = new JsonObject();
   }
 
