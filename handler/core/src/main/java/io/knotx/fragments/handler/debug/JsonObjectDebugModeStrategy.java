@@ -15,7 +15,7 @@
  */
 package io.knotx.fragments.handler.debug;
 
-import static io.knotx.fragments.handler.debug.FragmentsDebugModeDecorator.FRAGMENT_JSON_OBJECT_TYPE;
+import static io.knotx.fragments.handler.debug.FragmentsDebugModeDecorator.JSON_OBJECT_TYPE;
 
 import java.util.List;
 
@@ -38,7 +38,7 @@ class JsonObjectDebugModeStrategy implements FragmentsDebugModeStrategy{
   }
 
   private void addDebugData(JsonObject debugData, Fragment fragment){
-    Preconditions.checkArgument(FRAGMENT_JSON_OBJECT_TYPE.equals(fragment.getType()));
+    Preconditions.checkArgument(JSON_OBJECT_TYPE.getType().equals(fragment.getType()));
 
     try {
       JsonObject body = new JsonObject(fragment.getBody());

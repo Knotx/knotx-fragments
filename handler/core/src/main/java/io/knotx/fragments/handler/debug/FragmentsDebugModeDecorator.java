@@ -24,17 +24,16 @@ import io.vertx.core.json.JsonObject;
 
 public enum FragmentsDebugModeDecorator {
 
-  SNIPPET_TYPE(new HtmlDebugModeStrategy()),
-  JSON_OBJECT_TYPE(new JsonObjectDebugModeStrategy()),
-  DEFAULT(new DefaultDebugModeStrategy());
-
-  static final String FRAGMENT_SNIPPET_TYPE = "snippet";
-  static final String FRAGMENT_JSON_OBJECT_TYPE = "json";
+  SNIPPET_TYPE("snippet", new HtmlDebugModeStrategy()),
+  JSON_OBJECT_TYPE("json", new JsonObjectDebugModeStrategy()),
+  DEFAULT(null, new DefaultDebugModeStrategy());
 
   private final FragmentsDebugModeStrategy strategy;
+  private final String type;
 
-  FragmentsDebugModeDecorator(FragmentsDebugModeStrategy strategy) {
+  FragmentsDebugModeDecorator(String type, FragmentsDebugModeStrategy strategy) {
     this.strategy = strategy;
+    this.type = type;
   }
 
   public static FragmentsDebugModeDecorator getFragmentsDebugModeDecorator(boolean debugMode,
@@ -70,7 +69,7 @@ public enum FragmentsDebugModeDecorator {
 
   private static FragmentsDebugModeDecorator getFragmentsDebugModeDecorator(
       List<FragmentEventContextTaskAware> events) {
-    if (hasAnyFragmentType(events, FRAGMENT_SNIPPET_TYPE)) {
+    if (hasAnyFragmentType(events, SNIPPET_TYPE.getType())) {
       return SNIPPET_TYPE;
     }
 
@@ -88,7 +87,7 @@ public enum FragmentsDebugModeDecorator {
   }
 
   private static boolean isJsonObject(List<FragmentEventContextTaskAware> events) {
-    return events.size() == 1 && hasAnyFragmentType(events, FRAGMENT_JSON_OBJECT_TYPE);
+    return events.size() == 1 && hasAnyFragmentType(events, JSON_OBJECT_TYPE.getType());
   }
 
   private void appendFragmentPayload(FragmentEvent fragmentEvent) {
@@ -115,5 +114,9 @@ public enum FragmentsDebugModeDecorator {
 
   private boolean hasTask(FragmentEventContextTaskAware fragmentEventContextTaskAware) {
     return fragmentEventContextTaskAware.getTask().isPresent();
+  }
+
+  public String getType() {
+    return type;
   }
 }
