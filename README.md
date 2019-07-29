@@ -3,23 +3,23 @@
 
 # Knot.x Fragments
 
-> While [Knot.x HTTP Server](https://github.com/Knotx/knotx-server-http) is a "hearth" of Knot.x, Fragments processing 
-is its "brain".
+> While [Knot.x HTTP Server](https://github.com/Knotx/knotx-server-http) is a _"hearth"_ of Knot.x, Fragments processing 
+is its _"brain"_.
 
-Knot.x Fragments is an "army swiss knife" when it comes to **integrating with dynamic data sources**. It 
-comes with **distributed systems stability patterns** such as a **circuit breaker mechanism** to handle different 
+Knot.x Fragments is a Swiss Army knife for **integrating with dynamic data sources**. It 
+comes with **distributed systems stability patterns** such as a **circuit breaker** to handle different 
 kinds of network failures. Thanks to those build-in mechanisms you can focus more on delivering
 business logic and be ready to handle any unexpected integration problems.
 
-Knot.x Fragments encourages you to decompose your business logic into a chain of simple steps
-that later on can be wrapped with integration stability patterns without code changes. In addition, 
-when the chain becomes more and more complex and more failure scenarios are known, you can adjust 
-failure logic with fallback configuration (no changes in the business logic required).
+Knot.x Fragments encourages to decompose business logic into a chain of simple steps that later 
+can be wrapped with integration stability patterns without code changes. 
+Besides, when the chain becomes more complex and additional failure scenarios are known, 
+failure logic can be adjusted with fallback configuration (no changes in the business logic required).
 
 Knot.x Fragments is designed to build fault-tolerant, back-end integrations such as:
 - Gateway APIs
 - Web APIs
-- template processing (HTML markup, JSON, PDF etc). 
+- documents processing (HTML markup, JSON, PDF etc). 
 
 
 ## How does it work
@@ -27,13 +27,13 @@ Knot.x Fragments is designed to build fault-tolerant, back-end integrations such
 Knot.x Fragments is a set of [Handlers](https://github.com/Knotx/knotx-server-http/tree/master/api#routing-handlers)
 that are plugged into the [Knot.x Server request processing](https://github.com/Knotx/knotx-server-http#how-does-it-work).
 
-When HTTP request comes to Knot.x, Fragments processing starts with [adapting the request](#supply-fragments) to one or more
-Fragments that are [evaluated](#evaluate-fragments) later and finally [combined into the response](#assemble-fragments).
+When the HTTP request comes to Knot.x, Fragments processing starts with [adapting the request](#supply-fragments) to one or more
+Fragments that are [evaluated](#evaluate-fragments) and finally [combined into the response](#assemble-fragments).
 
 ### Supply Fragments
 
 [**Fragments**](https://github.com/Knotx/knotx-fragments/tree/master/api#knotx-fragment-api) 
-are the result of breaking the request (in this example it is the HTML markup) into smaller, independent parts by the
+are the result of breaking the request (e.g. the HTML markup) into smaller, independent parts by the
 [Fragments Supplier](https://github.com/Knotx/knotx-fragments/tree/master/supplier).
 
 ![Fragments](https://github.com/Knotx/knotx-fragments/raw/master/assets/images/fragments_supplier.png)
@@ -74,7 +74,6 @@ Read more about configuring HTML template processing in the [Knot.x Example Proj
 
 ## Modules 
 
-It contains such modules as:
 - [Fragments Supplier](https://github.com/Knotx/knotx-fragments/tree/master/supplier) - converts a HTTP request into one or more [**Fragments**](https://github.com/Knotx/knotx-fragments/tree/master/api#knotx-fragment-api)
     - [HTML Splitter](https://github.com/Knotx/knotx-fragments/tree/master/supplier/html-splitter)
     - [Single Fragment Supplier](https://github.com/Knotx/knotx-fragments/tree/master/supplier/single-fragment)
