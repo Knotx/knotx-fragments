@@ -24,6 +24,8 @@ are the result of breaking the request (in this example it is the HTML markup) i
 
 ![Fragments](https://github.com/Knotx/knotx-fragments/raw/master/assets/images/fragments_supplier.png)
 
+### Evaluate Fragments
+
 Each **Fragment** may specify a processing **Task** that points to a named, directed graph of **Actions**.
 
 Each **Action** transforms the Fragment's content and/or updates its payload. 
@@ -34,8 +36,6 @@ Fragment's path in the Task graph is defined by Action's output, called **Transi
 
 You may read more about it in the [Fragments Handler API](https://github.com/Knotx/knotx-fragments/tree/master/handler/api).
 
-### Evaluate Fragments
-
 **Action** is a simple function (business logic) with possible restrictions imposed. E.g. function execution
 can be limited to a certain amount of time. If it will not end in that time, Action times out. 
 In that case, Action's output is **error Transition** and some **fallback Action** may be applied.
@@ -43,7 +43,7 @@ In that case, Action's output is **error Transition** and some **fallback Action
 <img src="https://github.com/Knotx/knotx-fragments/raw/master/assets/images/graph_processing_failure.png" width="500">
 
 Additionally, **Actions** may be composed into a **Composed Structure** that will be executed in **parallel** when they
-are independent.
+are independent. More details can be found [here](https://github.com/Knotx/knotx-fragments/tree/master/handler/engine).
 
 You may read more about actions restrictions and implementations of Actions delivered with this 
 module in the [Fragments Handler](https://github.com/Knotx/knotx-fragments/tree/master/handler)
@@ -52,13 +52,6 @@ module in the [Fragments Handler](https://github.com/Knotx/knotx-fragments/tree/
 
 Finally, after all the Fragments were processed, they are combined into a single response by the 
 [Fragments Assembler](https://github.com/Knotx/knotx-fragments/tree/master/assembler) handler.
-
-### Fragments Engine
-The diagram below depicts Fragments Engine logic (map-reduce).
-
-![Node with exits](https://github.com/Knotx/knotx-fragments/raw/master/assets/images/all_in_one_processing.png)
-
-Read more about it [here](https://github.com/Knotx/knotx-fragments/tree/master/handler/engine).
 
 ## License
 **Knot.x Fragments** is licensed under the [Apache License, Version 2.0 (the "License")](https://www.apache.org/licenses/LICENSE-2.0.txt)
