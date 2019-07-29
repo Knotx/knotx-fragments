@@ -3,11 +3,12 @@
 
 # Knot.x Fragments
 This repository contains all modules that are the core of the [Knot.x Fragments processing](https://github.com/Knotx/knotx-fragments#how-does-it-work):
-- [Fragments Supplier](https://github.com/Knotx/knotx-fragments/tree/master/supplier)
+- [Fragments Supplier](https://github.com/Knotx/knotx-fragments/tree/master/supplier) - converts a HTTP request into one or more [**Fragments**](https://github.com/Knotx/knotx-fragments/tree/master/api#knotx-fragment-api)
     - [HTML Splitter](https://github.com/Knotx/knotx-fragments/tree/master/supplier/html-splitter)
     - [Single Fragment Supplier](https://github.com/Knotx/knotx-fragments/tree/master/supplier/single-fragment)
-- [Fragments Handler](https://github.com/Knotx/knotx-fragments/tree/master/handler)
-- [Fragments Assembler](https://github.com/Knotx/knotx-fragments/tree/master/assembler)
+- [Fragments Handler](https://github.com/Knotx/knotx-fragments/tree/master/handler) - evaluates Tasks assigned to Fragments
+    - [Fragments Engine](https://github.com/Knotx/knotx-fragments/tree/master/handler/engine) - computes all Fragments in **parallel** performing Actions graphs defined by Tasks
+- [Fragments Assembler](https://github.com/Knotx/knotx-fragments/tree/master/assembler) - merges Fragments into one a single response
 
 ## How does it work
 
