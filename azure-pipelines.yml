@@ -1,0 +1,35 @@
+trigger:
+  - master
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+steps:
+  - script: |
+      git clone https://github.com/Knotx/knotx-aggregator.git
+      mkdir knotx-repos
+    displayName: "Prepare Aggregator"
+  - task: CmdLine@2
+    inputs:
+      script: |
+        cd knotx-aggregator/development
+        if [[ -z "$(System.PullRequest.SourceBranch)" ]] ; then
+          ./pull-all.sh -r ../../knotx-repos -b "$(Build.SourceBranchName)" -a
+        else
+          ./pull-all.sh -r ../../knotx-repos -b $(System.PullRequest.SourceBranch) -a
+        fi
+    displayName: "Clone all repositories"
+  - task: CmdLine@2
+    inputs:
+      script: |
+        cd knotx-aggregator/development
+        ./build-stack.sh -r ../../knotx-repos
+    displayName: "Build Stack"
+  - script: |
+      cd knotx-repos/knotx-docker
+      mvn clean package
+    displayName: "Build Docker image"
+  - script: |
+      cd knotx-repos/knotx-starter-kit
+      ./gradlew build
+    displayName: "Build Starter Kit"
