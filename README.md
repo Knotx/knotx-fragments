@@ -1,5 +1,5 @@
 [![][travis img]][travis]
-[![][license img]][license]
+[![Build Status](https://dev.azure.com/knotx/Knotx/_apis/build/status/Knotx.knotx-fragments?branchName=master)](https://dev.azure.com/knotx/Knotx/_build/latest?definitionId=10&branchName=master)
 
 # Knot.x Fragments
 
