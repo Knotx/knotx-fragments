@@ -87,7 +87,7 @@ actions {
 ## Actions
 
 ### HTTP Action
-This action is defined in [Knot.x Data Bridg](https://github.com/Knotx/knotx-data-bridge/tree/master/http).
+This action is defined in [Knot.x Data Bridge](https://github.com/Knotx/knotx-data-bridge/tree/master/http).
 
 ### Inline Body Action
 Inline Body Action replaces Fragment body with specified body. Its configuration looks like:
