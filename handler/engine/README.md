@@ -4,12 +4,6 @@ This module is a heart of the *Fragment Processing*. It actually does the work o
 by routing each *Fragment* throught the graph and applying [**Actions**](https://github.com/Knotx/knotx-fragments/tree/master/handler/api#action)
  during that processing.
 
-## Overview
-The diagram below depicts the engine map-reduce logic. It extends the [introduction example](https://github.com/Knotx/knotx-fragments) 
-with RXfied operations allowing to process all Actions in parallel.
-
-![RXfied processing diagram](assets/images/all_in_one_processing.png)
-
 ## How does it work
 Any *Fragment* can define its processing path - a **Task** (which is a **directed graph** of **Nodes**).
 A **Task** specifies the nodes through which Fragments will be routed by the Graph Engine. 

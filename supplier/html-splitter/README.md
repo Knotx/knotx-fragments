@@ -1,13 +1,11 @@
-# Knot.x Splitter Handler
-This module contains [Handler](https://vertx.io/docs/apidocs/io/vertx/core/Handler.html)
-implementation that splits a Template into [`Fragments`](https://github.com/Knotx/knotx-fragments/tree/master/api).
-
-Template is a document that will be later processed by Knot.x instance. Current implementation (`HtmlFragmentSplitter`)
-supports splitting HTML markup, but Template could be any document like PDF file, Office file or even an image.
+# Knot.x HTML Fragment Supplier Handler
+This module contains a [Handler](https://vertx.io/docs/apidocs/io/vertx/core/Handler.html)
+an implementation that splits a HTML request body into [`Fragments`](https://github.com/Knotx/knotx-fragments/tree/master/api) and adds them
+to the [`RoutingContext`](https://vertx.io/docs/apidocs/io/vertx/ext/web/RoutingContext.html) under `"fragments"` key.
 
 ## How does it work
-HTML Fragment Splitter reads the template (a document) from the [Request Context](https://github.com/Knotx/knotx-server-http/blob/master/api/docs/asciidoc/dataobjects.adoc#requestcontext)
-body. Then it splits the HTML markup with following regexp:
+HTML Fragment Supplier reads a template (HTML markup) from the [Request Context](https://github.com/Knotx/knotx-server-http/blob/master/api/docs/asciidoc/dataobjects.adoc#requestcontext)
+response body, then splits it with the following regexp:
 ```
 <knotx:(?<type>\w+)(?<attributes>.*?[^>])>(?<body>.*?)</knotx:\1>
 ```
@@ -16,14 +14,12 @@ This regexp contains 3 matching groups:
 - `attributes` - any configuration of fragment passed in the attributes (later transferred to JsonObject with `(?<key>[\\w\\-]+)\\s*=\\s*(?<value>'((?:\\\\'|[^'])*)'|\"((?:\\\\\"|[^\"])*)\")` regexp),
 - `body` - actual markup of the fragment.
 
-Finally, `RequestContext` body is cleared (set to `null`) and fragments are saved
+Finally, the `RequestContext` response body is cleared (set to `null`) and fragments are saved
 into [`RoutingContext`](https://vertx.io/docs/apidocs/io/vertx/ext/web/RoutingContext.html) under `"fragments"` key.
 
-### How Template is splitted
-Lets explain the process of the Template splitting using an example.
-
-Let's assume, that following markup is [`ClientRequest`](https://github.com/Knotx/knotx-server-http/blob/master/api/docs/asciidoc/dataobjects.adoc#clientrequest)
-body:
+### Example
+Let's assume, that the following markup is the [Request Context](https://github.com/Knotx/knotx-server-http/blob/master/api/docs/asciidoc/dataobjects.adoc#requestcontext)
+response body (the [`ClientResponse`](https://github.com/Knotx/knotx-server-http/blob/master/api/docs/asciidoc/dataobjects.adoc#clientresponse) body):
 ```html
 <html>
 <head>
@@ -39,7 +35,7 @@ body:
 </html>
 ```
 
-That template will be splitted into 3 fragments:
+That template will be split into 3 fragments:
 
 - fragment of type `_STATIC` with `body`:
 ```html
@@ -70,11 +66,14 @@ and `configuration`:
 ```
 
 ## How to use
-Simply add a [Routing Operation](https://github.com/Knotx/knotx-server-http#routing-operations)
-entry:
-
+Specify HTML Fragment Supplier Handler in the [Routing Operation](https://github.com/Knotx/knotx-server-http#routing-operations) 
+handlers chain:
 ```hocon
 {
   name = htmlFragmentsSupplier
 }
 ```
+
+### Example
+See [the template processing example](https://github.com/Knotx/knotx-example-project/tree/master/template-processing) project.
+

@@ -1,4 +1,3 @@
-[![][travis img]][travis]
 [![Build Status](https://dev.azure.com/knotx/Knotx/_apis/build/status/Knotx.knotx-fragments?branchName=master)](https://dev.azure.com/knotx/Knotx/_build/latest?definitionId=10&branchName=master)
 
 # Knot.x Fragments
@@ -17,9 +16,8 @@ Besides, when the chain becomes more complex and additional failure scenarios ar
 failure logic can be adjusted with fallback configuration (no changes in the business logic required).
 
 Knot.x Fragments is designed to build fault-tolerant, back-end integrations such as:
-- Gateway APIs
-- Web APIs
-- documents processing (HTML markup, JSON, PDF etc). 
+- Gateway APIs, Backend For Frontend (BFF) for single-page applications (SPA), Web APIs
+- documents processing (HTML markup, JSON, PDF etc) with a templating engine support
 
 
 ## How does it work
@@ -27,40 +25,37 @@ Knot.x Fragments is designed to build fault-tolerant, back-end integrations such
 Knot.x Fragments is a set of [Handlers](https://github.com/Knotx/knotx-server-http/tree/master/api#routing-handlers)
 that are plugged into the [Knot.x Server request processing](https://github.com/Knotx/knotx-server-http#how-does-it-work).
 
-When the HTTP request comes to Knot.x, Fragments processing starts with [adapting the request](#supply-fragments) to one or more
-Fragments that are [evaluated](#evaluate-fragments) and finally [combined into the response](#assemble-fragments).
+Processing of fragments begins by [converting a HTTP request](#supply-fragments) to one or more
+Fragments that are then [evaluated](#evaluate-fragments) and eventually [combined into a HTTP response](#assemble-fragments).
 
 ### Supply Fragments
 
 [**Fragments**](https://github.com/Knotx/knotx-fragments/tree/master/api#knotx-fragment-api) 
-are the result of breaking the request (e.g. the HTML markup) into smaller, independent parts by the
+are the result of a request being split (e.g. HTML markup) into smaller, independent parts by the
 [Fragments Supplier](https://github.com/Knotx/knotx-fragments/tree/master/supplier).
 
 ![Fragments](https://github.com/Knotx/knotx-fragments/raw/master/assets/images/fragments_supplier.png)
 
 ### Evaluate Fragments
 
-Each **Fragment** may specify a processing **Task** that points to a named, directed graph of **Actions**.
+Each **Fragment** can specify a processing **Task** that points to a named, directed graph of **Actions**.
 
 Each **Action** transforms the Fragment's content and/or updates its payload. 
 
-Fragment's path in the Task graph is defined by Action's output, called **Transition**.
+Fragment's path in the Task graph is defined by Action's outputs, called **Transitions**.
 
 <img src="https://github.com/Knotx/knotx-fragments/raw/master/assets/images/graph_processing.png" width="700">
 
 You may read more about it in the [Fragments Handler API](https://github.com/Knotx/knotx-fragments/tree/master/handler/api).
 
-**Action** is a simple function (business logic) with possible restrictions imposed. E.g. function execution
-can be limited to a certain amount of time. If it will not end in that time, Action times out. 
-In that case, Action's output is **error Transition** and some **fallback Action** may be applied.
+**Action** is a simple function (business logic) with possible restrictions imposed. E.g. the function execution
+can be limited to a certain time. If this does not end within that time, Action will time out. 
+In this case, the Action responds with an **error** Transition, which indicates that some **fallback Action** can be applied.
 
 <img src="https://github.com/Knotx/knotx-fragments/raw/master/assets/images/graph_processing_failure.png" width="500">
 
-Additionally, **Actions** may be executed in **parallel** when they are independent. More details can 
+Additionally, **Actions** are executed in **parallel** when they are independent of each other. More details can 
 be found [here](https://github.com/Knotx/knotx-fragments/tree/master/handler/engine).
-
-You may read more about actions restrictions and implementations of Actions delivered with this 
-module in the [Fragments Handler](https://github.com/Knotx/knotx-fragments/tree/master/handler)
 
 ### Assemble Fragments
 
@@ -88,9 +83,3 @@ Each module contains its own documentation inside.
 
 Icons come from [https://www.slidescarnival.com](https://www.slidescarnival.com/copyright-and-legal-information#license) and 
 use [Creative Commons License Attribution 4.0 International](https://creativecommons.org/licenses/by/4.0/).
-
-[travis]:https://travis-ci.com/Knotx/knotx-fragments
-[travis img]:https://travis-ci.com/Knotx/knotx-fragments.svg?branch=master
-
-[license]:https://github.com/Knotx/knotx-fragments/blob/master/LICENSE
-[license img]:https://img.shields.io/badge/License-Apache%202.0-blue.svg
