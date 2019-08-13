@@ -1,12 +1,17 @@
 # Fragments Engine
-This module is a heart of the *Fragment Processing*. It actually does the work of independent 
-[**Fragments**](https://github.com/Knotx/knotx-fragments/tree/master/api) processing,
-by routing each *Fragment* through the graph and applying [**Actions**](https://github.com/Knotx/knotx-fragments/tree/master/handler/api#action)
- during that processing.
+Fragments Engine is a reactive asynchronous map-reduce implementation, enjoying the benefits of Reactive Extensions, 
+that evaluates each Fragment independently using a `Task` definition. `Task` specifies a directed graph of Nodes, 
+allowing to transform Fragment into the new one.
+```
+F -> F', T
+```
+- `F` - Fragment to transform
+- `F'` - the modified Fragment
+- `T` represents Transition, a text value, that defines the next Node from the graph
 
 ## How does it work
 Any *Fragment* can define its processing path - a **Task** (which is a **directed graph** of **Nodes**).
-A **Task** specifies the nodes through which Fragments will be routed by the Graph Engine. 
+A **Task** specifies the nodes through which Fragments will be routed by the Task Engine. 
 Each Node may define possible *outgoing edges* - **Transitions**.
 
 Additionally, a **Node** can do one of the following:
@@ -38,15 +43,17 @@ Composite Node may define only two transitions:
 > This is because Actions are executed in parallel and the output of modifying a single Fragment's body in parallel
 > may differ between different executions.
 
+## Node states
+
 ![Node with exits](assets/images/graph_node.png)
 
-If a node does not declare a `_success` transition, processing is finished and Graph Engine responds with
+If a node does not declare a `_success` transition, processing is finished and Task Engine responds with
 `SUCCESS` status.
 
 Let's see the example above. *Node A* declares two transitions: `_success` and `_error`. 
 If the transformation logic defined in *Node A* ends correctly, then the `_success` transition 
 is set by default (unless *Node A* has set a custom transition) and *Node B* will continue processing.
-If *Node B* ends correctly then Graph Engine responds with the `SUCCESS` status. Otherwise, the `_error` 
+If *Node B* ends correctly then Task Engine responds with the `SUCCESS` status. Otherwise, the `_error` 
 transition is set, *Node B* does not declare it so the `FAILURE` state is returned.
 If the transformation logic from *Node A* raises an exception, the `_error` transition is set and
 *Node C* continues processing. *Node C* may end correctly, and then the entire processing is marked 
