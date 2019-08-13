@@ -1,14 +1,8 @@
 # Fragments Engine
 This module is a heart of the *Fragment Processing*. It actually does the work of independent 
 [**Fragments**](https://github.com/Knotx/knotx-fragments/tree/master/api) processing,
-by routing each *Fragment* throught the graph and applying [**Actions**](https://github.com/Knotx/knotx-fragments/tree/master/handler/api#action)
+by routing each *Fragment* through the graph and applying [**Actions**](https://github.com/Knotx/knotx-fragments/tree/master/handler/api#action)
  during that processing.
-
-## Overview
-The diagram below depicts the engine map-reduce logic. It extends the [introduction example](https://github.com/Knotx/knotx-fragments) 
-with RXfied operations allowing to process all Actions in parallel.
-
-![RXfied processing diagram](assets/images/all_in_one_processing.png)
 
 ## How does it work
 Any *Fragment* can define its processing path - a **Task** (which is a **directed graph** of **Nodes**).
@@ -16,9 +10,9 @@ A **Task** specifies the nodes through which Fragments will be routed by the Gra
 Each Node may define possible *outgoing edges* - **Transitions**.
 
 Additionally, a **Node** can do one of the following:
-  - define an [**Action**](https://github.com/Knotx/knotx-fragments/tree/master/handler/api#action) 
-  that will be applied to *Fragment* (we call it **Action Node**),
-  - consist of other **Nodes** (we call it **Composite Node**).
+  - define a **single** [Action](https://github.com/Knotx/knotx-fragments/tree/master/handler/api#action)
+  that will be applied to Fragment (called [Action Node](#action-node)),
+  - define **many**/**parallel** Actions that are applied to Fragment (called [Composite Node](#composite-node)) .
 
 ### Action Node
 Action that is applied on the node is a transformation function 
