@@ -32,18 +32,25 @@ public class FragmentResult {
 
   private static final String FRAGMENT_KEY = "fragment";
   private static final String TRANSITION_KEY = "transition";
+  private static final String ACTION_LOG_KEY = "actionLog";
 
-  private Fragment fragment;
-  private String transition;
+  private final Fragment fragment;
+  private final String transition;
+  private final JsonObject actionLog;
 
-  public FragmentResult(Fragment fragment, String transition) {
+  public FragmentResult(Fragment fragment, String transition, JsonObject actionLog) {
     this.fragment = fragment;
     this.transition = transition;
+    this.actionLog = actionLog;
+  }
+  public FragmentResult(Fragment fragment, String transition) {
+    this(fragment, transition, new JsonObject());
   }
 
   public FragmentResult(JsonObject json) {
     this.fragment = new Fragment(json.getJsonObject(FRAGMENT_KEY));
     this.transition = json.getString(TRANSITION_KEY);
+    this.actionLog = json.getJsonObject(ACTION_LOG_KEY);
   }
 
   public JsonObject toJson() {
@@ -98,5 +105,9 @@ public class FragmentResult {
         "fragment=" + fragment +
         ", transition='" + transition + '\'' +
         '}';
+  }
+
+  public JsonObject getActionLog() {
+    return actionLog;
   }
 }

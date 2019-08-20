@@ -17,6 +17,7 @@
  */
 package io.knotx.fragments.engine;
 
+import io.knotx.fragments.handler.api.domain.FragmentResult;
 import io.vertx.core.json.JsonObject;
 
 public class EventLogEntry {
@@ -26,35 +27,42 @@ public class EventLogEntry {
   private static final String STATUS_KEY = "status";
   private static final String TRANSITION_KEY = "transition";
   private static final String TIMESTAMP_KEY = "timestamp";
+  private static final String ACTION_LOG_KEY = "actionLog";
 
-  private String task;
-  private String action;
-  private ActionStatus status;
-  private String transition;
-  private long timestamp;
+  private final String task;
+  private final String action;
+  private final ActionStatus status;
+  private final String transition;
+  private final long timestamp;
+  private final JsonObject actionLog;
 
-  public static EventLogEntry success(String task, String action, String transition) {
-    return new EventLogEntry(task, action, ActionStatus.SUCCESS, transition);
+  public static EventLogEntry success(String task, String action, FragmentResult fragmentResult) {
+    return new EventLogEntry(task, action, ActionStatus.SUCCESS, fragmentResult.getTransition(), fragmentResult.getActionLog());
   }
 
   public static EventLogEntry unsupported(String task, String action, String transition) {
-    return new EventLogEntry(task, action, ActionStatus.UNSUPPORTED_TRANSITION, transition);
+    return new EventLogEntry(task, action, ActionStatus.UNSUPPORTED_TRANSITION, transition,null);
+  }
+
+  public static EventLogEntry error(String task, String action, String transition, JsonObject actionLog) {
+    return new EventLogEntry(task, action, ActionStatus.ERROR, transition, actionLog);
   }
 
   public static EventLogEntry error(String task, String action, String transition) {
-    return new EventLogEntry(task, action, ActionStatus.ERROR, transition);
+    return new EventLogEntry(task, action, ActionStatus.ERROR, transition,null);
   }
 
   public static EventLogEntry timeout(String task, String action) {
-    return new EventLogEntry(task, action, ActionStatus.TIMEOUT, null);
+    return new EventLogEntry(task, action, ActionStatus.TIMEOUT, null, null);
   }
 
-  private EventLogEntry(String task, String action, ActionStatus status, String transition) {
+  private EventLogEntry(String task, String action, ActionStatus status, String transition, JsonObject actionLog) {
     this.task = task;
     this.action = action;
     this.status = status;
     this.transition = transition;
     this.timestamp = System.currentTimeMillis();
+    this.actionLog = actionLog;
   }
 
   EventLogEntry(JsonObject json) {
@@ -63,6 +71,7 @@ public class EventLogEntry {
     this.status = ActionStatus.valueOf(json.getString(STATUS_KEY));
     this.transition = json.getString(TRANSITION_KEY);
     this.timestamp = json.getLong(TIMESTAMP_KEY);
+    this.actionLog = json.getJsonObject(ACTION_LOG_KEY);
   }
 
   JsonObject toJson() {
@@ -71,7 +80,8 @@ public class EventLogEntry {
         .put(ACTION_KEY, action)
         .put(STATUS_KEY, status.name())
         .put(TRANSITION_KEY, transition)
-        .put(TIMESTAMP_KEY, timestamp);
+        .put(TIMESTAMP_KEY, timestamp)
+        .put(ACTION_LOG_KEY, actionLog);
   }
 
   @Override

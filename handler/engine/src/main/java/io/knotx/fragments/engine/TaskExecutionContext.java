@@ -119,13 +119,14 @@ class TaskExecutionContext {
     FragmentEvent fragmentEvent = fragmentEventContext.getFragmentEvent();
     Status status = fragmentEvent.getStatus();
     String nextTransition = status.getDefaultTransition().orElse(null);
+    FragmentResult result = new FragmentResult(fragmentEvent.getFragment(), nextTransition);
     if (status == Status.SUCCESS) {
-      handleSuccess(nextTransition);
+      handleSuccess(result);
     } else {
       fragmentEvent
           .log(EventLogEntry.error(taskName, currentNode.getId(), nextTransition));
     }
-    return new FragmentResult(fragmentEvent.getFragment(), nextTransition);
+    return result;
   }
 
   boolean hasNext() {
@@ -134,6 +135,7 @@ class TaskExecutionContext {
 
   void updateResult(FragmentResult fragmentResult) {
     fragmentEventContext.getFragmentEvent().setFragment(fragmentResult.getFragment());
+
     currentNode = currentNode
         .next(fragmentResult.getTransition())
         .orElseGet(() -> {
@@ -142,11 +144,11 @@ class TaskExecutionContext {
         });
   }
 
-  void handleSuccess(String transition) {
+  void handleSuccess(FragmentResult fragmentResult) {
     FragmentEvent fragmentEvent = fragmentEventContext.getFragmentEvent();
     fragmentEvent.setStatus(Status.SUCCESS);
     fragmentEvent
-        .log(EventLogEntry.success(taskName, currentNode.getId(), transition));
+        .log(EventLogEntry.success(taskName, currentNode.getId(), fragmentResult));
   }
 
   private EventLogEntry getEventLogEntry(Throwable error) {
