@@ -16,12 +16,13 @@
 package io.knotx.fragments.handler.action;
 
 import static io.knotx.fragments.handler.api.ActionLogMode.ERROR;
+import static java.util.Objects.isNull;
+
+import java.util.Objects;
 
 import io.knotx.fragments.handler.api.ActionLogMode;
 import io.vertx.codegen.annotations.DataObject;
-import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.core.json.JsonObject;
-import java.util.Objects;
 
 @DataObject(generateConverter = true)
 public class ActionOptions {
@@ -29,8 +30,6 @@ public class ActionOptions {
   private String factory;
   private JsonObject config;
   private String doAction;
-
-  @GenIgnore
   private ActionLogMode actionLogMode;
 
   ActionOptions(String factory, JsonObject config) {
@@ -47,7 +46,6 @@ public class ActionOptions {
     this.doAction = doAction;
     this.actionLogMode  = actionLogMode;
   }
-
 
   public ActionOptions(JsonObject json) {
     ActionOptionsConverter.fromJson(json, this);
@@ -140,5 +138,9 @@ public class ActionOptions {
         ", config=" + config +
         ", doAction='" + doAction + '\'' +
         '}';
+  }
+
+  public boolean hasEmptyActionLogMode(){
+    return isNull(getActionLogMode());
   }
 }

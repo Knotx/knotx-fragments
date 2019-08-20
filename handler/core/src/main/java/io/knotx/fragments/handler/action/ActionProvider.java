@@ -52,36 +52,36 @@ public class ActionProvider {
     if (StringUtils.isBlank(action)) {
       return Optional.empty();
     }
-    ActionOptions config = options.get(action);
-    if (config == null) {
+    ActionOptions actionOptions = options.get(action);
+    if (actionOptions == null) {
       LOGGER.warn("Could not create initialize proxy [{}] with missing config.", action);
       return Optional.empty();
     }
-    ActionFactory factory = factories.get(config.getFactory());
+    ActionFactory factory = factories.get(actionOptions.getFactory());
     if (factory == null) {
       LOGGER.warn("Could not create initialize proxy [{}] with missing factory [{}].", action,
-          config.getFactory());
+          actionOptions.getFactory());
       return Optional.empty();
     }
 
     if (isCacheable(factory)) {
-      return Optional.of(cache.computeIfAbsent(action, toAction(config, factory)));
+      return Optional.of(cache.computeIfAbsent(action, toAction(actionOptions, factory)));
     } else {
-      return Optional.of(createAction(action, config, factory));
+      return Optional.of(createAction(action, actionOptions, factory));
     }
   }
 
-  private Function<String, Action> toAction(ActionOptions config, ActionFactory factory) {
-    return action -> createAction(action, config, factory);
+  private Function<String, Action> toAction(ActionOptions actionOptions, ActionFactory factory) {
+    return action -> createAction(action, actionOptions, factory);
   }
 
-  private Action createAction(String alias, ActionOptions actionOptions, ActionFactory factory){
+  private Action createAction(String action, ActionOptions actionOptions, ActionFactory factory){
     // recurrence here :)
     Action operation = Optional.ofNullable(actionOptions.getDoAction())
         .flatMap(this::get)
         .orElse(null);
 
-    return factory.create(alias, new ActionConfig(actionOptions.getConfig(), actionOptions.getActionLogMode()), vertx, operation);
+    return factory.create(action, toActionConfig(actionOptions), vertx, operation);
   }
 
   private boolean isCacheable(ActionFactory factory) {
@@ -95,5 +95,7 @@ public class ActionProvider {
     LOGGER.debug("Action Factories: {}", result);
     return result;
   }
-
+  private ActionConfig toActionConfig(ActionOptions actionOptions){
+    return new ActionConfig(actionOptions.getConfig(), actionOptions.getActionLogMode());
+  }
 }

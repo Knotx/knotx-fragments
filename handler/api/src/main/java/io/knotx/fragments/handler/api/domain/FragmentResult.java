@@ -56,7 +56,8 @@ public class FragmentResult {
   public JsonObject toJson() {
     return new JsonObject()
         .put(FRAGMENT_KEY, fragment.toJson())
-        .put(TRANSITION_KEY, transition);
+        .put(TRANSITION_KEY, transition)
+        .put(ACTION_LOG_KEY, actionLog);
   }
 
   /**

@@ -17,12 +17,14 @@ package io.knotx.fragments.handler.options;
 
 import static io.knotx.fragments.handler.api.ActionLogMode.ERROR;
 
+import java.util.Map;
+import java.util.Objects;
+import java.util.function.Consumer;
+
 import io.knotx.fragments.handler.action.ActionOptions;
 import io.knotx.fragments.handler.api.ActionLogMode;
 import io.vertx.codegen.annotations.DataObject;
 import io.vertx.core.json.JsonObject;
-import java.util.Map;
-import java.util.Objects;
 
 @DataObject(generateConverter = true)
 public class FragmentsHandlerOptions {
@@ -45,11 +47,18 @@ public class FragmentsHandlerOptions {
   public FragmentsHandlerOptions(JsonObject json) {
     init();
     FragmentsHandlerOptionsConverter.fromJson(json, this);
-    copyActionLogMode(this.actionLogMode);
+    updateActionLogMode(this.actionLogMode);
   }
 
-  private void copyActionLogMode(ActionLogMode actionLogMode){
-    actions.values().forEach(actionOptions -> actionOptions.setActionLogMode(actionLogMode));
+  private void updateActionLogMode(ActionLogMode actionLogMode) {
+    actions.values()
+        .stream()
+        .filter(ActionOptions::hasEmptyActionLogMode)
+        .forEach(setActionLogMode(actionLogMode));
+  }
+
+  private static Consumer<ActionOptions> setActionLogMode(ActionLogMode actionLogMode){
+    return actionOptions -> actionOptions.setActionLogMode(actionLogMode);
   }
 
   private void init() {
