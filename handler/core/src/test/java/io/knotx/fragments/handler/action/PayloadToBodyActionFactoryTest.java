@@ -15,21 +15,25 @@
  */
 package io.knotx.fragments.handler.action;
 
+import static io.knotx.fragments.handler.api.ActionLogMode.ERROR;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.concurrent.TimeUnit;
+
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+
 import io.knotx.fragments.api.Fragment;
 import io.knotx.fragments.handler.api.Action;
+import io.knotx.fragments.handler.api.ActionConfig;
 import io.knotx.fragments.handler.api.domain.FragmentContext;
 import io.knotx.junit5.KnotxExtension;
 import io.knotx.server.api.context.ClientRequest;
 import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.VertxTestContext;
-import java.util.concurrent.TimeUnit;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 
 @ExtendWith(KnotxExtension.class)
 public class PayloadToBodyActionFactoryTest {
@@ -49,7 +53,8 @@ public class PayloadToBodyActionFactoryTest {
   void createActionWithDoAction() {
     // when, then
     assertThrows(IllegalArgumentException.class, () -> new PayloadToBodyActionFactory()
-        .create(ACTION_ALIAS, new JsonObject().put("key", PAYLOAD_KEY), null,
+        .create(ACTION_ALIAS, new ActionConfig(new JsonObject().put("key", PAYLOAD_KEY), ERROR),
+            null,
             (fragmentContext, resultHandler) -> {
             }));
   }
@@ -59,7 +64,8 @@ public class PayloadToBodyActionFactoryTest {
   void applyActionWithActionAlias(VertxTestContext testContext) throws Throwable {
     // given
     Action action = new PayloadToBodyActionFactory()
-        .create(ACTION_ALIAS, new JsonObject().put(PAYLOAD_KEY, "key"), null, null);
+        .create(ACTION_ALIAS, new ActionConfig(new JsonObject().put(PAYLOAD_KEY, "key"), ERROR),
+            null, null);
 
     // when
     action.apply(new FragmentContext(FRAGMENT, new ClientRequest()),
@@ -85,7 +91,8 @@ public class PayloadToBodyActionFactoryTest {
   void applyActionWithNestedKey(VertxTestContext testContext) throws Throwable {
     // given
     Action action = new PayloadToBodyActionFactory()
-        .create(ACTION_ALIAS, new JsonObject().put(PAYLOAD_KEY, "key.user"), null, null);
+        .create(ACTION_ALIAS,
+            new ActionConfig(new JsonObject().put(PAYLOAD_KEY, "key.user"), ERROR), null, null);
 
     // when
     action.apply(new FragmentContext(FRAGMENT, new ClientRequest()),

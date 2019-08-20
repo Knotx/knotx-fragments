@@ -17,6 +17,7 @@ package io.knotx.fragments.handler.action;
 
 import io.knotx.fragments.api.Fragment;
 import io.knotx.fragments.handler.api.Action;
+import io.knotx.fragments.handler.api.ActionConfig;
 import io.knotx.fragments.handler.api.ActionFactory;
 import io.knotx.fragments.handler.api.Cacheable;
 import io.knotx.fragments.handler.api.domain.FragmentContext;
@@ -43,16 +44,17 @@ public class InlinePayloadActionFactory implements ActionFactory {
    * @param doAction - <pre>null</pre> value expected
    */
   @Override
-  public Action create(String alias, JsonObject config, Vertx vertx, Action doAction) {
+  public Action create(String alias, ActionConfig config, Vertx vertx, Action doAction) {
     if (doAction != null) {
       throw new IllegalArgumentException("Inline Payload Action does not support doAction");
     }
-    if (!config.containsKey("payload")) {
+    JsonObject options = config.getOptions();
+    if (!options.containsKey("payload")) {
       throw new IllegalArgumentException("Inline Payload Action requires payload parameter");
     }
     return (fragmentContext, resultHandler) -> {
-      String key = config.getString("alias", alias);
-      Object payload = config.getMap().get("payload");
+      String key = options.getString("alias", alias);
+      Object payload = options.getMap().get("payload");
 
       Future<FragmentResult> resultFuture = Future
           .succeededFuture(toResult(fragmentContext, key, payload));

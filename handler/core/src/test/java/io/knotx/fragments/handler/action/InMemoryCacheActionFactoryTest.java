@@ -15,12 +15,22 @@
  */
 package io.knotx.fragments.handler.action;
 
+import static io.knotx.fragments.handler.api.ActionLogMode.ERROR;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.UUID;
+import java.util.concurrent.TimeUnit;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+
 import io.knotx.fragments.api.Fragment;
 import io.knotx.fragments.handler.api.Action;
+import io.knotx.fragments.handler.api.ActionConfig;
 import io.knotx.fragments.handler.api.domain.FragmentContext;
 import io.knotx.fragments.handler.api.domain.FragmentResult;
 import io.knotx.junit5.KnotxExtension;
@@ -29,12 +39,6 @@ import io.vertx.core.Future;
 import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.VertxTestContext;
 import io.vertx.reactivex.core.MultiMap;
-import java.util.UUID;
-import java.util.concurrent.TimeUnit;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 
 @ExtendWith(KnotxExtension.class)
 class InMemoryCacheActionFactoryTest {
@@ -43,8 +47,9 @@ class InMemoryCacheActionFactoryTest {
   private static final String ACTION_ALIAS = "action";
   private static final String PAYLOAD_KEY = "product";
 
-  private static final JsonObject ACTION_CONFIG = new JsonObject().put("payloadKey", PAYLOAD_KEY)
+  private static final JsonObject ACTION_OPTIONS = new JsonObject().put("payloadKey", PAYLOAD_KEY)
       .put("cacheKey", "cProduct");
+  private static final ActionConfig ACTION_CONFIG = new ActionConfig(ACTION_OPTIONS, ERROR);
 
   private Fragment firstFragment;
   private Fragment secondFragment;
@@ -180,8 +185,8 @@ class InMemoryCacheActionFactoryTest {
     };
 
     Action tested = new InMemoryCacheActionFactory()
-        .create(ACTION_ALIAS, ACTION_CONFIG
-            .put("cache", new JsonObject().put("maximumSize", 0)), null, doAction);
+        .create(ACTION_ALIAS,new ActionConfig(ACTION_OPTIONS
+            .put("cache", new JsonObject().put("maximumSize", 0)), ERROR), null, doAction);
 
     // when
     tested.apply(new FragmentContext(firstFragment, new ClientRequest()),
@@ -212,8 +217,8 @@ class InMemoryCacheActionFactoryTest {
     };
 
     Action tested = new InMemoryCacheActionFactory()
-        .create(ACTION_ALIAS, ACTION_CONFIG
-            .put("cache", new JsonObject()), null, doAction);
+        .create(ACTION_ALIAS, new ActionConfig(ACTION_OPTIONS
+            .put("cache", new JsonObject()), ERROR), null, doAction);
 
     // when
     tested.apply(new FragmentContext(firstFragment, new ClientRequest()),
@@ -245,9 +250,9 @@ class InMemoryCacheActionFactoryTest {
 
     Action tested = new InMemoryCacheActionFactory()
         .create(ACTION_ALIAS,
-            new JsonObject()
+            new ActionConfig(new JsonObject()
                 .put("payloadKey", PAYLOAD_KEY)
-                .put("cacheKey", "product-{param.id}"),
+                .put("cacheKey", "product-{param.id}"), ERROR),
             null, doAction);
 
     // when
@@ -292,15 +297,16 @@ class InMemoryCacheActionFactoryTest {
 
     Action tested = new InMemoryCacheActionFactory()
         .create(ACTION_ALIAS,
-            new JsonObject()
+            new ActionConfig(new JsonObject()
                 .put("payloadKey", PAYLOAD_KEY)
-                .put("cacheKey", "product"),
+                .put("cacheKey", "product"), ERROR),
             null, doAction);
 
     // when
     FragmentContext errorRequestContext = new FragmentContext(firstFragment,
         new ClientRequest().setParams(MultiMap.caseInsensitiveMultiMap().add("error", "expected")));
-    FragmentContext successRequestContext = new FragmentContext(secondFragment, new ClientRequest());
+    FragmentContext successRequestContext = new FragmentContext(secondFragment,
+        new ClientRequest());
 
     tested.apply(errorRequestContext,
         firstResult -> tested.apply(successRequestContext,

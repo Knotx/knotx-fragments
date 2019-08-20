@@ -15,10 +15,13 @@
  */
 package io.knotx.fragments.handler.action;
 
+import static io.knotx.fragments.handler.api.ActionLogMode.ERROR;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import io.knotx.fragments.api.Fragment;
 import io.knotx.fragments.handler.api.Action;
+import io.knotx.fragments.handler.api.ActionConfig;
+import io.knotx.fragments.handler.api.ActionLogMode;
 import io.knotx.fragments.handler.api.domain.FragmentContext;
 import io.knotx.server.api.context.ClientRequest;
 import io.vertx.core.json.JsonObject;
@@ -42,7 +45,7 @@ class InlineBodyActionFactoryTest {
   void createActionWithDoAction() {
     // when, then
     assertThrows(IllegalArgumentException.class, () -> new InlineBodyActionFactory()
-        .create(ACTION_ALIAS, new JsonObject(), null,
+        .create(ACTION_ALIAS, new ActionConfig(new JsonObject(), ERROR), null,
             (fragmentContext, resultHandler) -> {
             }));
   }
@@ -52,8 +55,8 @@ class InlineBodyActionFactoryTest {
   void applyAction(VertxTestContext testContext) throws Throwable {
     // given
     Fragment fragment = new Fragment("type", new JsonObject(), INITIAL_BODY);
-    Action action = new InlineBodyActionFactory().create(ACTION_ALIAS, new JsonObject().put("body",
-        EXPECTED_VALUE), null, null);
+    Action action = new InlineBodyActionFactory().create(ACTION_ALIAS, new ActionConfig(new JsonObject().put("body",
+        EXPECTED_VALUE), ERROR), null, null);
 
     // when
     action.apply(new FragmentContext(fragment, new ClientRequest()),
@@ -77,7 +80,7 @@ class InlineBodyActionFactoryTest {
   void applyActionWithEmptyConfiguration(VertxTestContext testContext) throws Throwable {
     // given
     Fragment fragment = new Fragment("type", new JsonObject(), INITIAL_BODY);
-    Action action = new InlineBodyActionFactory().create("action", new JsonObject(), null, null);
+    Action action = new InlineBodyActionFactory().create("action",new ActionConfig( new JsonObject(), ERROR), null, null);
 
     // when
     action.apply(new FragmentContext(fragment, new ClientRequest()),

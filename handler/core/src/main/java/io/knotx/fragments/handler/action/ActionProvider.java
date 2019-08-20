@@ -15,6 +15,7 @@
  */
 package io.knotx.fragments.handler.action;
 
+import io.knotx.fragments.handler.api.ActionConfig;
 import io.knotx.fragments.handler.api.Cacheable;
 import io.knotx.fragments.handler.api.Action;
 import io.knotx.fragments.handler.api.ActionFactory;
@@ -25,6 +26,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.function.Supplier;
 import org.apache.commons.lang3.StringUtils;
 
@@ -62,17 +64,24 @@ public class ActionProvider {
       return Optional.empty();
     }
 
+    if (isCacheable(factory)) {
+      return Optional.of(cache.computeIfAbsent(action, toAction(config, factory)));
+    } else {
+      return Optional.of(createAction(action, config, factory));
+    }
+  }
+
+  private Function<String, Action> toAction(ActionOptions config, ActionFactory factory) {
+    return action -> createAction(action, config, factory);
+  }
+
+  private Action createAction(String alias, ActionOptions actionOptions, ActionFactory factory){
     // recurrence here :)
-    Action operation = Optional.ofNullable(config.getDoAction())
+    Action operation = Optional.ofNullable(actionOptions.getDoAction())
         .flatMap(this::get)
         .orElse(null);
 
-    if (isCacheable(factory)) {
-      return Optional.of(cache.computeIfAbsent(action,
-          a -> factory.create(a, config.getConfig(), vertx, operation)));
-    } else {
-      return Optional.of(factory.create(action, config.getConfig(), vertx, operation));
-    }
+    return factory.create(alias, new ActionConfig(actionOptions.getConfig(), actionOptions.getActionLogMode()), vertx, operation);
   }
 
   private boolean isCacheable(ActionFactory factory) {

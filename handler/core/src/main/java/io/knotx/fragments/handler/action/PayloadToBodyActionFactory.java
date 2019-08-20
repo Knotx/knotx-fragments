@@ -20,6 +20,7 @@ import static io.vertx.core.Future.succeededFuture;
 
 import io.knotx.fragments.api.Fragment;
 import io.knotx.fragments.handler.api.Action;
+import io.knotx.fragments.handler.api.ActionConfig;
 import io.knotx.fragments.handler.api.ActionFactory;
 import io.knotx.fragments.handler.api.domain.FragmentResult;
 import io.vertx.core.Future;
@@ -38,12 +39,13 @@ public class PayloadToBodyActionFactory implements ActionFactory {
   }
 
   @Override
-  public Action create(String alias, JsonObject config, Vertx vertx, Action doAction) {
+  public Action create(String alias, ActionConfig config, Vertx vertx, Action doAction) {
     checkArgument(doAction != null, "Payload to body action does not support doAction");
 
+    JsonObject options = config.getOptions();
     return (fragmentContext, resultHandler) -> {
       Fragment fragment = fragmentContext.getFragment();
-      String payloadKey = Objects.nonNull(config) ? config.getString(KEY) : null;
+      String payloadKey = Objects.nonNull(options) ? options.getString(KEY) : null;
 
       FragmentResult result = getBodyFromPayload(payloadKey, fragment.getPayload())
           .map(body -> toFragmentResult(fragment, body))

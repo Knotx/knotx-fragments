@@ -25,6 +25,7 @@ import com.google.common.cache.CacheBuilder;
 
 import io.knotx.fragments.api.Fragment;
 import io.knotx.fragments.handler.api.Action;
+import io.knotx.fragments.handler.api.ActionConfig;
 import io.knotx.fragments.handler.api.ActionFactory;
 import io.knotx.fragments.handler.api.Cacheable;
 import io.knotx.fragments.handler.api.domain.FragmentContext;
@@ -67,17 +68,18 @@ public class InMemoryCacheActionFactory implements ActionFactory {
   }
 
   @Override
-  public Action create(String alias, JsonObject config, Vertx vertx, Action doAction) {
+  public Action create(String alias, ActionConfig config, Vertx vertx, Action doAction) {
 
     return new Action() {
-      private Cache<String, Object> cache = createCache(config);
-      private String payloadKey = getPayloadKey(config);
+      JsonObject options = config.getOptions();
+      private Cache<String, Object> cache = createCache(options);
+      private String payloadKey = getPayloadKey(options);
 
       @Override
       public void apply(FragmentContext fragmentContext,
           Handler<AsyncResult<FragmentResult>> resultHandler) {
 
-        String cacheKey = getCacheKey(config, fragmentContext.getClientRequest());
+        String cacheKey = getCacheKey(options, fragmentContext.getClientRequest());
         Object cachedValue = cache.getIfPresent(cacheKey);
         if (cachedValue == null) {
           callDoActionAndCache(fragmentContext, resultHandler, cacheKey);
@@ -114,8 +116,8 @@ public class InMemoryCacheActionFactory implements ActionFactory {
     };
   }
 
-  private String getPayloadKey(JsonObject config) {
-    String result = config.getString("payloadKey");
+  private String getPayloadKey(JsonObject options) {
+    String result = options.getString("payloadKey");
     if (StringUtils.isBlank(result)) {
       throw new IllegalArgumentException(
           "Action requires payloadKey value in configuration.");
@@ -123,8 +125,8 @@ public class InMemoryCacheActionFactory implements ActionFactory {
     return result;
   }
 
-  private String getCacheKey(JsonObject config, ClientRequest clientRequest) {
-    String key = config.getString("cacheKey");
+  private String getCacheKey(JsonObject options, ClientRequest clientRequest) {
+    String key = options.getString("cacheKey");
     if (StringUtils.isBlank(key)) {
       throw new IllegalArgumentException("Action requires cacheKey value in configuration.");
     }
@@ -137,8 +139,8 @@ public class InMemoryCacheActionFactory implements ActionFactory {
         .build();
   }
 
-  private Cache<String, Object> createCache(JsonObject config) {
-    JsonObject cache = config.getJsonObject("cache");
+  private Cache<String, Object> createCache(JsonObject options) {
+    JsonObject cache = options.getJsonObject("cache");
     long maxSize =
         cache == null ? DEFAULT_MAXIMUM_SIZE : cache.getLong("maximumSize", DEFAULT_MAXIMUM_SIZE);
     long ttl = cache == null ? DEFAULT_TTL : cache.getLong("ttl", DEFAULT_TTL);

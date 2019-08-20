@@ -17,6 +17,7 @@ package io.knotx.fragments.handler.action;
 
 import io.knotx.fragments.api.Fragment;
 import io.knotx.fragments.handler.api.Action;
+import io.knotx.fragments.handler.api.ActionConfig;
 import io.knotx.fragments.handler.api.ActionFactory;
 import io.knotx.fragments.handler.api.Cacheable;
 import io.knotx.fragments.handler.api.domain.FragmentContext;
@@ -45,14 +46,15 @@ public class CircuitBreakerActionFactory implements ActionFactory {
   }
 
   @Override
-  public Action create(String alias, JsonObject config, Vertx vertx, Action doAction) {
+  public Action create(String alias, ActionConfig config, Vertx vertx, Action doAction) {
     if (doAction == null) {
       throw new DoActionNotDefinedException("Circuit Breaker action requires `doAction` defined");
     }
-    String circuitBreakerName = config.getString("circuitBreakerName");
+    JsonObject options = config.getOptions();
+    String circuitBreakerName = options.getString("circuitBreakerName");
     CircuitBreakerOptions circuitBreakerOptions =
-        config.getJsonObject("circuitBreakerOptions") == null ? new CircuitBreakerOptions()
-            : new CircuitBreakerOptions(config.getJsonObject("circuitBreakerOptions"));
+        options.getJsonObject("circuitBreakerOptions") == null ? new CircuitBreakerOptions()
+            : new CircuitBreakerOptions(options.getJsonObject("circuitBreakerOptions"));
     CircuitBreaker circuitBreaker = new CircuitBreakerImpl(circuitBreakerName, vertx,
         circuitBreakerOptions);
 

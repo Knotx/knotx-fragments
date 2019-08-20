@@ -15,7 +15,10 @@
  */
 package io.knotx.fragments.handler.options;
 
+import static io.knotx.fragments.handler.api.ActionLogMode.ERROR;
+
 import io.knotx.fragments.handler.action.ActionOptions;
+import io.knotx.fragments.handler.api.ActionLogMode;
 import io.vertx.codegen.annotations.DataObject;
 import io.vertx.core.json.JsonObject;
 import java.util.Map;
@@ -32,6 +35,8 @@ public class FragmentsHandlerOptions {
 
   private Map<String, ActionOptions> actions;
 
+  private ActionLogMode actionLogMode = ERROR;
+
   public FragmentsHandlerOptions(Map<String, NodeOptions> tasks) {
     init();
     this.tasks = tasks;
@@ -40,6 +45,11 @@ public class FragmentsHandlerOptions {
   public FragmentsHandlerOptions(JsonObject json) {
     init();
     FragmentsHandlerOptionsConverter.fromJson(json, this);
+    copyActionLogMode(this.actionLogMode);
+  }
+
+  private void copyActionLogMode(ActionLogMode actionLogMode){
+    actions.values().forEach(actionOptions -> actionOptions.setActionLogMode(actionLogMode));
   }
 
   private void init() {
@@ -89,6 +99,11 @@ public class FragmentsHandlerOptions {
   public FragmentsHandlerOptions setActions(Map<String, ActionOptions> actions) {
     this.actions = actions;
     return this;
+  }
+
+
+  public ActionLogMode getActionLogMode() {
+    return actionLogMode;
   }
 
   @Override

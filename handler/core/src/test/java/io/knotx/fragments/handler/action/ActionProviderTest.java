@@ -26,6 +26,8 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 import com.google.common.collect.ImmutableMap;
+
+import io.knotx.fragments.handler.api.ActionConfig;
 import io.knotx.fragments.handler.api.domain.FragmentContext;
 import io.knotx.fragments.handler.api.domain.FragmentResult;
 import io.knotx.fragments.handler.api.Cacheable;
@@ -213,7 +215,7 @@ class ActionProviderTest {
     }
 
     @Override
-    public Action create(String alias, JsonObject config, Vertx vertx,
+    public Action create(String alias, ActionConfig config, Vertx vertx,
         Action doAction) {
       // do not change to lambda expression as it can be optimised by compiler
       return new Action() {
@@ -235,7 +237,7 @@ class ActionProviderTest {
     }
 
     @Override
-    public Action create(String alias, JsonObject config, Vertx vertx,
+    public Action create(String alias, ActionConfig config, Vertx vertx,
         Action doAction) {
       // do not change to lambda expression as it can be optimised by compiler
       return new Action() {

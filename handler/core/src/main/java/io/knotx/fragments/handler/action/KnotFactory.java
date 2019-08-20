@@ -15,6 +15,7 @@
  */
 package io.knotx.fragments.handler.action;
 
+import io.knotx.fragments.handler.api.ActionConfig;
 import io.knotx.fragments.handler.api.Knot;
 import io.knotx.fragments.handler.api.Action;
 import io.knotx.fragments.handler.api.ActionFactory;
@@ -32,12 +33,13 @@ public class KnotFactory implements ActionFactory {
   }
 
   @Override
-  public Action create(String alias, JsonObject config, Vertx vertx,
+  public Action create(String alias, ActionConfig config, Vertx vertx,
       Action doAction) {
-    String address = config.getString("address");
+    JsonObject options = config.getOptions();
+    String address = options.getString("address");
     DeliveryOptions deliveryOptions = new DeliveryOptions(
-        config.getJsonObject("deliveryOptions") == null ? new JsonObject()
-            : config.getJsonObject("deliveryOptions"));
+        options.getJsonObject("deliveryOptions") == null ? new JsonObject()
+            : options.getJsonObject("deliveryOptions"));
 
     return Knot.createProxyWithOptions(vertx, address, deliveryOptions);
   }

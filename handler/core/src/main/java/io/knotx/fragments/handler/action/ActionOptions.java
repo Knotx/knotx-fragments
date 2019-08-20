@@ -15,7 +15,11 @@
  */
 package io.knotx.fragments.handler.action;
 
+import static io.knotx.fragments.handler.api.ActionLogMode.ERROR;
+
+import io.knotx.fragments.handler.api.ActionLogMode;
 import io.vertx.codegen.annotations.DataObject;
+import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.core.json.JsonObject;
 import java.util.Objects;
 
@@ -26,15 +30,24 @@ public class ActionOptions {
   private JsonObject config;
   private String doAction;
 
+  @GenIgnore
+  private ActionLogMode actionLogMode;
+
   ActionOptions(String factory, JsonObject config) {
     this(factory, config, null);
   }
 
   ActionOptions(String factory, JsonObject config, String doAction) {
+    this(factory, config, doAction, ERROR);
+  }
+
+  ActionOptions(String factory, JsonObject config, String doAction, ActionLogMode actionLogMode) {
     this.factory = factory;
     this.config = config;
     this.doAction = doAction;
+    this.actionLogMode  = actionLogMode;
   }
+
 
   public ActionOptions(JsonObject json) {
     ActionOptionsConverter.fromJson(json, this);
@@ -92,6 +105,14 @@ public class ActionOptions {
     return this;
   }
 
+  public ActionLogMode getActionLogMode() {
+    return actionLogMode;
+  }
+
+  public ActionOptions setActionLogMode(ActionLogMode actionLogMode){
+    this.actionLogMode = actionLogMode;
+    return this;
+  }
 
   @Override
   public boolean equals(Object o) {

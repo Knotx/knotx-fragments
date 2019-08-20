@@ -15,12 +15,15 @@
  */
 package io.knotx.fragments.handler.action;
 
+import static io.knotx.fragments.handler.api.ActionLogMode.ERROR;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.knotx.fragments.api.Fragment;
 import io.knotx.fragments.handler.api.Action;
+import io.knotx.fragments.handler.api.ActionConfig;
+import io.knotx.fragments.handler.api.ActionLogMode;
 import io.knotx.fragments.handler.api.domain.FragmentContext;
 import io.knotx.server.api.context.ClientRequest;
 import io.vertx.core.json.JsonArray;
@@ -46,7 +49,7 @@ class InlinePayloadActionFactoryTest {
   void createActionWithoutPayload() {
     // when, then
     assertThrows(IllegalArgumentException.class, () -> new InlinePayloadActionFactory()
-        .create(ACTION_ALIAS, new JsonObject(), null, null));
+        .create(ACTION_ALIAS, new ActionConfig(new JsonObject(), ERROR), null, null));
   }
 
   @Test
@@ -54,7 +57,7 @@ class InlinePayloadActionFactoryTest {
   void createActionWithDoAction() {
     // when, then
     assertThrows(IllegalArgumentException.class, () -> new InlinePayloadActionFactory()
-        .create(ACTION_ALIAS, new JsonObject().put("payload", EXPECTED_JSON_OBJECT), null,
+        .create(ACTION_ALIAS, new ActionConfig(new JsonObject().put("payload", EXPECTED_JSON_OBJECT), ERROR), null,
             (fragmentContext, resultHandler) -> {
             }));
   }
@@ -64,7 +67,7 @@ class InlinePayloadActionFactoryTest {
   void applyActionWithActionAlias(VertxTestContext testContext) throws Throwable {
     // given
     Action action = new InlinePayloadActionFactory()
-        .create(ACTION_ALIAS, new JsonObject().put("payload", EXPECTED_JSON_OBJECT), null, null);
+        .create(ACTION_ALIAS, new ActionConfig(new JsonObject().put("payload", EXPECTED_JSON_OBJECT), ERROR), null, null);
 
     // when
     action.apply(new FragmentContext(FRAGMENT, new ClientRequest()),
@@ -88,7 +91,7 @@ class InlinePayloadActionFactoryTest {
     String expectedAlias = "newAction";
     Action action = new InlinePayloadActionFactory()
         .create(ACTION_ALIAS,
-            new JsonObject().put("alias", expectedAlias).put("payload", EXPECTED_JSON_OBJECT), null,
+            new ActionConfig(new JsonObject().put("alias", expectedAlias).put("payload", EXPECTED_JSON_OBJECT), ERROR), null,
             null);
 
     // when
@@ -113,7 +116,7 @@ class InlinePayloadActionFactoryTest {
     // given
     Action action = new InlinePayloadActionFactory()
         .create(ACTION_ALIAS,
-            new JsonObject().put("payload", EXPECTED_JSON_OBJECT), null, null);
+            new ActionConfig(new JsonObject().put("payload", EXPECTED_JSON_OBJECT), ERROR), null, null);
 
     // when
     action.apply(new FragmentContext(FRAGMENT, new ClientRequest()),
@@ -137,7 +140,7 @@ class InlinePayloadActionFactoryTest {
     // given
     Action action = new InlinePayloadActionFactory()
         .create(ACTION_ALIAS,
-            new JsonObject().put("payload", EXPECTED_JSON_ARRAY), null, null);
+            new ActionConfig(new JsonObject().put("payload", EXPECTED_JSON_ARRAY), ERROR), null, null);
 
     // when
     action.apply(new FragmentContext(FRAGMENT, new ClientRequest()),
@@ -165,7 +168,7 @@ class InlinePayloadActionFactoryTest {
     fragment.appendPayload(expectedKey, "any value");
     Action action = new InlinePayloadActionFactory()
         .create(ACTION_ALIAS,
-            new JsonObject().put("payload", EXPECTED_JSON_OBJECT), null, null);
+            new ActionConfig(new JsonObject().put("payload", EXPECTED_JSON_OBJECT), ERROR), null, null);
 
     // when
     action.apply(new FragmentContext(fragment, new ClientRequest()),
