@@ -44,7 +44,7 @@ public class FragmentResult {
     this.actionLog = actionLog;
   }
   public FragmentResult(Fragment fragment, String transition) {
-    this(fragment, transition, new JsonObject());
+    this(fragment, transition, null);
   }
 
   public FragmentResult(JsonObject json) {

@@ -20,6 +20,7 @@ package io.knotx.fragments.engine;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import java.util.Arrays;
+import java.util.Objects;
 import java.util.stream.Stream;
 
 class FragmentEventLogVerifier {
@@ -68,21 +69,29 @@ class FragmentEventLogVerifier {
     private final String name;
     private final String status;
     private final Position position;
+    private final JsonObject actionLog;
 
-    private Operation(String task, String action, String status, Position position) {
+    private Operation(String task, String action, String status, Position position,
+        JsonObject actionLog) {
       this.task = task;
       this.name = action;
       this.status = status;
       this.position = position;
+      this.actionLog = actionLog;
     }
 
     static Operation exact(String task, String action, String status, int position) {
-      return new Operation(task, action, status, new ExactPosition(position));
+      return new Operation(task, action, status, new ExactPosition(position), null);
+    }
+
+    static Operation exact(String task, String action, String status, int position, JsonObject actionLog) {
+      return new Operation(task, action, status, new ExactPosition(position), actionLog);
     }
 
     static Operation range(String task, String action, String status, int minPosition,
         int maxPosition) {
-      return new Operation(task, action, status, new RangePosition(minPosition, maxPosition));
+      return new Operation(task, action, status, new RangePosition(minPosition, maxPosition),
+          null);
     }
 
     public Position getPosition() {
@@ -92,7 +101,8 @@ class FragmentEventLogVerifier {
     public boolean matches(JsonObject operation) {
       return task.equals(operation.getString("task")) &&
           name.equals(operation.getString("action")) &&
-          status.equals(operation.getString("status"));
+          status.equals(operation.getString("status")) &&
+          Objects.equals(actionLog, operation.getJsonObject("actionLog"));
     }
 
     @Override
@@ -101,6 +111,7 @@ class FragmentEventLogVerifier {
           "task='" + task + '\'' +
           ", name='" + name + '\'' +
           ", status='" + status + '\'' +
+          ", actionLog='" + actionLog + '\'' +
           '}';
     }
   }
