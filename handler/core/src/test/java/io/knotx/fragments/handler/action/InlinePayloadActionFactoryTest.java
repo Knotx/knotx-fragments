@@ -15,7 +15,7 @@
  */
 package io.knotx.fragments.handler.action;
 
-import static io.knotx.fragments.handler.api.ActionLogMode.ERROR;
+import static io.knotx.fragments.handler.api.actionlog.ActionLogMode.ERROR;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -23,7 +23,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import io.knotx.fragments.api.Fragment;
 import io.knotx.fragments.handler.api.Action;
 import io.knotx.fragments.handler.api.ActionConfig;
-import io.knotx.fragments.handler.api.ActionLogMode;
 import io.knotx.fragments.handler.api.domain.FragmentContext;
 import io.knotx.server.api.context.ClientRequest;
 import io.vertx.core.json.JsonArray;

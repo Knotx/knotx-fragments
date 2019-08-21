@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.knotx.fragments.handler.api;
+package io.knotx.fragments.handler.api.actionlog;
 
 public enum ActionLogMode {
   INFO, ERROR

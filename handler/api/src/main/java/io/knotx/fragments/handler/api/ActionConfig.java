@@ -15,6 +15,7 @@
  */
 package io.knotx.fragments.handler.api;
 
+import io.knotx.fragments.handler.api.actionlog.ActionLogMode;
 import io.vertx.core.json.JsonObject;
 
 public class ActionConfig {

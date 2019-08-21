@@ -15,14 +15,14 @@
  */
 package io.knotx.fragments.handler.options;
 
-import static io.knotx.fragments.handler.api.ActionLogMode.ERROR;
+import static io.knotx.fragments.handler.api.actionlog.ActionLogMode.ERROR;
 
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Consumer;
 
 import io.knotx.fragments.handler.action.ActionOptions;
-import io.knotx.fragments.handler.api.ActionLogMode;
+import io.knotx.fragments.handler.api.actionlog.ActionLogMode;
 import io.vertx.codegen.annotations.DataObject;
 import io.vertx.core.json.JsonObject;
 

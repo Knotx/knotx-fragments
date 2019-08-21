@@ -8,6 +8,7 @@
 [frame="topbot"]
 |===
 ^|Name | Type ^| Description
+|[[actionLogMode]]`@actionLogMode`|`link:enums.html#ActionLogMode[ActionLogMode]`|-
 |[[config]]`@config`|`Json object`|+++
 Sets <code>Action</code> configuration that is passed to Action.
 +++
@@ -27,6 +28,7 @@ Sets <code>Action</code> factory name.
 [frame="topbot"]
 |===
 ^|Name | Type ^| Description
+|[[actionLogMode]]`@actionLogMode`|`link:enums.html#ActionLogMode[ActionLogMode]`|-
 |[[actions]]`@actions`|`link:dataobjects.html#ActionOptions[ActionOptions]`|+++
 Sets named actions with their factory configuration.
 +++
