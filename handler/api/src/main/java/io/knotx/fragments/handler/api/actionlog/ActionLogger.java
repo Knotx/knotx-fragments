@@ -17,6 +17,8 @@ package io.knotx.fragments.handler.api.actionlog;
 
 import static io.knotx.fragments.handler.api.actionlog.ActionLogMode.INFO;
 
+import java.util.function.Function;
+
 import io.vertx.core.json.JsonObject;
 
 public class ActionLogger {
@@ -39,8 +41,28 @@ public class ActionLogger {
     }
   }
 
+  public <T> void info(String key, T data, Function<T, JsonObject> toJsonFunc){
+    if(actionLogMode == INFO){
+      log.put(key, toJsonFunc.apply(data));
+    }
+  }
+
+  public void info(String key, String data){
+    if(actionLogMode == INFO){
+      log.put(key, data);
+    }
+  }
+
   public void error(String key, JsonObject data){
     log.put(key, data);
+  }
+
+  public void error(String key, String data){
+    log.put(key, data);
+  }
+
+  public <T>  void error(String key, T data, Function<T, JsonObject> toJsonFunc){
+    log.put(key, toJsonFunc.apply(data));
   }
 
   public JsonObject getLog(){
