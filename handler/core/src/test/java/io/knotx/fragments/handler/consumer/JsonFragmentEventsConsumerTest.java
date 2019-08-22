@@ -50,7 +50,9 @@ class JsonFragmentEventsConsumerTest {
     tested.accept(ImmutableList.of(fragmentEvent));
 
     // then
-    JsonObject debugData = new JsonObject(fragment.getBody()).getJsonObject("debug");
+    JsonObject debugData = new JsonObject(fragment.getBody())
+        .getJsonObject("debug")
+        .getJsonObject(fragment.getId());
     assertTrue(Objects.nonNull(debugData));
     assertTrue(debugData.containsKey("payload"));
     assertTrue(debugData.containsKey("logs"));
