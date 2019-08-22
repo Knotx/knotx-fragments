@@ -82,7 +82,6 @@ Fragment that is passed between Actions. It might be transformend or updated by 
 [frame="topbot"]
 |===
 ^|Name | Type ^| Description
-|[[actionLog]]`@actionLog`|`Json object`|-
 |[[fragment]]`@fragment`|`link:dataobjects.html#Fragment[Fragment]`|+++
 A <code>Fragment</code> transformed or updated during applying the <code>Action</code>.
 +++
