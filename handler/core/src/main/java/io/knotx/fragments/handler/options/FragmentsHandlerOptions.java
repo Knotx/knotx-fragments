@@ -36,7 +36,7 @@ public class FragmentsHandlerOptions {
 
   private Map<String, ActionOptions> actions;
 
-  private ActionLogMode actionLogMode = ERROR;
+  private ActionLogMode actionLogMode;
 
   public FragmentsHandlerOptions(Map<String, NodeOptions> tasks) {
     init();
@@ -50,6 +50,7 @@ public class FragmentsHandlerOptions {
 
   private void init() {
     this.taskKey = DEFAULT_TASK_KEY;
+    actionLogMode = ERROR;
   }
 
   public JsonObject toJson() {
