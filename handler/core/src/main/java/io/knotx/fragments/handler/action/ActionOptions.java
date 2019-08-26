@@ -30,22 +30,17 @@ public class ActionOptions {
   private String factory;
   private JsonObject config;
   private String doAction;
-  private ActionLogMode actionLogMode;
 
   ActionOptions(String factory, JsonObject config) {
     this(factory, config, null);
   }
 
   ActionOptions(String factory, JsonObject config, String doAction) {
-    this(factory, config, doAction, ERROR);
-  }
-
-  ActionOptions(String factory, JsonObject config, String doAction, ActionLogMode actionLogMode) {
     this.factory = factory;
     this.config = config;
     this.doAction = doAction;
-    this.actionLogMode  = actionLogMode;
   }
+
 
   public ActionOptions(JsonObject json) {
     ActionOptionsConverter.fromJson(json, this);
@@ -103,15 +98,6 @@ public class ActionOptions {
     return this;
   }
 
-  public ActionLogMode getActionLogMode() {
-    return actionLogMode;
-  }
-
-  public ActionOptions setActionLogMode(ActionLogMode actionLogMode){
-    this.actionLogMode = actionLogMode;
-    return this;
-  }
-
   @Override
   public boolean equals(Object o) {
     if (this == o) {
@@ -138,9 +124,5 @@ public class ActionOptions {
         ", config=" + config +
         ", doAction='" + doAction + '\'' +
         '}';
-  }
-
-  public boolean hasEmptyActionLogMode(){
-    return isNull(getActionLogMode());
   }
 }

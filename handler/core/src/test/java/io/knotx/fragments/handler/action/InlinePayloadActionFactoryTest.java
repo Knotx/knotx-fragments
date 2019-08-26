@@ -48,7 +48,7 @@ class InlinePayloadActionFactoryTest {
   void createActionWithoutPayload() {
     // when, then
     assertThrows(IllegalArgumentException.class, () -> new InlinePayloadActionFactory()
-        .create(ACTION_ALIAS, new ActionConfig(new JsonObject(), ERROR), null, null));
+        .create(new ActionConfig(ACTION_ALIAS, new JsonObject()), null));
   }
 
   @Test
@@ -56,9 +56,8 @@ class InlinePayloadActionFactoryTest {
   void createActionWithDoAction() {
     // when, then
     assertThrows(IllegalArgumentException.class, () -> new InlinePayloadActionFactory()
-        .create(ACTION_ALIAS, new ActionConfig(new JsonObject().put("payload", EXPECTED_JSON_OBJECT), ERROR), null,
-            (fragmentContext, resultHandler) -> {
-            }));
+        .create(new ActionConfig(ACTION_ALIAS,
+            getDummyAction(),new JsonObject().put("payload", EXPECTED_JSON_OBJECT), ERROR), null));
   }
 
   @Test
@@ -66,7 +65,7 @@ class InlinePayloadActionFactoryTest {
   void applyActionWithActionAlias(VertxTestContext testContext) throws Throwable {
     // given
     Action action = new InlinePayloadActionFactory()
-        .create(ACTION_ALIAS, new ActionConfig(new JsonObject().put("payload", EXPECTED_JSON_OBJECT), ERROR), null, null);
+        .create(new ActionConfig(ACTION_ALIAS, new JsonObject().put("payload", EXPECTED_JSON_OBJECT)), null);
 
     // when
     action.apply(new FragmentContext(FRAGMENT, new ClientRequest()),
@@ -89,9 +88,7 @@ class InlinePayloadActionFactoryTest {
     // given
     String expectedAlias = "newAction";
     Action action = new InlinePayloadActionFactory()
-        .create(ACTION_ALIAS,
-            new ActionConfig(new JsonObject().put("alias", expectedAlias).put("payload", EXPECTED_JSON_OBJECT), ERROR), null,
-            null);
+        .create(new ActionConfig(ACTION_ALIAS, new JsonObject().put("alias", expectedAlias).put("payload", EXPECTED_JSON_OBJECT)), null);
 
     // when
     action.apply(new FragmentContext(FRAGMENT, new ClientRequest()),
@@ -114,8 +111,7 @@ class InlinePayloadActionFactoryTest {
   void applyActionWhenJSON(VertxTestContext testContext) throws Throwable {
     // given
     Action action = new InlinePayloadActionFactory()
-        .create(ACTION_ALIAS,
-            new ActionConfig(new JsonObject().put("payload", EXPECTED_JSON_OBJECT), ERROR), null, null);
+        .create(new ActionConfig(ACTION_ALIAS, new JsonObject().put("payload", EXPECTED_JSON_OBJECT)), null);
 
     // when
     action.apply(new FragmentContext(FRAGMENT, new ClientRequest()),
@@ -138,8 +134,7 @@ class InlinePayloadActionFactoryTest {
   void applyActionWhenArray(VertxTestContext testContext) throws Throwable {
     // given
     Action action = new InlinePayloadActionFactory()
-        .create(ACTION_ALIAS,
-            new ActionConfig(new JsonObject().put("payload", EXPECTED_JSON_ARRAY), ERROR), null, null);
+        .create(new ActionConfig(ACTION_ALIAS,new JsonObject().put("payload", EXPECTED_JSON_ARRAY)), null);
 
     // when
     action.apply(new FragmentContext(FRAGMENT, new ClientRequest()),
@@ -166,8 +161,7 @@ class InlinePayloadActionFactoryTest {
     Fragment fragment = new Fragment("type", new JsonObject(), "body");
     fragment.appendPayload(expectedKey, "any value");
     Action action = new InlinePayloadActionFactory()
-        .create(ACTION_ALIAS,
-            new ActionConfig(new JsonObject().put("payload", EXPECTED_JSON_OBJECT), ERROR), null, null);
+        .create(new ActionConfig(ACTION_ALIAS, new JsonObject().put("payload", EXPECTED_JSON_OBJECT)), null);
 
     // when
     action.apply(new FragmentContext(fragment, new ClientRequest()),
@@ -184,4 +178,7 @@ class InlinePayloadActionFactoryTest {
     }
   }
 
+  private Action getDummyAction() {
+    return (fragmentContext, resultHandler) -> {};
+  }
 }

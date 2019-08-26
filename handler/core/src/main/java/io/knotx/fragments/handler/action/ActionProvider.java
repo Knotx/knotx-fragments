@@ -19,6 +19,7 @@ import io.knotx.fragments.handler.api.ActionConfig;
 import io.knotx.fragments.handler.api.Cacheable;
 import io.knotx.fragments.handler.api.Action;
 import io.knotx.fragments.handler.api.ActionFactory;
+import io.knotx.fragments.handler.api.actionlog.ActionLogMode;
 import io.vertx.core.Vertx;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
@@ -39,12 +40,14 @@ public class ActionProvider {
 
   private final Map<String, ActionFactory> factories;
   private final Map<String, Action> cache;
+  private final ActionLogMode actionLogMode;
 
   public ActionProvider(Map<String, ActionOptions> options,
-      Supplier<Iterator<ActionFactory>> factoriesSupplier, Vertx vertx) {
+      Supplier<Iterator<ActionFactory>> factoriesSupplier, ActionLogMode actionLogMode, Vertx vertx) {
     this.options = options;
     this.vertx = vertx;
     this.factories = loadFactories(factoriesSupplier);
+    this.actionLogMode = actionLogMode;
     this.cache = new HashMap<>();
   }
 
@@ -81,7 +84,7 @@ public class ActionProvider {
         .flatMap(this::get)
         .orElse(null);
 
-    return factory.create(action, toActionConfig(actionOptions), vertx, operation);
+    return factory.create(toActionConfig(action, operation, actionOptions), vertx);
   }
 
   private boolean isCacheable(ActionFactory factory) {
@@ -95,7 +98,7 @@ public class ActionProvider {
     LOGGER.debug("Action Factories: {}", result);
     return result;
   }
-  private ActionConfig toActionConfig(ActionOptions actionOptions){
-    return new ActionConfig(actionOptions.getConfig(), actionOptions.getActionLogMode());
+  private ActionConfig toActionConfig(String action, Action operation, ActionOptions actionOptions){
+    return new ActionConfig(action, operation, actionOptions.getConfig(), actionLogMode);
   }
 }

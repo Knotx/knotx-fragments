@@ -49,7 +49,7 @@ class InMemoryCacheActionFactoryTest {
 
   private static final JsonObject ACTION_OPTIONS = new JsonObject().put("payloadKey", PAYLOAD_KEY)
       .put("cacheKey", "cProduct");
-  private static final ActionConfig ACTION_CONFIG = new ActionConfig(ACTION_OPTIONS, ERROR);
+  private static final ActionConfig ACTION_CONFIG = new ActionConfig(ACTION_ALIAS, ACTION_OPTIONS);
 
   private Fragment firstFragment;
   private Fragment secondFragment;
@@ -68,8 +68,9 @@ class InMemoryCacheActionFactoryTest {
         .succeededFuture(new FragmentResult(firstFragment, FragmentResult.SUCCESS_TRANSITION))
         .setHandler(resultHandler);
 
+    ActionConfig actionConfig = new ActionConfig(ACTION_ALIAS, doAction, ACTION_OPTIONS, ERROR);
     Action tested = new InMemoryCacheActionFactory()
-        .create(ACTION_ALIAS, ACTION_CONFIG, null, doAction);
+        .create(actionConfig, null);
 
     // when
     tested.apply(new FragmentContext(firstFragment, new ClientRequest()),
@@ -93,8 +94,9 @@ class InMemoryCacheActionFactoryTest {
         .succeededFuture(new FragmentResult(firstFragment, FragmentResult.ERROR_TRANSITION))
         .setHandler(resultHandler);
 
+    ActionConfig actionConfig = new ActionConfig(ACTION_ALIAS, doAction, ACTION_OPTIONS, ERROR);
     Action tested = new InMemoryCacheActionFactory()
-        .create(ACTION_ALIAS, ACTION_CONFIG, null, doAction);
+        .create(actionConfig, null);
 
     // when
     tested.apply(new FragmentContext(firstFragment, new ClientRequest()),
@@ -121,8 +123,9 @@ class InMemoryCacheActionFactoryTest {
         .<FragmentResult>failedFuture(new IllegalStateException())
         .setHandler(resultHandler);
 
+    ActionConfig actionConfig = new ActionConfig(ACTION_ALIAS, doAction, ACTION_OPTIONS, ERROR);
     Action tested = new InMemoryCacheActionFactory()
-        .create(ACTION_ALIAS, ACTION_CONFIG, null, doAction);
+        .create(actionConfig, null);
 
     // when
     tested.apply(new FragmentContext(firstFragment, new ClientRequest()),
@@ -151,8 +154,9 @@ class InMemoryCacheActionFactoryTest {
           .setHandler(resultHandler);
     };
 
+    ActionConfig actionConfig = new ActionConfig(ACTION_ALIAS, doAction, ACTION_OPTIONS, ERROR);
     Action tested = new InMemoryCacheActionFactory()
-        .create(ACTION_ALIAS, ACTION_CONFIG, null, doAction);
+        .create(actionConfig, null);
 
     // when
     tested.apply(new FragmentContext(firstFragment, new ClientRequest()),
@@ -184,9 +188,10 @@ class InMemoryCacheActionFactoryTest {
           .setHandler(resultHandler);
     };
 
+    ActionConfig actionConfig = new ActionConfig(ACTION_ALIAS, doAction, ACTION_OPTIONS
+        .put("cache", new JsonObject().put("maximumSize", 0)), ERROR);
     Action tested = new InMemoryCacheActionFactory()
-        .create(ACTION_ALIAS,new ActionConfig(ACTION_OPTIONS
-            .put("cache", new JsonObject().put("maximumSize", 0)), ERROR), null, doAction);
+        .create(actionConfig, null);
 
     // when
     tested.apply(new FragmentContext(firstFragment, new ClientRequest()),
@@ -216,9 +221,10 @@ class InMemoryCacheActionFactoryTest {
           .setHandler(resultHandler);
     };
 
+    ActionConfig actionConfig = new ActionConfig(ACTION_ALIAS, doAction, ACTION_OPTIONS
+        .put("cache", new JsonObject()), ERROR);
     Action tested = new InMemoryCacheActionFactory()
-        .create(ACTION_ALIAS, new ActionConfig(ACTION_OPTIONS
-            .put("cache", new JsonObject()), ERROR), null, doAction);
+        .create(actionConfig, null);
 
     // when
     tested.apply(new FragmentContext(firstFragment, new ClientRequest()),
@@ -248,12 +254,11 @@ class InMemoryCacheActionFactoryTest {
           .setHandler(resultHandler);
     };
 
+    ActionConfig actionConfig = new ActionConfig(ACTION_ALIAS, doAction, new JsonObject()
+        .put("payloadKey", PAYLOAD_KEY)
+        .put("cacheKey", "product-{param.id}"), ERROR);
     Action tested = new InMemoryCacheActionFactory()
-        .create(ACTION_ALIAS,
-            new ActionConfig(new JsonObject()
-                .put("payloadKey", PAYLOAD_KEY)
-                .put("cacheKey", "product-{param.id}"), ERROR),
-            null, doAction);
+        .create(actionConfig, null);
 
     // when
     FragmentContext firstRequestContext = new FragmentContext(firstFragment,
@@ -295,12 +300,12 @@ class InMemoryCacheActionFactoryTest {
       }
     };
 
+    ActionConfig actionConfig = new ActionConfig(ACTION_ALIAS, doAction, new JsonObject()
+        .put("payloadKey", PAYLOAD_KEY)
+        .put("cacheKey", "product"), ERROR);
+
     Action tested = new InMemoryCacheActionFactory()
-        .create(ACTION_ALIAS,
-            new ActionConfig(new JsonObject()
-                .put("payloadKey", PAYLOAD_KEY)
-                .put("cacheKey", "product"), ERROR),
-            null, doAction);
+        .create(actionConfig, null);
 
     // when
     FragmentContext errorRequestContext = new FragmentContext(firstFragment,

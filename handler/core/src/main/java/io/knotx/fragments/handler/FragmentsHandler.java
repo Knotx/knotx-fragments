@@ -57,7 +57,7 @@ public class FragmentsHandler implements Handler<RoutingContext> {
     FragmentsHandlerOptions options = new FragmentsHandlerOptions(config);
 
     ActionProvider proxyProvider = new ActionProvider(options.getActions(),
-        supplyFactories(), vertx.getDelegate());
+        supplyFactories(), options.getActionLogMode(), vertx.getDelegate());
     taskBuilder = new TaskBuilder(options.getTaskKey(), options.getTasks(), proxyProvider);
     engine = new FragmentsEngine(vertx);
     requestContextEngine = new DefaultRequestContextEngine(getClass().getSimpleName());

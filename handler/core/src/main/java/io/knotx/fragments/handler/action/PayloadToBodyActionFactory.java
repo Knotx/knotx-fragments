@@ -39,8 +39,8 @@ public class PayloadToBodyActionFactory implements ActionFactory {
   }
 
   @Override
-  public Action create(String alias, ActionConfig config, Vertx vertx, Action doAction) {
-    checkArgument(doAction != null, "Payload to body action does not support doAction");
+  public Action create(ActionConfig config, Vertx vertx) {
+    checkArgument(config.hasAction(), "Payload to body action does not support doAction");
 
     JsonObject options = config.getOptions();
     return (fragmentContext, resultHandler) -> {

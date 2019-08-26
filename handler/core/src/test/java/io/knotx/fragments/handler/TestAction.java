@@ -34,7 +34,7 @@ public class TestAction implements ActionFactory {
   }
 
   @Override
-  public Action create(String alias, ActionConfig config, Vertx vertx, Action doAction) {
+  public Action create(ActionConfig config, Vertx vertx) {
 
     String transition = config.getOptions().getString("transition");
 

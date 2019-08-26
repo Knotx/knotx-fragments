@@ -38,14 +38,12 @@ public class InlinePayloadActionFactory implements ActionFactory {
    * Creates Inline Payload Action that puts JsonObject / JsonArray to Fragment payload with alias
    * key.
    *
-   * @param alias - action alias
-   * @param config - JSON configuration
+   * @param config - action config
    * @param vertx - vertx instance
-   * @param doAction - <pre>null</pre> value expected
    */
   @Override
-  public Action create(String alias, ActionConfig config, Vertx vertx, Action doAction) {
-    if (doAction != null) {
+  public Action create(ActionConfig config, Vertx vertx) {
+    if (config.hasAction()) {
       throw new IllegalArgumentException("Inline Payload Action does not support doAction");
     }
     JsonObject options = config.getOptions();
@@ -53,7 +51,7 @@ public class InlinePayloadActionFactory implements ActionFactory {
       throw new IllegalArgumentException("Inline Payload Action requires payload parameter");
     }
     return (fragmentContext, resultHandler) -> {
-      String key = options.getString("alias", alias);
+      String key = options.getString("alias", config.getAlias());
       Object payload = options.getMap().get("payload");
 
       Future<FragmentResult> resultFuture = Future

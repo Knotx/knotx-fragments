@@ -19,7 +19,6 @@ import static io.knotx.fragments.handler.api.actionlog.ActionLogMode.ERROR;
 
 import java.util.Map;
 import java.util.Objects;
-import java.util.function.Consumer;
 
 import io.knotx.fragments.handler.action.ActionOptions;
 import io.knotx.fragments.handler.api.actionlog.ActionLogMode;
@@ -47,18 +46,6 @@ public class FragmentsHandlerOptions {
   public FragmentsHandlerOptions(JsonObject json) {
     init();
     FragmentsHandlerOptionsConverter.fromJson(json, this);
-    updateActionLogMode(this.actionLogMode);
-  }
-
-  private void updateActionLogMode(ActionLogMode actionLogMode) {
-    actions.values()
-        .stream()
-        .filter(ActionOptions::hasEmptyActionLogMode)
-        .forEach(setActionLogMode(actionLogMode));
-  }
-
-  private static Consumer<ActionOptions> setActionLogMode(ActionLogMode actionLogMode){
-    return actionOptions -> actionOptions.setActionLogMode(actionLogMode);
   }
 
   private void init() {

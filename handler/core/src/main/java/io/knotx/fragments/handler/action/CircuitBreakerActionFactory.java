@@ -46,8 +46,8 @@ public class CircuitBreakerActionFactory implements ActionFactory {
   }
 
   @Override
-  public Action create(String alias, ActionConfig config, Vertx vertx, Action doAction) {
-    if (doAction == null) {
+  public Action create(ActionConfig config, Vertx vertx) {
+    if (!config.hasAction()) {
       throw new DoActionNotDefinedException("Circuit Breaker action requires `doAction` defined");
     }
     JsonObject options = config.getOptions();
@@ -58,7 +58,7 @@ public class CircuitBreakerActionFactory implements ActionFactory {
     CircuitBreaker circuitBreaker = new CircuitBreakerImpl(circuitBreakerName, vertx,
         circuitBreakerOptions);
 
-    return new CircuitBreakerAction(circuitBreaker, doAction);
+    return new CircuitBreakerAction(circuitBreaker, config.getDoAction());
   }
 
   public static class CircuitBreakerAction implements Action {

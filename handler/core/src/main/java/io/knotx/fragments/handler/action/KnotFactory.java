@@ -33,8 +33,7 @@ public class KnotFactory implements ActionFactory {
   }
 
   @Override
-  public Action create(String alias, ActionConfig config, Vertx vertx,
-      Action doAction) {
+  public Action create(ActionConfig config, Vertx vertx) {
     JsonObject options = config.getOptions();
     String address = options.getString("address");
     DeliveryOptions deliveryOptions = new DeliveryOptions(

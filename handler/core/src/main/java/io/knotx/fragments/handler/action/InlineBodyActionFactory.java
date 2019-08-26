@@ -49,14 +49,12 @@ public class InlineBodyActionFactory implements ActionFactory {
   /**
    * Creates inline body action that replaces Fragment body with static content.
    *
-   * @param alias - action alias
-   * @param config - JSON configuration
+   * @param config - ActionConfig
    * @param vertx - vertx instance
-   * @param doAction - <pre>null</pre> value expected
    */
   @Override
-  public Action create(String alias, ActionConfig config, Vertx vertx, Action doAction) {
-    if (doAction != null) {
+  public Action create(ActionConfig config, Vertx vertx) {
+    if (config.hasAction()) {
       throw new IllegalArgumentException("Inline body action does not support doAction");
     }
     return (fragmentContext, resultHandler) -> {

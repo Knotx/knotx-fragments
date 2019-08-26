@@ -53,10 +53,10 @@ public class PayloadToBodyActionFactoryTest {
   void createActionWithDoAction() {
     // when, then
     assertThrows(IllegalArgumentException.class, () -> new PayloadToBodyActionFactory()
-        .create(ACTION_ALIAS, new ActionConfig(new JsonObject().put("key", PAYLOAD_KEY), ERROR),
-            null,
+        .create(new ActionConfig(ACTION_ALIAS,
             (fragmentContext, resultHandler) -> {
-            }));
+            }, new JsonObject().put("key", PAYLOAD_KEY), ERROR),
+            null));
   }
 
   @Test
@@ -64,8 +64,7 @@ public class PayloadToBodyActionFactoryTest {
   void applyActionWithActionAlias(VertxTestContext testContext) throws Throwable {
     // given
     Action action = new PayloadToBodyActionFactory()
-        .create(ACTION_ALIAS, new ActionConfig(new JsonObject().put(PAYLOAD_KEY, "key"), ERROR),
-            null, null);
+        .create(new ActionConfig(ACTION_ALIAS, new JsonObject().put(PAYLOAD_KEY, "key")), null);
 
     // when
     action.apply(new FragmentContext(FRAGMENT, new ClientRequest()),
@@ -91,8 +90,8 @@ public class PayloadToBodyActionFactoryTest {
   void applyActionWithNestedKey(VertxTestContext testContext) throws Throwable {
     // given
     Action action = new PayloadToBodyActionFactory()
-        .create(ACTION_ALIAS,
-            new ActionConfig(new JsonObject().put(PAYLOAD_KEY, "key.user"), ERROR), null, null);
+        .create(
+            new ActionConfig(ACTION_ALIAS, new JsonObject().put(PAYLOAD_KEY, "key.user")), null);
 
     // when
     action.apply(new FragmentContext(FRAGMENT, new ClientRequest()),

@@ -68,10 +68,11 @@ public class InMemoryCacheActionFactory implements ActionFactory {
   }
 
   @Override
-  public Action create(String alias, ActionConfig config, Vertx vertx, Action doAction) {
+  public Action create(ActionConfig config, Vertx vertx) {
 
     return new Action() {
       JsonObject options = config.getOptions();
+      Action doAction = config.getDoAction();
       private Cache<String, Object> cache = createCache(options);
       private String payloadKey = getPayloadKey(options);
 
