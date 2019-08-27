@@ -22,6 +22,7 @@ import io.knotx.fragments.api.Fragment;
 import io.knotx.fragments.handler.api.Action;
 import io.knotx.fragments.handler.api.ActionConfig;
 import io.knotx.fragments.handler.api.ActionFactory;
+import io.knotx.fragments.handler.api.actionlog.ActionLogger;
 import io.knotx.fragments.handler.api.domain.FragmentResult;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
@@ -46,19 +47,25 @@ public class PayloadToBodyActionFactory implements ActionFactory {
     return (fragmentContext, resultHandler) -> {
       Fragment fragment = fragmentContext.getFragment();
       String payloadKey = Objects.nonNull(options) ? options.getString(KEY) : null;
-
+      ActionLogger actionLogger = ActionLogger.create(config.getActionLogMode());
       FragmentResult result = getBodyFromPayload(payloadKey, fragment.getPayload())
-          .map(body -> toFragmentResult(fragment, body))
-          .orElse(new FragmentResult(fragment, FragmentResult.ERROR_TRANSITION));
+          .map(body -> toFragmentResult(fragment, body, actionLogger))
+          .orElseGet(() -> toErrorFragmentResult(fragment, payloadKey, actionLogger));
 
       Future<FragmentResult> resultFuture = succeededFuture(result);
       resultFuture.setHandler(resultHandler);
     };
   }
 
-  private FragmentResult toFragmentResult(Fragment fragment, String body) {
+  private FragmentResult toErrorFragmentResult(Fragment fragment, String payloadKey, ActionLogger actionLogger) {
+    actionLogger.error("body", String.format("No value found under key in payload %s", payloadKey));
+    return new FragmentResult(fragment, FragmentResult.ERROR_TRANSITION, actionLogger.getLog());
+  }
+
+  private FragmentResult toFragmentResult(Fragment fragment, String body, ActionLogger actionLogger) {
     fragment.setBody(body);
-    return new FragmentResult(fragment, FragmentResult.SUCCESS_TRANSITION);
+    actionLogger.info("body", body);
+    return new FragmentResult(fragment, FragmentResult.SUCCESS_TRANSITION, actionLogger.getLog());
   }
 
   private Optional<String> getBodyFromPayload(String key, JsonObject payload) {

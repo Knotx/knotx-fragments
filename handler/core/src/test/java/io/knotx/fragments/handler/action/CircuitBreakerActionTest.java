@@ -18,10 +18,19 @@
 package io.knotx.fragments.handler.action;
 
 import static io.knotx.fragments.handler.action.CircuitBreakerActionFactory.FALLBACK_TRANSITION;
+import static io.knotx.fragments.handler.api.actionlog.ActionLogMode.INFO;
 import static io.knotx.fragments.handler.api.domain.FragmentResult.SUCCESS_TRANSITION;
+
+import java.util.concurrent.TimeUnit;
+
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 import io.knotx.fragments.api.Fragment;
 import io.knotx.fragments.handler.action.CircuitBreakerActionFactory.CircuitBreakerAction;
+import io.knotx.fragments.handler.api.actionlog.ActionLogger;
 import io.knotx.fragments.handler.api.domain.FragmentContext;
 import io.knotx.fragments.handler.api.domain.FragmentResult;
 import io.knotx.server.api.context.ClientRequest;
@@ -36,11 +45,6 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
 import io.vertx.rxjava.core.Future;
-import java.util.concurrent.TimeUnit;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 
 @ExtendWith(VertxExtension.class)
 class CircuitBreakerActionTest {
@@ -49,20 +53,23 @@ class CircuitBreakerActionTest {
   private static final int TIMEOUT_IN_MS = 500;
 
   @Test
-  @DisplayName("Expect operation ends when doAction ends on time.")
+  @DisplayName("Expect operation ends when doAction ends on time. Action logs from doAction present.")
   void expectOperationEnds(VertxTestContext testContext, Vertx vertx) throws Throwable {
     // given
     CircuitBreakerOptions options = new CircuitBreakerOptions().setTimeout(TIMEOUT_IN_MS);
     CircuitBreaker circuitBreaker = new CircuitBreakerImpl("name", vertx, options);
 
     CircuitBreakerAction tested = new CircuitBreakerAction(circuitBreaker,
-        CircuitBreakerActionTest::apply);
+        CircuitBreakerActionTest::apply, ActionLogger.create(INFO));
 
     // when
     tested.apply(new FragmentContext(FRAGMENT, new ClientRequest()),
         testContext.succeeding(result -> {
           testContext
-              .verify(() -> Assertions.assertEquals(SUCCESS_TRANSITION, result.getTransition()));
+              .verify(() -> {
+                Assertions.assertNotNull(result.getActionLog().getString("info"));
+                Assertions.assertEquals(SUCCESS_TRANSITION, result.getTransition());
+              });
           testContext.completeNow();
         }));
 
@@ -87,13 +94,17 @@ class CircuitBreakerActionTest {
                 l ->
                     Future.succeededFuture(
                         new FragmentResult(fragmentContext.getFragment(), SUCCESS_TRANSITION)
-                    ).setHandler(resultHandler)));
+                    ).setHandler(resultHandler)),
+        ActionLogger.create(INFO));
 
     // when
     tested.apply(new FragmentContext(FRAGMENT, new ClientRequest()),
         testContext.succeeding(result -> {
           testContext
-              .verify(() -> Assertions.assertEquals(FALLBACK_TRANSITION, result.getTransition()));
+              .verify(() -> {
+                Assertions.assertNotNull(result.getActionLog().getString("fallback"));
+                Assertions.assertEquals(FALLBACK_TRANSITION, result.getTransition());
+              });
           testContext.completeNow();
         }));
 
@@ -117,7 +128,8 @@ class CircuitBreakerActionTest {
                 l ->
                     Future.succeededFuture(
                         new FragmentResult(fragmentContext.getFragment(), SUCCESS_TRANSITION)
-                    ).setHandler(resultHandler)));
+                    ).setHandler(resultHandler)),
+        ActionLogger.create(INFO));
 
     // when
     tested.apply(new FragmentContext(FRAGMENT, new ClientRequest()),
@@ -136,7 +148,8 @@ class CircuitBreakerActionTest {
 
   private static void apply(FragmentContext fragmentContext,
       Handler<AsyncResult<FragmentResult>> resultHandler) {
-    Future.succeededFuture(new FragmentResult(fragmentContext.getFragment(), SUCCESS_TRANSITION))
+    Future.succeededFuture(new FragmentResult(fragmentContext.getFragment(), SUCCESS_TRANSITION,
+        new JsonObject().put("info", "success")))
         .setHandler(resultHandler);
   }
 

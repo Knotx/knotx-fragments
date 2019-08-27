@@ -16,6 +16,7 @@
 package io.knotx.fragments.handler.action;
 
 import static io.knotx.fragments.handler.api.actionlog.ActionLogMode.ERROR;
+import static io.knotx.fragments.handler.api.actionlog.ActionLogMode.INFO;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -68,7 +69,7 @@ class InMemoryCacheActionFactoryTest {
         .succeededFuture(new FragmentResult(firstFragment, FragmentResult.SUCCESS_TRANSITION))
         .setHandler(resultHandler);
 
-    ActionConfig actionConfig = new ActionConfig(ACTION_ALIAS, doAction, ACTION_OPTIONS, ERROR);
+    ActionConfig actionConfig = new ActionConfig(ACTION_ALIAS, doAction, ACTION_OPTIONS, INFO);
     Action tested = new InMemoryCacheActionFactory()
         .create(actionConfig, null);
 
@@ -76,7 +77,10 @@ class InMemoryCacheActionFactoryTest {
     tested.apply(new FragmentContext(firstFragment, new ClientRequest()),
         result -> {
           // then
-          testContext.verify(() -> assertTrue(result.succeeded()));
+          testContext.verify(() -> {
+            assertTrue(result.result().getActionLog().containsKey("do_action"));
+            assertTrue(result.succeeded());
+          });
           testContext.completeNow();
         });
 
@@ -141,20 +145,14 @@ class InMemoryCacheActionFactoryTest {
     }
   }
 
-  @DisplayName("Payload contains data specified by payloadKey when doAction adds payloadKey.")
+  @DisplayName("Payload contains data specified by payloadKey when doAction adds payloadKey. Action log updated")
   @Test
-  void callActionWithPayloadUpdate(VertxTestContext testContext) throws Throwable {
+  void callActionWithPayloadAndActionLogUpdate(VertxTestContext testContext) throws Throwable {
     // given
     JsonObject expectedPayloadValue = new JsonObject().put("someKey", "someValue");
-    Action doAction = (fragmentContext, resultHandler) -> {
-      Fragment fragment = fragmentContext.getFragment();
-      fragment.appendPayload(PAYLOAD_KEY, expectedPayloadValue);
-      Future
-          .succeededFuture(new FragmentResult(fragment, FragmentResult.SUCCESS_TRANSITION))
-          .setHandler(resultHandler);
-    };
+    Action doAction = doActionWithPayload(expectedPayloadValue);
 
-    ActionConfig actionConfig = new ActionConfig(ACTION_ALIAS, doAction, ACTION_OPTIONS, ERROR);
+    ActionConfig actionConfig = new ActionConfig(ACTION_ALIAS, doAction, ACTION_OPTIONS, INFO);
     Action tested = new InMemoryCacheActionFactory()
         .create(actionConfig, null);
 
@@ -163,6 +161,11 @@ class InMemoryCacheActionFactoryTest {
         result -> {
           // then
           testContext.verify(() -> {
+            JsonObject actionLog = result.result().getActionLog();
+            assertTrue(actionLog.containsKey("cached_key"));
+            assertTrue(actionLog.containsKey("do_action"));
+            assertTrue(actionLog.containsKey("cached_value"));
+
             JsonObject payload = result.result().getFragment().getPayload();
             assertTrue(payload.containsKey(PAYLOAD_KEY));
             assertEquals(expectedPayloadValue, payload.getJsonObject(PAYLOAD_KEY));
@@ -174,6 +177,47 @@ class InMemoryCacheActionFactoryTest {
     if (testContext.failed()) {
       throw testContext.causeOfFailure();
     }
+  }
+
+  @DisplayName("Payload contains data specified by payloadKey when doAction adds payloadKey. Action log empty")
+  @Test
+  void callActionWithPayloadUpdate(VertxTestContext testContext) throws Throwable {
+    // given
+    JsonObject expectedPayloadValue = new JsonObject().put("someKey", "someValue");
+    Action doAction = doActionWithPayload(expectedPayloadValue);
+
+    ActionConfig actionConfig = new ActionConfig(ACTION_ALIAS, doAction, ACTION_OPTIONS, ERROR);
+    Action tested = new InMemoryCacheActionFactory()
+        .create(actionConfig, null);
+
+    // when
+    tested.apply(new FragmentContext(firstFragment, new ClientRequest()),
+        result -> {
+          // then
+          testContext.verify(() -> {
+            JsonObject actionLog = result.result().getActionLog();
+            assertTrue(actionLog.isEmpty());
+
+            JsonObject payload = result.result().getFragment().getPayload();
+            assertTrue(payload.containsKey(PAYLOAD_KEY));
+            assertEquals(expectedPayloadValue, payload.getJsonObject(PAYLOAD_KEY));
+          });
+          testContext.completeNow();
+        });
+
+    assertTrue(testContext.awaitCompletion(5, TimeUnit.SECONDS));
+    if (testContext.failed()) {
+      throw testContext.causeOfFailure();
+    }
+  }
+  private Action doActionWithPayload(JsonObject expectedPayloadValue) {
+    return (fragmentContext, resultHandler) -> {
+      Fragment fragment = fragmentContext.getFragment();
+      fragment.appendPayload(PAYLOAD_KEY, expectedPayloadValue);
+      Future
+          .succeededFuture(new FragmentResult(fragment, FragmentResult.SUCCESS_TRANSITION))
+          .setHandler(resultHandler);
+    };
   }
 
   @DisplayName("doAction invoked twice when cache is disabled (maximum size is 0)")

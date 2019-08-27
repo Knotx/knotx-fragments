@@ -20,6 +20,7 @@ import io.knotx.fragments.handler.api.Action;
 import io.knotx.fragments.handler.api.ActionConfig;
 import io.knotx.fragments.handler.api.ActionFactory;
 import io.knotx.fragments.handler.api.Cacheable;
+import io.knotx.fragments.handler.api.actionlog.ActionLogger;
 import io.knotx.fragments.handler.api.domain.FragmentContext;
 import io.knotx.fragments.handler.api.domain.FragmentResult;
 import io.vertx.core.Future;
@@ -50,20 +51,23 @@ public class InlinePayloadActionFactory implements ActionFactory {
     if (!options.containsKey("payload")) {
       throw new IllegalArgumentException("Inline Payload Action requires payload parameter");
     }
+
     return (fragmentContext, resultHandler) -> {
       String key = options.getString("alias", config.getAlias());
       Object payload = options.getMap().get("payload");
-
+      ActionLogger actionLogger = ActionLogger.create(config.getActionLogMode());
       Future<FragmentResult> resultFuture = Future
-          .succeededFuture(toResult(fragmentContext, key, payload));
+          .succeededFuture(toResult(fragmentContext, key, payload, actionLogger));
       resultFuture.setHandler(resultHandler);
     };
   }
 
-  private FragmentResult toResult(FragmentContext fragmentContext, String key, Object payload) {
+  private FragmentResult toResult(FragmentContext fragmentContext, String key, Object payload,
+      ActionLogger logger) {
     Fragment fragment = fragmentContext.getFragment();
     fragment.appendPayload(key, payload);
-    return new FragmentResult(fragment, FragmentResult.SUCCESS_TRANSITION);
+    logger.info("payload", fragment.getPayload());
+    return new FragmentResult(fragment, FragmentResult.SUCCESS_TRANSITION, logger.getLog());
   }
 
 }

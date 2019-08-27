@@ -16,6 +16,7 @@
 package io.knotx.fragments.handler.action;
 
 
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.lang3.StringUtils;
@@ -28,6 +29,7 @@ import io.knotx.fragments.handler.api.Action;
 import io.knotx.fragments.handler.api.ActionConfig;
 import io.knotx.fragments.handler.api.ActionFactory;
 import io.knotx.fragments.handler.api.Cacheable;
+import io.knotx.fragments.handler.api.actionlog.ActionLogger;
 import io.knotx.fragments.handler.api.domain.FragmentContext;
 import io.knotx.fragments.handler.api.domain.FragmentResult;
 import io.knotx.server.api.context.ClientRequest;
@@ -73,21 +75,24 @@ public class InMemoryCacheActionFactory implements ActionFactory {
     return new Action() {
       JsonObject options = config.getOptions();
       Action doAction = config.getDoAction();
+      ActionLogger actionLogger = ActionLogger.create(config.getActionLogMode());
       private Cache<String, Object> cache = createCache(options);
       private String payloadKey = getPayloadKey(options);
 
       @Override
       public void apply(FragmentContext fragmentContext,
           Handler<AsyncResult<FragmentResult>> resultHandler) {
-
         String cacheKey = getCacheKey(options, fragmentContext.getClientRequest());
         Object cachedValue = cache.getIfPresent(cacheKey);
+        actionLogger.info("cached_key", cacheKey);
         if (cachedValue == null) {
           callDoActionAndCache(fragmentContext, resultHandler, cacheKey);
         } else {
+          actionLogger.info("cached_value", cachedValue);
           Fragment fragment = fragmentContext.getFragment();
           fragment.appendPayload(payloadKey, cachedValue);
-          FragmentResult result = new FragmentResult(fragment, FragmentResult.SUCCESS_TRANSITION);
+          FragmentResult result = new FragmentResult(fragment, FragmentResult.SUCCESS_TRANSITION,
+              actionLogger.getLog());
           Future.succeededFuture(result)
               .setHandler(resultHandler);
         }
@@ -95,6 +100,7 @@ public class InMemoryCacheActionFactory implements ActionFactory {
 
       private void callDoActionAndCache(FragmentContext fragmentContext,
           Handler<AsyncResult<FragmentResult>> resultHandler, String cacheKey) {
+        actionLogger.info("do_action", "Value not found in cache. Calling do Action...");
         doAction.apply(fragmentContext, asyncResult -> {
           if (asyncResult.succeeded()) {
             FragmentResult fragmentResult = asyncResult.result();
@@ -104,15 +110,23 @@ public class InMemoryCacheActionFactory implements ActionFactory {
                 .containsKey(payloadKey)) {
               JsonObject resultPayload = fragmentResult.getFragment()
                   .getPayload();
-              cache.put(cacheKey, resultPayload.getMap()
-                  .get(payloadKey));
+              Object cachedValue = resultPayload.getMap().get(payloadKey);
+              actionLogger.info("cached_value", cachedValue);
+              cache.put(cacheKey, cachedValue);
             }
-            Future.succeededFuture(fragmentResult)
+            Future.succeededFuture(toResult(fragmentResult))
                 .setHandler(resultHandler);
           } else {
             Future.<FragmentResult>failedFuture(asyncResult.cause()).setHandler(resultHandler);
           }
         });
+      }
+
+      private FragmentResult toResult(FragmentResult fragmentResult) {
+        JsonObject actionLog = Objects.isNull(fragmentResult.getActionLog()) ? actionLogger.getLog()
+            : fragmentResult.getActionLog().mergeIn(actionLogger.getLog());
+        return new FragmentResult(fragmentResult.getFragment(), fragmentResult.getTransition(),
+            actionLog);
       }
     };
   }

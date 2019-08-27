@@ -41,6 +41,12 @@ public class ActionLogger {
     }
   }
 
+  public void info(String key, Object data){
+    if(actionLogMode == INFO){
+      log.put(key, data);
+    }
+  }
+
   public <T> void info(String key, T data, Function<T, JsonObject> toJsonFunc){
     if(actionLogMode == INFO){
       log.put(key, toJsonFunc.apply(data));

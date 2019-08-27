@@ -15,11 +15,14 @@
  */
 package io.knotx.fragments.handler.action;
 
+import static java.lang.String.format;
+
 import io.knotx.fragments.api.Fragment;
 import io.knotx.fragments.handler.api.Action;
 import io.knotx.fragments.handler.api.ActionConfig;
 import io.knotx.fragments.handler.api.ActionFactory;
 import io.knotx.fragments.handler.api.Cacheable;
+import io.knotx.fragments.handler.api.actionlog.ActionLogger;
 import io.knotx.fragments.handler.api.domain.FragmentContext;
 import io.knotx.fragments.handler.api.domain.FragmentResult;
 import io.knotx.fragments.handler.exception.DoActionNotDefinedException;
@@ -58,17 +61,21 @@ public class CircuitBreakerActionFactory implements ActionFactory {
     CircuitBreaker circuitBreaker = new CircuitBreakerImpl(circuitBreakerName, vertx,
         circuitBreakerOptions);
 
-    return new CircuitBreakerAction(circuitBreaker, config.getDoAction());
+    return new CircuitBreakerAction(circuitBreaker, config.getDoAction(),
+        ActionLogger.create(config.getActionLogMode()));
   }
 
   public static class CircuitBreakerAction implements Action {
 
     private CircuitBreaker circuitBreaker;
     private Action doAction;
+    private ActionLogger actionLogger;
 
-    CircuitBreakerAction(CircuitBreaker circuitBreaker, Action doAction) {
+    CircuitBreakerAction(CircuitBreaker circuitBreaker, Action doAction,
+        ActionLogger actionLogger) {
       this.circuitBreaker = circuitBreaker;
       this.doAction = doAction;
+      this.actionLogger = actionLogger;
     }
 
     @Override
@@ -85,7 +92,8 @@ public class CircuitBreakerActionFactory implements ActionFactory {
               }),
           v -> {
             Fragment fragment = fragmentContext.getFragment();
-            return new FragmentResult(fragment, FALLBACK_TRANSITION);
+            actionLogger.error("fallback", format("Cannot process doAction. Exit with %s", FALLBACK_TRANSITION));
+            return new FragmentResult(fragment, FALLBACK_TRANSITION, actionLogger.getLog());
           }
       ).setHandler(resultHandler);
     }

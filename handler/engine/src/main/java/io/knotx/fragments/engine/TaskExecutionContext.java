@@ -29,6 +29,7 @@ import io.reactivex.Single;
 import io.reactivex.SingleSource;
 import io.vertx.core.eventbus.ReplyException;
 import io.vertx.core.eventbus.ReplyFailure;
+import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 
@@ -78,7 +79,11 @@ class TaskExecutionContext {
       handleRegularError(error);
     }
     FragmentEvent fragmentEvent = fragmentEventContext.getFragmentEvent();
-    return Single.just(new FragmentResult(fragmentEvent.getFragment(), ERROR_TRANSITION));
+    return Single.just(new FragmentResult(fragmentEvent.getFragment(), ERROR_TRANSITION, prepareErrorActionLog(error)));
+  }
+
+  private JsonObject prepareErrorActionLog(Throwable error){
+    return new JsonObject().put("error", error.getMessage());
   }
 
   private void handleFatalError(ActionFatalException error) {

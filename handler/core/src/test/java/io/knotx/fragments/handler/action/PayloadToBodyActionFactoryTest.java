@@ -16,6 +16,7 @@
 package io.knotx.fragments.handler.action;
 
 import static io.knotx.fragments.handler.api.actionlog.ActionLogMode.ERROR;
+import static io.knotx.fragments.handler.api.actionlog.ActionLogMode.INFO;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -61,7 +62,7 @@ public class PayloadToBodyActionFactoryTest {
 
   @Test
   @DisplayName("Expect body with nested payload under paylod key.")
-  void applyActionWithActionAlias(VertxTestContext testContext) throws Throwable {
+  void bodyWithNestedPayload(VertxTestContext testContext) throws Throwable {
     // given
     Action action = new PayloadToBodyActionFactory()
         .create(new ActionConfig(ACTION_ALIAS, new JsonObject().put(PAYLOAD_KEY, "key")), null);
@@ -73,6 +74,34 @@ public class PayloadToBodyActionFactoryTest {
           testContext.verify(() -> {
             String body = result.result().getFragment().getBody();
             assertTrue(result.succeeded());
+            assertTrue(result.result().getActionLog().isEmpty());
+            assertEquals(new JsonObject(body), NESTED_PAYLOAD);
+          });
+
+          testContext.completeNow();
+        });
+
+    assertTrue(testContext.awaitCompletion(5, TimeUnit.SECONDS));
+    if (testContext.failed()) {
+      throw testContext.causeOfFailure();
+    }
+  }
+
+  @Test
+  @DisplayName("Expect body with nested payload under paylod key in action log entry.")
+  void bodyLoggedWithNestedPayload(VertxTestContext testContext) throws Throwable {
+    // given
+    Action action = new PayloadToBodyActionFactory()
+        .create(new ActionConfig(ACTION_ALIAS, null,
+            new JsonObject().put(PAYLOAD_KEY, "key"), INFO), null);
+
+    // when
+    action.apply(new FragmentContext(FRAGMENT, new ClientRequest()),
+        result -> {
+          // then
+          testContext.verify(() -> {
+            String body = result.result().getFragment().getBody();
+            assertEquals(body, result.result().getActionLog().getString("body"));
             assertEquals(new JsonObject(body), NESTED_PAYLOAD);
           });
 
