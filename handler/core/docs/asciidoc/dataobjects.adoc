@@ -8,7 +8,6 @@
 [frame="topbot"]
 |===
 ^|Name | Type ^| Description
-|[[actionLogMode]]`@actionLogMode`|`link:enums.html#ActionLogMode[ActionLogMode]`|-
 |[[config]]`@config`|`Json object`|+++
 Sets <code>Action</code> configuration that is passed to Action.
 +++
