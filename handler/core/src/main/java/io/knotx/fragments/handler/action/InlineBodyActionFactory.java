@@ -19,6 +19,7 @@ import io.knotx.fragments.handler.api.Action;
 import io.knotx.fragments.handler.api.ActionConfig;
 import io.knotx.fragments.handler.api.ActionFactory;
 import io.knotx.fragments.handler.api.Cacheable;
+import io.knotx.fragments.handler.api.actionlog.ActionLogger;
 import io.knotx.fragments.handler.api.domain.FragmentResult;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
@@ -58,8 +59,12 @@ public class InlineBodyActionFactory implements ActionFactory {
       throw new IllegalArgumentException("Inline body action does not support doAction");
     }
     return (fragmentContext, resultHandler) -> {
+      ActionLogger actionLogger = ActionLogger.create(config.getActionLogMode());
+      String body = config.getOptions().getString("body", DEFAULT_EMPTY_BODY);
+      actionLogger.info("original_body", fragmentContext.getFragment().getBody());
+      actionLogger.info("body", body);
       fragmentContext.getFragment()
-          .setBody(config.getOptions().getString("body", DEFAULT_EMPTY_BODY));
+          .setBody(body);
       Future<FragmentResult> resultFuture = Future.succeededFuture(
           new FragmentResult(fragmentContext.getFragment(), FragmentResult.SUCCESS_TRANSITION));
       resultFuture.setHandler(resultHandler);

@@ -100,7 +100,6 @@ public class InMemoryCacheActionFactory implements ActionFactory {
 
       private void callDoActionAndCache(FragmentContext fragmentContext,
           Handler<AsyncResult<FragmentResult>> resultHandler, String cacheKey) {
-        actionLogger.info("do_action", "Value not found in cache. Calling do Action...");
         doAction.apply(fragmentContext, asyncResult -> {
           if (asyncResult.succeeded()) {
             FragmentResult fragmentResult = asyncResult.result();
@@ -111,7 +110,7 @@ public class InMemoryCacheActionFactory implements ActionFactory {
               JsonObject resultPayload = fragmentResult.getFragment()
                   .getPayload();
               Object cachedValue = resultPayload.getMap().get(payloadKey);
-              actionLogger.info("cached_value", cachedValue);
+              actionLogger.info("new_cached_value", cachedValue);
               cache.put(cacheKey, cachedValue);
             }
             Future.succeededFuture(toResult(fragmentResult))

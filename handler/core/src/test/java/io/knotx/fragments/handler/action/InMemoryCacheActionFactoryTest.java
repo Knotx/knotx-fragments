@@ -163,8 +163,7 @@ class InMemoryCacheActionFactoryTest {
           testContext.verify(() -> {
             JsonObject actionLog = result.result().getActionLog();
             assertTrue(actionLog.containsKey("cached_key"));
-            assertTrue(actionLog.containsKey("do_action"));
-            assertTrue(actionLog.containsKey("cached_value"));
+            assertTrue(actionLog.containsKey("new_cached_value"));
 
             JsonObject payload = result.result().getFragment().getPayload();
             assertTrue(payload.containsKey(PAYLOAD_KEY));
