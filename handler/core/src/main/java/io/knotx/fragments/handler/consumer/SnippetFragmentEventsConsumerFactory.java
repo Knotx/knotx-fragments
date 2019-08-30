@@ -35,7 +35,7 @@ public class SnippetFragmentEventsConsumerFactory implements FragmentEventsConsu
 
   @Override
   public String getName() {
-    return "snippet";
+    return "snippetDebug";
   }
 
   @Override
