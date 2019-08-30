@@ -19,7 +19,7 @@ public class JsonFragmentEventsConsumerFactory implements FragmentEventsConsumer
 
   @Override
   public String getName() {
-    return "json";
+    return "jsonDebug";
   }
 
   @Override
