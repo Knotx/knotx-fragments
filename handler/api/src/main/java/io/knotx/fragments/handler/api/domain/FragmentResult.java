@@ -43,6 +43,7 @@ public class FragmentResult {
     this.transition = transition;
     this.actionLog = actionLog;
   }
+
   public FragmentResult(Fragment fragment, String transition) {
     this(fragment, transition, null);
   }
@@ -82,6 +83,10 @@ public class FragmentResult {
     }
   }
 
+  public JsonObject getActionLog() {
+    return actionLog;
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) {
@@ -92,12 +97,13 @@ public class FragmentResult {
     }
     FragmentResult that = (FragmentResult) o;
     return Objects.equals(fragment, that.fragment) &&
-        Objects.equals(transition, that.transition);
+        Objects.equals(transition, that.transition) &&
+        Objects.equals(actionLog, that.actionLog);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(fragment, transition);
+    return Objects.hash(fragment, transition, actionLog);
   }
 
   @Override
@@ -105,10 +111,8 @@ public class FragmentResult {
     return "FragmentResult{" +
         "fragment=" + fragment +
         ", transition='" + transition + '\'' +
+        ", actionLog=" + actionLog +
         '}';
   }
 
-  public JsonObject getActionLog() {
-    return actionLog;
-  }
 }

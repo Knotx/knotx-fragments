@@ -21,14 +21,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.util.UUID;
-import java.util.concurrent.TimeUnit;
-
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-
 import io.knotx.fragments.api.Fragment;
 import io.knotx.fragments.handler.api.Action;
 import io.knotx.fragments.handler.api.ActionConfig;
@@ -40,6 +32,12 @@ import io.vertx.core.Future;
 import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.VertxTestContext;
 import io.vertx.reactivex.core.MultiMap;
+import java.util.UUID;
+import java.util.concurrent.TimeUnit;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 @ExtendWith(KnotxExtension.class)
 class InMemoryCacheActionFactoryTest {
@@ -50,7 +48,6 @@ class InMemoryCacheActionFactoryTest {
 
   private static final JsonObject ACTION_OPTIONS = new JsonObject().put("payloadKey", PAYLOAD_KEY)
       .put("cacheKey", "cProduct");
-  private static final ActionConfig ACTION_CONFIG = new ActionConfig(ACTION_ALIAS, ACTION_OPTIONS);
 
   private Fragment firstFragment;
   private Fragment secondFragment;
@@ -70,17 +67,14 @@ class InMemoryCacheActionFactoryTest {
         .setHandler(resultHandler);
 
     ActionConfig actionConfig = new ActionConfig(ACTION_ALIAS, doAction, ACTION_OPTIONS, INFO);
-    Action tested = new InMemoryCacheActionFactory()
-        .create(actionConfig, null);
+    Action tested = new InMemoryCacheActionFactory().create(actionConfig, null);
 
     // when
     tested.apply(new FragmentContext(firstFragment, new ClientRequest()),
         result -> {
           // then
-          testContext.verify(() -> {
-            assertTrue(result.result().getActionLog().containsKey("do_action"));
-            assertTrue(result.succeeded());
-          });
+          testContext.verify(() ->
+              assertEquals(FragmentResult.SUCCESS_TRANSITION, result.result().getTransition()));
           testContext.completeNow();
         });
 
@@ -106,10 +100,8 @@ class InMemoryCacheActionFactoryTest {
     tested.apply(new FragmentContext(firstFragment, new ClientRequest()),
         result -> {
           // then
-          testContext.verify(() -> {
-            assertTrue(result.succeeded());
-            assertEquals(FragmentResult.ERROR_TRANSITION, result.result().getTransition());
-          });
+          testContext.verify(
+              () -> assertEquals(FragmentResult.ERROR_TRANSITION, result.result().getTransition()));
           testContext.completeNow();
         });
 
@@ -145,42 +137,9 @@ class InMemoryCacheActionFactoryTest {
     }
   }
 
-  @DisplayName("Payload contains data specified by payloadKey when doAction adds payloadKey. Action log updated")
+  @DisplayName("Payload contains data specified by payloadKey when doAction adds payloadKey.")
   @Test
-  void callActionWithPayloadAndActionLogUpdate(VertxTestContext testContext) throws Throwable {
-    // given
-    JsonObject expectedPayloadValue = new JsonObject().put("someKey", "someValue");
-    Action doAction = doActionWithPayload(expectedPayloadValue);
-
-    ActionConfig actionConfig = new ActionConfig(ACTION_ALIAS, doAction, ACTION_OPTIONS, INFO);
-    Action tested = new InMemoryCacheActionFactory()
-        .create(actionConfig, null);
-
-    // when
-    tested.apply(new FragmentContext(firstFragment, new ClientRequest()),
-        result -> {
-          // then
-          testContext.verify(() -> {
-            JsonObject actionLog = result.result().getActionLog();
-            assertTrue(actionLog.containsKey("cached_key"));
-            assertTrue(actionLog.containsKey("new_cached_value"));
-
-            JsonObject payload = result.result().getFragment().getPayload();
-            assertTrue(payload.containsKey(PAYLOAD_KEY));
-            assertEquals(expectedPayloadValue, payload.getJsonObject(PAYLOAD_KEY));
-          });
-          testContext.completeNow();
-        });
-
-    assertTrue(testContext.awaitCompletion(5, TimeUnit.SECONDS));
-    if (testContext.failed()) {
-      throw testContext.causeOfFailure();
-    }
-  }
-
-  @DisplayName("Payload contains data specified by payloadKey when doAction adds payloadKey. Action log empty")
-  @Test
-  void callActionWithPayloadUpdate(VertxTestContext testContext) throws Throwable {
+  void callActionWithPayload(VertxTestContext testContext) throws Throwable {
     // given
     JsonObject expectedPayloadValue = new JsonObject().put("someKey", "someValue");
     Action doAction = doActionWithPayload(expectedPayloadValue);
@@ -194,9 +153,6 @@ class InMemoryCacheActionFactoryTest {
         result -> {
           // then
           testContext.verify(() -> {
-            JsonObject actionLog = result.result().getActionLog();
-            assertTrue(actionLog.isEmpty());
-
             JsonObject payload = result.result().getFragment().getPayload();
             assertTrue(payload.containsKey(PAYLOAD_KEY));
             assertEquals(expectedPayloadValue, payload.getJsonObject(PAYLOAD_KEY));
@@ -209,19 +165,38 @@ class InMemoryCacheActionFactoryTest {
       throw testContext.causeOfFailure();
     }
   }
-  private Action doActionWithPayload(JsonObject expectedPayloadValue) {
-    return (fragmentContext, resultHandler) -> {
-      Fragment fragment = fragmentContext.getFragment();
-      fragment.appendPayload(PAYLOAD_KEY, expectedPayloadValue);
-      Future
-          .succeededFuture(new FragmentResult(fragment, FragmentResult.SUCCESS_TRANSITION))
-          .setHandler(resultHandler);
-    };
+
+  @DisplayName("Action log contains 'new_cache_value' value specified by payloadKey when doAction adds payloadKey and INFO level is set.")
+  @Test
+  void callActionWithPayloadAndActionLogWithInfoLevel(VertxTestContext testContext)
+      throws Throwable {
+    // given
+    JsonObject expectedPayloadValue = new JsonObject().put("someKey", "someValue");
+    Action doAction = doActionWithPayload(expectedPayloadValue);
+
+    ActionConfig actionConfig = new ActionConfig(ACTION_ALIAS, doAction, ACTION_OPTIONS, INFO);
+    Action tested = new InMemoryCacheActionFactory()
+        .create(actionConfig, null);
+
+    // when
+    tested.apply(new FragmentContext(firstFragment, new ClientRequest()),
+        result -> {
+          // then
+          testContext.verify(() ->
+              assertEquals(expectedPayloadValue,
+                  result.result().getActionLog().getJsonObject("new_cached_value")));
+          testContext.completeNow();
+        });
+
+    assertTrue(testContext.awaitCompletion(5, TimeUnit.SECONDS));
+    if (testContext.failed()) {
+      throw testContext.causeOfFailure();
+    }
   }
 
   @DisplayName("doAction invoked twice when cache is disabled (maximum size is 0)")
   @Test
-  void callDoActionTwice(VertxTestContext testContext) throws Throwable {
+  void callActionTwiceAndDoActionTwice(VertxTestContext testContext) throws Throwable {
     // given
     Action doAction = (fragmentContext, resultHandler) -> {
       Fragment fragment = fragmentContext.getFragment();
@@ -254,7 +229,7 @@ class InMemoryCacheActionFactoryTest {
 
   @DisplayName("doAction invoked once when cache is enabled and cacheKeys are the same")
   @Test
-  void callDoActionOnce(VertxTestContext testContext) throws Throwable {
+  void callActionTwiceButDoActionOnce(VertxTestContext testContext) throws Throwable {
     // given
     Action doAction = (fragmentContext, resultHandler) -> {
       Fragment fragment = fragmentContext.getFragment();
@@ -276,6 +251,40 @@ class InMemoryCacheActionFactoryTest {
               testContext.verify(() -> assertEquals(
                   firstResult.result().getFragment().getPayload().getMap().get(PAYLOAD_KEY),
                   secondResult.result().getFragment().getPayload().getMap().get(PAYLOAD_KEY)));
+              testContext.completeNow();
+            }));
+
+    assertTrue(testContext.awaitCompletion(5, TimeUnit.SECONDS));
+    if (testContext.failed()) {
+      throw testContext.causeOfFailure();
+    }
+  }
+
+  @DisplayName("Action log contains 'cached_value' value when value is cached and action log level is INFO")
+  @Test
+  void callActionTwiceAndVerifyLog(VertxTestContext testContext) throws Throwable {
+    // given
+    Action doAction = (fragmentContext, resultHandler) -> {
+      Fragment fragment = fragmentContext.getFragment();
+      fragment.appendPayload(PAYLOAD_KEY, uniqueValue(fragmentContext.hashCode()));
+      Future
+          .succeededFuture(new FragmentResult(fragment, FragmentResult.SUCCESS_TRANSITION))
+          .setHandler(resultHandler);
+    };
+
+    ActionConfig actionConfig = new ActionConfig(ACTION_ALIAS, doAction, ACTION_OPTIONS
+        .put("cache", new JsonObject()), INFO);
+    Action tested = new InMemoryCacheActionFactory()
+        .create(actionConfig, null);
+
+    // when
+    tested.apply(new FragmentContext(firstFragment, new ClientRequest()),
+        firstResult -> tested.apply(new FragmentContext(secondFragment, new ClientRequest()),
+            secondResult -> {
+              testContext.verify(() ->
+                  assertEquals(
+                      firstResult.result().getFragment().getPayload().getString(PAYLOAD_KEY),
+                      secondResult.result().getActionLog().getString("cached_value")));
               testContext.completeNow();
             }));
 
@@ -368,6 +377,16 @@ class InMemoryCacheActionFactoryTest {
     if (testContext.failed()) {
       throw testContext.causeOfFailure();
     }
+  }
+
+  private Action doActionWithPayload(JsonObject expectedPayloadValue) {
+    return (fragmentContext, resultHandler) -> {
+      Fragment fragment = fragmentContext.getFragment();
+      fragment.appendPayload(PAYLOAD_KEY, expectedPayloadValue);
+      Future
+          .succeededFuture(new FragmentResult(fragment, FragmentResult.SUCCESS_TRANSITION))
+          .setHandler(resultHandler);
+    };
   }
 
   private String uniqueValue(int contextHash) {

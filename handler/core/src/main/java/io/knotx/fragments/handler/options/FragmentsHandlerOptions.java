@@ -98,9 +98,12 @@ public class FragmentsHandlerOptions {
     return this;
   }
 
-
   public ActionLogMode getActionLogMode() {
     return actionLogMode;
+  }
+
+  public void setActionLogMode(ActionLogMode actionLogMode) {
+    this.actionLogMode = actionLogMode;
   }
 
   @Override
@@ -112,20 +115,24 @@ public class FragmentsHandlerOptions {
       return false;
     }
     FragmentsHandlerOptions that = (FragmentsHandlerOptions) o;
-    return Objects.equals(tasks, that.tasks) &&
-        Objects.equals(actions, that.actions);
+    return Objects.equals(taskKey, that.taskKey) &&
+        Objects.equals(tasks, that.tasks) &&
+        Objects.equals(actions, that.actions) &&
+        actionLogMode == that.actionLogMode;
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(tasks, actions);
+    return Objects.hash(taskKey, tasks, actions, actionLogMode);
   }
 
   @Override
   public String toString() {
     return "FragmentsHandlerOptions{" +
-        "tasks=" + tasks +
+        "taskKey='" + taskKey + '\'' +
+        ", tasks=" + tasks +
         ", actions=" + actions +
+        ", actionLogMode=" + actionLogMode +
         '}';
   }
 }

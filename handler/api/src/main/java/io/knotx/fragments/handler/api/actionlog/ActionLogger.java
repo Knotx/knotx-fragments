@@ -71,7 +71,7 @@ public class ActionLogger {
     log.put(key, toJsonFunc.apply(data));
   }
 
-  public JsonObject getLog(){
-    return log;
+  public JsonObject toLog(){
+    return new JsonObject(log.getMap());
   }
 }

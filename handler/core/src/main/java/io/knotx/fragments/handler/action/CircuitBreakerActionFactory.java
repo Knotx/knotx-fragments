@@ -93,7 +93,7 @@ public class CircuitBreakerActionFactory implements ActionFactory {
           v -> {
             Fragment fragment = fragmentContext.getFragment();
             actionLogger.error("fallback", format("Cannot process doAction. Exit with %s", FALLBACK_TRANSITION));
-            return new FragmentResult(fragment, FALLBACK_TRANSITION, actionLogger.getLog());
+            return new FragmentResult(fragment, FALLBACK_TRANSITION, actionLogger.toLog());
           }
       ).setHandler(resultHandler);
     }

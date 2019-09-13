@@ -15,8 +15,6 @@
  */
 package io.knotx.fragments.handler.api;
 
-import static io.knotx.fragments.handler.api.actionlog.ActionLogMode.ERROR;
-
 import io.knotx.fragments.handler.api.actionlog.ActionLogMode;
 import io.vertx.core.json.JsonObject;
 
@@ -31,9 +29,6 @@ public class ActionConfig {
     this.options = options;
     this.doAction = doAction;
     this.actionLogMode = actionLogMode;
-  }
-  public ActionConfig(String alias, JsonObject options) {
-    this(alias, null, options, ERROR);
   }
 
   public JsonObject getOptions() {

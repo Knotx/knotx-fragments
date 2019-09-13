@@ -59,13 +59,13 @@ public class PayloadToBodyActionFactory implements ActionFactory {
 
   private FragmentResult toErrorFragmentResult(Fragment fragment, String payloadKey, ActionLogger actionLogger) {
     actionLogger.error("body", String.format("No value found under key in payload %s", payloadKey));
-    return new FragmentResult(fragment, FragmentResult.ERROR_TRANSITION, actionLogger.getLog());
+    return new FragmentResult(fragment, FragmentResult.ERROR_TRANSITION, actionLogger.toLog());
   }
 
   private FragmentResult toFragmentResult(Fragment fragment, String body, ActionLogger actionLogger) {
     fragment.setBody(body);
     actionLogger.info("body", body);
-    return new FragmentResult(fragment, FragmentResult.SUCCESS_TRANSITION, actionLogger.getLog());
+    return new FragmentResult(fragment, FragmentResult.SUCCESS_TRANSITION, actionLogger.toLog());
   }
 
   private Optional<String> getBodyFromPayload(String key, JsonObject payload) {

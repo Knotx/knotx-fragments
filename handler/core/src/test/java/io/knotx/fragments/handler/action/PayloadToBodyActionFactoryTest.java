@@ -21,12 +21,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.util.concurrent.TimeUnit;
-
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-
 import io.knotx.fragments.api.Fragment;
 import io.knotx.fragments.handler.api.Action;
 import io.knotx.fragments.handler.api.ActionConfig;
@@ -35,9 +29,13 @@ import io.knotx.junit5.KnotxExtension;
 import io.knotx.server.api.context.ClientRequest;
 import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.VertxTestContext;
+import java.util.concurrent.TimeUnit;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 @ExtendWith(KnotxExtension.class)
-public class PayloadToBodyActionFactoryTest {
+class PayloadToBodyActionFactoryTest {
 
   private static final String ACTION_ALIAS = "action";
   private static final String PAYLOAD_KEY = "key";
@@ -55,8 +53,8 @@ public class PayloadToBodyActionFactoryTest {
     // when, then
     assertThrows(IllegalArgumentException.class, () -> new PayloadToBodyActionFactory()
         .create(new ActionConfig(ACTION_ALIAS,
-            (fragmentContext, resultHandler) -> {
-            }, new JsonObject().put("key", PAYLOAD_KEY), ERROR),
+                (fragmentContext, resultHandler) -> {
+                }, new JsonObject().put("key", PAYLOAD_KEY), ERROR),
             null));
   }
 
@@ -65,7 +63,9 @@ public class PayloadToBodyActionFactoryTest {
   void bodyWithNestedPayload(VertxTestContext testContext) throws Throwable {
     // given
     Action action = new PayloadToBodyActionFactory()
-        .create(new ActionConfig(ACTION_ALIAS, new JsonObject().put(PAYLOAD_KEY, "key")), null);
+        .create(
+            new ActionConfig(ACTION_ALIAS, null, new JsonObject().put(PAYLOAD_KEY, "key"), ERROR),
+            null);
 
     // when
     action.apply(new FragmentContext(FRAGMENT, new ClientRequest()),
@@ -120,7 +120,8 @@ public class PayloadToBodyActionFactoryTest {
     // given
     Action action = new PayloadToBodyActionFactory()
         .create(
-            new ActionConfig(ACTION_ALIAS, new JsonObject().put(PAYLOAD_KEY, "key.user")), null);
+            new ActionConfig(ACTION_ALIAS, null, new JsonObject().put(PAYLOAD_KEY, "key.user"),
+                ERROR), null);
 
     // when
     action.apply(new FragmentContext(FRAGMENT, new ClientRequest()),

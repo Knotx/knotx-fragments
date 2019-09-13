@@ -92,7 +92,7 @@ public class InMemoryCacheActionFactory implements ActionFactory {
           Fragment fragment = fragmentContext.getFragment();
           fragment.appendPayload(payloadKey, cachedValue);
           FragmentResult result = new FragmentResult(fragment, FragmentResult.SUCCESS_TRANSITION,
-              actionLogger.getLog());
+              actionLogger.toLog());
           Future.succeededFuture(result)
               .setHandler(resultHandler);
         }
@@ -122,8 +122,8 @@ public class InMemoryCacheActionFactory implements ActionFactory {
       }
 
       private FragmentResult toResult(FragmentResult fragmentResult) {
-        JsonObject actionLog = Objects.isNull(fragmentResult.getActionLog()) ? actionLogger.getLog()
-            : fragmentResult.getActionLog().mergeIn(actionLogger.getLog());
+        JsonObject actionLog = Objects.isNull(fragmentResult.getActionLog()) ? actionLogger.toLog()
+            : fragmentResult.getActionLog().mergeIn(actionLogger.toLog());
         return new FragmentResult(fragmentResult.getFragment(), fragmentResult.getTransition(),
             actionLog);
       }

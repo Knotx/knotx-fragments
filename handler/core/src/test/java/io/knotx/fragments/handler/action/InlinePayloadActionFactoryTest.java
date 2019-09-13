@@ -21,12 +21,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.util.concurrent.TimeUnit;
-
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-
 import io.knotx.fragments.api.Fragment;
 import io.knotx.fragments.handler.api.Action;
 import io.knotx.fragments.handler.api.ActionConfig;
@@ -36,6 +30,10 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
+import java.util.concurrent.TimeUnit;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 @ExtendWith(VertxExtension.class)
 class InlinePayloadActionFactoryTest {
@@ -51,7 +49,7 @@ class InlinePayloadActionFactoryTest {
   void createActionWithoutPayload() {
     // when, then
     assertThrows(IllegalArgumentException.class, () -> new InlinePayloadActionFactory()
-        .create(new ActionConfig(ACTION_ALIAS, new JsonObject()), null));
+        .create(new ActionConfig(ACTION_ALIAS, null, new JsonObject(), ERROR), null));
   }
 
   @Test
@@ -69,7 +67,8 @@ class InlinePayloadActionFactoryTest {
     // given
     Action action = new InlinePayloadActionFactory()
         .create(
-            new ActionConfig(ACTION_ALIAS, new JsonObject().put("payload", EXPECTED_JSON_OBJECT)),
+            new ActionConfig(ACTION_ALIAS, null,
+                new JsonObject().put("payload", EXPECTED_JSON_OBJECT), ERROR),
             null);
 
     // when
@@ -93,8 +92,9 @@ class InlinePayloadActionFactoryTest {
     // given
     String expectedAlias = "newAction";
     Action action = new InlinePayloadActionFactory()
-        .create(new ActionConfig(ACTION_ALIAS,
-                new JsonObject().put("alias", expectedAlias).put("payload", EXPECTED_JSON_OBJECT)),
+        .create(new ActionConfig(ACTION_ALIAS, null,
+                new JsonObject().put("alias", expectedAlias).put("payload", EXPECTED_JSON_OBJECT),
+                ERROR),
             null);
 
     // when
@@ -119,7 +119,8 @@ class InlinePayloadActionFactoryTest {
     // given
     Action action = new InlinePayloadActionFactory()
         .create(
-            new ActionConfig(ACTION_ALIAS, new JsonObject().put("payload", EXPECTED_JSON_OBJECT)),
+            new ActionConfig(ACTION_ALIAS, null,
+                new JsonObject().put("payload", EXPECTED_JSON_OBJECT), ERROR),
             null);
 
     // when
@@ -166,62 +167,64 @@ class InlinePayloadActionFactoryTest {
     }
   }
 
-    @Test
-    @DisplayName("Expect JSON array in Fragment payload when JSON array configured")
-    void applyActionWhenArray (VertxTestContext testContext) throws Throwable {
-      // given
-      Action action = new InlinePayloadActionFactory()
-          .create(
-              new ActionConfig(ACTION_ALIAS, new JsonObject().put("payload", EXPECTED_JSON_ARRAY)),
-              null);
+  @Test
+  @DisplayName("Expect JSON array in Fragment payload when JSON array configured")
+  void applyActionWhenArray(VertxTestContext testContext) throws Throwable {
+    // given
+    Action action = new InlinePayloadActionFactory()
+        .create(
+            new ActionConfig(ACTION_ALIAS, null,
+                new JsonObject().put("payload", EXPECTED_JSON_ARRAY), ERROR),
+            null);
 
-      // when
-      action.apply(new FragmentContext(FRAGMENT, new ClientRequest()),
-          result -> {
-            // then
-            testContext.verify(
-                () -> assertEquals(EXPECTED_JSON_ARRAY,
-                    result.result().getFragment().getPayload().getJsonArray(ACTION_ALIAS)));
-            testContext.completeNow();
-          });
+    // when
+    action.apply(new FragmentContext(FRAGMENT, new ClientRequest()),
+        result -> {
+          // then
+          testContext.verify(
+              () -> assertEquals(EXPECTED_JSON_ARRAY,
+                  result.result().getFragment().getPayload().getJsonArray(ACTION_ALIAS)));
+          testContext.completeNow();
+        });
 
-      assertTrue(testContext.awaitCompletion(5, TimeUnit.SECONDS));
-      if (testContext.failed()) {
-        throw testContext.causeOfFailure();
-      }
-    }
-
-    @Test
-    @DisplayName("Expect all incoming payload entries in result fragment payload.")
-    void expectAllIncomingPayloadEntriesInResult (VertxTestContext testContext) throws Throwable {
-      // given
-      String expectedKey = "input";
-
-      Fragment fragment = new Fragment("type", new JsonObject(), "body");
-      fragment.appendPayload(expectedKey, "any value");
-      Action action = new InlinePayloadActionFactory()
-          .create(
-              new ActionConfig(ACTION_ALIAS, new JsonObject().put("payload", EXPECTED_JSON_OBJECT)),
-              null);
-
-      // when
-      action.apply(new FragmentContext(fragment, new ClientRequest()),
-          result -> {
-            // then
-            testContext.verify(
-                () -> assertTrue(
-                    result.result().getFragment().getPayload().containsKey(expectedKey)));
-            testContext.completeNow();
-          });
-
-      assertTrue(testContext.awaitCompletion(5, TimeUnit.SECONDS));
-      if (testContext.failed()) {
-        throw testContext.causeOfFailure();
-      }
-    }
-
-    private Action getDummyAction () {
-      return (fragmentContext, resultHandler) -> {
-      };
+    assertTrue(testContext.awaitCompletion(5, TimeUnit.SECONDS));
+    if (testContext.failed()) {
+      throw testContext.causeOfFailure();
     }
   }
+
+  @Test
+  @DisplayName("Expect all incoming payload entries in result fragment payload.")
+  void expectAllIncomingPayloadEntriesInResult(VertxTestContext testContext) throws Throwable {
+    // given
+    String expectedKey = "input";
+
+    Fragment fragment = new Fragment("type", new JsonObject(), "body");
+    fragment.appendPayload(expectedKey, "any value");
+    Action action = new InlinePayloadActionFactory()
+        .create(
+            new ActionConfig(ACTION_ALIAS, null,
+                new JsonObject().put("payload", EXPECTED_JSON_OBJECT), ERROR),
+            null);
+
+    // when
+    action.apply(new FragmentContext(fragment, new ClientRequest()),
+        result -> {
+          // then
+          testContext.verify(
+              () -> assertTrue(
+                  result.result().getFragment().getPayload().containsKey(expectedKey)));
+          testContext.completeNow();
+        });
+
+    assertTrue(testContext.awaitCompletion(5, TimeUnit.SECONDS));
+    if (testContext.failed()) {
+      throw testContext.causeOfFailure();
+    }
+  }
+
+  private Action getDummyAction() {
+    return (fragmentContext, resultHandler) -> {
+    };
+  }
+}
