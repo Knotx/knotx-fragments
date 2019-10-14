@@ -8,7 +8,7 @@
   "actions":
     {
       "failing-action": {
-        "factory": "test-action",
+        "factory": "mock-action",
         "config" : {
           "transition": "not-existing-transition"
         }

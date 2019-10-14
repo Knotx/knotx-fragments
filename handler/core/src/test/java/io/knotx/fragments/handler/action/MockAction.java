@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.knotx.fragments.handler;
+package io.knotx.fragments.handler.action;
 
 import static io.vertx.core.Future.succeededFuture;
 
@@ -25,11 +25,11 @@ import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
 
-public class TestAction implements ActionFactory {
+public class MockAction implements ActionFactory {
 
   @Override
   public String getName() {
-    return "test-action";
+    return "mock-action";
   }
 
   @Override

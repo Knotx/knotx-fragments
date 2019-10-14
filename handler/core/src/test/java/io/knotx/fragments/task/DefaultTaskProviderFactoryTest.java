@@ -55,14 +55,14 @@ import org.mockito.quality.Strictness;
 @ExtendWith(VertxExtension.class)
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
-class TaskBuilderTest {
+class DefaultTaskProviderFactoryTest {
 
   private static final Map<String, NodeOptions> NO_TRANSITIONS = Collections.emptyMap();
   private static final String TASK_NAME = "task";
   private static final Fragment SAMPLE_FRAGMENT =
       new Fragment("type",
           new JsonObject().put(FragmentsHandlerOptions.DEFAULT_TASK_KEY, TASK_NAME), "body");
-  public static final String MY_TASK_KEY = "myTaskKey";
+  private static final String MY_TASK_KEY = "myTaskKey";
   private static final Fragment SAMPLE_FRAGMENT_WITH_CUSTOM_TASK_KEY =
       new Fragment("type",
           new JsonObject().put(MY_TASK_KEY, TASK_NAME), "body");
@@ -77,10 +77,11 @@ class TaskBuilderTest {
   @DisplayName("Expect empty graph when task not defined.")
   void expectEmptyGraphNodeWhenTaskNotConfigured() {
     // given
-    TaskBuilder tested = new TaskBuilder(Collections.emptyMap(), actionProvider);
+    TaskProvider tested = new DefaultTaskProviderFactory()
+        .create(FragmentsHandlerOptions.DEFAULT_TASK_KEY, Collections.emptyMap(), actionProvider);
 
     // when
-    Optional<Task> task = tested.build(SAMPLE_FRAGMENT);
+    Optional<Task> task = tested.get(SAMPLE_FRAGMENT);
 
     // then
     Assertions.assertFalse(task.isPresent());
@@ -92,11 +93,12 @@ class TaskBuilderTest {
     // given
     when(actionProvider.get(eq("simpleAction"))).thenReturn(Optional.empty());
 
-    TaskBuilder tested = new TaskBuilder(Collections.singletonMap(TASK_NAME,
-        new NodeOptions("simpleAction", NO_TRANSITIONS)), actionProvider);
+    TaskProvider tested = new DefaultTaskProviderFactory()
+        .create(FragmentsHandlerOptions.DEFAULT_TASK_KEY, Collections.singletonMap(TASK_NAME,
+            new NodeOptions("simpleAction", NO_TRANSITIONS)), actionProvider);
 
     // when, then
-    Assertions.assertThrows(GraphConfigurationException.class, () -> tested.build(SAMPLE_FRAGMENT));
+    Assertions.assertThrows(GraphConfigurationException.class, () -> tested.get(SAMPLE_FRAGMENT));
   }
 
   @Test
@@ -105,12 +107,13 @@ class TaskBuilderTest {
     // given
     when(actionProvider.get(eq("simpleAction"))).thenReturn(Optional.of(actionMock));
 
-    TaskBuilder tested = new TaskBuilder(
-        Collections.singletonMap(TASK_NAME, new NodeOptions("simpleAction", NO_TRANSITIONS)),
-        actionProvider);
+    TaskProvider tested = new DefaultTaskProviderFactory()
+        .create(FragmentsHandlerOptions.DEFAULT_TASK_KEY,
+            Collections.singletonMap(TASK_NAME, new NodeOptions("simpleAction", NO_TRANSITIONS)),
+            actionProvider);
 
     // when
-    Optional<Task> optionalTask = tested.build(SAMPLE_FRAGMENT);
+    Optional<Task> optionalTask = tested.get(SAMPLE_FRAGMENT);
 
     // then
     assertTrue(optionalTask.isPresent());
@@ -130,14 +133,15 @@ class TaskBuilderTest {
     when(actionProvider.get("actionA")).thenReturn(Optional.of(actionMock));
     when(actionProvider.get("actionB")).thenReturn(Optional.of(actionMock));
 
-    TaskBuilder tested = new TaskBuilder(
-        Collections.singletonMap(TASK_NAME, new NodeOptions("actionA", Collections
-            .singletonMap("customTransition",
-                new NodeOptions("actionB", NO_TRANSITIONS)))),
-        actionProvider);
+    TaskProvider tested = new DefaultTaskProviderFactory()
+        .create(FragmentsHandlerOptions.DEFAULT_TASK_KEY,
+            Collections.singletonMap(TASK_NAME, new NodeOptions("actionA", Collections
+                .singletonMap("customTransition",
+                    new NodeOptions("actionB", NO_TRANSITIONS)))),
+            actionProvider);
 
     // when
-    Optional<Task> optionalTask = tested.build(SAMPLE_FRAGMENT);
+    Optional<Task> optionalTask = tested.get(SAMPLE_FRAGMENT);
 
     // then
     assertTrue(optionalTask.isPresent());
@@ -161,15 +165,16 @@ class TaskBuilderTest {
     // given
     when(actionProvider.get(eq("simpleAction"))).thenReturn(Optional.of(actionMock));
 
-    TaskBuilder tested = new TaskBuilder(
-        Collections.singletonMap(TASK_NAME,
-            new NodeOptions(
-                actions(new NodeOptions("simpleAction", NO_TRANSITIONS)),
-                NO_TRANSITIONS
-            )), actionProvider);
+    TaskProvider tested = new DefaultTaskProviderFactory()
+        .create(FragmentsHandlerOptions.DEFAULT_TASK_KEY,
+            Collections.singletonMap(TASK_NAME,
+                new NodeOptions(
+                    actions(new NodeOptions("simpleAction", NO_TRANSITIONS)),
+                    NO_TRANSITIONS
+                )), actionProvider);
 
     // when
-    Optional<Task> optionalTask = tested.build(SAMPLE_FRAGMENT);
+    Optional<Task> optionalTask = tested.get(SAMPLE_FRAGMENT);
 
     // then
     assertTrue(optionalTask.isPresent());
@@ -196,16 +201,18 @@ class TaskBuilderTest {
     when(actionProvider.get(eq("simpleAction"))).thenReturn(Optional.of(actionMock));
     when(actionProvider.get(eq("lastAction"))).thenReturn(Optional.of(actionMock));
 
-    TaskBuilder tested = new TaskBuilder(
-        Collections.singletonMap(TASK_NAME,
-            new NodeOptions(
-                actions(new NodeOptions("simpleAction", NO_TRANSITIONS)),
-                Collections
-                    .singletonMap(SUCCESS_TRANSITION, new NodeOptions("lastAction", NO_TRANSITIONS))
-            )), actionProvider);
+    TaskProvider tested = new DefaultTaskProviderFactory()
+        .create(FragmentsHandlerOptions.DEFAULT_TASK_KEY,
+            Collections.singletonMap(TASK_NAME,
+                new NodeOptions(
+                    actions(new NodeOptions("simpleAction", NO_TRANSITIONS)),
+                    Collections
+                        .singletonMap(SUCCESS_TRANSITION,
+                            new NodeOptions("lastAction", NO_TRANSITIONS))
+                )), actionProvider);
 
     // when
-    Optional<Task> optionalTask = tested.build(SAMPLE_FRAGMENT);
+    Optional<Task> optionalTask = tested.get(SAMPLE_FRAGMENT);
 
     // then
     assertTrue(optionalTask.isPresent());
@@ -229,16 +236,17 @@ class TaskBuilderTest {
     when(actionProvider.get(eq("simpleAction"))).thenReturn(Optional.of(actionMock));
     when(actionProvider.get(eq("fallbackAction"))).thenReturn(Optional.of(actionMock));
 
-    TaskBuilder tested = new TaskBuilder(
-        Collections.singletonMap(TASK_NAME,
-            new NodeOptions(
-                actions(new NodeOptions("simpleAction", NO_TRANSITIONS)),
-                Collections.singletonMap(ERROR_TRANSITION,
-                    new NodeOptions("fallbackAction", NO_TRANSITIONS))
-            )), actionProvider);
+    TaskProvider tested = new DefaultTaskProviderFactory()
+        .create(FragmentsHandlerOptions.DEFAULT_TASK_KEY,
+            Collections.singletonMap(TASK_NAME,
+                new NodeOptions(
+                    actions(new NodeOptions("simpleAction", NO_TRANSITIONS)),
+                    Collections.singletonMap(ERROR_TRANSITION,
+                        new NodeOptions("fallbackAction", NO_TRANSITIONS))
+                )), actionProvider);
 
     // when
-    Optional<Task> optionalTask = tested.build(SAMPLE_FRAGMENT);
+    Optional<Task> optionalTask = tested.get(SAMPLE_FRAGMENT);
 
     // then
     assertTrue(optionalTask.isPresent());
@@ -261,16 +269,18 @@ class TaskBuilderTest {
     when(actionProvider.get(eq("simpleAction"))).thenReturn(Optional.of(actionMock));
     when(actionProvider.get(eq("lastAction"))).thenReturn(Optional.of(actionMock));
 
-    TaskBuilder tested = new TaskBuilder(
-        Collections.singletonMap(TASK_NAME,
-            new NodeOptions(
-                actions(new NodeOptions("simpleAction", NO_TRANSITIONS)),
-                Collections
-                    .singletonMap("customTransition", new NodeOptions("lastAction", NO_TRANSITIONS))
-            )), actionProvider);
+    TaskProvider tested = new DefaultTaskProviderFactory()
+        .create(FragmentsHandlerOptions.DEFAULT_TASK_KEY,
+            Collections.singletonMap(TASK_NAME,
+                new NodeOptions(
+                    actions(new NodeOptions("simpleAction", NO_TRANSITIONS)),
+                    Collections
+                        .singletonMap("customTransition",
+                            new NodeOptions("lastAction", NO_TRANSITIONS))
+                )), actionProvider);
 
     // when
-    Optional<Task> optionalTask = tested.build(SAMPLE_FRAGMENT);
+    Optional<Task> optionalTask = tested.get(SAMPLE_FRAGMENT);
 
     // then
     assertTrue(optionalTask.isPresent());
@@ -289,17 +299,18 @@ class TaskBuilderTest {
     // given
     when(actionProvider.get(eq("simpleAction"))).thenReturn(Optional.of(actionMock));
 
-    TaskBuilder tested = new TaskBuilder(
-        Collections.singletonMap(TASK_NAME,
-            new NodeOptions(
-                actions(
-                    new NodeOptions(actions(new NodeOptions("simpleAction", NO_TRANSITIONS)),
-                        NO_TRANSITIONS)),
-                NO_TRANSITIONS
-            )), actionProvider);
+    TaskProvider tested = new DefaultTaskProviderFactory()
+        .create(FragmentsHandlerOptions.DEFAULT_TASK_KEY,
+            Collections.singletonMap(TASK_NAME,
+                new NodeOptions(
+                    actions(
+                        new NodeOptions(actions(new NodeOptions("simpleAction", NO_TRANSITIONS)),
+                            NO_TRANSITIONS)),
+                    NO_TRANSITIONS
+                )), actionProvider);
 
     // when
-    Optional<Task> optionalTask = tested.build(SAMPLE_FRAGMENT);
+    Optional<Task> optionalTask = tested.get(SAMPLE_FRAGMENT);
 
     // then
     assertTrue(optionalTask.isPresent());
@@ -329,12 +340,12 @@ class TaskBuilderTest {
     // given
     when(actionProvider.get(eq("simpleAction"))).thenReturn(Optional.of(actionMock));
 
-    TaskBuilder tested = new TaskBuilder(MY_TASK_KEY,
+    TaskProvider tested = new DefaultTaskProviderFactory().create(MY_TASK_KEY,
         Collections.singletonMap(TASK_NAME, new NodeOptions("simpleAction", NO_TRANSITIONS)),
         actionProvider);
 
     // when
-    Optional<Task> optionalTask = tested.build(SAMPLE_FRAGMENT_WITH_CUSTOM_TASK_KEY);
+    Optional<Task> optionalTask = tested.get(SAMPLE_FRAGMENT_WITH_CUSTOM_TASK_KEY);
 
     // then
     assertTrue(optionalTask.isPresent());

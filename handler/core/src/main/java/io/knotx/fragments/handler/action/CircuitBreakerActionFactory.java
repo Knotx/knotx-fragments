@@ -73,15 +73,15 @@ public class CircuitBreakerActionFactory implements ActionFactory {
     public void apply(FragmentContext fragmentContext,
         Handler<AsyncResult<FragmentResult>> resultHandler) {
       circuitBreaker.executeWithFallback(
-          f -> doAction.apply(fragmentContext,
+          promise -> doAction.apply(fragmentContext,
               result -> {
                 if (result.succeeded()) {
-                  f.complete(result.result());
+                  promise.complete(result.result());
                 } else {
-                  f.fail(result.cause());
+                  promise.fail(result.cause());
                 }
               }),
-          v -> {
+          error -> {
             Fragment fragment = fragmentContext.getFragment();
             return new FragmentResult(fragment, FALLBACK_TRANSITION);
           }

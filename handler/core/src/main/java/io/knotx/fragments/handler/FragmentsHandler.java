@@ -29,7 +29,9 @@ import io.knotx.fragments.engine.Task;
 import io.knotx.fragments.handler.action.ActionProvider;
 import io.knotx.fragments.handler.api.ActionFactory;
 import io.knotx.fragments.handler.options.FragmentsHandlerOptions;
-import io.knotx.fragments.task.TaskBuilder;
+import io.knotx.fragments.handler.options.NodeOptions;
+import io.knotx.fragments.task.TaskProvider;
+import io.knotx.fragments.task.TaskProviderFactory;
 import io.knotx.server.api.context.ClientRequest;
 import io.knotx.server.api.context.RequestContext;
 import io.knotx.server.api.context.RequestEvent;
@@ -40,8 +42,11 @@ import io.vertx.core.Handler;
 import io.vertx.core.json.JsonObject;
 import io.vertx.reactivex.core.Vertx;
 import io.vertx.reactivex.ext.web.RoutingContext;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.ServiceLoader;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
@@ -49,18 +54,19 @@ import java.util.stream.Collectors;
 
 public class FragmentsHandler implements Handler<RoutingContext> {
 
+  private final FragmentsHandlerOptions options;
   private final FragmentsEngine engine;
   private final RequestContextEngine requestContextEngine;
-  private final TaskBuilder taskBuilder;
+  private final List<TaskProvider> taskProviders;
 
   FragmentsHandler(Vertx vertx, JsonObject config) {
-    FragmentsHandlerOptions options = new FragmentsHandlerOptions(config);
+    options = new FragmentsHandlerOptions(config);
+    engine = new FragmentsEngine(vertx);
+    requestContextEngine = new DefaultRequestContextEngine(getClass().getSimpleName());
 
     ActionProvider proxyProvider = new ActionProvider(options.getActions(),
         supplyFactories(), vertx.getDelegate());
-    taskBuilder = new TaskBuilder(options.getTaskKey(), options.getTasks(), proxyProvider);
-    engine = new FragmentsEngine(vertx);
-    requestContextEngine = new DefaultRequestContextEngine(getClass().getSimpleName());
+    taskProviders = initTasksProviders(options.getTaskKey(), options.getTasks(), proxyProvider);
   }
 
   @Override
@@ -137,7 +143,7 @@ public class FragmentsHandler implements Handler<RoutingContext> {
             fragment -> {
               FragmentEventContext fragmentEventContext = new FragmentEventContext(
                   new FragmentEvent(fragment), clientRequest);
-              return taskBuilder.build(fragment)
+              return getTask(fragment)
                   .map(
                       task -> new FragmentEventContextTaskAware(task, fragmentEventContext))
                   .orElseGet(() -> new FragmentEventContextTaskAware(new Task("_NOT_DEFINED"),
@@ -145,5 +151,23 @@ public class FragmentsHandler implements Handler<RoutingContext> {
             })
         .collect(
             Collectors.toList());
+  }
+
+  private Optional<Task> getTask(Fragment fragment) {
+    return taskProviders.stream()
+        .map(p -> p.get(fragment))
+        .filter(Optional::isPresent)
+        .findFirst()
+        .orElse(Optional.empty());
+  }
+
+  private List<TaskProvider> initTasksProviders(String taskKey, Map<String, NodeOptions> tasks,
+      ActionProvider proxyProvider) {
+    List<TaskProvider> providers = new ArrayList<>();
+    ServiceLoader
+        .load(TaskProviderFactory.class).iterator()
+        .forEachRemaining(factory -> providers.add(factory.create(taskKey, tasks, proxyProvider)));
+
+    return providers;
   }
 }
