@@ -20,6 +20,7 @@ package io.knotx.fragments.task;
 import static io.knotx.fragments.engine.graph.CompositeNode.COMPOSITE_NODE_ID;
 import static io.knotx.fragments.handler.api.domain.FragmentResult.ERROR_TRANSITION;
 import static io.knotx.fragments.handler.api.domain.FragmentResult.SUCCESS_TRANSITION;
+import static java.util.Collections.singletonMap;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -58,14 +59,17 @@ import org.mockito.quality.Strictness;
 class DefaultTaskProviderFactoryTest {
 
   private static final Map<String, NodeOptions> NO_TRANSITIONS = Collections.emptyMap();
+
   private static final String TASK_NAME = "task";
-  private static final Fragment SAMPLE_FRAGMENT =
+  private static final Fragment FRAGMENT =
       new Fragment("type",
-          new JsonObject().put(FragmentsHandlerOptions.DEFAULT_TASK_KEY, TASK_NAME), "body");
-  private static final String MY_TASK_KEY = "myTaskKey";
-  private static final Fragment SAMPLE_FRAGMENT_WITH_CUSTOM_TASK_KEY =
+          new JsonObject().put(FragmentsHandlerOptions.DEFAULT_TASK_KEY, TASK_NAME),
+          "initial body");
+
+  private static final String CUSTOM_TASK_KEY = "customTaskKey";
+  private static final Fragment FRAGMENT_WITH_CUSTOM_TASK_KEY =
       new Fragment("type",
-          new JsonObject().put(MY_TASK_KEY, TASK_NAME), "body");
+          new JsonObject().put(CUSTOM_TASK_KEY, TASK_NAME), "initial body");
 
   @Mock
   private ActionProvider actionProvider;
@@ -74,283 +78,233 @@ class DefaultTaskProviderFactoryTest {
   Action actionMock;
 
   @Test
-  @DisplayName("Expect empty graph when task not defined.")
-  void expectEmptyGraphNodeWhenTaskNotConfigured() {
+  @DisplayName("Expect empty task when empty tasks.")
+  void expectNoTaskWhenEmptyTasks() {
     // given
-    TaskProvider tested = new DefaultTaskProviderFactory()
-        .create(FragmentsHandlerOptions.DEFAULT_TASK_KEY, Collections.emptyMap(), actionProvider);
+    TaskProvider tested = getTested(Collections.emptyMap());
 
     // when
-    Optional<Task> task = tested.get(SAMPLE_FRAGMENT);
+    Optional<Task> task = tested.get(FRAGMENT);
 
     // then
     Assertions.assertFalse(task.isPresent());
   }
 
   @Test
-  @DisplayName("Expect exception when action not defined.")
+  @DisplayName("Expect configuration exception when action not defined.")
   void expectExceptionWhenActionNotConfigured() {
     // given
-    when(actionProvider.get(eq("simpleAction"))).thenReturn(Optional.empty());
-
-    TaskProvider tested = new DefaultTaskProviderFactory()
-        .create(FragmentsHandlerOptions.DEFAULT_TASK_KEY, Collections.singletonMap(TASK_NAME,
-            new NodeOptions("simpleAction", NO_TRANSITIONS)), actionProvider);
+    when(actionProvider.get(eq("nonExistingAction"))).thenReturn(Optional.empty());
+    TaskProvider tested = getTested(singletonMap(TASK_NAME,
+        new NodeOptions("nonExistingAction", NO_TRANSITIONS)));
 
     // when, then
-    Assertions.assertThrows(GraphConfigurationException.class, () -> tested.get(SAMPLE_FRAGMENT));
+    Assertions.assertThrows(GraphConfigurationException.class, () -> tested.get(FRAGMENT));
   }
 
   @Test
-  @DisplayName("Expect graph with single action node without transitions.")
-  void expectSingleActionNodeGraph() {
+  @DisplayName("Expect task name when default task key.")
+  void expectTaskName() {
     // given
-    when(actionProvider.get(eq("simpleAction"))).thenReturn(Optional.of(actionMock));
-
-    TaskProvider tested = new DefaultTaskProviderFactory()
-        .create(FragmentsHandlerOptions.DEFAULT_TASK_KEY,
-            Collections.singletonMap(TASK_NAME, new NodeOptions("simpleAction", NO_TRANSITIONS)),
-            actionProvider);
+    when(actionProvider.get(eq("A"))).thenReturn(Optional.of(actionMock));
+    TaskProvider tested = getTested(
+        singletonMap(TASK_NAME, new NodeOptions("A", NO_TRANSITIONS)));
 
     // when
-    Optional<Task> optionalTask = tested.get(SAMPLE_FRAGMENT);
+    Optional<Task> task = tested.get(FRAGMENT);
 
     // then
-    assertTrue(optionalTask.isPresent());
-    Task task = optionalTask.get();
-    assertEquals(TASK_NAME, task.getName());
-    assertTrue(task.getRootNode().isPresent());
-    Node rootNode = task.getRootNode().get();
-    assertTrue(rootNode instanceof ActionNode);
-    assertEquals("simpleAction", rootNode.getId());
-    assertFalse(rootNode.next(SUCCESS_TRANSITION).isPresent());
+    assertTrue(task.isPresent());
+    assertEquals(TASK_NAME, task.get().getName());
   }
 
   @Test
-  @DisplayName("Expect graph of two action nodes with transition between.")
-  void expectActionNodesGraphWithTransition() {
+  @DisplayName("Expect task name when custom task key.")
+  void expectTaskNameWhenCustomTaskKey() {
     // given
-    when(actionProvider.get("actionA")).thenReturn(Optional.of(actionMock));
-    when(actionProvider.get("actionB")).thenReturn(Optional.of(actionMock));
+    when(actionProvider.get(eq("A"))).thenReturn(Optional.of(actionMock));
 
-    TaskProvider tested = new DefaultTaskProviderFactory()
-        .create(FragmentsHandlerOptions.DEFAULT_TASK_KEY,
-            Collections.singletonMap(TASK_NAME, new NodeOptions("actionA", Collections
-                .singletonMap("customTransition",
-                    new NodeOptions("actionB", NO_TRANSITIONS)))),
-            actionProvider);
-
-    // when
-    Optional<Task> optionalTask = tested.get(SAMPLE_FRAGMENT);
-
-    // then
-    assertTrue(optionalTask.isPresent());
-    Task task = optionalTask.get();
-    assertEquals(TASK_NAME, task.getName());
-
-    assertTrue(task.getRootNode().isPresent());
-    Node rootNode = task.getRootNode().get();
-    assertTrue(rootNode instanceof ActionNode);
-    assertEquals("actionA", rootNode.getId());
-    Optional<Node> customNode = rootNode.next("customTransition");
-    assertTrue(customNode.isPresent());
-    assertTrue(customNode.get() instanceof ActionNode);
-    ActionNode customSingleNode = (ActionNode) customNode.get();
-    assertEquals("actionB", customSingleNode.getId());
-  }
-
-  @Test
-  @DisplayName("Expect graph with single composite node without transitions.")
-  void expectSingleCompositeNodeGraphWithNoEdges() {
-    // given
-    when(actionProvider.get(eq("simpleAction"))).thenReturn(Optional.of(actionMock));
-
-    TaskProvider tested = new DefaultTaskProviderFactory()
-        .create(FragmentsHandlerOptions.DEFAULT_TASK_KEY,
-            Collections.singletonMap(TASK_NAME,
-                new NodeOptions(
-                    actions(new NodeOptions("simpleAction", NO_TRANSITIONS)),
-                    NO_TRANSITIONS
-                )), actionProvider);
-
-    // when
-    Optional<Task> optionalTask = tested.get(SAMPLE_FRAGMENT);
-
-    // then
-    assertTrue(optionalTask.isPresent());
-    Task task = optionalTask.get();
-    assertEquals(TASK_NAME, task.getName());
-    assertTrue(task.getRootNode().isPresent());
-    Node rootNode = task.getRootNode().get();
-    assertTrue(rootNode instanceof CompositeNode);
-    assertEquals(COMPOSITE_NODE_ID, rootNode.getId());
-    assertFalse(rootNode.next(SUCCESS_TRANSITION).isPresent());
-    assertFalse(rootNode.next(ERROR_TRANSITION).isPresent());
-
-    CompositeNode compositeRootNode = (CompositeNode) rootNode;
-    assertEquals(1, compositeRootNode.getNodes().size());
-    Node node = compositeRootNode.getNodes().get(0);
-    assertTrue(node instanceof ActionNode);
-    assertEquals("simpleAction", node.getId());
-  }
-
-  @Test
-  @DisplayName("Expect graph with composite node and success transition to action node.")
-  void expectCompositeNodeWithSingleNodeOnSuccessGraph() {
-    // given
-    when(actionProvider.get(eq("simpleAction"))).thenReturn(Optional.of(actionMock));
-    when(actionProvider.get(eq("lastAction"))).thenReturn(Optional.of(actionMock));
-
-    TaskProvider tested = new DefaultTaskProviderFactory()
-        .create(FragmentsHandlerOptions.DEFAULT_TASK_KEY,
-            Collections.singletonMap(TASK_NAME,
-                new NodeOptions(
-                    actions(new NodeOptions("simpleAction", NO_TRANSITIONS)),
-                    Collections
-                        .singletonMap(SUCCESS_TRANSITION,
-                            new NodeOptions("lastAction", NO_TRANSITIONS))
-                )), actionProvider);
-
-    // when
-    Optional<Task> optionalTask = tested.get(SAMPLE_FRAGMENT);
-
-    // then
-    assertTrue(optionalTask.isPresent());
-    Task task = optionalTask.get();
-    assertEquals(TASK_NAME, task.getName());
-    assertTrue(task.getRootNode().isPresent());
-    Node rootNode = task.getRootNode().get();
-    assertTrue(rootNode instanceof CompositeNode);
-    assertEquals(COMPOSITE_NODE_ID, rootNode.getId());
-    Optional<Node> onSuccess = rootNode.next(SUCCESS_TRANSITION);
-    assertTrue(onSuccess.isPresent());
-    Node onSuccessNode = onSuccess.get();
-    assertTrue(onSuccessNode instanceof ActionNode);
-    assertEquals("lastAction", onSuccessNode.getId());
-  }
-
-  @Test
-  @DisplayName("Expect graph with composite node and error transition to action node.")
-  void expectCompositeNodeWithSingleNodeOnErrorGraph() {
-    // given
-    when(actionProvider.get(eq("simpleAction"))).thenReturn(Optional.of(actionMock));
-    when(actionProvider.get(eq("fallbackAction"))).thenReturn(Optional.of(actionMock));
-
-    TaskProvider tested = new DefaultTaskProviderFactory()
-        .create(FragmentsHandlerOptions.DEFAULT_TASK_KEY,
-            Collections.singletonMap(TASK_NAME,
-                new NodeOptions(
-                    actions(new NodeOptions("simpleAction", NO_TRANSITIONS)),
-                    Collections.singletonMap(ERROR_TRANSITION,
-                        new NodeOptions("fallbackAction", NO_TRANSITIONS))
-                )), actionProvider);
-
-    // when
-    Optional<Task> optionalTask = tested.get(SAMPLE_FRAGMENT);
-
-    // then
-    assertTrue(optionalTask.isPresent());
-    Task task = optionalTask.get();
-    assertEquals(TASK_NAME, task.getName());
-    assertTrue(task.getRootNode().isPresent());
-    Node rootNode = task.getRootNode().get();
-    assertTrue(rootNode instanceof CompositeNode);
-    assertEquals(COMPOSITE_NODE_ID, rootNode.getId());
-    Optional<Node> onError = rootNode.next(ERROR_TRANSITION);
-    assertTrue(onError.isPresent());
-    Node onErrorNode = onError.get();
-    assertTrue(onErrorNode instanceof ActionNode);
-    assertEquals("fallbackAction", onErrorNode.getId());
-  }
-
-  @Test
-  void expectCompositeNodeAcceptsOnlySuccessAndErrorTransitions() {
-    // given
-    when(actionProvider.get(eq("simpleAction"))).thenReturn(Optional.of(actionMock));
-    when(actionProvider.get(eq("lastAction"))).thenReturn(Optional.of(actionMock));
-
-    TaskProvider tested = new DefaultTaskProviderFactory()
-        .create(FragmentsHandlerOptions.DEFAULT_TASK_KEY,
-            Collections.singletonMap(TASK_NAME,
-                new NodeOptions(
-                    actions(new NodeOptions("simpleAction", NO_TRANSITIONS)),
-                    Collections
-                        .singletonMap("customTransition",
-                            new NodeOptions("lastAction", NO_TRANSITIONS))
-                )), actionProvider);
-
-    // when
-    Optional<Task> optionalTask = tested.get(SAMPLE_FRAGMENT);
-
-    // then
-    assertTrue(optionalTask.isPresent());
-    Task task = optionalTask.get();
-    assertTrue(task.getRootNode().isPresent());
-    Node rootNode = task.getRootNode().get();
-    assertTrue(rootNode instanceof CompositeNode);
-    assertFalse(rootNode.next(SUCCESS_TRANSITION).isPresent());
-    assertFalse(rootNode.next(ERROR_TRANSITION).isPresent());
-    assertFalse(rootNode.next("customTransition").isPresent());
-  }
-
-  @Test
-  @DisplayName("Expect graph with nested composite nodes")
-  void expectNestedCompositeNodesGraph() {
-    // given
-    when(actionProvider.get(eq("simpleAction"))).thenReturn(Optional.of(actionMock));
-
-    TaskProvider tested = new DefaultTaskProviderFactory()
-        .create(FragmentsHandlerOptions.DEFAULT_TASK_KEY,
-            Collections.singletonMap(TASK_NAME,
-                new NodeOptions(
-                    actions(
-                        new NodeOptions(actions(new NodeOptions("simpleAction", NO_TRANSITIONS)),
-                            NO_TRANSITIONS)),
-                    NO_TRANSITIONS
-                )), actionProvider);
-
-    // when
-    Optional<Task> optionalTask = tested.get(SAMPLE_FRAGMENT);
-
-    // then
-    assertTrue(optionalTask.isPresent());
-    Task task = optionalTask.get();
-    assertEquals(TASK_NAME, task.getName());
-    assertTrue(task.getRootNode().isPresent());
-    Node rootNode = task.getRootNode().get();
-    assertTrue(rootNode instanceof CompositeNode);
-    assertEquals(COMPOSITE_NODE_ID, rootNode.getId());
-
-    CompositeNode compositeRootNode = (CompositeNode) rootNode;
-    assertEquals(1, compositeRootNode.getNodes().size());
-    Node childNode = compositeRootNode.getNodes().get(0);
-    assertEquals(COMPOSITE_NODE_ID, childNode.getId());
-    assertTrue(childNode instanceof CompositeNode);
-    CompositeNode compositeChildNode = (CompositeNode) childNode;
-
-    assertEquals(1, compositeChildNode.getNodes().size());
-    Node node = compositeChildNode.getNodes().get(0);
-    assertTrue(node instanceof ActionNode);
-    assertEquals("simpleAction", node.getId());
-  }
-
-  @Test
-  @DisplayName("Expect graph when custom task key is defined.")
-  void expectGraphWhenCustomTaskKey() {
-    // given
-    when(actionProvider.get(eq("simpleAction"))).thenReturn(Optional.of(actionMock));
-
-    TaskProvider tested = new DefaultTaskProviderFactory().create(MY_TASK_KEY,
-        Collections.singletonMap(TASK_NAME, new NodeOptions("simpleAction", NO_TRANSITIONS)),
+    TaskProvider tested = new DefaultTaskProviderFactory().create(CUSTOM_TASK_KEY,
+        singletonMap(TASK_NAME, new NodeOptions("A", NO_TRANSITIONS)),
         actionProvider);
 
     // when
-    Optional<Task> optionalTask = tested.get(SAMPLE_FRAGMENT_WITH_CUSTOM_TASK_KEY);
+    Optional<Task> task = tested.get(FRAGMENT_WITH_CUSTOM_TASK_KEY);
+
+    // then
+    assertTrue(task.isPresent());
+    assertEquals(TASK_NAME, task.get().getName());
+  }
+
+  @Test
+  @DisplayName("Expect task: A.")
+  void expectActionNodeWithNoTransitions() {
+    // given
+    when(actionProvider.get(eq("A"))).thenReturn(Optional.of(actionMock));
+    TaskProvider tested = getTested(
+        singletonMap(TASK_NAME, new NodeOptions("A", NO_TRANSITIONS)));
+
+    // when
+    Optional<Task> task = tested.get(FRAGMENT);
+
+    // then
+    assertTrue(task.isPresent());
+    assertTrue(task.get().getRootNode().isPresent());
+    Node rootNode = task.get().getRootNode().get();
+    assertTrue(rootNode instanceof ActionNode);
+    assertEquals("A", rootNode.getId());
+    assertFalse(rootNode.next(SUCCESS_TRANSITION).isPresent());
+    assertFalse(rootNode.next(ERROR_TRANSITION).isPresent());
+  }
+
+  @Test
+  @DisplayName("Expect task: A - _success -> B.")
+  void expectActionNodeNextActionNode() {
+    // given
+    when(actionProvider.get("A")).thenReturn(Optional.of(actionMock));
+    when(actionProvider.get("B")).thenReturn(Optional.of(actionMock));
+
+    TaskProvider tested = getTested(
+        singletonMap(TASK_NAME, new NodeOptions("A", singletonMap(SUCCESS_TRANSITION,
+            new NodeOptions("B", NO_TRANSITIONS)))));
+
+    // when
+    Optional<Task> task = tested.get(FRAGMENT);
+
+    // then
+    assertTrue(task.isPresent());
+    assertTrue(task.get().getRootNode().isPresent());
+    Node aNode = task.get().getRootNode().get();
+    assertTrue(aNode instanceof ActionNode);
+    assertEquals("A", aNode.getId());
+    Optional<Node> bNode = aNode.next(SUCCESS_TRANSITION);
+    assertTrue(bNode.isPresent());
+    assertTrue(bNode.get() instanceof ActionNode);
+    assertEquals("B", bNode.get().getId());
+  }
+
+  @Test
+  @DisplayName("Expect composite node: (A).")
+  void expectCompositeNodeWithNoTransitions() {
+    // given
+    when(actionProvider.get(eq("A"))).thenReturn(Optional.of(actionMock));
+
+    TaskProvider tested = getTested(singletonMap(TASK_NAME,
+        new NodeOptions(
+            actions(new NodeOptions("A", NO_TRANSITIONS)),
+            NO_TRANSITIONS
+        ))
+    );
+
+    // when
+    Optional<Task> task = tested.get(FRAGMENT);
+
+    // then
+    assertTrue(task.isPresent());
+    assertTrue(task.get().getRootNode().isPresent());
+    Node compositeNode = task.get().getRootNode().get();
+    assertTrue(compositeNode instanceof CompositeNode);
+    assertEquals(COMPOSITE_NODE_ID, compositeNode.getId());
+
+    List<Node> compositeNodes = ((CompositeNode) compositeNode).getNodes();
+    assertEquals(1, compositeNodes.size());
+    assertEquals("A", compositeNodes.get(0).getId());
+    assertTrue(compositeNodes.get(0) instanceof ActionNode);
+  }
+
+  @Test
+  @DisplayName("Expect B node: (A) - _success -> B.")
+  void expectCompositeNodeWithSingleNodeOnSuccessGraph() {
+    // given
+    when(actionProvider.get(eq("A"))).thenReturn(Optional.of(actionMock));
+    when(actionProvider.get(eq("B"))).thenReturn(Optional.of(actionMock));
+
+    TaskProvider tested = getTested(
+        singletonMap(TASK_NAME,
+            new NodeOptions(
+                actions(new NodeOptions("A", NO_TRANSITIONS)),
+                singletonMap(SUCCESS_TRANSITION,
+                    new NodeOptions("B", NO_TRANSITIONS))
+            )));
+
+    // when
+    Optional<Task> task = tested.get(FRAGMENT);
+
+    // then
+    assertTrue(task.isPresent());
+    assertTrue(task.get().getRootNode().isPresent());
+    Node compositeNode = task.get().getRootNode().get();
+    Optional<Node> bNode = compositeNode.next(SUCCESS_TRANSITION);
+    assertTrue(bNode.isPresent());
+    assertEquals("B", bNode.get().getId());
+  }
+
+  @Test
+  @DisplayName("Expect task: (A) - _custom (invalid) -> B.")
+  void expectCompositeNodeAcceptsOnlySuccessAndErrorTransitions() {
+    // given
+    when(actionProvider.get(eq("A"))).thenReturn(Optional.of(actionMock));
+    when(actionProvider.get(eq("B"))).thenReturn(Optional.of(actionMock));
+
+    TaskProvider tested = getTested(
+        singletonMap(TASK_NAME,
+            new NodeOptions(
+                actions(new NodeOptions("A", NO_TRANSITIONS)),
+                singletonMap("_custom",
+                    new NodeOptions("B", NO_TRANSITIONS))
+            )));
+
+    // when
+    Optional<Task> task = tested.get(FRAGMENT);
+
+    // then
+    assertTrue(task.isPresent());
+    assertTrue(task.get().getRootNode().isPresent());
+    Node rootNode = task.get().getRootNode().get();
+    assertTrue(rootNode instanceof CompositeNode);
+    assertFalse(rootNode.next(SUCCESS_TRANSITION).isPresent());
+    assertFalse(rootNode.next(ERROR_TRANSITION).isPresent());
+    assertFalse(rootNode.next("_custom").isPresent());
+  }
+
+  @Test
+  @DisplayName("Expect task: [[A]]")
+  void expectNestedCompositeNodesGraph() {
+    // given
+    when(actionProvider.get(eq("A"))).thenReturn(Optional.of(actionMock));
+
+    TaskProvider tested = getTested(
+        singletonMap(TASK_NAME,
+            new NodeOptions(
+                actions(
+                    new NodeOptions(
+                        actions(new NodeOptions("A", NO_TRANSITIONS)),
+                        NO_TRANSITIONS)),
+                NO_TRANSITIONS
+            )));
+
+    // when
+    Optional<Task> optionalTask = tested.get(FRAGMENT);
 
     // then
     assertTrue(optionalTask.isPresent());
     Task task = optionalTask.get();
-    assertEquals(TASK_NAME, task.getName());
+    assertTrue(task.getRootNode().isPresent());
+    Node rootNode = task.getRootNode().get();
+    assertTrue(rootNode instanceof CompositeNode);
+
+    CompositeNode compositeRootNode = (CompositeNode) rootNode;
+    Node childNode = compositeRootNode.getNodes().get(0);
+    CompositeNode compositeChildNode = (CompositeNode) childNode;
+    Node aNode = compositeChildNode.getNodes().get(0);
+    assertTrue(aNode instanceof ActionNode);
+    assertEquals("A", aNode.getId());
+  }
+
+
+  private TaskProvider getTested(Map<String, NodeOptions> tasks) {
+    return new DefaultTaskProviderFactory()
+        .create(FragmentsHandlerOptions.DEFAULT_TASK_KEY, tasks, actionProvider);
   }
 
   private List<NodeOptions> actions(NodeOptions... nodes) {
