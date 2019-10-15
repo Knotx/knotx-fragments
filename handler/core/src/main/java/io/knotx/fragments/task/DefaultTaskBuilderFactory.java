@@ -20,7 +20,7 @@ package io.knotx.fragments.task;
 import static io.knotx.fragments.handler.api.domain.FragmentResult.ERROR_TRANSITION;
 import static io.knotx.fragments.handler.api.domain.FragmentResult.SUCCESS_TRANSITION;
 
-import io.knotx.fragments.api.Fragment;
+import io.knotx.fragments.engine.FragmentEventContext;
 import io.knotx.fragments.engine.Task;
 import io.knotx.fragments.engine.graph.ActionNode;
 import io.knotx.fragments.engine.graph.CompositeNode;
@@ -32,51 +32,35 @@ import io.knotx.fragments.handler.api.domain.FragmentResult;
 import io.knotx.fragments.handler.exception.GraphConfigurationException;
 import io.knotx.fragments.handler.options.NodeOptions;
 import io.reactivex.Single;
-import io.vertx.core.logging.Logger;
-import io.vertx.core.logging.LoggerFactory;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-public class DefaultTaskProviderFactory implements TaskProviderFactory {
+public class DefaultTaskBuilderFactory implements TaskBuilderFactory {
 
   @Override
-  public TaskProvider create(String taskKey, Map<String, NodeOptions> tasks,
-      ActionProvider proxyProvider) {
-    return new DefaultTaskProvider(taskKey, tasks, proxyProvider);
+  public String getName() {
+    return "default";
   }
 
-  static class DefaultTaskProvider implements TaskProvider {
+  @Override
+  public TaskBuilder create(ActionProvider proxyProvider) {
+    return new DefaultTaskProvider(proxyProvider);
+  }
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultTaskProvider.class);
+  static class DefaultTaskProvider implements TaskBuilder {
 
-    private final String taskKey;
-    private final Map<String, NodeOptions> tasks;
     private final ActionProvider actionProvider;
 
-    DefaultTaskProvider(String taskKey, Map<String, NodeOptions> tasks, ActionProvider proxyProvider) {
-      this.taskKey = taskKey;
-      this.tasks = tasks;
+    DefaultTaskProvider(ActionProvider proxyProvider) {
       this.actionProvider = proxyProvider;
     }
 
-    public Optional<Task> get(Fragment fragment) {
-      Optional<Task> result = Optional.empty();
-      if (fragment.getConfiguration().containsKey(taskKey)) {
-        String task = fragment.getConfiguration().getString(taskKey);
-        NodeOptions options = tasks.get(task);
-        if (options == null) {
-          LOGGER.warn("Task [{}] not defined in configuration!", task);
-          return Optional.empty();
-        }
-
-        Node rootNode = initGraphNode(options);
-        result = Optional.of(new Task(task, rootNode));
-      }
-      return result;
+    public Task get(Configuration config, FragmentEventContext eventContext) {
+      Node rootNode = initGraphNode(config.getRootNode());
+      return new Task(config.getTaskName(), rootNode);
     }
 
     private Node initGraphNode(NodeOptions options) {

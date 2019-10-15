@@ -12,17 +12,77 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * The code comes from https://github.com/tomaszmichalak/vertx-rx-map-reduce.
  */
 package io.knotx.fragments.task;
 
 import io.knotx.fragments.api.Fragment;
+import io.knotx.fragments.engine.FragmentEventContext;
 import io.knotx.fragments.engine.Task;
+import io.knotx.fragments.handler.action.ActionProvider;
+import io.knotx.fragments.handler.exception.GraphConfigurationException;
+import io.knotx.fragments.handler.options.TaskOptions;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.ServiceLoader;
 
-public interface TaskProvider {
+public class TaskProvider {
 
-  Optional<Task> get(Fragment fragment);
+  private String taskKey;
+  private List<TaskBuilderFactory> builderFactories;
+  private Map<String, TaskOptions> tasks;
+  private ActionProvider actionProvider;
 
+  public TaskProvider(String taskKey, Map<String, TaskOptions> tasks,
+      ActionProvider actionProvider) {
+    this.taskKey = taskKey;
+    builderFactories = initBuilders(actionProvider);
+    this.tasks = tasks;
+    this.actionProvider = actionProvider;
+  }
+
+  public Optional<Task> get(FragmentEventContext fragmentEventContext) {
+    Fragment fragment = fragmentEventContext.getFragmentEvent().getFragment();
+    if (hasTask(fragment)) {
+      String taskName = getTaskName(fragment);
+
+      TaskBuilder builder = getBuilder(taskName);
+      Configuration taskConfig = getTaskConfiguration(taskName);
+
+      return Optional
+          .of(builder.get(taskConfig, fragmentEventContext));
+    } else {
+      return Optional.empty();
+    }
+  }
+
+  private String getTaskName(Fragment fragment) {
+    return fragment.getConfiguration().getString(taskKey);
+  }
+
+  private boolean hasTask(Fragment fragment) {
+    return fragment.getConfiguration().containsKey(taskKey);
+  }
+
+  private Configuration getTaskConfiguration(String taskName) {
+    return new Configuration(taskName, tasks.get(taskName).getConfig());
+  }
+
+  private TaskBuilder getBuilder(String taskName) {
+    String builderName = tasks.get(taskName).getBuilder().getName();
+    return builderFactories.stream()
+        .filter(f -> f.getName().equals(builderName))
+        .findFirst()
+        .map(f -> f.create(actionProvider))
+        .orElseThrow(() -> new GraphConfigurationException("Could not find task builder"));
+  }
+
+  private List<TaskBuilderFactory> initBuilders(ActionProvider actionProvider) {
+    List<TaskBuilderFactory> builders = new ArrayList<>();
+    ServiceLoader
+        .load(TaskBuilderFactory.class).iterator()
+        .forEachRemaining(builders::add);
+    return builders;
+  }
 }

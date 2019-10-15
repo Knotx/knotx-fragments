@@ -12,17 +12,25 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * The code comes from https://github.com/tomaszmichalak/vertx-rx-map-reduce.
  */
 package io.knotx.fragments.task;
 
-import io.knotx.fragments.handler.action.ActionProvider;
-import io.knotx.fragments.handler.options.NodeOptions;
-import java.util.Map;
+import io.knotx.fragments.engine.FragmentEventContext;
+import io.knotx.fragments.engine.FragmentsEngine;
+import io.knotx.fragments.engine.Task;
 
-public interface TaskProviderFactory {
+/**
+ * Produces {@link Task} based on graph configuration, Fragment data and request.
+ */
+public interface TaskBuilder {
 
-  TaskProvider create(String taskKey, Map<String, NodeOptions> tasks, ActionProvider proxyProvider);
+  /**
+   * Produces Task that can be executed by {@link FragmentsEngine}
+   *
+   * @param config - task configuration
+   * @param event - contains Fragment, request
+   * @return configured task
+   */
+  Task get(Configuration config, FragmentEventContext event);
 
 }

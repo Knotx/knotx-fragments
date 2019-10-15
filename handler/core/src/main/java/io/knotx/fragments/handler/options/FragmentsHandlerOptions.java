@@ -28,14 +28,9 @@ public class FragmentsHandlerOptions {
 
   private String taskKey;
 
-  private Map<String, NodeOptions> tasks;
+  private Map<String, TaskOptions> tasks;
 
   private Map<String, ActionOptions> actions;
-
-  public FragmentsHandlerOptions(Map<String, NodeOptions> tasks) {
-    init();
-    this.tasks = tasks;
-  }
 
   public FragmentsHandlerOptions(JsonObject json) {
     init();
@@ -61,7 +56,7 @@ public class FragmentsHandlerOptions {
     return this;
   }
 
-  public Map<String, NodeOptions> getTasks() {
+  public Map<String, TaskOptions> getTasks() {
     return tasks;
   }
 
@@ -71,7 +66,7 @@ public class FragmentsHandlerOptions {
    * @param tasks list of defined {@code Tasks}.
    * @return reference to this, so the API can be used fluently
    */
-  public FragmentsHandlerOptions setTasks(Map<String, NodeOptions> tasks) {
+  public FragmentsHandlerOptions setTasks(Map<String, TaskOptions> tasks) {
     this.tasks = tasks;
     return this;
   }

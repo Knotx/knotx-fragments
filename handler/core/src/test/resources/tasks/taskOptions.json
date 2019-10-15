@@ -1,0 +1,11 @@
+{
+  "builder": {
+    "name": "custom",
+    "config": {
+      "anyKey": "anyValue"
+    }
+  },
+  "config": {
+    "action": "a"
+  }
+}

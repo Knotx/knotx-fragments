@@ -31,7 +31,7 @@ Sets <code>Action</code> factory name.
 Sets named actions with their factory configuration.
 +++
 |[[taskKey]]`@taskKey`|`String`|-
-|[[tasks]]`@tasks`|`link:dataobjects.html#NodeOptions[NodeOptions]`|+++
+|[[tasks]]`@tasks`|`link:dataobjects.html#TaskOptions[TaskOptions]`|+++
 Sets <code>Task</code> list, which are named, directed graphs of <code>Actions</code>.
 +++
 |===
@@ -61,5 +61,29 @@ Sets list of <code>NodeOptions</code> that represents <code>Actions</code> that 
 |[[onTransitions]]`@onTransitions`|`link:dataobjects.html#NodeOptions[NodeOptions]`|+++
 Sets the <code>Map</code> of possible onTransitions for the given graph node. If the Node is <code>Composite</code> only <code>_success</code> and <code>_error</code> transitions can be configured.
 +++
+|===
+
+[[TaskBuilderOptions]]
+== TaskBuilderOptions
+
+
+[cols=">25%,25%,50%"]
+[frame="topbot"]
+|===
+^|Name | Type ^| Description
+|[[config]]`@config`|`Json object`|-
+|[[name]]`@name`|`String`|-
+|===
+
+[[TaskOptions]]
+== TaskOptions
+
+
+[cols=">25%,25%,50%"]
+[frame="topbot"]
+|===
+^|Name | Type ^| Description
+|[[builder]]`@builder`|`link:dataobjects.html#TaskBuilderOptions[TaskBuilderOptions]`|-
+|[[config]]`@config`|`link:dataobjects.html#NodeOptions[NodeOptions]`|-
 |===
 
