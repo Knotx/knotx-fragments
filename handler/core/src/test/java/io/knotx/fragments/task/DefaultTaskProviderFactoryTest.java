@@ -137,11 +137,11 @@ class DefaultTaskProviderFactoryTest {
     // then
     assertTrue(task.isPresent());
     assertTrue(task.get().getRootNode().isPresent());
-    Node rootNode = task.get().getRootNode().get();
-    assertTrue(rootNode instanceof ActionNode);
-    assertEquals("A", rootNode.getId());
-    assertNotPresent(rootNode.next(SUCCESS_TRANSITION));
-    assertNotPresent(rootNode.next(ERROR_TRANSITION));
+    Node aNode = task.get().getRootNode().get();
+    assertTrue(aNode instanceof ActionNode);
+    assertEquals("A", aNode.getId());
+    assertNotPresent(aNode.next(SUCCESS_TRANSITION));
+    assertNotPresent(aNode.next(ERROR_TRANSITION));
   }
 
   @Test
@@ -267,8 +267,33 @@ class DefaultTaskProviderFactoryTest {
     // then
     assertTrue(task.isPresent());
     assertTrue(task.get().getRootNode().isPresent());
-    Node rootNode = task.get().getRootNode().get();
-    assertNotPresent(rootNode.next("_custom"));
+    Node compositeNode = task.get().getRootNode().get();
+    assertNotPresent(compositeNode.next("_custom"));
+  }
+
+  @Test
+  @DisplayName("Expect _custom transition (B): [A - _custom -> B].")
+  void expectCompositeNodeWithActionNodeWithCustomTransition() {
+    // given
+    TaskProvider tested = getTested(
+        singletonMap(TASK_NAME,
+            new NodeOptions(
+                actions(
+                    new NodeOptions("A", singletonMap("_custom",
+                        new NodeOptions("B", NO_TRANSITIONS)))),
+                NO_TRANSITIONS)
+        ));
+
+    // when
+    Optional<Task> task = tested.get(FRAGMENT);
+
+    // then
+    assertTrue(task.isPresent());
+    assertTrue(task.get().getRootNode().isPresent());
+    Node aNode = ((CompositeNode) task.get().getRootNode().get()).getNodes().get(0);
+    Optional<Node> bNode = aNode.next("_custom");
+    assertTrue(bNode.isPresent());
+    assertEquals("B", bNode.get().getId());
   }
 
 
