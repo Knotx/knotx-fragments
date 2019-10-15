@@ -20,6 +20,7 @@ package io.knotx.fragments.task;
 import static io.knotx.fragments.engine.graph.CompositeNode.COMPOSITE_NODE_ID;
 import static io.knotx.fragments.handler.api.domain.FragmentResult.ERROR_TRANSITION;
 import static io.knotx.fragments.handler.api.domain.FragmentResult.SUCCESS_TRANSITION;
+import static io.knotx.fragments.handler.options.FragmentsHandlerOptions.DEFAULT_TASK_KEY;
 import static java.util.Collections.singletonMap;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -35,7 +36,6 @@ import io.knotx.fragments.engine.graph.Node;
 import io.knotx.fragments.handler.action.ActionProvider;
 import io.knotx.fragments.handler.api.Action;
 import io.knotx.fragments.handler.exception.GraphConfigurationException;
-import io.knotx.fragments.handler.options.FragmentsHandlerOptions;
 import io.knotx.fragments.handler.options.NodeOptions;
 import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.VertxExtension;
@@ -48,6 +48,8 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
@@ -63,13 +65,8 @@ class DefaultTaskProviderFactoryTest {
   private static final String TASK_NAME = "task";
   private static final Fragment FRAGMENT =
       new Fragment("type",
-          new JsonObject().put(FragmentsHandlerOptions.DEFAULT_TASK_KEY, TASK_NAME),
+          new JsonObject().put(DEFAULT_TASK_KEY, TASK_NAME),
           "initial body");
-
-  private static final String CUSTOM_TASK_KEY = "customTaskKey";
-  private static final Fragment FRAGMENT_WITH_CUSTOM_TASK_KEY =
-      new Fragment("type",
-          new JsonObject().put(CUSTOM_TASK_KEY, TASK_NAME), "initial body");
 
   @Mock
   private ActionProvider actionProvider;
@@ -102,34 +99,19 @@ class DefaultTaskProviderFactoryTest {
     Assertions.assertThrows(GraphConfigurationException.class, () -> tested.get(FRAGMENT));
   }
 
-  @Test
-  @DisplayName("Expect task name when default task key.")
-  void expectTaskName() {
+  @ParameterizedTest
+  @ValueSource(strings = {DEFAULT_TASK_KEY, "custom-task-key"})
+  @DisplayName("Expect task name when task key.")
+  void expectTaskName(String taskKey) {
     // given
     when(actionProvider.get(eq("A"))).thenReturn(Optional.of(actionMock));
-    TaskProvider tested = getTested(
-        singletonMap(TASK_NAME, new NodeOptions("A", NO_TRANSITIONS)));
+    TaskProvider tested = new DefaultTaskProviderFactory()
+        .create(taskKey, singletonMap(TASK_NAME, new NodeOptions("A", NO_TRANSITIONS)),
+            actionProvider);
 
     // when
-    Optional<Task> task = tested.get(FRAGMENT);
-
-    // then
-    assertTrue(task.isPresent());
-    assertEquals(TASK_NAME, task.get().getName());
-  }
-
-  @Test
-  @DisplayName("Expect task name when custom task key.")
-  void expectTaskNameWhenCustomTaskKey() {
-    // given
-    when(actionProvider.get(eq("A"))).thenReturn(Optional.of(actionMock));
-
-    TaskProvider tested = new DefaultTaskProviderFactory().create(CUSTOM_TASK_KEY,
-        singletonMap(TASK_NAME, new NodeOptions("A", NO_TRANSITIONS)),
-        actionProvider);
-
-    // when
-    Optional<Task> task = tested.get(FRAGMENT_WITH_CUSTOM_TASK_KEY);
+    Optional<Task> task = tested.get(new Fragment("type",
+        new JsonObject().put(taskKey, TASK_NAME), "initial body"));
 
     // then
     assertTrue(task.isPresent());
@@ -303,8 +285,7 @@ class DefaultTaskProviderFactoryTest {
 
 
   private TaskProvider getTested(Map<String, NodeOptions> tasks) {
-    return new DefaultTaskProviderFactory()
-        .create(FragmentsHandlerOptions.DEFAULT_TASK_KEY, tasks, actionProvider);
+    return new DefaultTaskProviderFactory().create(DEFAULT_TASK_KEY, tasks, actionProvider);
   }
 
   private List<NodeOptions> actions(NodeOptions... nodes) {
