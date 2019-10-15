@@ -24,6 +24,7 @@ import static io.knotx.fragments.handler.options.FragmentsHandlerOptions.DEFAULT
 import static java.util.Collections.singletonMap;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
@@ -44,7 +45,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -72,7 +73,13 @@ class DefaultTaskProviderFactoryTest {
   private ActionProvider actionProvider;
 
   @Mock
-  Action actionMock;
+  private Action actionMock;
+
+  @BeforeEach
+  void setUp() {
+    when(actionProvider.get("A")).thenReturn(Optional.of(actionMock));
+    when(actionProvider.get("B")).thenReturn(Optional.of(actionMock));
+  }
 
   @Test
   @DisplayName("Expect empty task when empty tasks.")
@@ -84,7 +91,7 @@ class DefaultTaskProviderFactoryTest {
     Optional<Task> task = tested.get(FRAGMENT);
 
     // then
-    Assertions.assertFalse(task.isPresent());
+    assertNotPresent(task);
   }
 
   @Test
@@ -96,7 +103,7 @@ class DefaultTaskProviderFactoryTest {
         new NodeOptions("nonExistingAction", NO_TRANSITIONS)));
 
     // when, then
-    Assertions.assertThrows(GraphConfigurationException.class, () -> tested.get(FRAGMENT));
+    assertThrows(GraphConfigurationException.class, () -> tested.get(FRAGMENT));
   }
 
   @ParameterizedTest
@@ -104,7 +111,6 @@ class DefaultTaskProviderFactoryTest {
   @DisplayName("Expect task name when task key.")
   void expectTaskName(String taskKey) {
     // given
-    when(actionProvider.get(eq("A"))).thenReturn(Optional.of(actionMock));
     TaskProvider tested = new DefaultTaskProviderFactory()
         .create(taskKey, singletonMap(TASK_NAME, new NodeOptions("A", NO_TRANSITIONS)),
             actionProvider);
@@ -119,10 +125,9 @@ class DefaultTaskProviderFactoryTest {
   }
 
   @Test
-  @DisplayName("Expect task: A.")
+  @DisplayName("Expect Action node with no transitions: A")
   void expectActionNodeWithNoTransitions() {
     // given
-    when(actionProvider.get(eq("A"))).thenReturn(Optional.of(actionMock));
     TaskProvider tested = getTested(
         singletonMap(TASK_NAME, new NodeOptions("A", NO_TRANSITIONS)));
 
@@ -135,17 +140,14 @@ class DefaultTaskProviderFactoryTest {
     Node rootNode = task.get().getRootNode().get();
     assertTrue(rootNode instanceof ActionNode);
     assertEquals("A", rootNode.getId());
-    assertFalse(rootNode.next(SUCCESS_TRANSITION).isPresent());
-    assertFalse(rootNode.next(ERROR_TRANSITION).isPresent());
+    assertNotPresent(rootNode.next(SUCCESS_TRANSITION));
+    assertNotPresent(rootNode.next(ERROR_TRANSITION));
   }
 
   @Test
-  @DisplayName("Expect task: A - _success -> B.")
+  @DisplayName("Expect consequent node: A - _success -> B")
   void expectActionNodeNextActionNode() {
     // given
-    when(actionProvider.get("A")).thenReturn(Optional.of(actionMock));
-    when(actionProvider.get("B")).thenReturn(Optional.of(actionMock));
-
     TaskProvider tested = getTested(
         singletonMap(TASK_NAME, new NodeOptions("A", singletonMap(SUCCESS_TRANSITION,
             new NodeOptions("B", NO_TRANSITIONS)))));
@@ -157,20 +159,15 @@ class DefaultTaskProviderFactoryTest {
     assertTrue(task.isPresent());
     assertTrue(task.get().getRootNode().isPresent());
     Node aNode = task.get().getRootNode().get();
-    assertTrue(aNode instanceof ActionNode);
-    assertEquals("A", aNode.getId());
     Optional<Node> bNode = aNode.next(SUCCESS_TRANSITION);
     assertTrue(bNode.isPresent());
-    assertTrue(bNode.get() instanceof ActionNode);
     assertEquals("B", bNode.get().getId());
   }
 
   @Test
-  @DisplayName("Expect composite node: (A).")
+  @DisplayName("Expect Composite node with no transitions: [A]")
   void expectCompositeNodeWithNoTransitions() {
     // given
-    when(actionProvider.get(eq("A"))).thenReturn(Optional.of(actionMock));
-
     TaskProvider tested = getTested(singletonMap(TASK_NAME,
         new NodeOptions(
             actions(new NodeOptions("A", NO_TRANSITIONS)),
@@ -187,6 +184,8 @@ class DefaultTaskProviderFactoryTest {
     Node compositeNode = task.get().getRootNode().get();
     assertTrue(compositeNode instanceof CompositeNode);
     assertEquals(COMPOSITE_NODE_ID, compositeNode.getId());
+    assertNotPresent(compositeNode.next(SUCCESS_TRANSITION));
+    assertNotPresent(compositeNode.next(ERROR_TRANSITION));
 
     List<Node> compositeNodes = ((CompositeNode) compositeNode).getNodes();
     assertEquals(1, compositeNodes.size());
@@ -195,18 +194,44 @@ class DefaultTaskProviderFactoryTest {
   }
 
   @Test
-  @DisplayName("Expect B node: (A) - _success -> B.")
-  void expectCompositeNodeWithSingleNodeOnSuccessGraph() {
+  @DisplayName("Expect nested Composite node: [[A]]")
+  void expectNestedCompositeNodesGraph() {
     // given
-    when(actionProvider.get(eq("A"))).thenReturn(Optional.of(actionMock));
-    when(actionProvider.get(eq("B"))).thenReturn(Optional.of(actionMock));
+    TaskProvider tested = getTested(
+        singletonMap(TASK_NAME,
+            new NodeOptions(
+                actions(
+                    new NodeOptions(
+                        actions(
+                            new NodeOptions("A", NO_TRANSITIONS)),
+                        NO_TRANSITIONS)),
+                NO_TRANSITIONS
+            )));
 
+    // when
+    Optional<Task> task = tested.get(FRAGMENT);
+
+    // then
+    assertTrue(task.isPresent());
+    assertTrue(task.get().getRootNode().isPresent());
+    Node outerCompositeNode = task.get().getRootNode().get();
+    assertTrue(outerCompositeNode instanceof CompositeNode);
+
+    Node innerCompositeNode = ((CompositeNode) outerCompositeNode).getNodes().get(0);
+    assertTrue(innerCompositeNode instanceof CompositeNode);
+    Node aNode = ((CompositeNode) innerCompositeNode).getNodes().get(0);
+    assertEquals("A", aNode.getId());
+  }
+
+  @Test
+  @DisplayName("Expect consequent node (B): [A] - _success -> B.")
+  void expectCompositeNodeWithSuccessTransition() {
+    // given
     TaskProvider tested = getTested(
         singletonMap(TASK_NAME,
             new NodeOptions(
                 actions(new NodeOptions("A", NO_TRANSITIONS)),
-                singletonMap(SUCCESS_TRANSITION,
-                    new NodeOptions("B", NO_TRANSITIONS))
+                singletonMap(SUCCESS_TRANSITION, new NodeOptions("B", NO_TRANSITIONS))
             )));
 
     // when
@@ -222,7 +247,7 @@ class DefaultTaskProviderFactoryTest {
   }
 
   @Test
-  @DisplayName("Expect task: (A) - _custom (invalid) -> B.")
+  @DisplayName("Expect _custom transition ignored for Composite node: [A] - _custom -> B.")
   void expectCompositeNodeAcceptsOnlySuccessAndErrorTransitions() {
     // given
     when(actionProvider.get(eq("A"))).thenReturn(Optional.of(actionMock));
@@ -243,44 +268,7 @@ class DefaultTaskProviderFactoryTest {
     assertTrue(task.isPresent());
     assertTrue(task.get().getRootNode().isPresent());
     Node rootNode = task.get().getRootNode().get();
-    assertTrue(rootNode instanceof CompositeNode);
-    assertFalse(rootNode.next(SUCCESS_TRANSITION).isPresent());
-    assertFalse(rootNode.next(ERROR_TRANSITION).isPresent());
-    assertFalse(rootNode.next("_custom").isPresent());
-  }
-
-  @Test
-  @DisplayName("Expect task: [[A]]")
-  void expectNestedCompositeNodesGraph() {
-    // given
-    when(actionProvider.get(eq("A"))).thenReturn(Optional.of(actionMock));
-
-    TaskProvider tested = getTested(
-        singletonMap(TASK_NAME,
-            new NodeOptions(
-                actions(
-                    new NodeOptions(
-                        actions(new NodeOptions("A", NO_TRANSITIONS)),
-                        NO_TRANSITIONS)),
-                NO_TRANSITIONS
-            )));
-
-    // when
-    Optional<Task> optionalTask = tested.get(FRAGMENT);
-
-    // then
-    assertTrue(optionalTask.isPresent());
-    Task task = optionalTask.get();
-    assertTrue(task.getRootNode().isPresent());
-    Node rootNode = task.getRootNode().get();
-    assertTrue(rootNode instanceof CompositeNode);
-
-    CompositeNode compositeRootNode = (CompositeNode) rootNode;
-    Node childNode = compositeRootNode.getNodes().get(0);
-    CompositeNode compositeChildNode = (CompositeNode) childNode;
-    Node aNode = compositeChildNode.getNodes().get(0);
-    assertTrue(aNode instanceof ActionNode);
-    assertEquals("A", aNode.getId());
+    assertNotPresent(rootNode.next("_custom"));
   }
 
 
@@ -290,5 +278,10 @@ class DefaultTaskProviderFactoryTest {
 
   private List<NodeOptions> actions(NodeOptions... nodes) {
     return Arrays.asList(nodes);
+  }
+
+  private void assertNotPresent(
+      @SuppressWarnings("OptionalUsedAsFieldOrParameterType") Optional<?> any) {
+    assertFalse(any.isPresent());
   }
 }
