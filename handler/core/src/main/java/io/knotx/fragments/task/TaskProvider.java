@@ -20,7 +20,10 @@ import io.knotx.fragments.engine.FragmentEventContext;
 import io.knotx.fragments.engine.Task;
 import io.knotx.fragments.handler.action.ActionProvider;
 import io.knotx.fragments.handler.exception.GraphConfigurationException;
+import io.knotx.fragments.handler.exception.TaskNotFoundException;
 import io.knotx.fragments.handler.options.TaskOptions;
+import io.vertx.core.logging.Logger;
+import io.vertx.core.logging.LoggerFactory;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -28,6 +31,8 @@ import java.util.Optional;
 import java.util.ServiceLoader;
 
 public class TaskProvider {
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(TaskProvider.class);
 
   private String taskKey;
   private List<TaskBuilderFactory> builderFactories;
@@ -37,9 +42,9 @@ public class TaskProvider {
   public TaskProvider(String taskKey, Map<String, TaskOptions> tasks,
       ActionProvider actionProvider) {
     this.taskKey = taskKey;
-    builderFactories = initBuilders(actionProvider);
     this.tasks = tasks;
     this.actionProvider = actionProvider;
+    builderFactories = initBuilders(actionProvider);
   }
 
   public Optional<Task> get(FragmentEventContext fragmentEventContext) {
@@ -70,7 +75,12 @@ public class TaskProvider {
   }
 
   private TaskBuilder getBuilder(String taskName) {
-    String builderName = tasks.get(taskName).getBuilder().getName();
+    TaskOptions taskOptions = tasks.get(taskName);
+    if (taskOptions == null) {
+      LOGGER.error("Could not find task [{}] in tasks [{}]", taskName, tasks);
+      throw new TaskNotFoundException(taskName);
+    }
+    String builderName = taskOptions.getBuilder().getName();
     return builderFactories.stream()
         .filter(f -> f.getName().equals(builderName))
         .findFirst()
