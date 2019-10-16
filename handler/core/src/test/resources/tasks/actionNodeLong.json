@@ -6,6 +6,6 @@
     }
   },
   "config": {
-    "action": "a"
+    "action": "simple"
   }
 }

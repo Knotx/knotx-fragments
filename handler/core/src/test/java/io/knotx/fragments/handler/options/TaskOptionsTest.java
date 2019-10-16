@@ -30,7 +30,7 @@ class TaskOptionsTest {
   @DisplayName("Expect default Task builder with task containing 'a' action.")
   void expectDefaultTaskBuilder() throws IOException {
     //given
-    JsonObject config = from("tasks/briefTaskOptions.json");
+    JsonObject config = from("tasks/actionNode.json");
 
     //when
     TaskOptions options = new TaskOptions(config);
@@ -38,14 +38,14 @@ class TaskOptionsTest {
     //then
     assertEquals("default", options.getBuilder().getName());
     assertTrue(options.getBuilder().getConfig().isEmpty());
-    assertEquals("a", options.getConfig().getAction());
+    assertEquals("simple", options.getConfig().getAction());
   }
 
   @Test
   @DisplayName("Expect custom Task builder with task containing 'a' action.")
   void expectCustomTaskBuilder() throws IOException {
     //given
-    JsonObject config = from("tasks/taskOptions.json");
+    JsonObject config = from("tasks/actionNodeLong.json");
 
     //when
     TaskOptions options = new TaskOptions(config);
@@ -53,7 +53,7 @@ class TaskOptionsTest {
     //then
     assertEquals("custom", options.getBuilder().getName());
     assertEquals(new JsonObject().put("anyKey", "anyValue"), options.getBuilder().getConfig());
-    assertEquals("a", options.getConfig().getAction());
+    assertEquals("simple", options.getConfig().getAction());
   }
 
   private JsonObject from(String fileName) throws IOException {

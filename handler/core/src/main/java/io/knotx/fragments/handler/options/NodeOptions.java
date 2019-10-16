@@ -16,6 +16,7 @@
 package io.knotx.fragments.handler.options;
 
 import io.vertx.codegen.annotations.DataObject;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import java.util.Collections;
 import java.util.List;
@@ -30,9 +31,8 @@ import java.util.Optional;
 public class NodeOptions {
 
   private String action;
-
   private List<NodeOptions> actions;
-
+  private String template;
   private Map<String, NodeOptions> onTransitions;
 
   public NodeOptions(String action, Map<String, NodeOptions> transitions) {
@@ -53,6 +53,10 @@ public class NodeOptions {
 
   public NodeOptions(JsonObject json) {
     NodeOptionsConverter.fromJson(json, this);
+    if (actions != null && actions.isEmpty()) {
+      JsonArray actions = json.getJsonArray("actions");
+      template = actions.getString(0);
+    }
     if (this.onTransitions == null) {
       this.onTransitions = Collections.emptyMap();
     }
@@ -122,6 +126,10 @@ public class NodeOptions {
     return action == null && actions != null;
   }
 
+  public String getTemplate() {
+    return template;
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) {
@@ -133,12 +141,13 @@ public class NodeOptions {
     NodeOptions that = (NodeOptions) o;
     return Objects.equals(action, that.action) &&
         Objects.equals(actions, that.actions) &&
+        Objects.equals(template, that.template) &&
         Objects.equals(onTransitions, that.onTransitions);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(action, actions, onTransitions);
+    return Objects.hash(action, actions, template, onTransitions);
   }
 
   @Override
@@ -146,6 +155,7 @@ public class NodeOptions {
     return "NodeOptions{" +
         "action='" + action + '\'' +
         ", actions=" + actions +
+        ", template='" + template + '\'' +
         ", onTransitions=" + onTransitions +
         '}';
   }

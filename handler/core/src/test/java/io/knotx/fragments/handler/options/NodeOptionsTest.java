@@ -59,6 +59,21 @@ class NodeOptionsTest {
   }
 
   @Test
+  @DisplayName("Expect composite node options when actions array is configured")
+  void expectCompositeNodeWithTemplate() throws IOException {
+    //given
+    JsonObject config = from("tasks/templateNode.json");
+
+    //when
+    NodeOptions nodeOptions = new NodeOptions(config);
+
+    //then
+    assertTrue(nodeOptions.isComposite());
+    assertNull(nodeOptions.getAction());
+    assertEquals("@namespace", nodeOptions.getTemplate());
+  }
+
+  @Test
   @DisplayName("Expect action node when both action and actions array are configured")
   void expectActionNodeWhenBothActionAndActionsDefined() throws IOException {
     //given
