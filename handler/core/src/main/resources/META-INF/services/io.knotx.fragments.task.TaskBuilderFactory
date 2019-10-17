@@ -13,3 +13,4 @@
 #  limitations under the License.
 
 io.knotx.fragments.task.DefaultTaskBuilderFactory
+io.knotx.fragments.task.TemplateTaskBuilderFactory

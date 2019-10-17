@@ -1,5 +1,16 @@
 = Cheatsheets
 
+[[ActionExtraOptions]]
+== ActionExtraOptions
+
+
+[cols=">25%,25%,50%"]
+[frame="topbot"]
+|===
+^|Name | Type ^| Description
+|[[extra]]`@extra`|`Json object`|-
+|===
+
 [[ActionPayload]]
 == ActionPayload
 

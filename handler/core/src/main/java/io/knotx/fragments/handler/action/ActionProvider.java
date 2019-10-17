@@ -15,10 +15,12 @@
  */
 package io.knotx.fragments.handler.action;
 
+import io.knotx.fragments.handler.api.ActionExtraOptions;
 import io.knotx.fragments.handler.api.Cacheable;
 import io.knotx.fragments.handler.api.Action;
 import io.knotx.fragments.handler.api.ActionFactory;
 import io.vertx.core.Vertx;
+import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import java.util.HashMap;
@@ -47,6 +49,10 @@ public class ActionProvider {
   }
 
   public Optional<Action> get(String action) {
+    return get(action, null, new JsonObject());
+  }
+
+  public Optional<Action> get(String action, String namespace, JsonObject extraOptions) {
     if (StringUtils.isBlank(action)) {
       return Optional.empty();
     }
@@ -64,14 +70,29 @@ public class ActionProvider {
 
     // recurrence here :)
     Action operation = Optional.ofNullable(config.getDoAction())
-        .flatMap(this::get)
+        .flatMap(a -> get(a, getNamespace(a, namespace), extraOptions))
         .orElse(null);
+
+    JsonObject actionConfig = getConfig(config, extraOptions);
 
     if (isCacheable(factory)) {
       return Optional.of(cache.computeIfAbsent(action,
-          a -> factory.create(a, config.getConfig(), vertx, operation)));
+          a -> factory.create(getNamespace(action, namespace), actionConfig, vertx, operation)));
     } else {
-      return Optional.of(factory.create(action, config.getConfig(), vertx, operation));
+      return Optional.of(factory.create(getNamespace(action, namespace), actionConfig, vertx, operation));
+    }
+  }
+
+  private String getNamespace(String a, String namespace) {
+    return StringUtils.isBlank(namespace) ? a : namespace;
+  }
+
+  private JsonObject getConfig(ActionOptions config, JsonObject extraOptions) {
+    if (extraOptions == null) {
+      return config.getConfig();
+    } else {
+      return config.getConfig()
+          .mergeIn(new JsonObject().put(ActionExtraOptions.EXTRA_OPTIONS_KEY, extraOptions));
     }
   }
 
