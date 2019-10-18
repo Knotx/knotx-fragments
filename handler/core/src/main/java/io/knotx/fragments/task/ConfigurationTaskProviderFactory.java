@@ -15,11 +15,19 @@
  *
  * The code comes from https://github.com/tomaszmichalak/vertx-rx-map-reduce.
  */
-package io.knotx.fragments.handler.exception;
+package io.knotx.fragments.task;
 
-public class GraphConfigurationException extends ConfigurationException {
+import io.knotx.fragments.handler.action.ActionProvider;
 
-  public GraphConfigurationException(String message) {
-    super(message);
+public class ConfigurationTaskProviderFactory implements TaskProviderFactory {
+
+  @Override
+  public String getName() {
+    return "default";
+  }
+
+  @Override
+  public TaskProvider create(ActionProvider actionProvider) {
+    return new ConfigurationTaskProvider(actionProvider);
   }
 }

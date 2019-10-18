@@ -29,7 +29,7 @@ import io.knotx.fragments.engine.Task;
 import io.knotx.fragments.handler.action.ActionProvider;
 import io.knotx.fragments.handler.api.ActionFactory;
 import io.knotx.fragments.handler.options.FragmentsHandlerOptions;
-import io.knotx.fragments.task.TaskBuilder;
+import io.knotx.fragments.task.TaskManager;
 import io.knotx.server.api.context.ClientRequest;
 import io.knotx.server.api.context.RequestContext;
 import io.knotx.server.api.context.RequestEvent;
@@ -42,6 +42,7 @@ import io.vertx.reactivex.core.Vertx;
 import io.vertx.reactivex.ext.web.RoutingContext;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Optional;
 import java.util.ServiceLoader;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
@@ -51,14 +52,14 @@ public class FragmentsHandler implements Handler<RoutingContext> {
 
   private final FragmentsEngine engine;
   private final RequestContextEngine requestContextEngine;
-  private final TaskBuilder taskBuilder;
+  private final TaskManager taskProvider;
 
   FragmentsHandler(Vertx vertx, JsonObject config) {
     FragmentsHandlerOptions options = new FragmentsHandlerOptions(config);
 
     ActionProvider proxyProvider = new ActionProvider(options.getActions(),
         supplyFactories(), vertx.getDelegate());
-    taskBuilder = new TaskBuilder(options.getTaskKey(), options.getTasks(), proxyProvider);
+    taskProvider = new TaskManager(options.getTaskKey(), options.getTasks(), proxyProvider);
     engine = new FragmentsEngine(vertx);
     requestContextEngine = new DefaultRequestContextEngine(getClass().getSimpleName());
   }
@@ -137,7 +138,7 @@ public class FragmentsHandler implements Handler<RoutingContext> {
             fragment -> {
               FragmentEventContext fragmentEventContext = new FragmentEventContext(
                   new FragmentEvent(fragment), clientRequest);
-              return taskBuilder.build(fragment)
+              return taskProvider.get(fragmentEventContext)
                   .map(
                       task -> new FragmentEventContextTaskAware(task, fragmentEventContext))
                   .orElseGet(() -> new FragmentEventContextTaskAware(new Task("_NOT_DEFINED"),
@@ -146,4 +147,5 @@ public class FragmentsHandler implements Handler<RoutingContext> {
         .collect(
             Collectors.toList());
   }
+
 }
