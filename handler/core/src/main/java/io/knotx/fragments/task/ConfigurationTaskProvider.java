@@ -30,7 +30,9 @@ import io.knotx.fragments.handler.api.Action;
 import io.knotx.fragments.handler.api.domain.FragmentContext;
 import io.knotx.fragments.handler.api.domain.FragmentResult;
 import io.knotx.fragments.task.exception.GraphConfigurationException;
-import io.knotx.fragments.handler.options.NodeOptions;
+import io.knotx.fragments.task.node.options.ActionNodeConfigOptions;
+import io.knotx.fragments.task.node.options.SubTasksNodeConfigOptions;
+import io.knotx.fragments.task.options.GraphOptions;
 import io.reactivex.Single;
 import java.util.HashMap;
 import java.util.List;
@@ -52,8 +54,8 @@ public class ConfigurationTaskProvider implements TaskProvider {
     return new Task(config.getTaskName(), rootNode);
   }
 
-  private Node initGraphNode(NodeOptions options) {
-    Map<String, NodeOptions> transitions = options.getOnTransitions();
+  private Node initGraphNode(GraphOptions options) {
+    Map<String, GraphOptions> transitions = options.getOnTransitions();
     Map<String, Node> edges = new HashMap<>();
     transitions.forEach((transition, childGraphOptions) -> {
       edges.put(transition, initGraphNode(childGraphOptions));
@@ -67,14 +69,17 @@ public class ConfigurationTaskProvider implements TaskProvider {
     return node;
   }
 
-  private Node buildActionNode(NodeOptions options, Map<String, Node> edges) {
-    Action action = actionProvider.get(options.getAction()).orElseThrow(
-        () -> new GraphConfigurationException("No provider for action " + options.getAction()));
-    return new ActionNode(options.getAction(), toRxFunction(action), edges);
+  private Node buildActionNode(GraphOptions options, Map<String, Node> edges) {
+    ActionNodeConfigOptions config = new ActionNodeConfigOptions(options.getNode().getConfig());
+    Action action = actionProvider.get(config.getAction()).orElseThrow(
+        () -> new GraphConfigurationException("No provider for action " + config.getAction()));
+    return new ActionNode(config.getAction(), toRxFunction(action), edges);
   }
 
-  private Node buildCompositeNode(NodeOptions options, Map<String, Node> edges) {
-    List<Node> nodes = options.getActions().stream()
+  private Node buildCompositeNode(GraphOptions options, Map<String, Node> edges) {
+    SubTasksNodeConfigOptions config = new SubTasksNodeConfigOptions(
+        options.getNode().getConfig());
+    List<Node> nodes = config.getSubTasks().stream()
         .map(this::initGraphNode)
         .collect(Collectors.toList());
     return new CompositeNode(nodes, edges.get(SUCCESS_TRANSITION), edges.get(ERROR_TRANSITION));

@@ -15,7 +15,6 @@
  */
 package io.knotx.fragments.task.options;
 
-import io.knotx.fragments.handler.options.NodeOptions;
 import io.vertx.codegen.annotations.DataObject;
 import io.vertx.core.json.JsonObject;
 
@@ -23,25 +22,25 @@ import io.vertx.core.json.JsonObject;
 public class TaskOptions {
 
   private static final String FACTORY_KEY = "factory";
-  private static final String CONFIG_KEY = "config";
+  private static final String GRAPH_KEY = "graph";
 
   private TaskProviderOptions factory;
-  private NodeOptions config;
+  private GraphOptions graph;
 
   public TaskOptions(JsonObject json) {
     if (json.containsKey(FACTORY_KEY)) {
       factory = new TaskProviderOptions(json.getJsonObject(FACTORY_KEY));
-      config = new NodeOptions(json.getJsonObject(CONFIG_KEY));
+      graph = new GraphOptions(json.getJsonObject(GRAPH_KEY));
     } else {
       factory = new TaskProviderOptions("default", new JsonObject());
-      config = new NodeOptions(json);
+      graph = new GraphOptions(json);
     }
   }
 
   public JsonObject toJson() {
     JsonObject result = new JsonObject();
     result.put(FACTORY_KEY, factory);
-    result.put(CONFIG_KEY, config);
+    result.put(GRAPH_KEY, graph);
     return result;
   }
 
@@ -49,15 +48,15 @@ public class TaskOptions {
     return factory;
   }
 
-  public NodeOptions getConfig() {
-    return config;
+  public GraphOptions getGraph() {
+    return graph;
   }
 
   @Override
   public String toString() {
     return "TaskOptions{" +
         "factory=" + factory +
-        ", config=" + config +
+        ", graph=" + graph +
         '}';
   }
 }

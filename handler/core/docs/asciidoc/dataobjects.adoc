@@ -1,5 +1,16 @@
 = Cheatsheets
 
+[[ActionNodeConfigOptions]]
+== ActionNodeConfigOptions
+
+
+[cols=">25%,25%,50%"]
+[frame="topbot"]
+|===
+^|Name | Type ^| Description
+|[[action]]`@action`|`String`|-
+|===
+
 [[ActionOptions]]
 == ActionOptions
 
@@ -36,8 +47,8 @@ Sets <code>Task</code> list, which are named, directed graphs of <code>Actions</
 +++
 |===
 
-[[NodeOptions]]
-== NodeOptions
+[[GraphOptions]]
+== GraphOptions
 
 ++++
  Defines graph's verticle with outgoing directed edges (<code>Transitions</code>).
@@ -52,15 +63,41 @@ Sets <code>Task</code> list, which are named, directed graphs of <code>Actions</
 Sets <code>Action</code> name. This action will be executed during processing given graph node. If
  <code>action</code> field is defined, Node configured by it will be treated as Action Node.
 +++
-|[[actions]]`@actions`|`Array of link:dataobjects.html#NodeOptions[NodeOptions]`|+++
-Sets list of <code>NodeOptions</code> that represents <code>Actions</code> that will be executed in
- parallel. If this array is defined and <code>action</code> field is left empty, Node will be treated
- as Composite.
-+++
+|[[actions]]`@actions`|`Array of link:dataobjects.html#GraphOptions[GraphOptions]`|-
 |[[composite]]`@composite`|`Boolean`|-
-|[[onTransitions]]`@onTransitions`|`link:dataobjects.html#NodeOptions[NodeOptions]`|+++
+|[[node]]`@node`|`link:dataobjects.html#NodeOptions[NodeOptions]`|-
+|[[onTransitions]]`@onTransitions`|`link:dataobjects.html#GraphOptions[GraphOptions]`|+++
 Sets the <code>Map</code> of possible onTransitions for the given graph node. If the Node is <code>Composite</code> only <code>_success</code> and <code>_error</code> transitions can be configured.
 +++
+|[[subTasks]]`@subTasks`|`Array of link:dataobjects.html#GraphOptions[GraphOptions]`|-
+|[[subtasks]]`@subtasks`|`Array of link:dataobjects.html#GraphOptions[GraphOptions]`|-
+|===
+
+[[NodeOptions]]
+== NodeOptions
+
+
+[cols=">25%,25%,50%"]
+[frame="topbot"]
+|===
+^|Name | Type ^| Description
+|[[config]]`@config`|`Json object`|-
+|[[factory]]`@factory`|`String`|-
+|===
+
+[[SubTasksNodeConfigOptions]]
+== SubTasksNodeConfigOptions
+
+
+[cols=">25%,25%,50%"]
+[frame="topbot"]
+|===
+^|Name | Type ^| Description
+|[[subTasks]]`@subTasks`|`Array of link:dataobjects.html#GraphOptions[GraphOptions]`|+++
+Sets list of  that represents link that will be executed in
+ parallel.
++++
+|[[subtasks]]`@subtasks`|`Array of link:dataobjects.html#GraphOptions[GraphOptions]`|-
 |===
 
 [[TaskOptions]]
@@ -71,8 +108,8 @@ Sets the <code>Map</code> of possible onTransitions for the given graph node. If
 [frame="topbot"]
 |===
 ^|Name | Type ^| Description
-|[[config]]`@config`|`link:dataobjects.html#NodeOptions[NodeOptions]`|-
 |[[factory]]`@factory`|`link:dataobjects.html#TaskProviderOptions[TaskProviderOptions]`|-
+|[[graph]]`@graph`|`link:dataobjects.html#GraphOptions[GraphOptions]`|-
 |===
 
 [[TaskProviderOptions]]

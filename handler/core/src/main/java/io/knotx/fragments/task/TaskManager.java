@@ -73,7 +73,7 @@ public class TaskManager {
   }
 
   private Configuration getTaskConfiguration(String taskName) {
-    return new Configuration(taskName, tasks.get(taskName).getConfig());
+    return new Configuration(taskName, tasks.get(taskName).getGraph());
   }
 
   private TaskProvider getProvider(String taskName) {
