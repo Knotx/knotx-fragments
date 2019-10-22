@@ -94,8 +94,8 @@ Sets the <code>Map</code> of possible onTransitions for the given graph node. If
 |===
 ^|Name | Type ^| Description
 |[[subTasks]]`@subTasks`|`Array of link:dataobjects.html#GraphOptions[GraphOptions]`|+++
-Sets list of  that represents link that will be executed in
- parallel.
+Sets list of link that represents link that
+ will be executed in parallel.
 +++
 |[[subtasks]]`@subtasks`|`Array of link:dataobjects.html#GraphOptions[GraphOptions]`|-
 |===
