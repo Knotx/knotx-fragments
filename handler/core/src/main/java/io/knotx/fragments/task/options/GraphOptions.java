@@ -38,6 +38,18 @@ public class GraphOptions {
   private NodeOptions node;
   private Map<String, GraphOptions> onTransitions;
 
+  public GraphOptions(String action, Map<String, GraphOptions> transitions) {
+    init();
+    setAction(action);
+    this.onTransitions = transitions;
+  }
+
+  public GraphOptions(List<GraphOptions> subTasks, Map<String, GraphOptions> transitions) {
+    init();
+    setSubTasks(subTasks);
+    this.onTransitions = transitions;
+  }
+
   public GraphOptions(JsonObject json) {
     init();
     GraphOptionsConverter.fromJson(json, this);
