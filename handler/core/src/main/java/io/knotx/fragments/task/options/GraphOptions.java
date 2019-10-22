@@ -72,8 +72,9 @@ public class GraphOptions {
     return node;
   }
 
-  public void setNode(NodeOptions node) {
+  public GraphOptions setNode(NodeOptions node) {
     this.node = node;
+    return this;
   }
 
   public Optional<GraphOptions> get(String transition) {
