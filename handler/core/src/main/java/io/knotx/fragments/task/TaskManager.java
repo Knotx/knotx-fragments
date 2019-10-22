@@ -34,7 +34,7 @@ import java.util.ServiceLoader;
 
 public class TaskManager {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(TaskProvider.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(TaskManager.class);
 
   private String taskKey;
   private List<TaskProviderFactory> providersFactories;
@@ -46,22 +46,18 @@ public class TaskManager {
     this.taskKey = taskKey;
     this.tasks = tasks;
     this.actionProvider = actionProvider;
-    providersFactories = initProviders(actionProvider);
+    providersFactories = initProviders();
   }
 
   public Optional<Task> get(FragmentEventContext fragmentEventContext) {
-    Fragment fragment = fragmentEventContext.getFragmentEvent().getFragment();
-    if (hasTask(fragment)) {
-      String taskName = getTaskName(fragment);
-
-      TaskProvider builder = getProvider(taskName);
-      Configuration taskConfig = getTaskConfiguration(taskName);
-
-      return Optional
-          .of(builder.get(taskConfig, fragmentEventContext));
-    } else {
-      return Optional.empty();
-    }
+    return Optional.of(fragmentEventContext.getFragmentEvent().getFragment())
+        .filter(this::hasTask)
+        .map(this::getTaskName)
+        .map(taskName -> {
+          TaskProvider builder = getProvider(taskName);
+          Configuration taskConfig = getTaskConfiguration(taskName);
+          return builder.get(taskConfig, fragmentEventContext);
+        });
   }
 
   private String getTaskName(Fragment fragment) {
@@ -90,7 +86,7 @@ public class TaskManager {
         .orElseThrow(() -> new GraphConfigurationException("Could not find task builder"));
   }
 
-  private List<TaskProviderFactory> initProviders(ActionProvider actionProvider) {
+  private List<TaskProviderFactory> initProviders() {
     List<TaskProviderFactory> builders = new ArrayList<>();
     ServiceLoader
         .load(TaskProviderFactory.class).iterator()
