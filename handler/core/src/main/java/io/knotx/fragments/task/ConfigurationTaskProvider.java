@@ -32,7 +32,7 @@ import io.knotx.fragments.handler.api.domain.FragmentResult;
 import io.knotx.fragments.task.exception.GraphConfigurationException;
 import io.knotx.fragments.task.options.ActionNodeConfigOptions;
 import io.knotx.fragments.task.options.SubTasksNodeConfigOptions;
-import io.knotx.fragments.task.options.GraphOptions;
+import io.knotx.fragments.task.options.GraphNodeOptions;
 import io.reactivex.Single;
 import java.util.HashMap;
 import java.util.List;
@@ -54,8 +54,8 @@ public class ConfigurationTaskProvider implements TaskProvider {
     return new Task(config.getTaskName(), rootNode);
   }
 
-  private Node initGraphNode(GraphOptions options) {
-    Map<String, GraphOptions> transitions = options.getOnTransitions();
+  private Node initGraphNode(GraphNodeOptions options) {
+    Map<String, GraphNodeOptions> transitions = options.getOnTransitions();
     Map<String, Node> edges = new HashMap<>();
     transitions.forEach((transition, childGraphOptions) -> {
       edges.put(transition, initGraphNode(childGraphOptions));
@@ -69,14 +69,14 @@ public class ConfigurationTaskProvider implements TaskProvider {
     return node;
   }
 
-  private Node buildActionNode(GraphOptions options, Map<String, Node> edges) {
+  private Node buildActionNode(GraphNodeOptions options, Map<String, Node> edges) {
     ActionNodeConfigOptions config = new ActionNodeConfigOptions(options.getNode().getConfig());
     Action action = actionProvider.get(config.getAction()).orElseThrow(
         () -> new GraphConfigurationException("No provider for action " + config.getAction()));
     return new ActionNode(config.getAction(), toRxFunction(action), edges);
   }
 
-  private Node buildCompositeNode(GraphOptions options, Map<String, Node> edges) {
+  private Node buildCompositeNode(GraphNodeOptions options, Map<String, Node> edges) {
     SubTasksNodeConfigOptions config = new SubTasksNodeConfigOptions(
         options.getNode().getConfig());
     List<Node> nodes = config.getSubTasks().stream()

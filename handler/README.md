@@ -1,145 +1,251 @@
 # Fragments Handler
 It is a [**Handler**](https://github.com/Knotx/knotx-server-http/tree/master/api#routing-handlers)
-that processes Fragments during [HTTP Server request processing](https://github.com/Knotx/knotx-server-http#how-does-it-work).
+that [evaluates Fragments](https://github.com/Knotx/knotx-fragments#evaluate-fragments). It is 
+the standard [HTTP Server routing handler](https://github.com/Knotx/knotx-server-http/blob/master/README.md#routing-handler).
 
 ## How does it work
+Fragments handler evaluates all fragments independently in a map-reduce fashion. It delegates fragment 
+processing to [Fragment Engine](https://github.com/Knotx/knotx-fragments/tree/master/handler/engine).  
+The engine gets a fragment, checks if some processing is required, if yes, does some fragment 
+modifications. Processing logic is named `Task` and is formed as a directed graph.
 
-Fragments Handler evaluates all Fragments independently using a **map-reduce** strategy. Each Fragment 
-is processed by [Fragments Engine](https://github.com/Knotx/knotx-fragments/tree/master/handler/engine)
-that evaluates a `Task` logic (a directed graph).
-
-Fragments Handler reads a Task name from Fragment configuration (it checks the `data-knotx-task` key by default)
-and builds a directed graph of nodes. Task node can be [Action](#actions) or list of sub-graphs (sub-tasks). 
-
-The diagram below depicts the map-reduce logic with RX Java marble diagrams:
+The diagram below depicts the map-reduce logic using [Marble Diagrams for Reactive Streams](https://medium.com/@jshvarts/read-marble-diagrams-like-a-pro-3d72934d3ef5):
 
 ![RXfied processing diagram](core/assets/images/all_in_one_processing.png)
 
-It represents a page containing many Fragments, each Fragment is evaluated, when an error occurs, some 
-fallback can be configured. When all Fragments are processed, then they are merged and returned as 
-a page body.
+Let's assume that Knot.x gets HTTP requests for data coming from many different sources. Dots at the 
+`flatMap` diagram represents incoming requests. For simplicity suppose that each request maps to a 
+single fragment to process. Then each fragment is evaluated in isolation, not waiting for others. 
+A fragment defines a task describing how to fetch a required data. A task is a graph.  The `map` and 
+`onErrorResumeNext` diagrams represent a graph processing. When a fragment is processed, then it is 
+returned. Please note that an HTTP request can be mapped to many fragments, then the `collect` diagram 
+represents fragments joining.
 
-Moving from macro to micro perspective, when Fragments are result of HTML splitting, the example can 
-look like:
-```html
-<knotx:snippet data-knotx-task="pdp">
-{{get-product._result.data}}
-</knotx:snippet>
-```
-
-And then in the configuration we have:
-
-```hocon
-# tasks map (task name -> graph of nodes)
-tasks {
-  # task name
-  pdp {
-    # task definition
-    action = get-product
-    onTransitions {
-      _success {
-        action = fill-placeholders
-      } 
-      _error {
-        action = handlebars
-      }
-    }
-  }
-}
-
-actions {
-  get-product { ... }
-  handlebars { ... }
-  apply-fallback {
-    factory = "inline-body"
-    config {
-      body = <div>Product not available at the moment</div>
-    }
-  }
-}
-```
-See next chapters to understand what are Tasks in details.
-
+Read more about benefits [here](http://knotx.io/blog/configurable-integrations/).
 
 ## Task
-Task defines a directed graph of nodes. Node gets Fragment and responds with modified Fragment and Transition. 
-So node contract is a function:
+Task decompose business logic into lightweight independent parts.  Those parts are graph nodes, 
+connected with transitions. Graph node can, for example, represent some REST API invocation. So a task 
+is a directed graph of nodes.
+```
+(A) ───> (B) ───> (C)
+    └──> (D)
+```
 
+Tasks are configured in map:
+```hocon
+tasks {
+  # unique task name
+  myTask {
+    # task configuration
+    # HERE
+  }
+}
+```
+
+Let's see how tasks are instated. A task specifies a task provider factory options and its graph logic:
+```hocon
+tasks {
+  # unique task name
+  myTask {
+    # factory options
+    factory = configuration
+    config {
+      someKey = someValue
+    }
+    # graph logic
+    graph {
+      # GRAPH
+    }
+  }
+}
+```
+
+In most cases the default task provider is used, so the definition can be simplified to:
+```hocon
+tasks {
+  # unique task name
+  myTask {
+    # GRAPH
+  }
+}
+```
+> Note:
+> Custom tasks providers can be easily added with custom [factories](https://github.com/Knotx/knotx-fragments/blob/master/handler/core/src/main/java/io/knotx/fragments/task/TaskProviderFactory.java) 
+> that register in [Task Manager](https://github.com/Knotx/knotx-fragments/blob/master/handler/core/src/main/java/io/knotx/fragments/task/TaskManager.java).
+
+#### Graph
+Task logic is defined in the form of a graph. Actually, it is a tree structure. Each graph node sets 
+fragment logic to perform and outgoing edges, called Transitions. Its configuration looks like:
+```hocon
+graph {
+  # node logic options
+  node { }
+  # node outgoing edges
+  onTransitions {
+    _success { }
+    _error { }
+    someCustomTransition { }
+  }
+}
+```
+There are two sections:
+- `node`defines a fragment processing logic
+- `onTransitions` is a map that represents outgoing edges in a graph
+
+#### Node processing
+The node responsibility can be described as: 
+> Graph node gets a fragment, processes it and responds with Transition. 
+So a node is the function:
 ```
 F -> (F', T)
 ```
+where `F` is Fragment, `F'` is modified Fragment, `T` is Transition.
 
-where `F` is Fragment, `F'` is the new Fragment, `T` is Transition.
+The node definition is abstract. It allows to define simple processing nodes but also more complex 
+structures such as a list of subgraphs. Furthermore, such a definition inspires to provide custom 
+node implementations.
 
-Such definition encourages to provide custom nodes. Projects can easily extend the default node implementations:
-**Action node** (then called **Action**) that integrates with a data source and enables applying stability patterns in a declarative way
-**SubTask node** that is a list of unnamed tasks (sub-tasks) that are evaluated in parallel
-
-The most simple Task definition can be:
+The `node` configuration is simple:
 ```hocon
-# action name
-action = a
+graph {
+  node {
+    factory = action
+    config {
+      action = book-rest-api
+    }
+  }
+}
+
+
+```
+The `factory` parameter specifies a node factory name, `config` contains all options passed to 
+the factory. 
+
+Knot.x provides two node implementations:
+**Action node** that represents simple steps in a graph such as integration with a data source
+**SubTasks node** that is a list of unnamed tasks (sub-tasks) that are evaluated in parallel
+
+##### Action node
+Action node declares [Action](#actions) to execute by action name. Its configuration is simple:
+```hocon
+graph {
+  node {
+    factory = action
+    config {
+      action = book-rest-api
+    }
+  }
+}
+```
+The above example specifies the action node that delegates processing to the `book-rest-api` action.
+
+Knot.x allows simplifying action nodes declaration:
+```hocon
+action = book-rest-api
 ```
 
-It is the alias to the Action node with the `a` action name and no Transitions.
-
-This alias is translated to:
+So the task definition is:
 ```hocon
-# node configuration
-node {
-  # Action node factory name
-  factory = action
-  config {
-    action = a
+tasks {
+  myTask {
+    action = book-rest-api
+  }  
+}
+```
+It is the `myTask` task with the action node using the `book-rest-api` action and no transitions.
+
+A nice syntax sugar!
+
+##### SubTasks node
+SubTasks node is a node containing a list of sub-tasks. It evaluates all of them sequentially. However, 
+all operations are non-blocking so they are executed in parallel. 
+
+Moreover, a list of sub-tasks must fit the `F -> (F',T)` function. Each subtask has its fragment 
+context, execute it's logic and update fragment payload (its own copy). Finally, when all sub-tasks are completed, 
+all payloads are merged and the new Fragment is returned.
+
+> Note that body modifications are not allowed.
+
+A subtasks node configuration looks like:
+```hocon
+graph {
+  node {
+    factory = subTasks
+    config {
+      subTasks = [
+        { 
+          action = book-rest-api 
+        },
+        { 
+          action = author-rest-api 
+        }
+      ]
+    }
   }
 }
 ```
 
-Task usually defines three parts:
-```hocon
-# task factory
-factory {}
-# node configuration
-node{}
-# node edges
-onTransitions {}
-```
-
-So in fact our simple example is translated to:
-```hocon
-# task factory
-factory {
-  name = default
-}
-# node configuration
-node {
-  # Action node factory name
-  factory = action
-  config {
-    action = a
-  }
-}
-# node edges
-onTransitions {}
-```
-
-With SubTasks node parallel sub-tasks (sub-graphs) are easy to configure.
-
-Let's see more complex example:
+It follows the same simplification rules as an action node:
 ```hocon
 subTasks = [
   { 
-    action = book
+    action = book-rest-api 
+  },
+  { 
+    action = author-rest-api 
+  }
+]
+```
+
+Please note that it is a list of subtasks, not action nodes! In the example above, the `book-rest-api`  
+and `author-rest-api` actions are executed in parallel. 
+
+See the [example section](#complex-example) for a more complex scenario. Before we see the full power of 
+graphs, we need to understand how nodes are connected.
+
+##### Transitions
+A directed graph consists of nodes and edges. Edges are called transitions. Their configuration looks like:
+```hocon
+onTransitions {
+  _success {
+    # next node when _success transition
+  }
+  _error {
+    # next node when error occurs
+  }
+  customTransition {
+    # next node when custom transition
+  }
+}
+```
+Transition is simple text. The `_success` and `_error` transitions are the default ones. However, 
+they are not mandatory!
+
+>If a node responds with _success transition, but the transition is not configured, then processing is finished.
+
+>If a node responds with _error transition, but the transition is not configured, then an exception is returned.
+
+Nodes can declare custom transitions. Custom transitions allow to react to non standard situations 
+such as data sources timeouts, fallbacks etc.
+
+#### Complex example
+```hocon
+subTasks = [
+  { 
+    action = book-rest-api
     onTransitions {
       _success {
-        action = score
+        action = score-algorithm
       }
       _error {
         action = book-from-cache
       } 
     }
   },
-  { action = author }
+  { 
+    action = author-rest-api 
+  }
 ]
 onTransitions {
   _error {
@@ -147,19 +253,18 @@ onTransitions {
   }
 }
 ```
-There is a Task that fetches book and author details in parallel. However, the `book` Action node defines 
-`_success` and `_error` transitions. So the `subTasks` node schedules a list of sub-tasks to execute 
-and wait until all of them complete. Additionally it defines the `error` Transition if any of those
-sub-tasks will fail.
+The above task fetches book and author details in parallel. The `book-rest-api` action node defines 
+`_success` and `_error` transitions. If any subtask fail then the `book-and-author-fallback` node action 
+is executed. 
 
 ## Actions
-Action is a node. So it is a function `F -> (F',T)`. Actions integrate with external data sources, 
-do some updates or fetch data. A data source response is saved in a Fragment's payload (JSON object) 
+Action defines action node logic, it is the `F -> (F',T)` function. Actions integrate with external data sources, 
+do some fragments modifications or fetch data. A data source response is saved in a Fragment's payload (JSON object) 
 under an Action's name key and a "\_result" sub-key:
 ```json
 {
   "book": {
-    "_result": { ... }
+    "_result": { }
   }
 }
 ```
@@ -271,48 +376,3 @@ doAction = product-cb
 Please note that cacheKey can be parametrized with request data like params, headers etc. Read 
 [Knot.x HTTP Server Common Placeholders](https://github.com/Knotx/knotx-server-http/tree/master/common/placeholders)
 documentation for more details.
-
-## SubTasks node
-Subtask is a node containing a list of sub-tasks. It evaluates all of them sequentially. However, 
-all operations are non-blocking so they are executed in parallel. 
-
-Moreover, a list of sub-tasks must fit the `F -> (F',T)` function. Each subtask has its Fragment 
-context, execute it's logic and update Fragment's payload. Finally, when all sub-tasks are completed, 
-all payloads are merged and the new Fragment is returned.
-
-> Note that body modifications are not allowed.
-
-The most simple configuration looks like:
-```hocon
-subTasks = [
-  {
-    action = a
-  },
-  {
-    action = b
-  }
-]
-```
-
-It is translated to:
-```hocon
-node {
-  factory = subTasks
-  config {
-    subTasks = [
-      {
-        node {
-          factory = action
-          config {
-            action = a
-          } 
-        }
-      }
-      {
-        ...
-      }
-    ]
-  }
-}
-```
-

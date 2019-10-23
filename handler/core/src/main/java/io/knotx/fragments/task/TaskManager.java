@@ -78,11 +78,11 @@ public class TaskManager {
       LOGGER.error("Could not find task [{}] in tasks [{}]", taskName, tasks);
       throw new TaskNotFoundException(taskName);
     }
-    String builderName = taskOptions.getFactory().getName();
+    String builderName = taskOptions.getFactory();
     return providersFactories.stream()
         .filter(f -> f.getName().equals(builderName))
         .findFirst()
-        .map(f -> f.create(actionProvider))
+        .map(f -> f.create(taskOptions.getConfig(), actionProvider))
         .orElseThrow(() -> new GraphConfigurationException("Could not find task builder"));
   }
 

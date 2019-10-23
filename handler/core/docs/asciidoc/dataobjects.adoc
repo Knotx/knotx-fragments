@@ -3,12 +3,28 @@
 [[ActionNodeConfigOptions]]
 == ActionNodeConfigOptions
 
+++++
+ Action node configuration model. It is model for link JSON object.
+
+ <pre>
+ node {
+   factory = action
+   config {
+     HERE
+   }
+ }
+ </pre>
+++++
+'''
 
 [cols=">25%,25%,50%"]
 [frame="topbot"]
 |===
 ^|Name | Type ^| Description
-|[[action]]`@action`|`String`|-
+|[[action]]`@action`|`String`|+++
+Sets link name. The specified Action is executed
+ during processing of given graph node.
++++
 |===
 
 [[ActionOptions]]
@@ -47,11 +63,37 @@ Sets <code>Task</code> list, which are named, directed graphs of <code>Actions</
 +++
 |===
 
-[[GraphOptions]]
-== GraphOptions
+[[GraphNodeOptions]]
+== GraphNodeOptions
 
 ++++
- Defines graph's verticle with outgoing directed edges (<code>Transitions</code>).
+ It is link processing configuration. Task is graph of nodes (in
+ fact it is tree structure). It defines link and outgoing directed graph edges,
+ called <code>Transitions</code>.
+
+ It represents JSON configuration:
+ <pre>
+ {
+   node = {
+     factory = action
+     config {
+       action = a
+     }
+   }
+   onTransitions {
+     _success {
+       node = {
+         factory = action
+         config {
+           action = b
+         }
+       }
+     }
+   }
+ }
+ </pre>
+
+ Please note that Transitions define next graph nodes.
 ++++
 '''
 
@@ -60,44 +102,63 @@ Sets <code>Task</code> list, which are named, directed graphs of <code>Actions</
 |===
 ^|Name | Type ^| Description
 |[[action]]`@action`|`String`|+++
-Sets <code>Action</code> name. This action will be executed during processing given graph node. If
- <code>action</code> field is defined, Node configured by it will be treated as Action Node.
+
 +++
-|[[actions]]`@actions`|`Array of link:dataobjects.html#GraphOptions[GraphOptions]`|-
+|[[actions]]`@actions`|`Array of link:dataobjects.html#GraphNodeOptions[GraphNodeOptions]`|+++
+
++++
 |[[composite]]`@composite`|`Boolean`|-
-|[[node]]`@node`|`link:dataobjects.html#NodeOptions[NodeOptions]`|-
-|[[onTransitions]]`@onTransitions`|`link:dataobjects.html#GraphOptions[GraphOptions]`|+++
-Sets the <code>Map</code> of possible onTransitions for the given graph node. If the Node is <code>Composite</code> only <code>_success</code> and <code>_error</code> transitions can be configured.
+|[[node]]`@node`|`link:dataobjects.html#NodeOptions[NodeOptions]`|+++
+Sets node options defining node factory and its configuration.
 +++
-|[[subTasks]]`@subTasks`|`Array of link:dataobjects.html#GraphOptions[GraphOptions]`|-
-|[[subtasks]]`@subtasks`|`Array of link:dataobjects.html#GraphOptions[GraphOptions]`|-
+|[[onTransitions]]`@onTransitions`|`link:dataobjects.html#GraphNodeOptions[GraphNodeOptions]`|+++
+Sets outgoing graph node edges, called <code>Transitions</code>. Transition is String, <code>onTransitions</code> map links Transition with next graph node.
++++
+|[[subTasks]]`@subTasks`|`Array of link:dataobjects.html#GraphNodeOptions[GraphNodeOptions]`|+++
+
++++
+|[[subtasks]]`@subtasks`|`Array of link:dataobjects.html#GraphNodeOptions[GraphNodeOptions]`|+++
+
++++
 |===
 
 [[NodeOptions]]
 == NodeOptions
 
+++++
+ Node options defines factory that should be used to create node and its configuration.
+++++
+'''
 
 [cols=">25%,25%,50%"]
 [frame="topbot"]
 |===
 ^|Name | Type ^| Description
-|[[config]]`@config`|`Json object`|-
-|[[factory]]`@factory`|`String`|-
+|[[config]]`@config`|`Json object`|+++
+Sets node configuration. It does not parse JSON, the configuration is passed to node factory.
++++
+|[[factory]]`@factory`|`String`|+++
+Sets node factory name
++++
 |===
 
 [[SubTasksNodeConfigOptions]]
 == SubTasksNodeConfigOptions
 
+++++
+    * the <code>Map</code> of possible onTransitions for the given graph node. If the Node is <code>* Composite</code> only <code>_success</code> and <code>_error</code> transitions can be configured.
+++++
+'''
 
 [cols=">25%,25%,50%"]
 [frame="topbot"]
 |===
 ^|Name | Type ^| Description
-|[[subTasks]]`@subTasks`|`Array of link:dataobjects.html#GraphOptions[GraphOptions]`|+++
+|[[subTasks]]`@subTasks`|`Array of link:dataobjects.html#GraphNodeOptions[GraphNodeOptions]`|+++
 Sets list of link that represents link that
  will be executed in parallel.
 +++
-|[[subtasks]]`@subtasks`|`Array of link:dataobjects.html#GraphOptions[GraphOptions]`|-
+|[[subtasks]]`@subtasks`|`Array of link:dataobjects.html#GraphNodeOptions[GraphNodeOptions]`|-
 |===
 
 [[TaskOptions]]
@@ -108,19 +169,8 @@ Sets list of link that represents link that
 [frame="topbot"]
 |===
 ^|Name | Type ^| Description
-|[[factory]]`@factory`|`link:dataobjects.html#TaskProviderOptions[TaskProviderOptions]`|-
-|[[graph]]`@graph`|`link:dataobjects.html#GraphOptions[GraphOptions]`|-
-|===
-
-[[TaskProviderOptions]]
-== TaskProviderOptions
-
-
-[cols=">25%,25%,50%"]
-[frame="topbot"]
-|===
-^|Name | Type ^| Description
 |[[config]]`@config`|`Json object`|-
-|[[name]]`@name`|`String`|-
+|[[factory]]`@factory`|`String`|-
+|[[graph]]`@graph`|`link:dataobjects.html#GraphNodeOptions[GraphNodeOptions]`|-
 |===
 

@@ -18,16 +18,19 @@
 package io.knotx.fragments.task;
 
 import io.knotx.fragments.handler.action.ActionProvider;
+import io.vertx.core.json.JsonObject;
 
 public class ConfigurationTaskProviderFactory implements TaskProviderFactory {
 
+  public static final String NAME = "configuration";
+
   @Override
   public String getName() {
-    return "default";
+    return NAME;
   }
 
   @Override
-  public TaskProvider create(ActionProvider actionProvider) {
+  public TaskProvider create(JsonObject config, ActionProvider actionProvider) {
     return new ConfigurationTaskProvider(actionProvider);
   }
 }

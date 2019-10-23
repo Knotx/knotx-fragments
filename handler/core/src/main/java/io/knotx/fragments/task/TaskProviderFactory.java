@@ -18,11 +18,12 @@
 package io.knotx.fragments.task;
 
 import io.knotx.fragments.handler.action.ActionProvider;
+import io.vertx.core.json.JsonObject;
 
 public interface TaskProviderFactory {
 
   String getName();
 
-  TaskProvider create(ActionProvider proxyProvider);
+  TaskProvider create(JsonObject config, ActionProvider proxyProvider);
 
 }

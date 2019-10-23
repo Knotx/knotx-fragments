@@ -19,13 +19,26 @@ import io.vertx.codegen.annotations.DataObject;
 import io.vertx.core.json.JsonObject;
 import java.util.Objects;
 
+/**
+ * Action node configuration model. It is model for {@link NodeOptions#getConfig()} JSON object.
+ *
+ * <pre>
+ * node {
+ *   factory = action
+ *   config {
+ *     HERE
+ *   }
+ * }
+ * </pre>
+ */
 @DataObject(generateConverter = true)
 public class ActionNodeConfigOptions {
 
   private String action;
 
-  public ActionNodeConfigOptions(String action) {
-    this.action = action;
+
+  ActionNodeConfigOptions(String action) {
+    setAction(action);
   }
 
   public ActionNodeConfigOptions(JsonObject json) {
@@ -38,12 +51,26 @@ public class ActionNodeConfigOptions {
     return json;
   }
 
+
+  /**
+   * {@link io.knotx.fragments.handler.api.Action} name
+   *
+   * @return Action name
+   */
   public String getAction() {
     return action;
   }
 
-  public void setAction(String action) {
+  /**
+   * Sets {@link io.knotx.fragments.handler.api.Action} name. The specified Action is executed
+   * during processing of given graph node.
+   *
+   * @param action action name
+   * @return reference to this, so the API can be used fluently
+   */
+  public ActionNodeConfigOptions setAction(String action) {
     this.action = action;
+    return this;
   }
 
   @Override

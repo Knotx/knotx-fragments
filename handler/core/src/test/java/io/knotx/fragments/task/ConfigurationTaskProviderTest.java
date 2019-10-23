@@ -37,7 +37,7 @@ import io.knotx.fragments.handler.action.ActionProvider;
 import io.knotx.fragments.handler.api.Action;
 import io.knotx.fragments.handler.options.FragmentsHandlerOptions;
 import io.knotx.fragments.task.exception.GraphConfigurationException;
-import io.knotx.fragments.task.options.GraphOptions;
+import io.knotx.fragments.task.options.GraphNodeOptions;
 import io.knotx.server.api.context.ClientRequest;
 import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.VertxExtension;
@@ -60,7 +60,7 @@ import org.mockito.quality.Strictness;
 @MockitoSettings(strictness = Strictness.LENIENT)
 class ConfigurationTaskProviderTest {
 
-  private static final Map<String, GraphOptions> NO_TRANSITIONS = Collections.emptyMap();
+  private static final Map<String, GraphNodeOptions> NO_TRANSITIONS = Collections.emptyMap();
   private static final String TASK_NAME = "task";
   private static final FragmentEventContext SAMPLE_FRAGMENT_EVENT =
       new FragmentEventContext(new FragmentEvent(new Fragment("type",
@@ -86,7 +86,7 @@ class ConfigurationTaskProviderTest {
     // given
     when(actionProvider.get(eq("simpleAction"))).thenReturn(Optional.of(actionMock));
 
-    GraphOptions graph = new GraphOptions("simpleAction", NO_TRANSITIONS);
+    GraphNodeOptions graph = new GraphNodeOptions("simpleAction", NO_TRANSITIONS);
 
     // when
     Task task = new ConfigurationTaskProvider(actionProvider)
@@ -102,7 +102,7 @@ class ConfigurationTaskProviderTest {
     // given
     when(actionProvider.get(eq("simpleAction"))).thenReturn(Optional.empty());
 
-    GraphOptions graph = new GraphOptions("simpleAction", NO_TRANSITIONS);
+    GraphNodeOptions graph = new GraphNodeOptions("simpleAction", NO_TRANSITIONS);
 
     // when, then
     Assertions.assertThrows(GraphConfigurationException.class,
@@ -115,7 +115,7 @@ class ConfigurationTaskProviderTest {
     // given
     when(actionProvider.get(eq("simpleAction"))).thenReturn(Optional.of(actionMock));
 
-    GraphOptions graph = new GraphOptions("simpleAction", NO_TRANSITIONS);
+    GraphNodeOptions graph = new GraphNodeOptions("simpleAction", NO_TRANSITIONS);
 
     // when
     Task task = getTask(graph);
@@ -136,9 +136,9 @@ class ConfigurationTaskProviderTest {
     when(actionProvider.get("actionA")).thenReturn(Optional.of(actionMock));
     when(actionProvider.get("actionB")).thenReturn(Optional.of(actionMock));
 
-    GraphOptions graph = new GraphOptions("actionA", Collections
+    GraphNodeOptions graph = new GraphNodeOptions("actionA", Collections
         .singletonMap("customTransition",
-            new GraphOptions("actionB", NO_TRANSITIONS)));
+            new GraphNodeOptions("actionB", NO_TRANSITIONS)));
 
     // when
     Task task = getTask(graph);
@@ -163,8 +163,8 @@ class ConfigurationTaskProviderTest {
     // given
     when(actionProvider.get(eq("simpleAction"))).thenReturn(Optional.of(actionMock));
 
-    GraphOptions graph = new GraphOptions(
-        subTasks(new GraphOptions("simpleAction", NO_TRANSITIONS)),
+    GraphNodeOptions graph = new GraphNodeOptions(
+        subTasks(new GraphNodeOptions("simpleAction", NO_TRANSITIONS)),
         NO_TRANSITIONS
     );
 
@@ -195,10 +195,10 @@ class ConfigurationTaskProviderTest {
     when(actionProvider.get(eq("simpleAction"))).thenReturn(Optional.of(actionMock));
     when(actionProvider.get(eq("lastAction"))).thenReturn(Optional.of(actionMock));
 
-    GraphOptions graph = new GraphOptions(
-        subTasks(new GraphOptions("simpleAction", NO_TRANSITIONS)),
+    GraphNodeOptions graph = new GraphNodeOptions(
+        subTasks(new GraphNodeOptions("simpleAction", NO_TRANSITIONS)),
         Collections
-            .singletonMap(SUCCESS_TRANSITION, new GraphOptions("lastAction", NO_TRANSITIONS))
+            .singletonMap(SUCCESS_TRANSITION, new GraphNodeOptions("lastAction", NO_TRANSITIONS))
     );
 
     // when
@@ -224,10 +224,10 @@ class ConfigurationTaskProviderTest {
     when(actionProvider.get(eq("simpleAction"))).thenReturn(Optional.of(actionMock));
     when(actionProvider.get(eq("fallbackAction"))).thenReturn(Optional.of(actionMock));
 
-    GraphOptions graph = new GraphOptions(
-        subTasks(new GraphOptions("simpleAction", NO_TRANSITIONS)),
+    GraphNodeOptions graph = new GraphNodeOptions(
+        subTasks(new GraphNodeOptions("simpleAction", NO_TRANSITIONS)),
         Collections.singletonMap(ERROR_TRANSITION,
-            new GraphOptions("fallbackAction", NO_TRANSITIONS))
+            new GraphNodeOptions("fallbackAction", NO_TRANSITIONS))
     );
 
     // when
@@ -252,10 +252,10 @@ class ConfigurationTaskProviderTest {
     when(actionProvider.get(eq("simpleAction"))).thenReturn(Optional.of(actionMock));
     when(actionProvider.get(eq("lastAction"))).thenReturn(Optional.of(actionMock));
 
-    GraphOptions graph = new GraphOptions(
-        subTasks(new GraphOptions("simpleAction", NO_TRANSITIONS)),
+    GraphNodeOptions graph = new GraphNodeOptions(
+        subTasks(new GraphNodeOptions("simpleAction", NO_TRANSITIONS)),
         Collections
-            .singletonMap("customTransition", new GraphOptions("lastAction", NO_TRANSITIONS))
+            .singletonMap("customTransition", new GraphNodeOptions("lastAction", NO_TRANSITIONS))
     );
 
     // when
@@ -276,9 +276,9 @@ class ConfigurationTaskProviderTest {
     // given
     when(actionProvider.get(eq("simpleAction"))).thenReturn(Optional.of(actionMock));
 
-    GraphOptions graph = new GraphOptions(
+    GraphNodeOptions graph = new GraphNodeOptions(
         subTasks(
-            new GraphOptions(subTasks(new GraphOptions("simpleAction", NO_TRANSITIONS)),
+            new GraphNodeOptions(subTasks(new GraphNodeOptions("simpleAction", NO_TRANSITIONS)),
                 NO_TRANSITIONS)),
         NO_TRANSITIONS
     );
@@ -306,12 +306,12 @@ class ConfigurationTaskProviderTest {
     assertEquals("simpleAction", node.getId());
   }
 
-  private Task getTask(GraphOptions graph) {
+  private Task getTask(GraphNodeOptions graph) {
     return new ConfigurationTaskProvider(actionProvider)
         .get(new Configuration(TASK_NAME, graph), SAMPLE_FRAGMENT_EVENT);
   }
 
-  private List<GraphOptions> subTasks(GraphOptions... nodes) {
+  private List<GraphNodeOptions> subTasks(GraphNodeOptions... nodes) {
     return Arrays.asList(nodes);
   }
 }

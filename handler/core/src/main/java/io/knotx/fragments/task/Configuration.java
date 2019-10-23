@@ -15,15 +15,15 @@
  */
 package io.knotx.fragments.task;
 
-import io.knotx.fragments.task.options.GraphOptions;
+import io.knotx.fragments.task.options.GraphNodeOptions;
 
 class Configuration {
 
   private final String taskName;
 
-  private final GraphOptions rootNode;
+  private final GraphNodeOptions rootNode;
 
-  Configuration(String taskName, GraphOptions rootNode) {
+  Configuration(String taskName, GraphNodeOptions rootNode) {
     this.taskName = taskName;
     this.rootNode = rootNode;
   }
@@ -32,7 +32,7 @@ class Configuration {
     return taskName;
   }
 
-  GraphOptions getRootNode() {
+  GraphNodeOptions getRootNode() {
     return rootNode;
   }
 }

@@ -19,13 +19,16 @@ import io.vertx.codegen.annotations.DataObject;
 import io.vertx.core.json.JsonObject;
 import java.util.Objects;
 
+/**
+ * Node options defines factory that should be used to create node and its configuration.
+ */
 @DataObject(generateConverter = true)
 public class NodeOptions {
 
   private String factory;
   private JsonObject config;
 
-  public NodeOptions() {
+  NodeOptions() {
     init();
   }
 
@@ -44,19 +47,45 @@ public class NodeOptions {
     return result;
   }
 
+  /**
+   * Gets factory name.
+   *
+   * @return factory name
+   */
   public String getFactory() {
     return factory;
   }
 
+  /**
+   * Sets node factory name
+   *
+   * @param factory factory name
+   * @return reference to this, so the API can be used fluently
+   */
   public NodeOptions setFactory(String factory) {
     this.factory = factory;
     return this;
   }
 
+  /**
+   * Gets node configuration. The default ones are:
+   * <pre>
+   * - {@link ActionNodeConfigOptions}
+   * - {@link SubTasksNodeConfigOptions}
+   * </pre>
+   *
+   * @return JSON representation of above config options
+   */
   public JsonObject getConfig() {
     return config;
   }
 
+  /**
+   * Sets node configuration. It does not parse JSON, the configuration is passed to node factory.
+   *
+   * @param config node config
+   * @return reference to this, so the API can be used fluently
+   */
   public NodeOptions setConfig(JsonObject config) {
     this.config = config;
     return this;

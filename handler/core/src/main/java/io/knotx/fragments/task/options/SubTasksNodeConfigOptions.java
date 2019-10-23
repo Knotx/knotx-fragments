@@ -20,12 +20,16 @@ import io.vertx.core.json.JsonObject;
 import java.util.List;
 import java.util.Objects;
 
+/**
+ *    * the {@code Map} of possible onTransitions for the given graph node. If the Node is {@code
+ *    * Composite} only {@code _success} and {@code _error} transitions can be configured.
+ */
 @DataObject(generateConverter = true)
 public class SubTasksNodeConfigOptions {
 
-  private List<GraphOptions> subTasks;
+  private List<GraphNodeOptions> subTasks;
 
-  public SubTasksNodeConfigOptions(List<GraphOptions> subTasks) {
+  public SubTasksNodeConfigOptions(List<GraphNodeOptions> subTasks) {
     this.subTasks = subTasks;
   }
 
@@ -39,23 +43,23 @@ public class SubTasksNodeConfigOptions {
     return json;
   }
 
-  public List<GraphOptions> getSubTasks() {
+  public List<GraphNodeOptions> getSubTasks() {
     return subTasks;
   }
 
   /**
-   * Sets list of {@link GraphOptions} that represents {@link io.knotx.fragments.engine.Task} that
+   * Sets list of {@link GraphNodeOptions} that represents {@link io.knotx.fragments.engine.Task} that
    * will be executed in parallel.
    *
-   * @param subTasks list of {@link GraphOptions}
+   * @param subTasks list of {@link GraphNodeOptions}
    * @return reference to this, so the API can be used fluently
    */
-  public SubTasksNodeConfigOptions setSubTasks(List<GraphOptions> subTasks) {
+  public SubTasksNodeConfigOptions setSubTasks(List<GraphNodeOptions> subTasks) {
     this.subTasks = subTasks;
     return this;
   }
 
-  public SubTasksNodeConfigOptions setSubtasks(List<GraphOptions> subtasks) {
+  public SubTasksNodeConfigOptions setSubtasks(List<GraphNodeOptions> subtasks) {
     setSubTasks(subtasks);
     return this;
   }

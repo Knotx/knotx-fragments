@@ -15,47 +15,87 @@
  */
 package io.knotx.fragments.task.options;
 
+import io.knotx.fragments.task.ConfigurationTaskProvider;
+import io.knotx.fragments.task.ConfigurationTaskProviderFactory;
 import io.vertx.codegen.annotations.DataObject;
 import io.vertx.core.json.JsonObject;
+import java.util.Objects;
 
-@DataObject(generateConverter = false)
+@DataObject(generateConverter = true)
 public class TaskOptions {
 
-  private static final String FACTORY_KEY = "factory";
-  private static final String GRAPH_KEY = "graph";
-
-  private TaskProviderOptions factory;
-  private GraphOptions graph;
+  private String factory;
+  private JsonObject config;
+  private GraphNodeOptions graph;
 
   public TaskOptions(JsonObject json) {
-    if (json.containsKey(FACTORY_KEY)) {
-      factory = new TaskProviderOptions(json.getJsonObject(FACTORY_KEY));
-      graph = new GraphOptions(json.getJsonObject(GRAPH_KEY));
-    } else {
-      factory = new TaskProviderOptions("default", new JsonObject());
-      graph = new GraphOptions(json);
+    init();
+    TaskOptionsConverter.fromJson(json, this);
+    if (graph == null) {
+      graph = new GraphNodeOptions(json);
     }
+  }
+
+  private void init() {
+    factory = ConfigurationTaskProviderFactory.NAME;
+    config = new JsonObject();
   }
 
   public JsonObject toJson() {
     JsonObject result = new JsonObject();
-    result.put(FACTORY_KEY, factory);
-    result.put(GRAPH_KEY, graph);
+    TaskOptionsConverter.toJson(this, result);
     return result;
   }
 
-  public TaskProviderOptions getFactory() {
+
+  public String getFactory() {
     return factory;
   }
 
-  public GraphOptions getGraph() {
+  public void setFactory(String factory) {
+    this.factory = factory;
+  }
+
+  public JsonObject getConfig() {
+    return config;
+  }
+
+  public void setConfig(JsonObject config) {
+    this.config = config;
+  }
+
+  public GraphNodeOptions getGraph() {
     return graph;
+  }
+
+  public void setGraph(GraphNodeOptions graph) {
+    this.graph = graph;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    TaskOptions that = (TaskOptions) o;
+    return Objects.equals(factory, that.factory) &&
+        Objects.equals(config, that.config) &&
+        Objects.equals(graph, that.graph);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(factory, config, graph);
   }
 
   @Override
   public String toString() {
     return "TaskOptions{" +
-        "factory=" + factory +
+        "factory='" + factory + '\'' +
+        ", config=" + config +
         ", graph=" + graph +
         '}';
   }
