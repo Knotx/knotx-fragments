@@ -31,7 +31,7 @@ import io.knotx.fragments.handler.api.domain.FragmentContext;
 import io.knotx.fragments.handler.api.domain.FragmentResult;
 import io.knotx.fragments.task.exception.GraphConfigurationException;
 import io.knotx.fragments.task.options.ActionNodeConfigOptions;
-import io.knotx.fragments.task.options.SubTasksNodeConfigOptions;
+import io.knotx.fragments.task.options.SubtasksNodeConfigOptions;
 import io.knotx.fragments.task.options.GraphNodeOptions;
 import io.reactivex.Single;
 import java.util.HashMap;
@@ -77,9 +77,9 @@ public class ConfigurationTaskProvider implements TaskProvider {
   }
 
   private Node buildCompositeNode(GraphNodeOptions options, Map<String, Node> edges) {
-    SubTasksNodeConfigOptions config = new SubTasksNodeConfigOptions(
+    SubtasksNodeConfigOptions config = new SubtasksNodeConfigOptions(
         options.getNode().getConfig());
-    List<Node> nodes = config.getSubTasks().stream()
+    List<Node> nodes = config.getSubtasks().stream()
         .map(this::initGraphRootNode)
         .collect(Collectors.toList());
     return new CompositeNode(nodes, edges.get(SUCCESS_TRANSITION), edges.get(ERROR_TRANSITION));

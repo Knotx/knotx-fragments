@@ -154,7 +154,7 @@ It is the `myTask` task with the action node using the `book-rest-api` action an
 A nice syntax sugar!
 
 ##### Subtasks node
-SubTasks node is a node containing a list of sub-tasks. It evaluates all of them sequentially. However, 
+Subtasks node is a node containing a list of sub-tasks. It evaluates all of them sequentially. However, 
 all the operations are non-blocking, so it doesn't wait for previous subtasks to finish. Because of that, they are effectively executed in parallel
 
 Moreover, a list of sub-tasks must fit the `F -> (F',T)` function. Each subtask has its fragment 
@@ -167,9 +167,9 @@ A subtasks node configuration looks like:
 ```hocon
 graph {
   node {
-    factory = subTasks
+    factory = subtasks
     config {
-      subTasks = [
+      subtasks = [
         { 
           action = book-rest-api 
         },
@@ -184,7 +184,7 @@ graph {
 
 It follows the same simplification rules as action nodes:
 ```hocon
-subTasks = [
+subtasks = [
   { 
     action = book-rest-api 
   },
@@ -230,7 +230,7 @@ such as data sources timeouts, fallbacks etc.
 ```hocon
 tasks {
   book-and-author-task {
-    subTasks = [
+    subtasks = [
       { 
         action = book-rest-api # subtask
         onTransitions {

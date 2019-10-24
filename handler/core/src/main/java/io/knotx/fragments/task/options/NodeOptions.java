@@ -71,7 +71,7 @@ public class NodeOptions {
    * Gets node configuration. The default ones are:
    * <pre>
    * - {@link ActionNodeConfigOptions}
-   * - {@link SubTasksNodeConfigOptions}
+   * - {@link SubtasksNodeConfigOptions}
    * </pre>
    *
    * @return JSON representation of above config options

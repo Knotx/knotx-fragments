@@ -20,6 +20,7 @@ import io.vertx.core.json.JsonObject;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 
 /**
@@ -55,7 +56,7 @@ import java.util.Optional;
 public class GraphNodeOptions {
 
   // TODO move to node factories
-  public static final String SUBTASKS = "subTasks";
+  public static final String SUBTASKS = "subtasks";
   public static final String ACTION = "action";
 
   private NodeOptions node;
@@ -70,7 +71,7 @@ public class GraphNodeOptions {
   public GraphNodeOptions(List<GraphNodeOptions> subTasks,
       Map<String, GraphNodeOptions> transitions) {
     init();
-    setSubTasks(subTasks);
+    setSubtasks(subTasks);
     this.onTransitions = transitions;
   }
 
@@ -153,28 +154,20 @@ public class GraphNodeOptions {
   }
 
   /**
-   * @see SubTasksNodeConfigOptions#setSubTasks(List)
+   * @see SubtasksNodeConfigOptions#setSubtasks(List)
    */
   @Deprecated
   public GraphNodeOptions setActions(List<GraphNodeOptions> subTasks) {
-    setSubTasks(subTasks);
+    setSubtasks(subTasks);
     return this;
   }
 
   /**
-   * @see SubTasksNodeConfigOptions#setSubTasks(List)
+   * @see SubtasksNodeConfigOptions#setSubtasks(List)
    */
   public GraphNodeOptions setSubtasks(List<GraphNodeOptions> subtasks) {
-    setSubTasks(subtasks);
-    return this;
-  }
-
-  /**
-   * @see SubTasksNodeConfigOptions#setSubTasks(List)
-   */
-  public GraphNodeOptions setSubTasks(List<GraphNodeOptions> subTasks) {
     node.setFactory(SUBTASKS);
-    node.setConfig(new SubTasksNodeConfigOptions(subTasks).toJson());
+    node.setConfig(new SubtasksNodeConfigOptions(subtasks).toJson());
     return this;
   }
 
@@ -183,4 +176,29 @@ public class GraphNodeOptions {
     return SUBTASKS.equals(node.getFactory());
   }
 
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    GraphNodeOptions that = (GraphNodeOptions) o;
+    return Objects.equals(node, that.node) &&
+        Objects.equals(onTransitions, that.onTransitions);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(node, onTransitions);
+  }
+
+  @Override
+  public String toString() {
+    return "GraphNodeOptions{" +
+        "node=" + node +
+        ", onTransitions=" + onTransitions +
+        '}';
+  }
 }

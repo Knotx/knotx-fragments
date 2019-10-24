@@ -78,33 +78,21 @@ class TaskOptionsTest {
   }
 
   @Test
-  @DisplayName("Expect sub-tasks node when actions is configured")
+  @DisplayName("Expect subtasks node when actions is configured")
   void expectSubTaskNodeWhenActionsDefined(Vertx vertx) throws Throwable {
-    validateSubTasksNode("tasks/taskWithSubTasksDeprecated.conf", vertx);
+    validateSubtasksNode("tasks/taskWithSubtasksDeprecated.conf", vertx);
   }
 
   @Test
-  @DisplayName("Expect sub-tasks node when subTasks directly is configured")
-  void expectSubTasksNodeWhenSubTasksDirectlyDefined(Vertx vertx) throws Throwable {
-    validateSubTasksNode("tasks/taskWithSubTasks.conf", vertx);
+  @DisplayName("Expect subtasks node when subtasks directly is configured")
+  void expectSubtasksNodeWhenSubtasksDirectlyDefined(Vertx vertx) throws Throwable {
+    validateSubtasksNode("tasks/taskWithSubtasks.conf", vertx);
   }
 
   @Test
-  @DisplayName("Expect sub-tasks node when subtasks directly is configured")
-  void expectSubTasksNodeWhenSubTasksDirectlyDefinedWithTypo(Vertx vertx) throws Throwable {
-    validateSubTasksNode("tasks/taskWithSubTasks-typo.conf", vertx);
-  }
-
-  @Test
-  @DisplayName("Expect sub-tasks node when subTasks is configured")
-  void expectSubTasksNodeWhenSubTasksDefined(Vertx vertx) throws Throwable {
-    validateSubTasksNode("tasks/taskWithSubTasks-fullSyntax.conf", vertx);
-  }
-
-  @Test
-  @DisplayName("Expect sub-tasks node when subtasks is configured")
-  void expectSubTasksNodeWhenSubtasksDefined(Vertx vertx) throws Throwable {
-    validateSubTasksNode("tasks/taskWithSubTasks-fullSyntax-typo.conf", vertx);
+  @DisplayName("Expect subtasks node when subtasks is configured")
+  void expectSubtasksNodeWhenSubtasksDefined(Vertx vertx) throws Throwable {
+    validateSubtasksNode("tasks/taskWithSubtasks-fullSyntax.conf", vertx);
   }
 
   @Test
@@ -129,14 +117,14 @@ class TaskOptionsTest {
     }, vertx);
   }
 
-  private void validateSubTasksNode(String file, Vertx vertx) throws Throwable {
+  private void validateSubtasksNode(String file, Vertx vertx) throws Throwable {
     verify(file, config -> {
       TaskOptions taskOptions = new TaskOptions(config);
       GraphNodeOptions graphNodeOptions = taskOptions.getGraph();
       assertEquals(GraphNodeOptions.SUBTASKS, graphNodeOptions.getNode().getFactory());
-      SubTasksNodeConfigOptions subTasks = new SubTasksNodeConfigOptions(
+      SubtasksNodeConfigOptions subtasks = new SubtasksNodeConfigOptions(
           graphNodeOptions.getNode().getConfig());
-      assertEquals(2, subTasks.getSubTasks().size());
+      assertEquals(2, subtasks.getSubtasks().size());
     }, vertx);
   }
 

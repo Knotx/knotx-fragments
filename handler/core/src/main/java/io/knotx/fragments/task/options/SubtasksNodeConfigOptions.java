@@ -24,42 +24,37 @@ import java.util.Objects;
  * Subtask node configuration.
  */
 @DataObject(generateConverter = true)
-public class SubTasksNodeConfigOptions {
+public class SubtasksNodeConfigOptions {
 
-  private List<GraphNodeOptions> subTasks;
+  private List<GraphNodeOptions> subtasks;
 
-  public SubTasksNodeConfigOptions(List<GraphNodeOptions> subTasks) {
-    this.subTasks = subTasks;
+  public SubtasksNodeConfigOptions(List<GraphNodeOptions> subtasks) {
+    this.subtasks = subtasks;
   }
 
-  public SubTasksNodeConfigOptions(JsonObject json) {
-    SubTasksNodeConfigOptionsConverter.fromJson(json, this);
+  public SubtasksNodeConfigOptions(JsonObject json) {
+    SubtasksNodeConfigOptionsConverter.fromJson(json, this);
   }
 
   public JsonObject toJson() {
     JsonObject json = new JsonObject();
-    SubTasksNodeConfigOptionsConverter.toJson(this, json);
+    SubtasksNodeConfigOptionsConverter.toJson(this, json);
     return json;
   }
 
-  public List<GraphNodeOptions> getSubTasks() {
-    return subTasks;
+  public List<GraphNodeOptions> getSubtasks() {
+    return subtasks;
   }
 
   /**
-   * Sets list of {@link GraphNodeOptions} that represents {@link io.knotx.fragments.engine.Task} that
-   * will be executed in parallel.
+   * Sets list of {@link GraphNodeOptions} that represents {@link io.knotx.fragments.engine.Task}
+   * that will be executed in parallel.
    *
-   * @param subTasks list of {@link GraphNodeOptions}
+   * @param subtasks list of {@link GraphNodeOptions}
    * @return reference to this, so the API can be used fluently
    */
-  public SubTasksNodeConfigOptions setSubTasks(List<GraphNodeOptions> subTasks) {
-    this.subTasks = subTasks;
-    return this;
-  }
-
-  public SubTasksNodeConfigOptions setSubtasks(List<GraphNodeOptions> subtasks) {
-    setSubTasks(subtasks);
+  public SubtasksNodeConfigOptions setSubtasks(List<GraphNodeOptions> subtasks) {
+    this.subtasks = subtasks;
     return this;
   }
 
@@ -71,19 +66,19 @@ public class SubTasksNodeConfigOptions {
     if (o == null || getClass() != o.getClass()) {
       return false;
     }
-    SubTasksNodeConfigOptions that = (SubTasksNodeConfigOptions) o;
-    return Objects.equals(subTasks, that.subTasks);
+    SubtasksNodeConfigOptions that = (SubtasksNodeConfigOptions) o;
+    return Objects.equals(subtasks, that.subtasks);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(subTasks);
+    return Objects.hash(subtasks);
   }
 
   @Override
   public String toString() {
-    return "SubTasksNodeOptions{" +
-        "subTasks=" + subTasks +
+    return "SubtasksNodeOptions{" +
+        "subtasks=" + subtasks +
         '}';
   }
 }

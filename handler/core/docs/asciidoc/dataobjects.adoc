@@ -114,9 +114,6 @@ Sets node options defining node factory and its configuration.
 |[[onTransitions]]`@onTransitions`|`link:dataobjects.html#GraphNodeOptions[GraphNodeOptions]`|+++
 Sets outgoing graph node edges, called <code>Transitions</code>. Transition is String, <code>onTransitions</code> map links Transition with next graph node.
 +++
-|[[subTasks]]`@subTasks`|`Array of link:dataobjects.html#GraphNodeOptions[GraphNodeOptions]`|+++
-
-+++
 |[[subtasks]]`@subtasks`|`Array of link:dataobjects.html#GraphNodeOptions[GraphNodeOptions]`|+++
 
 +++
@@ -142,8 +139,8 @@ Sets node factory name
 +++
 |===
 
-[[SubTasksNodeConfigOptions]]
-== SubTasksNodeConfigOptions
+[[SubtasksNodeConfigOptions]]
+== SubtasksNodeConfigOptions
 
 ++++
  Subtask node configuration.
@@ -154,11 +151,10 @@ Sets node factory name
 [frame="topbot"]
 |===
 ^|Name | Type ^| Description
-|[[subTasks]]`@subTasks`|`Array of link:dataobjects.html#GraphNodeOptions[GraphNodeOptions]`|+++
-Sets list of link that represents link that
- will be executed in parallel.
+|[[subtasks]]`@subtasks`|`Array of link:dataobjects.html#GraphNodeOptions[GraphNodeOptions]`|+++
+Sets list of link that represents link
+ that will be executed in parallel.
 +++
-|[[subtasks]]`@subtasks`|`Array of link:dataobjects.html#GraphNodeOptions[GraphNodeOptions]`|-
 |===
 
 [[TaskOptions]]
