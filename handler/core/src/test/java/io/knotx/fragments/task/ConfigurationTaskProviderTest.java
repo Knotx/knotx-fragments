@@ -90,7 +90,7 @@ class ConfigurationTaskProviderTest {
 
     // when
     Task task = new ConfigurationTaskProvider(actionProvider)
-        .get(new Configuration(TASK_NAME, graph), SAMPLE_FRAGMENT_EVENT_WITH_CUSTOM_TASK_KEY);
+        .newInstance(new Configuration(TASK_NAME, graph), SAMPLE_FRAGMENT_EVENT_WITH_CUSTOM_TASK_KEY);
 
     // then
     assertEquals(TASK_NAME, task.getName());
@@ -308,7 +308,7 @@ class ConfigurationTaskProviderTest {
 
   private Task getTask(GraphNodeOptions graph) {
     return new ConfigurationTaskProvider(actionProvider)
-        .get(new Configuration(TASK_NAME, graph), SAMPLE_FRAGMENT_EVENT);
+        .newInstance(new Configuration(TASK_NAME, graph), SAMPLE_FRAGMENT_EVENT);
   }
 
   private List<GraphNodeOptions> subTasks(GraphNodeOptions... nodes) {

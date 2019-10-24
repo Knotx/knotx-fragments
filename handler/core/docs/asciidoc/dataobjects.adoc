@@ -146,7 +146,7 @@ Sets node factory name
 == SubTasksNodeConfigOptions
 
 ++++
-    * the <code>Map</code> of possible onTransitions for the given graph node. If the Node is <code>* Composite</code> only <code>_success</code> and <code>_error</code> transitions can be configured.
+ Subtask node configuration.
 ++++
 '''
 

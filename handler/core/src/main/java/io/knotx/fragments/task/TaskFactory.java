@@ -32,16 +32,16 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.ServiceLoader;
 
-public class TaskManager {
+public class TaskFactory {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(TaskManager.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(TaskFactory.class);
 
   private String taskKey;
   private List<TaskProviderFactory> providersFactories;
   private Map<String, TaskOptions> tasks;
   private ActionProvider actionProvider;
 
-  public TaskManager(String taskKey, Map<String, TaskOptions> tasks,
+  public TaskFactory(String taskKey, Map<String, TaskOptions> tasks,
       ActionProvider actionProvider) {
     this.taskKey = taskKey;
     this.tasks = tasks;
@@ -54,9 +54,9 @@ public class TaskManager {
         .filter(this::hasTask)
         .map(this::getTaskName)
         .map(taskName -> {
-          TaskProvider builder = getProvider(taskName);
+          TaskProvider factory = getProvider(taskName);
           Configuration taskConfig = getTaskConfiguration(taskName);
-          return builder.get(taskConfig, fragmentEventContext);
+          return factory.newInstance(taskConfig, fragmentEventContext);
         });
   }
 
@@ -78,9 +78,9 @@ public class TaskManager {
       LOGGER.error("Could not find task [{}] in tasks [{}]", taskName, tasks);
       throw new TaskNotFoundException(taskName);
     }
-    String builderName = taskOptions.getFactory();
+    String factoryName = taskOptions.getFactory();
     return providersFactories.stream()
-        .filter(f -> f.getName().equals(builderName))
+        .filter(f -> f.getName().equals(factoryName))
         .findFirst()
         .map(f -> f.create(taskOptions.getConfig(), actionProvider))
         .orElseThrow(() -> new GraphConfigurationException("Could not find task builder"));

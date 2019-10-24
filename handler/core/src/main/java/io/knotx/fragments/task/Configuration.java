@@ -21,18 +21,18 @@ class Configuration {
 
   private final String taskName;
 
-  private final GraphNodeOptions rootNode;
+  private final GraphNodeOptions graphNodeOptions;
 
-  Configuration(String taskName, GraphNodeOptions rootNode) {
+  Configuration(String taskName, GraphNodeOptions graphNodeOptions) {
     this.taskName = taskName;
-    this.rootNode = rootNode;
+    this.graphNodeOptions = graphNodeOptions;
   }
 
   String getTaskName() {
     return taskName;
   }
 
-  GraphNodeOptions getRootNode() {
-    return rootNode;
+  GraphNodeOptions getGraphNodeOptions() {
+    return graphNodeOptions;
   }
 }

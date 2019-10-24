@@ -31,6 +31,6 @@ public interface TaskProvider {
    * @param event - contains Fragment, request
    * @return configured task
    */
-  Task get(Configuration config, FragmentEventContext event);
+  Task newInstance(Configuration config, FragmentEventContext event);
 
 }

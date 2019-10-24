@@ -15,7 +15,6 @@
  */
 package io.knotx.fragments.task.options;
 
-import io.knotx.fragments.task.ConfigurationTaskProvider;
 import io.knotx.fragments.task.ConfigurationTaskProviderFactory;
 import io.vertx.codegen.annotations.DataObject;
 import io.vertx.core.json.JsonObject;

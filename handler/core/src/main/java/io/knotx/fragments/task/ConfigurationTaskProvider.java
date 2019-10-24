@@ -49,16 +49,16 @@ public class ConfigurationTaskProvider implements TaskProvider {
   }
 
   @Override
-  public Task get(Configuration config, FragmentEventContext event) {
-    Node rootNode = initGraphNode(config.getRootNode());
-    return new Task(config.getTaskName(), rootNode);
+  public Task newInstance(Configuration taskConfig, FragmentEventContext event) {
+    Node rootNode = initGraphRootNode(taskConfig.getGraphNodeOptions());
+    return new Task(taskConfig.getTaskName(), rootNode);
   }
 
-  private Node initGraphNode(GraphNodeOptions options) {
+  private Node initGraphRootNode(GraphNodeOptions options) {
     Map<String, GraphNodeOptions> transitions = options.getOnTransitions();
     Map<String, Node> edges = new HashMap<>();
     transitions.forEach((transition, childGraphOptions) -> {
-      edges.put(transition, initGraphNode(childGraphOptions));
+      edges.put(transition, initGraphRootNode(childGraphOptions));
     });
     final Node node;
     if (options.isComposite()) {
@@ -80,7 +80,7 @@ public class ConfigurationTaskProvider implements TaskProvider {
     SubTasksNodeConfigOptions config = new SubTasksNodeConfigOptions(
         options.getNode().getConfig());
     List<Node> nodes = config.getSubTasks().stream()
-        .map(this::initGraphNode)
+        .map(this::initGraphRootNode)
         .collect(Collectors.toList());
     return new CompositeNode(nodes, edges.get(SUCCESS_TRANSITION), edges.get(ERROR_TRANSITION));
   }
