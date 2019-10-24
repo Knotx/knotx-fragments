@@ -26,8 +26,7 @@ import io.knotx.fragments.task.exception.TaskNotFoundException;
 import io.knotx.fragments.task.options.TaskOptions;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.ServiceLoader;
@@ -37,7 +36,7 @@ public class TaskFactory {
   private static final Logger LOGGER = LoggerFactory.getLogger(TaskFactory.class);
 
   private String taskKey;
-  private List<TaskProviderFactory> providersFactories;
+  private Map<String, TaskProviderFactory> providersFactories;
   private Map<String, TaskOptions> tasks;
   private ActionProvider actionProvider;
 
@@ -79,19 +78,17 @@ public class TaskFactory {
       throw new TaskNotFoundException(taskName);
     }
     String factoryName = taskOptions.getFactory();
-    return providersFactories.stream()
-        .filter(f -> f.getName().equals(factoryName))
-        .findFirst()
+    return Optional.ofNullable(providersFactories.get(factoryName))
         .map(f -> f.create(taskOptions.getConfig(), actionProvider))
         .orElseThrow(() -> new GraphConfigurationException("Could not find task builder"));
   }
 
-  private List<TaskProviderFactory> initProviders() {
-    List<TaskProviderFactory> builders = new ArrayList<>();
+  private Map<String, TaskProviderFactory> initProviders() {
+    Map<String, TaskProviderFactory> factories = new HashMap<>();
     ServiceLoader
         .load(TaskProviderFactory.class).iterator()
-        .forEachRemaining(builders::add);
-    return builders;
+        .forEachRemaining(f -> factories.put(f.getName(), f));
+    return factories;
   }
 
 }

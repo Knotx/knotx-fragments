@@ -36,9 +36,8 @@ Tasks are configured with HOCON configuration in form of a dictionary (`taskName
 ```hocon
 tasks {
   # unique task name
-  myTask {
-    # task configuration
-    # HERE
+  myTask { // task options
+    ...
   }
 }
 ```
@@ -96,11 +95,7 @@ There are two sections:
 #### Node processing
 The node responsibility can be described as: 
 > Graph node gets a fragment, processes it and responds with Transition. 
-So a node is the function:
-```
-F -> (F', T)
-```
-where `F` is the Fragment, `F'` is a modified Fragment and `T` is the Transition.
+So a node is the function `F -> (F', T)` where `F` is the Fragment, `F'` is a modified Fragment and `T` is the Transition.
 
 The node definition is abstract. It allows to define simple processing nodes but also more complex 
 structures such as a list of subgraphs. Furthermore, such a definition inspires to provide custom 
@@ -233,25 +228,38 @@ such as data sources timeouts, fallbacks etc.
 
 #### Complex example
 ```hocon
-subTasks = [
-  { 
-    action = book-rest-api
-    onTransitions {
-      _success {
-        action = score-algorithm
+tasks {
+  book-and-author-task {
+    subTasks = [
+      { 
+        action = book-rest-api # subtask
+        onTransitions {
+          _success {
+            action = score-api
+            onTransitions {
+              noScore { # custom transition
+                action = score-estimation
+                # _success {} - subtask finished
+              }
+              # _success {} - subtask finished
+            }   
+          }
+          _error {
+            action = book-from-cache
+          } 
+        }
+      },
+      {
+        action = author-rest-api # subtask
+        # _success {} - subtask finished
       }
+    ]
+    onTransitions {
       _error {
-        action = book-from-cache
-      } 
+        action = book-and-author-fallback
+      }
     }
-  },
-  { 
-    action = author-rest-api 
-  }
-]
-onTransitions {
-  _error {
-    action = book-and-author-fallback
+  # END subtasks
   }
 }
 ```
