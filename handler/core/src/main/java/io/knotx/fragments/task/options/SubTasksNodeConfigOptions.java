@@ -21,8 +21,7 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- *    * the {@code Map} of possible onTransitions for the given graph node. If the Node is {@code
- *    * Composite} only {@code _success} and {@code _error} transitions can be configured.
+ * Subtask node configuration.
  */
 @DataObject(generateConverter = true)
 public class SubTasksNodeConfigOptions {

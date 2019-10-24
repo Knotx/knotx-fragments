@@ -49,7 +49,7 @@ public class TaskManager {
     providersFactories = initProviders();
   }
 
-  public Optional<Task> get(FragmentEventContext fragmentEventContext) {
+  public Optional<Task> newInstance(FragmentEventContext fragmentEventContext) {
     return Optional.of(fragmentEventContext.getFragmentEvent().getFragment())
         .filter(this::hasTask)
         .map(this::getTaskName)
