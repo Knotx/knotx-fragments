@@ -161,7 +161,7 @@ Moreover, a list of subtasks must fit the `F -> (F',T)` function. Each subtask h
 context, execute it's logic and update the fragment's payload (its own copy). Finally, when all subtasks are completed, 
 all payloads are merged and the new Fragment is returned.
 
-> Note that body modifications are not allowed because of the parallel execution of subtask nodes and the final `body` form cannot be determined. However, updating the fragment's `payload` is fine since all subtask nodes have their unique namespaces.
+> Note that [body](https://github.com/Knotx/knotx-fragments/blob/master/api/src/main/java/io/knotx/fragments/api/Fragment.java) modifications are not allowed because of the parallel execution of subtask nodes and the final `body` form cannot be determined. However, updating the fragment's `payload` is fine since all subtask nodes have their unique namespaces.
 
 A subtasks node configuration looks like:
 ```hocon
