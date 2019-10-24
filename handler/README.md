@@ -18,7 +18,7 @@ Let's assume that Knot.x gets HTTP requests for data coming from many different 
 single fragment to process. Then each fragment is evaluated in isolation, not waiting for others. 
 A fragment defines a task (graph) describing how to fetch the required data. The `map` and 
 `onErrorResumeNext` diagrams represent a graph processing. When the fragment processing finishes, the modified fragment is
-returned. Please note that an HTTP request can be mapped to many fragments, then the `collect` diagram 
+returned. Please note that an HTTP request can be mapped to many fragments. In such a case the `collect` diagram 
 represents fragments joining.
 
 Read more about the benefits [here](http://knotx.io/blog/configurable-integrations/).
@@ -100,7 +100,7 @@ So a node is the function:
 ```
 F -> (F', T)
 ```
-where `F` is Fragment, `F'` is modified Fragment, `T` is Transition.
+where `F` is the Fragment, `F'` is a modified Fragment and `T` is the Transition.
 
 The node definition is abstract. It allows to define simple processing nodes but also more complex 
 structures such as a list of subgraphs. Furthermore, such a definition inspires to provide custom 
@@ -160,10 +160,10 @@ A nice syntax sugar!
 
 ##### Subtasks node
 SubTasks node is a node containing a list of sub-tasks. It evaluates all of them sequentially. However, 
-all operations are non-blocking so they are executed in parallel. 
+all the operations are non-blocking, so it doesn't wait for previous subtasks to finish. Because of that, they are effectively executed in parallel
 
 Moreover, a list of sub-tasks must fit the `F -> (F',T)` function. Each subtask has its fragment 
-context, execute it's logic and update fragment payload (its own copy). Finally, when all sub-tasks are completed, 
+context, execute it's logic and update the fragment's payload (its own copy). Finally, when all sub-tasks are completed, 
 all payloads are merged and the new Fragment is returned.
 
 > Note that body modifications are not allowed because of the parallel execution of subtask nodes and the final `body` form cannot be determined. However, updating the fragment's `payload` is fine since all subtask nodes have their unique namespaces.
@@ -187,7 +187,7 @@ graph {
 }
 ```
 
-It follows the same simplification rules as an action node:
+It follows the same simplification rules as action nodes:
 ```hocon
 subTasks = [
   { 
@@ -200,7 +200,7 @@ subTasks = [
 ```
 
 Please note that it is a list of subtasks, not action nodes! In the example above, the `book-rest-api`  
-and `author-rest-api` actions are executed in parallel. 
+and `author-rest-api` actions are executed in parallel as two independent tasks (graphs) with one node (action). 
 
 See the [example section](#complex-example) for a more complex scenario. Before we see the full power of 
 graphs, we need to understand how nodes are connected.
@@ -220,7 +220,7 @@ onTransitions {
   }
 }
 ```
-Transition is simple text. The `_success` and `_error` transitions are the default ones. However, 
+Transition is a simple text. The `_success` and `_error` transitions are the default ones. However, 
 they are not mandatory!
 
 There are two important rules to remember:
@@ -292,7 +292,7 @@ config {
 The default `body` value is empty content.
 
 #### Inline Payload Action
-Inline Payload Action puts JSON / JSON Array in Fragment payload with specified key (alias). Its 
+Inline Payload Action puts JSON / JSON Array in Fragment payload with a specified key (alias). Its 
 configuration looks like:
 ```hocon
 factory = "inline-payload"
@@ -317,7 +317,7 @@ config {
   key = "some payload key"
 }
 ```
-If no key specified whole payload will be copied. A key can direct nested values. For example 
+If no key is specified the whole payload will be copied. A key can direct nested values. For example 
 for the payload:
 ```hocon
 someKey {
@@ -355,7 +355,7 @@ config {
 }
 doAction = product
 ```
-The `doAction` attribute specifies a wrapped simple action by its name. When `doAction` throws error 
+The `doAction` attribute specifies a wrapped simple action by its name. When `doAction` throws an error 
 or times out then the custom `fallback` transition is returned.
 
 #### In-memory Cache Behaviour

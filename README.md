@@ -48,7 +48,7 @@ Nodes are connected with each other with Transitions, directed graph edges.
 
 You may read more about it in the [Fragments Handler API](https://github.com/Knotx/knotx-fragments/tree/master/handler/api).
 
-**Action** is a node  with possible restrictions imposed. E.g. the function execution
+**Action** is a node with possible restrictions imposed. E.g. its execution
 can be limited to a certain time. If this does not end within that time, Action will time out. 
 In this case, the Action responds with an **error** Transition, which indicates that some **fallback node** can be applied.
 
