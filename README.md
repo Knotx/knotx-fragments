@@ -24,9 +24,9 @@ Knot.x Fragments is designed to build fault-tolerant, back-end integrations such
 Knot.x Fragments is a set of [Handlers](https://github.com/Knotx/knotx-server-http/tree/master/api#routing-handlers)
 that are plugged into the [Knot.x Server request processing](https://github.com/Knotx/knotx-server-http#how-does-it-work).
 
-Processing of Fragments begins by [converting a HTTP request](#supply-fragments) to one or more
+Fragments processing starts with [converting an HTTP request](#supply-fragments) to one or more
 [Fragments](https://github.com/Knotx/knotx-fragments/tree/master/api#knotx-fragment-api) that are 
-then [evaluated](#evaluate-fragments) and eventually [combined into a HTTP response](#assemble-fragments).
+then [evaluated](#evaluate-fragments) and eventually [combined into an HTTP response](#assemble-fragments).
 
 ### Supply Fragments
 
