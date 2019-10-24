@@ -25,8 +25,8 @@ import java.util.Objects;
  * <pre>
  * node {
  *   factory = action
- *   config {
- *     HERE
+ *   config { //represented by ActionNodeConfigOptions
+ *     ...
  *   }
  * }
  * </pre>

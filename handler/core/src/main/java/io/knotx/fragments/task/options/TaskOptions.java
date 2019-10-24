@@ -16,10 +16,14 @@
 package io.knotx.fragments.task.options;
 
 import io.knotx.fragments.task.ConfigurationTaskProviderFactory;
+import io.knotx.fragments.task.TaskProviderFactory;
 import io.vertx.codegen.annotations.DataObject;
 import io.vertx.core.json.JsonObject;
 import java.util.Objects;
 
+/**
+ * Task options.
+ */
 @DataObject(generateConverter = true)
 public class TaskOptions {
 
@@ -46,29 +50,59 @@ public class TaskOptions {
     return result;
   }
 
-
+  /**
+   * Gets {@link TaskProviderFactory} name
+   *
+   * @return task provider factory name
+   */
   public String getFactory() {
     return factory;
   }
 
-  public void setFactory(String factory) {
+  /**
+   * Sets task provider factory name
+   *
+   * @param factory - task provider factory name
+   * @return reference to this, so the API can be used fluently
+   */
+  public TaskOptions setFactory(String factory) {
     this.factory = factory;
+    return this;
   }
 
   public JsonObject getConfig() {
     return config;
   }
 
-  public void setConfig(JsonObject config) {
+  /**
+   * Gets task provider factory configuration.
+   *
+   * @param config task provider factory configuration
+   * @return reference to this, so the API can be used fluently
+   */
+  public TaskOptions setConfig(JsonObject config) {
     this.config = config;
+    return this;
   }
 
+  /**
+   * Gets task graph of executable nodes.
+   *
+   * @return graph of nodes
+   */
   public GraphNodeOptions getGraph() {
     return graph;
   }
 
-  public void setGraph(GraphNodeOptions graph) {
+  /**
+   * Sets task graph.
+   *
+   * @param graph - graph of nodes
+   * @return reference to this, so the API can be used fluently
+   */
+  public TaskOptions setGraph(GraphNodeOptions graph) {
     this.graph = graph;
+    return this;
   }
 
   @Override

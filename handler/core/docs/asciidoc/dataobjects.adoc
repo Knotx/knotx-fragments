@@ -9,8 +9,8 @@
  <pre>
  node {
    factory = action
-   config {
-     HERE
+   config { //represented by ActionNodeConfigOptions
+     ...
    }
  }
  </pre>
@@ -143,7 +143,16 @@ Sets node factory name
 == SubtasksNodeConfigOptions
 
 ++++
- Subtask node configuration.
+ Subtask node configuration. It is model for link JSON object.
+
+ <pre>
+ node {
+   factory = subtasks
+   config { //represented by SubtasksNodeConfigOptions
+     ...
+   }
+ }
+ </pre>
 ++++
 '''
 
@@ -160,13 +169,23 @@ Sets list of link that represents link
 [[TaskOptions]]
 == TaskOptions
 
+++++
+ Task options.
+++++
+'''
 
 [cols=">25%,25%,50%"]
 [frame="topbot"]
 |===
 ^|Name | Type ^| Description
-|[[config]]`@config`|`Json object`|-
-|[[factory]]`@factory`|`String`|-
-|[[graph]]`@graph`|`link:dataobjects.html#GraphNodeOptions[GraphNodeOptions]`|-
+|[[config]]`@config`|`Json object`|+++
+Gets task provider factory configuration.
++++
+|[[factory]]`@factory`|`String`|+++
+Sets task provider factory name
++++
+|[[graph]]`@graph`|`link:dataobjects.html#GraphNodeOptions[GraphNodeOptions]`|+++
+Sets task graph.
++++
 |===
 

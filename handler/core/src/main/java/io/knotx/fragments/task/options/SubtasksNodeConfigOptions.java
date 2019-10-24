@@ -21,7 +21,16 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * Subtask node configuration.
+ * Subtask node configuration. It is model for {@link NodeOptions#getConfig()} JSON object.
+ *
+ * <pre>
+ * node {
+ *   factory = subtasks
+ *   config { //represented by SubtasksNodeConfigOptions
+ *     ...
+ *   }
+ * }
+ * </pre>
  */
 @DataObject(generateConverter = true)
 public class SubtasksNodeConfigOptions {
