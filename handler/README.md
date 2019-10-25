@@ -79,7 +79,8 @@ fragment logic to perform and outgoing edges, called Transitions. Its configurat
 ```hocon
 graph {
   # node logic options
-  node { }
+  node { # required
+  }
   # node outgoing edges
   onTransitions {
     _success { }
