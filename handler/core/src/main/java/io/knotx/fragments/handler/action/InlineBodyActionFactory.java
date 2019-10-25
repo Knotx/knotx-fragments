@@ -59,7 +59,7 @@ public class InlineBodyActionFactory implements ActionFactory {
       throw new IllegalArgumentException("Inline body action does not support doAction");
     }
     return (fragmentContext, resultHandler) -> {
-      ActionLogger actionLogger = ActionLogger.create(config.getActionLogMode());
+      ActionLogger actionLogger = ActionLogger.create(config);
       String body = config.getOptions().getString("body", DEFAULT_EMPTY_BODY);
       actionLogger.info("original_body", fragmentContext.getFragment().getBody());
       actionLogger.info("body", body);

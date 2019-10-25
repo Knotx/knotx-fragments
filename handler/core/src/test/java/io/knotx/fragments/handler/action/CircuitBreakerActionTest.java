@@ -19,8 +19,10 @@ package io.knotx.fragments.handler.action;
 
 import static io.knotx.fragments.handler.action.CircuitBreakerActionFactory.FALLBACK_TRANSITION;
 import static io.knotx.fragments.handler.api.actionlog.ActionLogMode.INFO;
+import static io.knotx.fragments.handler.api.actionlog.ActionLogger.getStringLogEntry;
 import static io.knotx.fragments.handler.api.domain.FragmentResult.SUCCESS_TRANSITION;
 
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.jupiter.api.Assertions;
@@ -60,14 +62,17 @@ class CircuitBreakerActionTest {
     CircuitBreaker circuitBreaker = new CircuitBreakerImpl("name", vertx, options);
 
     CircuitBreakerAction tested = new CircuitBreakerAction(circuitBreaker,
-        CircuitBreakerActionTest::apply, ActionLogger.create(INFO));
+        CircuitBreakerActionTest::apply, ActionLogger.create("tested", INFO));
 
     // when
     tested.apply(new FragmentContext(FRAGMENT, new ClientRequest()),
         testContext.succeeding(result -> {
           testContext
               .verify(() -> {
-                Assertions.assertNotNull(result.getActionLog().getString("info"));
+                List doActionsLog =  result.getActionLog().getJsonArray("doAction").getList();
+                Assertions.assertTrue(doActionsLog.size() == 1);
+                JsonObject actionLogs = (JsonObject) doActionsLog.get(0);
+                Assertions.assertEquals("success", actionLogs.getJsonObject("logs").getString("info"));
                 Assertions.assertEquals(SUCCESS_TRANSITION, result.getTransition());
               });
           testContext.completeNow();
@@ -95,14 +100,14 @@ class CircuitBreakerActionTest {
                     Future.succeededFuture(
                         new FragmentResult(fragmentContext.getFragment(), SUCCESS_TRANSITION)
                     ).setHandler(resultHandler)),
-        ActionLogger.create(INFO));
+        ActionLogger.create("tested", INFO));
 
     // when
     tested.apply(new FragmentContext(FRAGMENT, new ClientRequest()),
         testContext.succeeding(result -> {
           testContext
               .verify(() -> {
-                Assertions.assertNotNull(result.getActionLog().getString("fallback"));
+                Assertions.assertNotNull(getStringLogEntry("fallback", result.getActionLog()));
                 Assertions.assertEquals(FALLBACK_TRANSITION, result.getTransition());
               });
           testContext.completeNow();
@@ -129,7 +134,7 @@ class CircuitBreakerActionTest {
                     Future.succeededFuture(
                         new FragmentResult(fragmentContext.getFragment(), SUCCESS_TRANSITION)
                     ).setHandler(resultHandler)),
-        ActionLogger.create(INFO));
+        ActionLogger.create("tested", INFO));
 
     // when
     tested.apply(new FragmentContext(FRAGMENT, new ClientRequest()),
@@ -148,8 +153,10 @@ class CircuitBreakerActionTest {
 
   private static void apply(FragmentContext fragmentContext,
       Handler<AsyncResult<FragmentResult>> resultHandler) {
+    ActionLogger actionLogger = ActionLogger.create("action", INFO);
+    actionLogger.info("info", "success");
     Future.succeededFuture(new FragmentResult(fragmentContext.getFragment(), SUCCESS_TRANSITION,
-        new JsonObject().put("info", "success")))
+        actionLogger.toLog()))
         .setHandler(resultHandler);
   }
 

@@ -55,7 +55,7 @@ public class InlinePayloadActionFactory implements ActionFactory {
     return (fragmentContext, resultHandler) -> {
       String key = options.getString("alias", config.getAlias());
       Object payload = options.getMap().get("payload");
-      ActionLogger actionLogger = ActionLogger.create(config.getActionLogMode());
+      ActionLogger actionLogger = ActionLogger.create(config);
       Future<FragmentResult> resultFuture = Future
           .succeededFuture(toResult(fragmentContext, key, payload, actionLogger));
       resultFuture.setHandler(resultHandler);

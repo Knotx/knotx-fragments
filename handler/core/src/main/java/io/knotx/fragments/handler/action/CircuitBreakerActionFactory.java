@@ -62,7 +62,7 @@ public class CircuitBreakerActionFactory implements ActionFactory {
         circuitBreakerOptions);
 
     return new CircuitBreakerAction(circuitBreaker, config.getDoAction(),
-        ActionLogger.create(config.getActionLogMode()));
+        ActionLogger.create(config));
   }
 
   public static class CircuitBreakerAction implements Action {
@@ -85,8 +85,11 @@ public class CircuitBreakerActionFactory implements ActionFactory {
           f -> doAction.apply(fragmentContext,
               result -> {
                 if (result.succeeded()) {
-                  f.complete(result.result());
+                  FragmentResult fr = result.result();
+                  actionLogger.doActionLog(fr.getActionLog());
+                  f.complete(new FragmentResult(fr.getFragment(), fr.getTransition(), actionLogger.toLog()));
                 } else {
+                  this.actionLogger.error( "Failed to perform doAction");
                   f.fail(result.cause());
                 }
               }),

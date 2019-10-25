@@ -17,6 +17,7 @@ package io.knotx.fragments.handler.action;
 
 import static io.knotx.fragments.handler.api.actionlog.ActionLogMode.ERROR;
 import static io.knotx.fragments.handler.api.actionlog.ActionLogMode.INFO;
+import static io.knotx.fragments.handler.api.actionlog.ActionLogger.getLogEntry;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -184,7 +185,7 @@ class InMemoryCacheActionFactoryTest {
           // then
           testContext.verify(() ->
               assertEquals(expectedPayloadValue,
-                  result.result().getActionLog().getJsonObject("new_cached_value")));
+                  getLogEntry("new_cached_value", result.result().getActionLog())));
           testContext.completeNow();
         });
 
@@ -284,7 +285,7 @@ class InMemoryCacheActionFactoryTest {
               testContext.verify(() ->
                   assertEquals(
                       firstResult.result().getFragment().getPayload().getString(PAYLOAD_KEY),
-                      secondResult.result().getActionLog().getString("cached_value")));
+                      secondResult.result().getActionLog().getJsonObject("logs").getString("cached_value")));
               testContext.completeNow();
             }));
 

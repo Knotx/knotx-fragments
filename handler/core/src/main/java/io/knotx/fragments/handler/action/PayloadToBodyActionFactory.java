@@ -47,7 +47,7 @@ public class PayloadToBodyActionFactory implements ActionFactory {
     return (fragmentContext, resultHandler) -> {
       Fragment fragment = fragmentContext.getFragment();
       String payloadKey = Objects.nonNull(options) ? options.getString(KEY) : null;
-      ActionLogger actionLogger = ActionLogger.create(config.getActionLogMode());
+      ActionLogger actionLogger = ActionLogger.create(config);
       FragmentResult result = getBodyFromPayload(payloadKey, fragment.getPayload())
           .map(body -> toFragmentResult(fragment, body, actionLogger))
           .orElseGet(() -> toErrorFragmentResult(fragment, payloadKey, actionLogger));

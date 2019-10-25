@@ -17,61 +17,90 @@ package io.knotx.fragments.handler.api.actionlog;
 
 import static io.knotx.fragments.handler.api.actionlog.ActionLogMode.INFO;
 
+import java.time.Instant;
 import java.util.function.Function;
 
+import io.knotx.fragments.handler.api.ActionConfig;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
 public class ActionLogger {
 
   private final ActionLogMode actionLogMode;
-  private final JsonObject log;
+  private final JsonObject logs;
+  private final JsonObject actionLog;
 
-  private ActionLogger(ActionLogMode actionLogMode) {
+  private ActionLogger(String alias, ActionLogMode actionLogMode) {
     this.actionLogMode = actionLogMode;
-    this.log = new JsonObject();
+    this.logs = new JsonObject();
+    this.actionLog = new JsonObject().put("alias", alias)
+        .put("logs", this.logs)
+        .put("doAction", new JsonArray());
   }
 
-  public static ActionLogger create(ActionLogMode actionLogMode){
-    return new ActionLogger(actionLogMode);
+  public static ActionLogger create(String alias, ActionLogMode actionLogMode) {
+    return new ActionLogger(alias, actionLogMode);
   }
 
-  public void info(String key, JsonObject data){
-    if(actionLogMode == INFO){
-      log.put(key, data);
+  public static ActionLogger create(ActionConfig actionConfig) {
+    return new ActionLogger(actionConfig.getAlias(), actionConfig.getActionLogMode());
+  }
+
+  public void info(String key, JsonObject data) {
+    if (actionLogMode == INFO) {
+      this.logs.put(key, data);
     }
   }
 
-  public void info(String key, Object data){
-    if(actionLogMode == INFO){
-      log.put(key, data);
+  public void info(String key, Object data) {
+    if (actionLogMode == INFO) {
+      this.logs.put(key, data);
     }
   }
 
-  public <T> void info(String key, T data, Function<T, JsonObject> toJsonFunc){
-    if(actionLogMode == INFO){
-      log.put(key, toJsonFunc.apply(data));
+  public <T> void info(String key, T data, Function<T, JsonObject> toJsonFunc) {
+    if (actionLogMode == INFO) {
+      this.logs.put(key, toJsonFunc.apply(data));
     }
   }
 
-  public void info(String key, String data){
-    if(actionLogMode == INFO){
-      log.put(key, data);
+  public void info(String key, String data) {
+    if (actionLogMode == INFO) {
+      this.logs.put(key, data);
     }
   }
 
-  public void error(String key, JsonObject data){
-    log.put(key, data);
+  public void doActionLog(JsonObject actionLog) {
+    this.actionLog.getJsonArray("doAction").add(actionLog);
   }
 
-  public void error(String key, String data){
-    log.put(key, data);
+  public void error(String key, JsonObject data) {
+    this.logs.put(key, data);
   }
 
-  public <T>  void error(String key, T data, Function<T, JsonObject> toJsonFunc){
-    log.put(key, toJsonFunc.apply(data));
+  public void error(String key, String data) {
+    this.logs.put(key, data);
   }
 
-  public JsonObject toLog(){
-    return new JsonObject(log.getMap());
+  public void error(String data) {
+    this.logs.put(String.valueOf(Instant.now().toEpochMilli()), data);
+  }
+
+  public <T> void error(String key, T data, Function<T, JsonObject> toJsonFunc) {
+    this.logs.put(key, toJsonFunc.apply(data));
+  }
+
+  public JsonObject toLog() {
+    return new JsonObject(this.actionLog.getMap());
+  }
+
+  public static String getStringLogEntry(String key, JsonObject actionLog){
+    System.out.println(actionLog);
+    return actionLog.getJsonObject("logs").getString(key);
+  }
+
+  public static JsonObject getLogEntry(String key, JsonObject actionLog){
+    System.out.println(actionLog);
+    return actionLog.getJsonObject("logs").getJsonObject(key);
   }
 }

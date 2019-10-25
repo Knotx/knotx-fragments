@@ -75,7 +75,7 @@ public class InMemoryCacheActionFactory implements ActionFactory {
     return new Action() {
       JsonObject options = config.getOptions();
       Action doAction = config.getDoAction();
-      ActionLogger actionLogger = ActionLogger.create(config.getActionLogMode());
+      ActionLogger actionLogger = ActionLogger.create(config);
       private Cache<String, Object> cache = createCache(options);
       private String payloadKey = getPayloadKey(options);
 
@@ -113,6 +113,7 @@ public class InMemoryCacheActionFactory implements ActionFactory {
               actionLogger.info("new_cached_value", cachedValue);
               cache.put(cacheKey, cachedValue);
             }
+            actionLogger.doActionLog(asyncResult.result().getActionLog());
             Future.succeededFuture(toResult(fragmentResult))
                 .setHandler(resultHandler);
           } else {
