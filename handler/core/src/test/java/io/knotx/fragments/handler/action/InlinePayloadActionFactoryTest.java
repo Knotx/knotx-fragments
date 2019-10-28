@@ -17,6 +17,7 @@ package io.knotx.fragments.handler.action;
 
 import static io.knotx.fragments.handler.api.actionlog.ActionLogMode.ERROR;
 import static io.knotx.fragments.handler.api.actionlog.ActionLogMode.INFO;
+import static io.knotx.fragments.handler.api.actionlog.ActionLogger.getLogEntry;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -156,7 +157,7 @@ class InlinePayloadActionFactoryTest {
                 JsonObject payload = result.result().getFragment().getPayload();
 
                 assertEquals(EXPECTED_JSON_OBJECT, payload.getJsonObject(ACTION_ALIAS));
-                assertEquals(payload, result.result().getActionLog().getJsonObject("payload"));
+                assertEquals(payload, getLogEntry("payload", result.result().getActionLog()));
               });
           testContext.completeNow();
         });

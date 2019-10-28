@@ -95,12 +95,14 @@ public class ActionLogger {
   }
 
   public static String getStringLogEntry(String key, JsonObject actionLog){
-    System.out.println(actionLog);
-    return actionLog.getJsonObject("logs").getString(key);
+    return getLogs(actionLog).getString(key);
   }
 
   public static JsonObject getLogEntry(String key, JsonObject actionLog){
-    System.out.println(actionLog);
-    return actionLog.getJsonObject("logs").getJsonObject(key);
+    return getLogs(actionLog).getJsonObject(key);
+  }
+
+  public static JsonObject getLogs(JsonObject actionLog){
+    return actionLog.getJsonObject("logs");
   }
 }
