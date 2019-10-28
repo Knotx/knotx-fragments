@@ -1,5 +1,32 @@
 = Cheatsheets
 
+[[ActionNodeConfigOptions]]
+== ActionNodeConfigOptions
+
+++++
+ Action node configuration model. It is model for link JSON object.
+
+ <pre>
+ node {
+   factory = action
+   config { //represented by ActionNodeConfigOptions
+     ...
+   }
+ }
+ </pre>
+++++
+'''
+
+[cols=">25%,25%,50%"]
+[frame="topbot"]
+|===
+^|Name | Type ^| Description
+|[[action]]`@action`|`String`|+++
+Sets link name. The specified Action is executed
+ during processing of given graph node.
++++
+|===
+
 [[ActionOptions]]
 == ActionOptions
 
@@ -31,16 +58,42 @@ Sets <code>Action</code> factory name.
 Sets named actions with their factory configuration.
 +++
 |[[taskKey]]`@taskKey`|`String`|-
-|[[tasks]]`@tasks`|`link:dataobjects.html#NodeOptions[NodeOptions]`|+++
+|[[tasks]]`@tasks`|`link:dataobjects.html#TaskOptions[TaskOptions]`|+++
 Sets <code>Task</code> list, which are named, directed graphs of <code>Actions</code>.
 +++
 |===
 
-[[NodeOptions]]
-== NodeOptions
+[[GraphNodeOptions]]
+== GraphNodeOptions
 
 ++++
- Defines graph's verticle with outgoing directed edges (<code>Transitions</code>).
+ It is link processing configuration. Task is graph of nodes (in
+ fact it is tree structure). It defines link and outgoing directed graph edges,
+ called <code>Transitions</code>.
+
+ It represents JSON configuration:
+ <pre>
+ {
+   node = {
+     factory = action
+     config {
+       action = a
+     }
+   }
+   onTransitions {
+     _success {
+       node = {
+         factory = action
+         config {
+           action = b
+         }
+       }
+     }
+   }
+ }
+ </pre>
+
+ Please note that Transitions define next graph nodes.
 ++++
 '''
 
@@ -49,17 +102,90 @@ Sets <code>Task</code> list, which are named, directed graphs of <code>Actions</
 |===
 ^|Name | Type ^| Description
 |[[action]]`@action`|`String`|+++
-Sets <code>Action</code> name. This action will be executed during processing given graph node. If
- <code>action</code> field is defined, Node configured by it will be treated as Action Node.
+
 +++
-|[[actions]]`@actions`|`Array of link:dataobjects.html#NodeOptions[NodeOptions]`|+++
-Sets list of <code>NodeOptions</code> that represents <code>Actions</code> that will be executed in
- parallel. If this array is defined and <code>action</code> field is left empty, Node will be treated
- as Composite.
+|[[actions]]`@actions`|`Array of link:dataobjects.html#GraphNodeOptions[GraphNodeOptions]`|+++
+
 +++
 |[[composite]]`@composite`|`Boolean`|-
-|[[onTransitions]]`@onTransitions`|`link:dataobjects.html#NodeOptions[NodeOptions]`|+++
-Sets the <code>Map</code> of possible onTransitions for the given graph node. If the Node is <code>Composite</code> only <code>_success</code> and <code>_error</code> transitions can be configured.
+|[[node]]`@node`|`link:dataobjects.html#NodeOptions[NodeOptions]`|+++
+Sets node options defining node factory and its configuration.
++++
+|[[onTransitions]]`@onTransitions`|`link:dataobjects.html#GraphNodeOptions[GraphNodeOptions]`|+++
+Sets outgoing graph node edges, called <code>Transitions</code>. Transition is String, <code>onTransitions</code> map links Transition with next graph node.
++++
+|[[subtasks]]`@subtasks`|`Array of link:dataobjects.html#GraphNodeOptions[GraphNodeOptions]`|+++
+
++++
+|===
+
+[[NodeOptions]]
+== NodeOptions
+
+++++
+ Node options defines factory that should be used to create node and its configuration.
+++++
+'''
+
+[cols=">25%,25%,50%"]
+[frame="topbot"]
+|===
+^|Name | Type ^| Description
+|[[config]]`@config`|`Json object`|+++
+Sets node configuration. It does not parse JSON, the configuration is passed to node factory.
++++
+|[[factory]]`@factory`|`String`|+++
+Sets node factory name
++++
+|===
+
+[[SubtasksNodeConfigOptions]]
+== SubtasksNodeConfigOptions
+
+++++
+ Subtask node configuration. It is model for link JSON object.
+
+ <pre>
+ node {
+   factory = subtasks
+   config { //represented by SubtasksNodeConfigOptions
+     ...
+   }
+ }
+ </pre>
+++++
+'''
+
+[cols=">25%,25%,50%"]
+[frame="topbot"]
+|===
+^|Name | Type ^| Description
+|[[subtasks]]`@subtasks`|`Array of link:dataobjects.html#GraphNodeOptions[GraphNodeOptions]`|+++
+Sets list of link that represents link
+ that will be executed in parallel.
++++
+|===
+
+[[TaskOptions]]
+== TaskOptions
+
+++++
+ Task options.
+++++
+'''
+
+[cols=">25%,25%,50%"]
+[frame="topbot"]
+|===
+^|Name | Type ^| Description
+|[[config]]`@config`|`Json object`|+++
+Gets task provider factory configuration.
++++
+|[[factory]]`@factory`|`String`|+++
+Sets task provider factory name
++++
+|[[graph]]`@graph`|`link:dataobjects.html#GraphNodeOptions[GraphNodeOptions]`|+++
+Sets task graph.
 +++
 |===
 

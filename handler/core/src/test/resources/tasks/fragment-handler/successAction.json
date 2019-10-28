@@ -2,7 +2,9 @@
   "tasks":
     {
       "success-task": {
-        "action": "success-action"
+        "graph": {
+          "action": "success-action"
+        }
       }
     },
   "actions":

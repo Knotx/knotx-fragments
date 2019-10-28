@@ -20,7 +20,7 @@ package io.knotx.fragments.task;
 import static io.knotx.fragments.handler.api.domain.FragmentResult.ERROR_TRANSITION;
 import static io.knotx.fragments.handler.api.domain.FragmentResult.SUCCESS_TRANSITION;
 
-import io.knotx.fragments.api.Fragment;
+import io.knotx.fragments.engine.FragmentEventContext;
 import io.knotx.fragments.engine.Task;
 import io.knotx.fragments.engine.graph.ActionNode;
 import io.knotx.fragments.engine.graph.CompositeNode;
@@ -29,60 +29,36 @@ import io.knotx.fragments.handler.action.ActionProvider;
 import io.knotx.fragments.handler.api.Action;
 import io.knotx.fragments.handler.api.domain.FragmentContext;
 import io.knotx.fragments.handler.api.domain.FragmentResult;
-import io.knotx.fragments.handler.exception.GraphConfigurationException;
-import io.knotx.fragments.handler.options.FragmentsHandlerOptions;
-import io.knotx.fragments.handler.options.NodeOptions;
+import io.knotx.fragments.task.exception.GraphConfigurationException;
+import io.knotx.fragments.task.options.ActionNodeConfigOptions;
+import io.knotx.fragments.task.options.SubtasksNodeConfigOptions;
+import io.knotx.fragments.task.options.GraphNodeOptions;
 import io.reactivex.Single;
-import io.vertx.core.logging.Logger;
-import io.vertx.core.logging.LoggerFactory;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-public class TaskBuilder {
+public class ConfigurationTaskProvider implements TaskProvider {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(TaskBuilder.class);
-
-  private final String taskKey;
-  private final Map<String, NodeOptions> tasks;
   private final ActionProvider actionProvider;
 
-  public TaskBuilder(String taskKey, Map<String, NodeOptions> tasks, ActionProvider proxyProvider) {
-    this.taskKey = taskKey;
-    this.tasks = tasks;
+  ConfigurationTaskProvider(ActionProvider proxyProvider) {
     this.actionProvider = proxyProvider;
   }
 
-  TaskBuilder(Map<String, NodeOptions> tasks, ActionProvider proxyProvider) {
-    this.taskKey = FragmentsHandlerOptions.DEFAULT_TASK_KEY;
-    this.tasks = tasks;
-    this.actionProvider = proxyProvider;
+  @Override
+  public Task newInstance(Configuration taskConfig, FragmentEventContext event) {
+    Node rootNode = initGraphRootNode(taskConfig.getGraphNodeOptions());
+    return new Task(taskConfig.getTaskName(), rootNode);
   }
 
-  public Optional<Task> build(Fragment fragment) {
-    Optional<Task> result = Optional.empty();
-    if (fragment.getConfiguration().containsKey(taskKey)) {
-      String task = fragment.getConfiguration().getString(taskKey);
-      NodeOptions options = tasks.get(task);
-      if (options == null) {
-        LOGGER.warn("Task [{}] not defined in configuration!", task);
-        return Optional.empty();
-      }
-
-      Node rootNode = initGraphNode(options);
-      result = Optional.of(new Task(task, rootNode));
-    }
-    return result;
-  }
-
-  private Node initGraphNode(NodeOptions options) {
-    Map<String, NodeOptions> transitions = options.getOnTransitions();
+  private Node initGraphRootNode(GraphNodeOptions options) {
+    Map<String, GraphNodeOptions> transitions = options.getOnTransitions();
     Map<String, Node> edges = new HashMap<>();
     transitions.forEach((transition, childGraphOptions) -> {
-      edges.put(transition, initGraphNode(childGraphOptions));
+      edges.put(transition, initGraphRootNode(childGraphOptions));
     });
     final Node node;
     if (options.isComposite()) {
@@ -93,15 +69,18 @@ public class TaskBuilder {
     return node;
   }
 
-  private Node buildActionNode(NodeOptions options, Map<String, Node> edges) {
-    Action action = actionProvider.get(options.getAction()).orElseThrow(
-        () -> new GraphConfigurationException("No provider for action " + options.getAction()));
-    return new ActionNode(options.getAction(), toRxFunction(action), edges);
+  private Node buildActionNode(GraphNodeOptions options, Map<String, Node> edges) {
+    ActionNodeConfigOptions config = new ActionNodeConfigOptions(options.getNode().getConfig());
+    Action action = actionProvider.get(config.getAction()).orElseThrow(
+        () -> new GraphConfigurationException("No provider for action " + config.getAction()));
+    return new ActionNode(config.getAction(), toRxFunction(action), edges);
   }
 
-  private Node buildCompositeNode(NodeOptions options, Map<String, Node> edges) {
-    List<Node> nodes = options.getActions().stream()
-        .map(this::initGraphNode)
+  private Node buildCompositeNode(GraphNodeOptions options, Map<String, Node> edges) {
+    SubtasksNodeConfigOptions config = new SubtasksNodeConfigOptions(
+        options.getNode().getConfig());
+    List<Node> nodes = config.getSubtasks().stream()
+        .map(this::initGraphRootNode)
         .collect(Collectors.toList());
     return new CompositeNode(nodes, edges.get(SUCCESS_TRANSITION), edges.get(ERROR_TRANSITION));
   }

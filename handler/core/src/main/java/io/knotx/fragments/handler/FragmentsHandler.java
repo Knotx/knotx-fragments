@@ -29,7 +29,7 @@ import io.knotx.fragments.engine.Task;
 import io.knotx.fragments.handler.action.ActionProvider;
 import io.knotx.fragments.handler.api.ActionFactory;
 import io.knotx.fragments.handler.options.FragmentsHandlerOptions;
-import io.knotx.fragments.task.TaskBuilder;
+import io.knotx.fragments.task.TaskFactory;
 import io.knotx.server.api.context.ClientRequest;
 import io.knotx.server.api.context.RequestContext;
 import io.knotx.server.api.context.RequestEvent;
@@ -51,14 +51,14 @@ public class FragmentsHandler implements Handler<RoutingContext> {
 
   private final FragmentsEngine engine;
   private final RequestContextEngine requestContextEngine;
-  private final TaskBuilder taskBuilder;
+  private final TaskFactory taskFactory;
 
   FragmentsHandler(Vertx vertx, JsonObject config) {
     FragmentsHandlerOptions options = new FragmentsHandlerOptions(config);
 
     ActionProvider proxyProvider = new ActionProvider(options.getActions(),
         supplyFactories(), vertx.getDelegate());
-    taskBuilder = new TaskBuilder(options.getTaskKey(), options.getTasks(), proxyProvider);
+    taskFactory = new TaskFactory(options.getTaskKey(), options.getTasks(), proxyProvider);
     engine = new FragmentsEngine(vertx);
     requestContextEngine = new DefaultRequestContextEngine(getClass().getSimpleName());
   }
@@ -137,7 +137,7 @@ public class FragmentsHandler implements Handler<RoutingContext> {
             fragment -> {
               FragmentEventContext fragmentEventContext = new FragmentEventContext(
                   new FragmentEvent(fragment), clientRequest);
-              return taskBuilder.build(fragment)
+              return taskFactory.newInstance(fragmentEventContext)
                   .map(
                       task -> new FragmentEventContextTaskAware(task, fragmentEventContext))
                   .orElseGet(() -> new FragmentEventContextTaskAware(new Task("_NOT_DEFINED"),
@@ -146,4 +146,5 @@ public class FragmentsHandler implements Handler<RoutingContext> {
         .collect(
             Collectors.toList());
   }
+
 }

@@ -16,17 +16,17 @@ Besides, when the chain becomes more complex and additional failure scenarios ar
 failure logic can be adjusted with fallback configuration (no changes in the business logic required).
 
 Knot.x Fragments is designed to build fault-tolerant, back-end integrations such as:
-- Gateway APIs, Backend For Frontend (BFF) for single-page applications (SPA), Web APIs
-- documents processing (HTML markup, JSON, PDF etc) with a templating engine support
-
+- API Gateways, Backend For Frontend (BFF) for single-page applications (SPA), Web APIs
+- documents processing (HTML, JSON, PDF etc) with a templating engine support
 
 ## How does it work
 
 Knot.x Fragments is a set of [Handlers](https://github.com/Knotx/knotx-server-http/tree/master/api#routing-handlers)
 that are plugged into the [Knot.x Server request processing](https://github.com/Knotx/knotx-server-http#how-does-it-work).
 
-Processing of fragments begins by [converting a HTTP request](#supply-fragments) to one or more
-Fragments that are then [evaluated](#evaluate-fragments) and eventually [combined into a HTTP response](#assemble-fragments).
+Fragments processing starts with [converting an HTTP request](#supply-fragments) to one or more
+[Fragments](https://github.com/Knotx/knotx-fragments/tree/master/api#knotx-fragment-api) that are 
+then [evaluated](#evaluate-fragments) and eventually [combined into an HTTP response](#assemble-fragments).
 
 ### Supply Fragments
 
@@ -38,24 +38,21 @@ are the result of a request being split (e.g. HTML markup) into smaller, indepen
 
 ### Evaluate Fragments
 
-Each **Fragment** can specify a processing **Task** that points to a named, directed graph of **Actions**.
+Each **Fragment** can specify a processing **Task** that points to a named, directed graph of **executable nodes**.
 
-Each **Action** transforms the Fragment's content and/or updates its payload. 
+Each **node** transforms the Fragment's content, updates its payload and finally responds with **Transition**.
 
-Fragment's path in the Task graph is defined by Action's outputs, called **Transitions**.
+Nodes are connected with each other with Transitions, directed graph edges.
 
 <img src="https://github.com/Knotx/knotx-fragments/raw/master/assets/images/graph_processing.png" width="700">
 
 You may read more about it in the [Fragments Handler API](https://github.com/Knotx/knotx-fragments/tree/master/handler/api).
 
-**Action** is a simple function (business logic) with possible restrictions imposed. E.g. the function execution
+**Action** is a node with possible restrictions imposed. E.g. its execution
 can be limited to a certain time. If this does not end within that time, Action will time out. 
-In this case, the Action responds with an **error** Transition, which indicates that some **fallback Action** can be applied.
+In this case, the Action responds with an **error** Transition, which indicates that some **fallback node** can be applied.
 
 <img src="https://github.com/Knotx/knotx-fragments/raw/master/assets/images/graph_processing_failure.png" width="500">
-
-Additionally, **Actions** are executed in **parallel** when they are independent of each other. More details can 
-be found [here](https://github.com/Knotx/knotx-fragments/tree/master/handler/engine).
 
 ### Assemble Fragments
 

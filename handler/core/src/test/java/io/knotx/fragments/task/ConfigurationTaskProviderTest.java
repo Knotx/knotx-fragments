@@ -27,15 +27,18 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 import io.knotx.fragments.api.Fragment;
+import io.knotx.fragments.engine.FragmentEvent;
+import io.knotx.fragments.engine.FragmentEventContext;
 import io.knotx.fragments.engine.Task;
 import io.knotx.fragments.engine.graph.ActionNode;
 import io.knotx.fragments.engine.graph.CompositeNode;
 import io.knotx.fragments.engine.graph.Node;
 import io.knotx.fragments.handler.action.ActionProvider;
 import io.knotx.fragments.handler.api.Action;
-import io.knotx.fragments.handler.exception.GraphConfigurationException;
 import io.knotx.fragments.handler.options.FragmentsHandlerOptions;
-import io.knotx.fragments.handler.options.NodeOptions;
+import io.knotx.fragments.task.exception.GraphConfigurationException;
+import io.knotx.fragments.task.options.GraphNodeOptions;
+import io.knotx.server.api.context.ClientRequest;
 import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.VertxExtension;
 import java.util.Arrays;
@@ -55,35 +58,42 @@ import org.mockito.quality.Strictness;
 @ExtendWith(VertxExtension.class)
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
-class TaskBuilderTest {
+class ConfigurationTaskProviderTest {
 
-  private static final Map<String, NodeOptions> NO_TRANSITIONS = Collections.emptyMap();
+  private static final Map<String, GraphNodeOptions> NO_TRANSITIONS = Collections.emptyMap();
   private static final String TASK_NAME = "task";
-  private static final Fragment SAMPLE_FRAGMENT =
-      new Fragment("type",
-          new JsonObject().put(FragmentsHandlerOptions.DEFAULT_TASK_KEY, TASK_NAME), "body");
-  public static final String MY_TASK_KEY = "myTaskKey";
-  private static final Fragment SAMPLE_FRAGMENT_WITH_CUSTOM_TASK_KEY =
-      new Fragment("type",
-          new JsonObject().put(MY_TASK_KEY, TASK_NAME), "body");
+  private static final FragmentEventContext SAMPLE_FRAGMENT_EVENT =
+      new FragmentEventContext(new FragmentEvent(new Fragment("type",
+          new JsonObject().put(FragmentsHandlerOptions.DEFAULT_TASK_KEY, TASK_NAME), "body")),
+          new ClientRequest());
+
+  private static final String MY_TASK_KEY = "myTaskKey";
+
+  private static final FragmentEventContext SAMPLE_FRAGMENT_EVENT_WITH_CUSTOM_TASK_KEY =
+      new FragmentEventContext(new FragmentEvent(new Fragment("type",
+          new JsonObject().put(MY_TASK_KEY, TASK_NAME), "body")),
+          new ClientRequest());
 
   @Mock
   private ActionProvider actionProvider;
 
   @Mock
-  Action actionMock;
+  private Action actionMock;
 
   @Test
-  @DisplayName("Expect empty graph when task not defined.")
-  void expectEmptyGraphNodeWhenTaskNotConfigured() {
+  @DisplayName("Expect graph when custom task key is defined.")
+  void expectGraphWhenCustomTaskKey() {
     // given
-    TaskBuilder tested = new TaskBuilder(Collections.emptyMap(), actionProvider);
+    when(actionProvider.get(eq("simpleAction"))).thenReturn(Optional.of(actionMock));
+
+    GraphNodeOptions graph = new GraphNodeOptions("simpleAction", NO_TRANSITIONS);
 
     // when
-    Optional<Task> task = tested.build(SAMPLE_FRAGMENT);
+    Task task = new ConfigurationTaskProvider(actionProvider)
+        .newInstance(new Configuration(TASK_NAME, graph), SAMPLE_FRAGMENT_EVENT_WITH_CUSTOM_TASK_KEY);
 
     // then
-    Assertions.assertFalse(task.isPresent());
+    assertEquals(TASK_NAME, task.getName());
   }
 
   @Test
@@ -92,11 +102,11 @@ class TaskBuilderTest {
     // given
     when(actionProvider.get(eq("simpleAction"))).thenReturn(Optional.empty());
 
-    TaskBuilder tested = new TaskBuilder(Collections.singletonMap(TASK_NAME,
-        new NodeOptions("simpleAction", NO_TRANSITIONS)), actionProvider);
+    GraphNodeOptions graph = new GraphNodeOptions("simpleAction", NO_TRANSITIONS);
 
     // when, then
-    Assertions.assertThrows(GraphConfigurationException.class, () -> tested.build(SAMPLE_FRAGMENT));
+    Assertions.assertThrows(GraphConfigurationException.class,
+        () -> getTask(graph));
   }
 
   @Test
@@ -105,16 +115,12 @@ class TaskBuilderTest {
     // given
     when(actionProvider.get(eq("simpleAction"))).thenReturn(Optional.of(actionMock));
 
-    TaskBuilder tested = new TaskBuilder(
-        Collections.singletonMap(TASK_NAME, new NodeOptions("simpleAction", NO_TRANSITIONS)),
-        actionProvider);
+    GraphNodeOptions graph = new GraphNodeOptions("simpleAction", NO_TRANSITIONS);
 
     // when
-    Optional<Task> optionalTask = tested.build(SAMPLE_FRAGMENT);
+    Task task = getTask(graph);
 
     // then
-    assertTrue(optionalTask.isPresent());
-    Task task = optionalTask.get();
     assertEquals(TASK_NAME, task.getName());
     assertTrue(task.getRootNode().isPresent());
     Node rootNode = task.getRootNode().get();
@@ -130,18 +136,14 @@ class TaskBuilderTest {
     when(actionProvider.get("actionA")).thenReturn(Optional.of(actionMock));
     when(actionProvider.get("actionB")).thenReturn(Optional.of(actionMock));
 
-    TaskBuilder tested = new TaskBuilder(
-        Collections.singletonMap(TASK_NAME, new NodeOptions("actionA", Collections
-            .singletonMap("customTransition",
-                new NodeOptions("actionB", NO_TRANSITIONS)))),
-        actionProvider);
+    GraphNodeOptions graph = new GraphNodeOptions("actionA", Collections
+        .singletonMap("customTransition",
+            new GraphNodeOptions("actionB", NO_TRANSITIONS)));
 
     // when
-    Optional<Task> optionalTask = tested.build(SAMPLE_FRAGMENT);
+    Task task = getTask(graph);
 
     // then
-    assertTrue(optionalTask.isPresent());
-    Task task = optionalTask.get();
     assertEquals(TASK_NAME, task.getName());
 
     assertTrue(task.getRootNode().isPresent());
@@ -161,19 +163,15 @@ class TaskBuilderTest {
     // given
     when(actionProvider.get(eq("simpleAction"))).thenReturn(Optional.of(actionMock));
 
-    TaskBuilder tested = new TaskBuilder(
-        Collections.singletonMap(TASK_NAME,
-            new NodeOptions(
-                actions(new NodeOptions("simpleAction", NO_TRANSITIONS)),
-                NO_TRANSITIONS
-            )), actionProvider);
+    GraphNodeOptions graph = new GraphNodeOptions(
+        subTasks(new GraphNodeOptions("simpleAction", NO_TRANSITIONS)),
+        NO_TRANSITIONS
+    );
 
     // when
-    Optional<Task> optionalTask = tested.build(SAMPLE_FRAGMENT);
+    Task task = getTask(graph);
 
     // then
-    assertTrue(optionalTask.isPresent());
-    Task task = optionalTask.get();
     assertEquals(TASK_NAME, task.getName());
     assertTrue(task.getRootNode().isPresent());
     Node rootNode = task.getRootNode().get();
@@ -189,6 +187,7 @@ class TaskBuilderTest {
     assertEquals("simpleAction", node.getId());
   }
 
+
   @Test
   @DisplayName("Expect graph with composite node and success transition to action node.")
   void expectCompositeNodeWithSingleNodeOnSuccessGraph() {
@@ -196,20 +195,16 @@ class TaskBuilderTest {
     when(actionProvider.get(eq("simpleAction"))).thenReturn(Optional.of(actionMock));
     when(actionProvider.get(eq("lastAction"))).thenReturn(Optional.of(actionMock));
 
-    TaskBuilder tested = new TaskBuilder(
-        Collections.singletonMap(TASK_NAME,
-            new NodeOptions(
-                actions(new NodeOptions("simpleAction", NO_TRANSITIONS)),
-                Collections
-                    .singletonMap(SUCCESS_TRANSITION, new NodeOptions("lastAction", NO_TRANSITIONS))
-            )), actionProvider);
+    GraphNodeOptions graph = new GraphNodeOptions(
+        subTasks(new GraphNodeOptions("simpleAction", NO_TRANSITIONS)),
+        Collections
+            .singletonMap(SUCCESS_TRANSITION, new GraphNodeOptions("lastAction", NO_TRANSITIONS))
+    );
 
     // when
-    Optional<Task> optionalTask = tested.build(SAMPLE_FRAGMENT);
+    Task task = getTask(graph);
 
     // then
-    assertTrue(optionalTask.isPresent());
-    Task task = optionalTask.get();
     assertEquals(TASK_NAME, task.getName());
     assertTrue(task.getRootNode().isPresent());
     Node rootNode = task.getRootNode().get();
@@ -229,20 +224,16 @@ class TaskBuilderTest {
     when(actionProvider.get(eq("simpleAction"))).thenReturn(Optional.of(actionMock));
     when(actionProvider.get(eq("fallbackAction"))).thenReturn(Optional.of(actionMock));
 
-    TaskBuilder tested = new TaskBuilder(
-        Collections.singletonMap(TASK_NAME,
-            new NodeOptions(
-                actions(new NodeOptions("simpleAction", NO_TRANSITIONS)),
-                Collections.singletonMap(ERROR_TRANSITION,
-                    new NodeOptions("fallbackAction", NO_TRANSITIONS))
-            )), actionProvider);
+    GraphNodeOptions graph = new GraphNodeOptions(
+        subTasks(new GraphNodeOptions("simpleAction", NO_TRANSITIONS)),
+        Collections.singletonMap(ERROR_TRANSITION,
+            new GraphNodeOptions("fallbackAction", NO_TRANSITIONS))
+    );
 
     // when
-    Optional<Task> optionalTask = tested.build(SAMPLE_FRAGMENT);
+    Task task = getTask(graph);
 
     // then
-    assertTrue(optionalTask.isPresent());
-    Task task = optionalTask.get();
     assertEquals(TASK_NAME, task.getName());
     assertTrue(task.getRootNode().isPresent());
     Node rootNode = task.getRootNode().get();
@@ -261,20 +252,16 @@ class TaskBuilderTest {
     when(actionProvider.get(eq("simpleAction"))).thenReturn(Optional.of(actionMock));
     when(actionProvider.get(eq("lastAction"))).thenReturn(Optional.of(actionMock));
 
-    TaskBuilder tested = new TaskBuilder(
-        Collections.singletonMap(TASK_NAME,
-            new NodeOptions(
-                actions(new NodeOptions("simpleAction", NO_TRANSITIONS)),
-                Collections
-                    .singletonMap("customTransition", new NodeOptions("lastAction", NO_TRANSITIONS))
-            )), actionProvider);
+    GraphNodeOptions graph = new GraphNodeOptions(
+        subTasks(new GraphNodeOptions("simpleAction", NO_TRANSITIONS)),
+        Collections
+            .singletonMap("customTransition", new GraphNodeOptions("lastAction", NO_TRANSITIONS))
+    );
 
     // when
-    Optional<Task> optionalTask = tested.build(SAMPLE_FRAGMENT);
+    Task task = getTask(graph);
 
     // then
-    assertTrue(optionalTask.isPresent());
-    Task task = optionalTask.get();
     assertTrue(task.getRootNode().isPresent());
     Node rootNode = task.getRootNode().get();
     assertTrue(rootNode instanceof CompositeNode);
@@ -289,21 +276,17 @@ class TaskBuilderTest {
     // given
     when(actionProvider.get(eq("simpleAction"))).thenReturn(Optional.of(actionMock));
 
-    TaskBuilder tested = new TaskBuilder(
-        Collections.singletonMap(TASK_NAME,
-            new NodeOptions(
-                actions(
-                    new NodeOptions(actions(new NodeOptions("simpleAction", NO_TRANSITIONS)),
-                        NO_TRANSITIONS)),
-                NO_TRANSITIONS
-            )), actionProvider);
+    GraphNodeOptions graph = new GraphNodeOptions(
+        subTasks(
+            new GraphNodeOptions(subTasks(new GraphNodeOptions("simpleAction", NO_TRANSITIONS)),
+                NO_TRANSITIONS)),
+        NO_TRANSITIONS
+    );
 
     // when
-    Optional<Task> optionalTask = tested.build(SAMPLE_FRAGMENT);
+    Task task = getTask(graph);
 
     // then
-    assertTrue(optionalTask.isPresent());
-    Task task = optionalTask.get();
     assertEquals(TASK_NAME, task.getName());
     assertTrue(task.getRootNode().isPresent());
     Node rootNode = task.getRootNode().get();
@@ -323,26 +306,12 @@ class TaskBuilderTest {
     assertEquals("simpleAction", node.getId());
   }
 
-  @Test
-  @DisplayName("Expect graph when custom task key is defined.")
-  void expectGraphWhenCustomTaskKey() {
-    // given
-    when(actionProvider.get(eq("simpleAction"))).thenReturn(Optional.of(actionMock));
-
-    TaskBuilder tested = new TaskBuilder(MY_TASK_KEY,
-        Collections.singletonMap(TASK_NAME, new NodeOptions("simpleAction", NO_TRANSITIONS)),
-        actionProvider);
-
-    // when
-    Optional<Task> optionalTask = tested.build(SAMPLE_FRAGMENT_WITH_CUSTOM_TASK_KEY);
-
-    // then
-    assertTrue(optionalTask.isPresent());
-    Task task = optionalTask.get();
-    assertEquals(TASK_NAME, task.getName());
+  private Task getTask(GraphNodeOptions graph) {
+    return new ConfigurationTaskProvider(actionProvider)
+        .newInstance(new Configuration(TASK_NAME, graph), SAMPLE_FRAGMENT_EVENT);
   }
 
-  private List<NodeOptions> actions(NodeOptions... nodes) {
+  private List<GraphNodeOptions> subTasks(GraphNodeOptions... nodes) {
     return Arrays.asList(nodes);
   }
 }

@@ -2,7 +2,9 @@
   "tasks":
     {
       "failing-task": {
-        "action": "failing-action"
+        "graph": {
+          "action": "failing-action"
+        }
       }
     },
   "actions":
