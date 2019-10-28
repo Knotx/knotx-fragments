@@ -59,16 +59,6 @@ In most cases the default task provider (`configuration`) is used, so the defini
 simplified to:
 ```hocon
 tasks {
-  myTask {
-    graph {
-      # graph logic
-    } 
-  }
-}
-```
-or even:
-```hocon
-tasks {
   # unique task name
   myTask {
     # graph logic
