@@ -84,6 +84,28 @@ actions {
 }
 ```
 
+## Task
+Task defines a directed Actions graph. Task definition (JSON) is transformed to graph of nodes: 
+- [ActionNode](https://github.com/Knotx/knotx-fragments/blob/master/handler/engine/src/main/java/io/knotx/fragments/engine/graph/ActionNode.java)
+- [CompositeNode](https://github.com/Knotx/knotx-fragments/blob/master/handler/engine/src/main/java/io/knotx/fragments/engine/graph/CompositeNode.java). 
+
+The example `pdp` task defines two action nodes. 
+
+A composite node is defined as a subgraph:
+```
+book-and-author {
+  actions = [
+    { action = book },
+    { action = author }
+  ]
+  onTransition {
+    _error {
+      action = book-and-author-fallback
+    }
+  }
+}
+```
+
 ## Actions
 
 ### HTTP Action
