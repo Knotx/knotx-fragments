@@ -21,6 +21,7 @@ import io.knotx.fragments.handler.api.ActionFactory;
 import io.knotx.fragments.handler.api.Cacheable;
 import io.knotx.fragments.handler.api.actionlog.ActionLogger;
 import io.knotx.fragments.handler.api.domain.FragmentResult;
+import io.knotx.fragments.task.options.GraphNodeOptions;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 
@@ -35,7 +36,7 @@ import io.vertx.core.Vertx;
  *   }
  * </pre>
  * WARNING: This action modifies Fragment body so it should not be used in composite nodes
- * {@link io.knotx.fragments.handler.options.NodeOptions#isComposite()}.
+ * {@link GraphNodeOptions#isComposite()}.
  */
 @Cacheable
 public class InlineBodyActionFactory implements ActionFactory {

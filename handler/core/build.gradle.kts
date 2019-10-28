@@ -43,11 +43,12 @@ dependencies {
     testImplementation(group = "org.mockito", name = "mockito-junit-jupiter")
     testImplementation(group = "io.vertx", name = "vertx-web-client")
     testImplementation(group = "io.vertx", name = "vertx-rx-java2")
+    testImplementation(group = "io.vertx", name = "vertx-config-hocon")
 }
 
 tasks {
     named<RatTask>("rat") {
-        excludes.addAll("*.yml", "*.md", "**/*.md", "**/build/*", "**/out/*", "**/generated/*", "**/*.adoc", "**/*.json")
+        excludes.addAll("*.yml", "*.md", "**/*.md", "**/build/*", "**/out/*", "**/generated/*", "**/*.adoc", "**/*.json", "**/*.conf")
     }
     getByName("build").dependsOn("rat")
 }
