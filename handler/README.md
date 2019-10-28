@@ -95,7 +95,7 @@ There are two sections:
 - `node` defines a fragment processing logic
 - `onTransitions` is a map that represents outgoing edges in a graph
 
-#### Node processing
+##### Node processing
 The node responsibility can be described as: 
 > Graph node gets a fragment, processes it and responds with Transition. So a node is the function 
 >`F -> (F', T)` where `F` is the Fragment, `F'` is a modified Fragment and `T` is the Transition.
@@ -120,7 +120,7 @@ Knot.x provides two node implementations:
 - **Action node** that represents simple steps in a graph such as integration with a data source
 - **Subtasks node** that is a list of unnamed tasks (subtasks) that are evaluated in parallel
 
-##### Action node
+###### Action node
 An *action node* declares an [action](#actions) to execute by its name:
 ```hocon
 node {
@@ -141,7 +141,7 @@ action = reference-to-action
 ```
 A nice syntax sugar!
 
-##### Subtasks node
+###### Subtasks node
 Subtasks node is a node containing a list of subtasks. It evaluates all of them sequentially. 
 However, all the operations are non-blocking, so it doesn't wait for previous subtasks to finish. 
 Because of that, they are effectively executed in parallel
@@ -225,7 +225,7 @@ There are two important rules to remember:
 Nodes can declare custom transitions. Custom transitions allow to react to non standard situations 
 such as data sources timeouts, fallbacks etc.
 
-#### The example
+### The example
 The example below collects data about the book and its authors from external APIs. Book and authors 
 APIs accept ISBN and respond with JSON. We can invoke those APIs in parallel.
 However, the book API does not contain the score. There is a separate service that accepts secret 
