@@ -185,7 +185,7 @@ subtasks = [
   ...
 ]
 ```
-Please note that it is a list of subtasks, subgraphs, subtrees!
+Please note that `subtasks` is a list of nodes.
 
 Let's see the example:
 ```hocon
@@ -247,7 +247,7 @@ The above logic can be easily transformed into the task:
 tasks {
   book-and-author-task {
     subtasks = [
-      { # subtask
+      { # 1st subtask
         action = book-rest-api # HTTP Action
         onTransitions {
           _success {
@@ -265,7 +265,7 @@ tasks {
           } 
         }
       },
-      { # subtask
+      { # 2nd subtask
         action = author-rest-api # HTTP Action
         # _success {} - subtask finished
       }
@@ -301,9 +301,9 @@ and
 action = author-rest-api
 ```
 Those subtasks are executed in parallel because there is no dependency between them. If any of them 
-fails then the `book-and-author-fallback` fallback action is applied. \
+fails then the `book-and-author-fallback` fallback action is applied.
 We used a similar strategy for the book API invocation. In this declarative way, we can easily handle 
-timeouts and errors from APIs. \
+timeouts and errors from APIs.
 Please note that no error strategy has been defined for authors API yet. However, it can be easily 
 configured in the future when business agrees on the fallback logic.
 
