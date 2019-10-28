@@ -67,7 +67,6 @@ public class InlinePayloadActionFactory implements ActionFactory {
     Fragment fragment = fragmentContext.getFragment();
     fragment.appendPayload(key, payload);
     logger.info("payload", fragment.getPayload());
-    System.out.println(logger.toLog());
     return new FragmentResult(fragment, FragmentResult.SUCCESS_TRANSITION, logger.toLog());
   }
 
