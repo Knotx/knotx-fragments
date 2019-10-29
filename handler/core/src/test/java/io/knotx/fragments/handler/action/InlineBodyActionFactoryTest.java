@@ -59,7 +59,7 @@ class InlineBodyActionFactoryTest {
   void applyAction(VertxTestContext testContext) throws Throwable {
     // given
     Fragment fragment = new Fragment("type", new JsonObject(), INITIAL_BODY);
-    ActionConfig config = new ActionConfig(ACTION_ALIAS, null, new JsonObject().put("body",
+    ActionConfig config = new ActionConfig(ACTION_ALIAS,new JsonObject().put("body",
         EXPECTED_VALUE), ERROR);
     Action action = new InlineBodyActionFactory().create(config, null);
 
@@ -86,7 +86,7 @@ class InlineBodyActionFactoryTest {
     // given
     Fragment fragment = new Fragment("type", new JsonObject(), INITIAL_BODY);
     Action action = new InlineBodyActionFactory()
-        .create(new ActionConfig("action", null, new JsonObject(), ERROR), null);
+        .create(new ActionConfig("action", new JsonObject(), ERROR), null);
 
     // when
     action.apply(new FragmentContext(fragment, new ClientRequest()),

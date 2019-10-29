@@ -50,7 +50,7 @@ class InlinePayloadActionFactoryTest {
   void createActionWithoutPayload() {
     // when, then
     assertThrows(IllegalArgumentException.class, () -> new InlinePayloadActionFactory()
-        .create(new ActionConfig(ACTION_ALIAS, null, new JsonObject(), ERROR), null));
+        .create(new ActionConfig(ACTION_ALIAS, new JsonObject(), ERROR), null));
   }
 
   @Test
@@ -68,7 +68,7 @@ class InlinePayloadActionFactoryTest {
     // given
     Action action = new InlinePayloadActionFactory()
         .create(
-            new ActionConfig(ACTION_ALIAS, null,
+            new ActionConfig(ACTION_ALIAS,
                 new JsonObject().put("payload", EXPECTED_JSON_OBJECT), ERROR),
             null);
 
@@ -93,7 +93,7 @@ class InlinePayloadActionFactoryTest {
     // given
     String expectedAlias = "newAction";
     Action action = new InlinePayloadActionFactory()
-        .create(new ActionConfig(ACTION_ALIAS, null,
+        .create(new ActionConfig(ACTION_ALIAS,
                 new JsonObject().put("alias", expectedAlias).put("payload", EXPECTED_JSON_OBJECT),
                 ERROR),
             null);
@@ -120,7 +120,7 @@ class InlinePayloadActionFactoryTest {
     // given
     Action action = new InlinePayloadActionFactory()
         .create(
-            new ActionConfig(ACTION_ALIAS, null,
+            new ActionConfig(ACTION_ALIAS,
                 new JsonObject().put("payload", EXPECTED_JSON_OBJECT), ERROR),
             null);
 
@@ -145,7 +145,7 @@ class InlinePayloadActionFactoryTest {
   void applyActionAndLogWhenJSON(VertxTestContext testContext) throws Throwable {
     // given
     Action action = new InlinePayloadActionFactory()
-        .create(new ActionConfig(ACTION_ALIAS, null,
+        .create(new ActionConfig(ACTION_ALIAS,
             new JsonObject().put("payload", EXPECTED_JSON_OBJECT), INFO), null);
 
     // when
@@ -174,7 +174,7 @@ class InlinePayloadActionFactoryTest {
     // given
     Action action = new InlinePayloadActionFactory()
         .create(
-            new ActionConfig(ACTION_ALIAS, null,
+            new ActionConfig(ACTION_ALIAS,
                 new JsonObject().put("payload", EXPECTED_JSON_ARRAY), ERROR),
             null);
 
@@ -204,7 +204,7 @@ class InlinePayloadActionFactoryTest {
     fragment.appendPayload(expectedKey, "any value");
     Action action = new InlinePayloadActionFactory()
         .create(
-            new ActionConfig(ACTION_ALIAS, null,
+            new ActionConfig(ACTION_ALIAS,
                 new JsonObject().put("payload", EXPECTED_JSON_OBJECT), ERROR),
             null);
 

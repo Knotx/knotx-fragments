@@ -66,7 +66,7 @@ class PayloadToBodyActionFactoryTest {
     // given
     Action action = new PayloadToBodyActionFactory()
         .create(
-            new ActionConfig(ACTION_ALIAS, null, new JsonObject().put(PAYLOAD_KEY, "key"), ERROR),
+            new ActionConfig(ACTION_ALIAS, new JsonObject().put(PAYLOAD_KEY, "key"), ERROR),
             null);
 
     // when
@@ -94,7 +94,7 @@ class PayloadToBodyActionFactoryTest {
   void bodyLoggedWithNestedPayload(VertxTestContext testContext) throws Throwable {
     // given
     Action action = new PayloadToBodyActionFactory()
-        .create(new ActionConfig(ACTION_ALIAS, null,
+        .create(new ActionConfig(ACTION_ALIAS,
             new JsonObject().put(PAYLOAD_KEY, "key"), INFO), null);
 
     // when
@@ -122,7 +122,7 @@ class PayloadToBodyActionFactoryTest {
     // given
     Action action = new PayloadToBodyActionFactory()
         .create(
-            new ActionConfig(ACTION_ALIAS, null, new JsonObject().put(PAYLOAD_KEY, "key.user"),
+            new ActionConfig(ACTION_ALIAS,  new JsonObject().put(PAYLOAD_KEY, "key.user"),
                 ERROR), null);
 
     // when

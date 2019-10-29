@@ -19,35 +19,58 @@ import io.knotx.fragments.handler.api.actionlog.ActionLogMode;
 import io.vertx.core.json.JsonObject;
 
 public class ActionConfig {
+
   private final String alias;
   private final Action doAction;
   private final ActionLogMode actionLogMode;
   private final JsonObject options;
 
-  public ActionConfig(String alias, Action doAction, JsonObject options, ActionLogMode actionLogMode) {
+  public ActionConfig(String alias, Action doAction, JsonObject options,
+      ActionLogMode actionLogMode) {
     this.alias = alias;
     this.options = options;
     this.doAction = doAction;
     this.actionLogMode = actionLogMode;
   }
 
+  public ActionConfig(String alias, JsonObject options, ActionLogMode actionLogMode) {
+    this(alias, null, options, actionLogMode);
+  }
+
+  /**
+   * Configuration that is passed to Action
+   */
   public JsonObject getOptions() {
     return options;
   }
 
+  /**
+   * Wrapped simple action by behaviour action
+   *
+   * @return Action implementation.
+   */
   public Action getDoAction() {
     return doAction;
   }
 
+  /**
+   * Action log mode (INFO or ERROR)
+   *
+   * @return {@code ActionLogMode}.
+   */
   public ActionLogMode getActionLogMode() {
     return actionLogMode;
   }
 
+  /**
+   * Action alias
+   * @return action alias
+   */
   public String getAlias() {
     return alias;
   }
 
-  public boolean hasAction(){
+  public boolean hasAction() {
     return doAction != null;
   }
 }
