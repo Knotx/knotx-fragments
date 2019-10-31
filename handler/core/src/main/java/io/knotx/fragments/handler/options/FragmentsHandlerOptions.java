@@ -96,6 +96,12 @@ public class FragmentsHandlerOptions {
     return actionLogLevel;
   }
 
+  /**
+   * Sets global action log level possible values: error, info.
+   *
+   * @param actionLogLevel action log level
+   * @return reference to this, so the API can be used fluently
+   */
   public void setActionLogLevel(String actionLogLevel) {
     this.actionLogLevel = actionLogLevel;
   }
