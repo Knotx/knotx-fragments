@@ -102,8 +102,9 @@ public class FragmentsHandlerOptions {
    * @param actionLogLevel action log level
    * @return reference to this, so the API can be used fluently
    */
-  public void setActionLogLevel(String actionLogLevel) {
+  public FragmentsHandlerOptions setActionLogLevel(String actionLogLevel) {
     this.actionLogLevel = actionLogLevel;
+    return this;
   }
 
   @Override
