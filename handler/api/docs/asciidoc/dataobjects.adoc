@@ -1,5 +1,18 @@
 = Cheatsheets
 
+[[ActionLog]]
+== ActionLog
+
+
+[cols=">25%,25%,50%"]
+[frame="topbot"]
+|===
+^|Name | Type ^| Description
+|[[alias]]`@alias`|`String`|-
+|[[doActionLogs]]`@doActionLogs`|`Array of link:dataobjects.html#ActionLog[ActionLog]`|-
+|[[logs]]`@logs`|`Json object`|-
+|===
+
 [[ActionPayload]]
 == ActionPayload
 
@@ -82,6 +95,9 @@ Fragment that is passed between Actions. It might be transformend or updated by 
 [frame="topbot"]
 |===
 ^|Name | Type ^| Description
+|[[actionLog]]`@actionLog`|`link:dataobjects.html#ActionLog[ActionLog]`|+++
+Log produced by action execution.
++++
 |[[fragment]]`@fragment`|`link:dataobjects.html#Fragment[Fragment]`|+++
 A <code>Fragment</code> transformed or updated during applying the <code>Action</code>.
 +++

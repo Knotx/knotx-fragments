@@ -44,7 +44,7 @@ class InlineBodyActionFactoryTest {
   void createActionWithDoAction() {
     // when, then
     assertThrows(IllegalArgumentException.class, () -> {
-      new InlineBodyActionLoggerFactory()
+      new InlineBodyActionFactory()
           .create(ACTION_ALIAS, new JsonObject(), null,
               (fragmentContext, resultHandler) -> {
               });
@@ -59,7 +59,7 @@ class InlineBodyActionFactoryTest {
     JsonObject config = new JsonObject()
         .put("body",EXPECTED_VALUE)
         .put(ActionLogLevel.CONFIG_KEY_NAME, "error");
-    Action action = new InlineBodyActionLoggerFactory().create(ACTION_ALIAS, config, null, null);
+    Action action = new InlineBodyActionFactory().create(ACTION_ALIAS, config, null, null);
 
     // when
     action.apply(new FragmentContext(fragment, new ClientRequest()),
@@ -83,7 +83,7 @@ class InlineBodyActionFactoryTest {
   void applyActionWithEmptyConfiguration(VertxTestContext testContext) throws Throwable {
     // given
     Fragment fragment = new Fragment("type", new JsonObject(), INITIAL_BODY);
-    Action action = new InlineBodyActionLoggerFactory()
+    Action action = new InlineBodyActionFactory()
         .create("action", new JsonObject().put(CONFIG_KEY_NAME, "error"),null, null);
 
     // when

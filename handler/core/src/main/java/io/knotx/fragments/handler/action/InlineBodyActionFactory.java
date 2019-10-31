@@ -41,7 +41,7 @@ import io.vertx.core.json.JsonObject;
  * {@link GraphNodeOptions#isComposite()}.
  */
 @Cacheable
-public class InlineBodyActionLoggerFactory implements ActionFactory{
+public class InlineBodyActionFactory implements ActionFactory{
 
   private static final String DEFAULT_EMPTY_BODY = "";
 

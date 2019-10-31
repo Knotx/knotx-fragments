@@ -15,24 +15,25 @@
  */
 package io.knotx.fragments.handler.api.actionlog;
 
-import static com.google.common.collect.ImmutableList.copyOf;
+import static java.util.Collections.unmodifiableList;
 import static java.util.stream.Collectors.toList;
 
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.StreamSupport;
 
+import io.vertx.codegen.annotations.DataObject;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
+@DataObject
 public class ActionLog {
 
   private final String alias;
   private final JsonObject logs;
   private final List<ActionLog> doActionLogs;
 
-  ActionLog(String alias, JsonObject logs,
-      List<ActionLog> doActionLogs) {
+  ActionLog(String alias, JsonObject logs, List<ActionLog> doActionLogs) {
     this.alias = alias;
     this.logs = logs;
     this.doActionLogs = doActionLogs;
@@ -61,7 +62,7 @@ public class ActionLog {
   }
 
   public List<ActionLog> getDoActionLogs() {
-    return copyOf(doActionLogs);
+    return unmodifiableList(doActionLogs);
   }
 
   public JsonObject toJson() {

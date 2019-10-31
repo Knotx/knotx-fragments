@@ -15,8 +15,9 @@
  */
 package io.knotx.fragments.handler.api.actionlog;
 
-import static com.google.common.collect.Lists.newArrayList;
 import static java.lang.String.format;
+
+import java.util.Arrays;
 
 public enum ActionLogLevel {
   INFO("info"), ERROR("error");
@@ -33,7 +34,7 @@ public enum ActionLogLevel {
   }
 
   public static ActionLogLevel fromConfig(String level) {
-    return newArrayList(ActionLogLevel.values())
+    return Arrays.asList(ActionLogLevel.values())
         .stream()
         .filter(al -> level.equals(al.getLevel()))
         .findAny()

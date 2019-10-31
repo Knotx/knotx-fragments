@@ -58,12 +58,6 @@ public class FragmentResult {
     this.actionLog = toActionLog(json);
   }
 
-  private ActionLog toActionLog(JsonObject json) {
-    return Optional.ofNullable(json.getJsonObject(ACTION_LOG_KEY))
-        .map(ActionLog::new)
-        .orElse(null);
-  }
-
   public JsonObject toJson() {
     return new JsonObject()
         .put(FRAGMENT_KEY, fragment.toJson())
@@ -93,6 +87,11 @@ public class FragmentResult {
     }
   }
 
+  /**
+   * Log produced by action execution.
+   *
+   * @return action log
+   */
   public ActionLog getActionLog() {
     return actionLog;
   }
@@ -125,4 +124,9 @@ public class FragmentResult {
         '}';
   }
 
+  private ActionLog toActionLog(JsonObject json) {
+    return Optional.ofNullable(json.getJsonObject(ACTION_LOG_KEY))
+        .map(ActionLog::new)
+        .orElse(null);
+  }
 }

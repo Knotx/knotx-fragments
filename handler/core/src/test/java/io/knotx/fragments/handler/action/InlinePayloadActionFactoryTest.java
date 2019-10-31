@@ -48,7 +48,7 @@ class InlinePayloadActionFactoryTest {
     //given
     JsonObject config = new JsonObject().put(CONFIG_KEY_NAME, "error");
     // when, then
-    assertThrows(IllegalArgumentException.class, () -> new InlinePayloadActionLoggerFactory()
+    assertThrows(IllegalArgumentException.class, () -> new InlinePayloadActionFactory()
         .create(ACTION_ALIAS, config, null, null));
   }
 
@@ -59,7 +59,7 @@ class InlinePayloadActionFactoryTest {
     JsonObject config = new JsonObject().put("payload", EXPECTED_JSON_OBJECT)
         .put(CONFIG_KEY_NAME, "error");
     // when, then
-    assertThrows(IllegalArgumentException.class, () -> new InlinePayloadActionLoggerFactory()
+    assertThrows(IllegalArgumentException.class, () -> new InlinePayloadActionFactory()
         .create(ACTION_ALIAS, config, null, getDummyAction()));
   }
 
@@ -69,7 +69,7 @@ class InlinePayloadActionFactoryTest {
     // given
     JsonObject config = new JsonObject().put("payload", EXPECTED_JSON_OBJECT)
         .put(CONFIG_KEY_NAME, "error");
-    Action action = new InlinePayloadActionLoggerFactory()
+    Action action = new InlinePayloadActionFactory()
         .create(ACTION_ALIAS, config, null, null);
 
     // when
@@ -94,7 +94,7 @@ class InlinePayloadActionFactoryTest {
     String expectedAlias = "newAction";
     JsonObject config = new JsonObject().put("alias", expectedAlias).put("payload", EXPECTED_JSON_OBJECT)
         .put(CONFIG_KEY_NAME, "error");
-    Action action = new InlinePayloadActionLoggerFactory()
+    Action action = new InlinePayloadActionFactory()
         .create(ACTION_ALIAS, config, null, null);
 
     // when
@@ -119,7 +119,7 @@ class InlinePayloadActionFactoryTest {
     // given
     JsonObject config = new JsonObject().put("payload", EXPECTED_JSON_OBJECT)
         .put(CONFIG_KEY_NAME, "error");
-    Action action = new InlinePayloadActionLoggerFactory()
+    Action action = new InlinePayloadActionFactory()
         .create(ACTION_ALIAS, config, null, null);
 
     // when
@@ -144,7 +144,7 @@ class InlinePayloadActionFactoryTest {
     // given
     JsonObject config = new JsonObject().put("payload", EXPECTED_JSON_OBJECT)
         .put(CONFIG_KEY_NAME, "info");
-    Action action = new InlinePayloadActionLoggerFactory()
+    Action action = new InlinePayloadActionFactory()
         .create(ACTION_ALIAS, config, null, null);
 
     // when
@@ -173,7 +173,7 @@ class InlinePayloadActionFactoryTest {
     // given
     JsonObject config = new JsonObject().put("payload", EXPECTED_JSON_ARRAY)
         .put(CONFIG_KEY_NAME, "error");
-    Action action = new InlinePayloadActionLoggerFactory()
+    Action action = new InlinePayloadActionFactory()
         .create(ACTION_ALIAS, config, null, null);
 
     // when
@@ -202,7 +202,7 @@ class InlinePayloadActionFactoryTest {
 
     Fragment fragment = new Fragment("type", new JsonObject(), "body");
     fragment.appendPayload(expectedKey, "any value");
-    Action action = new InlinePayloadActionLoggerFactory()
+    Action action = new InlinePayloadActionFactory()
         .create(ACTION_ALIAS, config, null, null);
 
     // when

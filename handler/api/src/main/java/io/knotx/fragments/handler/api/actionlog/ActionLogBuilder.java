@@ -18,8 +18,6 @@ package io.knotx.fragments.handler.api.actionlog;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.google.common.collect.ImmutableList;
-
 import io.vertx.core.json.JsonObject;
 
 public class ActionLogBuilder {
@@ -49,7 +47,7 @@ public class ActionLogBuilder {
   }
 
   public ActionLog build(){
-    return new ActionLog(alias, logs.copy(), ImmutableList.copyOf(doActionLogs));
+    return new ActionLog(alias, logs, doActionLogs);
   }
 
 }

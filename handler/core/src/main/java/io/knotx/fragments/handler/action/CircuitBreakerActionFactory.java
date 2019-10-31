@@ -39,7 +39,7 @@ import io.vertx.core.json.JsonObject;
  * the `doAction` action against overloading when it does not respond on time. If t
  */
 @Cacheable
-public class CircuitBreakerActionLoggerFactory implements ActionFactory {
+public class CircuitBreakerActionFactory implements ActionFactory {
 
   static final String FALLBACK_TRANSITION = "fallback";
 
@@ -50,7 +50,6 @@ public class CircuitBreakerActionLoggerFactory implements ActionFactory {
 
   @Override
   public Action create(String alias, JsonObject config, Vertx vertx, Action doAction) {
-    //create(ActionConfig config, Vertx vertx)
     if (isNull(doAction)) {
       throw new DoActionNotDefinedException("Circuit Breaker action requires `doAction` defined");
     }

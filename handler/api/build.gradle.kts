@@ -35,7 +35,6 @@ dependencies {
     implementation(group = "io.vertx", name = "vertx-rx-java2")
     implementation(group = "io.vertx", name = "vertx-circuit-breaker")
     implementation(group = "org.apache.commons", name = "commons-lang3")
-    implementation(group = "com.google.guava", name = "guava")
 }
 
 tasks {

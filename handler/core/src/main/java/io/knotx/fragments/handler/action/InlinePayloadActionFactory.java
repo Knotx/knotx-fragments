@@ -29,7 +29,7 @@ import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
 
 @Cacheable
-public class InlinePayloadActionLoggerFactory implements ActionFactory{
+public class InlinePayloadActionFactory implements ActionFactory{
 
   @Override
   public String getName() {
@@ -45,7 +45,6 @@ public class InlinePayloadActionLoggerFactory implements ActionFactory{
    */
   @Override
   public Action create(String alias, JsonObject config, Vertx vertx, Action doAction){
-  // Action create(ActionConfig config, Vertx vertx) {
     if (Objects.nonNull(doAction)) {
       throw new IllegalArgumentException("Inline Payload Action does not support doAction");
     }
