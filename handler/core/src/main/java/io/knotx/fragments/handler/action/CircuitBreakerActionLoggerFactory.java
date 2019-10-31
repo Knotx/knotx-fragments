@@ -16,10 +16,10 @@
 package io.knotx.fragments.handler.action;
 
 import static java.lang.String.format;
+import static java.util.Objects.isNull;
 
 import io.knotx.fragments.api.Fragment;
 import io.knotx.fragments.handler.api.Action;
-import io.knotx.fragments.handler.api.ActionConfig;
 import io.knotx.fragments.handler.api.ActionFactory;
 import io.knotx.fragments.handler.api.Cacheable;
 import io.knotx.fragments.handler.api.actionlog.ActionLogger;
@@ -39,7 +39,7 @@ import io.vertx.core.json.JsonObject;
  * the `doAction` action against overloading when it does not respond on time. If t
  */
 @Cacheable
-public class CircuitBreakerActionFactory implements ActionFactory {
+public class CircuitBreakerActionLoggerFactory implements ActionFactory {
 
   static final String FALLBACK_TRANSITION = "fallback";
 
@@ -49,20 +49,19 @@ public class CircuitBreakerActionFactory implements ActionFactory {
   }
 
   @Override
-  public Action create(ActionConfig config, Vertx vertx) {
-    if (!config.hasAction()) {
+  public Action create(String alias, JsonObject config, Vertx vertx, Action doAction) {
+    //create(ActionConfig config, Vertx vertx)
+    if (isNull(doAction)) {
       throw new DoActionNotDefinedException("Circuit Breaker action requires `doAction` defined");
     }
-    JsonObject options = config.getOptions();
-    String circuitBreakerName = options.getString("circuitBreakerName");
+    String circuitBreakerName = config.getString("circuitBreakerName");
     CircuitBreakerOptions circuitBreakerOptions =
-        options.getJsonObject("circuitBreakerOptions") == null ? new CircuitBreakerOptions()
-            : new CircuitBreakerOptions(options.getJsonObject("circuitBreakerOptions"));
+        config.getJsonObject("circuitBreakerOptions") == null ? new CircuitBreakerOptions()
+            : new CircuitBreakerOptions(config.getJsonObject("circuitBreakerOptions"));
     CircuitBreaker circuitBreaker = new CircuitBreakerImpl(circuitBreakerName, vertx,
         circuitBreakerOptions);
 
-    return new CircuitBreakerAction(circuitBreaker, config.getDoAction(),
-        ActionLogger.create(config));
+    return new CircuitBreakerAction(circuitBreaker, doAction, ActionLogger.create(alias, config));
   }
 
   public static class CircuitBreakerAction implements Action {

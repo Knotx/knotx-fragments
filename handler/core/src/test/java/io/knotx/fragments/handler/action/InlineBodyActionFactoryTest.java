@@ -15,12 +15,12 @@
  */
 package io.knotx.fragments.handler.action;
 
-import static io.knotx.fragments.handler.api.actionlog.ActionLogMode.ERROR;
+import static io.knotx.fragments.handler.api.actionlog.ActionLogLevel.CONFIG_KEY_NAME;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import io.knotx.fragments.api.Fragment;
 import io.knotx.fragments.handler.api.Action;
-import io.knotx.fragments.handler.api.ActionConfig;
+import io.knotx.fragments.handler.api.actionlog.ActionLogLevel;
 import io.knotx.fragments.handler.api.domain.FragmentContext;
 import io.knotx.server.api.context.ClientRequest;
 import io.vertx.core.json.JsonObject;
@@ -44,13 +44,10 @@ class InlineBodyActionFactoryTest {
   void createActionWithDoAction() {
     // when, then
     assertThrows(IllegalArgumentException.class, () -> {
-      ActionConfig config = new ActionConfig(ACTION_ALIAS,
-          (fragmentContext, resultHandler) -> {
-          },
-          new JsonObject(), ERROR);
-
-      new InlineBodyActionFactory()
-          .create(config, null);
+      new InlineBodyActionLoggerFactory()
+          .create(ACTION_ALIAS, new JsonObject(), null,
+              (fragmentContext, resultHandler) -> {
+              });
     });
   }
 
@@ -59,9 +56,10 @@ class InlineBodyActionFactoryTest {
   void applyAction(VertxTestContext testContext) throws Throwable {
     // given
     Fragment fragment = new Fragment("type", new JsonObject(), INITIAL_BODY);
-    ActionConfig config = new ActionConfig(ACTION_ALIAS,new JsonObject().put("body",
-        EXPECTED_VALUE), ERROR);
-    Action action = new InlineBodyActionFactory().create(config, null);
+    JsonObject config = new JsonObject()
+        .put("body",EXPECTED_VALUE)
+        .put(ActionLogLevel.CONFIG_KEY_NAME, "error");
+    Action action = new InlineBodyActionLoggerFactory().create(ACTION_ALIAS, config, null, null);
 
     // when
     action.apply(new FragmentContext(fragment, new ClientRequest()),
@@ -85,8 +83,8 @@ class InlineBodyActionFactoryTest {
   void applyActionWithEmptyConfiguration(VertxTestContext testContext) throws Throwable {
     // given
     Fragment fragment = new Fragment("type", new JsonObject(), INITIAL_BODY);
-    Action action = new InlineBodyActionFactory()
-        .create(new ActionConfig("action", new JsonObject(), ERROR), null);
+    Action action = new InlineBodyActionLoggerFactory()
+        .create("action", new JsonObject().put(CONFIG_KEY_NAME, "error"),null, null);
 
     // when
     action.apply(new FragmentContext(fragment, new ClientRequest()),

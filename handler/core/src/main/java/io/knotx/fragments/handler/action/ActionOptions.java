@@ -15,12 +15,8 @@
  */
 package io.knotx.fragments.handler.action;
 
-import static io.knotx.fragments.handler.api.actionlog.ActionLogMode.ERROR;
-import static java.util.Objects.isNull;
-
 import java.util.Objects;
 
-import io.knotx.fragments.handler.api.actionlog.ActionLogMode;
 import io.vertx.codegen.annotations.DataObject;
 import io.vertx.core.json.JsonObject;
 

@@ -15,16 +15,13 @@
  */
 package io.knotx.fragments.handler.action;
 
-import static io.knotx.fragments.handler.api.actionlog.ActionLogMode.ERROR;
-import static io.knotx.fragments.handler.api.actionlog.ActionLogMode.INFO;
-import static io.knotx.fragments.handler.api.actionlog.ActionLogger.getLogEntry;
+import static io.knotx.fragments.handler.api.actionlog.ActionLogLevel.CONFIG_KEY_NAME;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.knotx.fragments.api.Fragment;
 import io.knotx.fragments.handler.api.Action;
-import io.knotx.fragments.handler.api.ActionConfig;
 import io.knotx.fragments.handler.api.domain.FragmentContext;
 import io.knotx.server.api.context.ClientRequest;
 import io.vertx.core.json.JsonArray;
@@ -48,29 +45,32 @@ class InlinePayloadActionFactoryTest {
   @Test
   @DisplayName("Expect IllegalArgumentException when payload not configured.")
   void createActionWithoutPayload() {
+    //given
+    JsonObject config = new JsonObject().put(CONFIG_KEY_NAME, "error");
     // when, then
-    assertThrows(IllegalArgumentException.class, () -> new InlinePayloadActionFactory()
-        .create(new ActionConfig(ACTION_ALIAS, new JsonObject(), ERROR), null));
+    assertThrows(IllegalArgumentException.class, () -> new InlinePayloadActionLoggerFactory()
+        .create(ACTION_ALIAS, config, null, null));
   }
 
   @Test
   @DisplayName("Expect IllegalArgumentException when doAction specified.")
   void createActionWithDoAction() {
+    //given
+    JsonObject config = new JsonObject().put("payload", EXPECTED_JSON_OBJECT)
+        .put(CONFIG_KEY_NAME, "error");
     // when, then
-    assertThrows(IllegalArgumentException.class, () -> new InlinePayloadActionFactory()
-        .create(new ActionConfig(ACTION_ALIAS,
-            getDummyAction(), new JsonObject().put("payload", EXPECTED_JSON_OBJECT), ERROR), null));
+    assertThrows(IllegalArgumentException.class, () -> new InlinePayloadActionLoggerFactory()
+        .create(ACTION_ALIAS, config, null, getDummyAction()));
   }
 
   @Test
   @DisplayName("Expect payload with action alias key in Fragment payload when alias not configured.")
   void applyActionWithActionAlias(VertxTestContext testContext) throws Throwable {
     // given
-    Action action = new InlinePayloadActionFactory()
-        .create(
-            new ActionConfig(ACTION_ALIAS,
-                new JsonObject().put("payload", EXPECTED_JSON_OBJECT), ERROR),
-            null);
+    JsonObject config = new JsonObject().put("payload", EXPECTED_JSON_OBJECT)
+        .put(CONFIG_KEY_NAME, "error");
+    Action action = new InlinePayloadActionLoggerFactory()
+        .create(ACTION_ALIAS, config, null, null);
 
     // when
     action.apply(new FragmentContext(FRAGMENT, new ClientRequest()),
@@ -92,11 +92,10 @@ class InlinePayloadActionFactoryTest {
   void applyActionWithAlias(VertxTestContext testContext) throws Throwable {
     // given
     String expectedAlias = "newAction";
-    Action action = new InlinePayloadActionFactory()
-        .create(new ActionConfig(ACTION_ALIAS,
-                new JsonObject().put("alias", expectedAlias).put("payload", EXPECTED_JSON_OBJECT),
-                ERROR),
-            null);
+    JsonObject config = new JsonObject().put("alias", expectedAlias).put("payload", EXPECTED_JSON_OBJECT)
+        .put(CONFIG_KEY_NAME, "error");
+    Action action = new InlinePayloadActionLoggerFactory()
+        .create(ACTION_ALIAS, config, null, null);
 
     // when
     action.apply(new FragmentContext(FRAGMENT, new ClientRequest()),
@@ -118,11 +117,10 @@ class InlinePayloadActionFactoryTest {
   @DisplayName("Expect JSON in Fragment payload when JSON configured")
   void applyActionWhenJSON(VertxTestContext testContext) throws Throwable {
     // given
-    Action action = new InlinePayloadActionFactory()
-        .create(
-            new ActionConfig(ACTION_ALIAS,
-                new JsonObject().put("payload", EXPECTED_JSON_OBJECT), ERROR),
-            null);
+    JsonObject config = new JsonObject().put("payload", EXPECTED_JSON_OBJECT)
+        .put(CONFIG_KEY_NAME, "error");
+    Action action = new InlinePayloadActionLoggerFactory()
+        .create(ACTION_ALIAS, config, null, null);
 
     // when
     action.apply(new FragmentContext(FRAGMENT, new ClientRequest()),
@@ -144,9 +142,10 @@ class InlinePayloadActionFactoryTest {
   @DisplayName("Expect JSON in Fragment payload and action log")
   void applyActionAndLogWhenJSON(VertxTestContext testContext) throws Throwable {
     // given
-    Action action = new InlinePayloadActionFactory()
-        .create(new ActionConfig(ACTION_ALIAS,
-            new JsonObject().put("payload", EXPECTED_JSON_OBJECT), INFO), null);
+    JsonObject config = new JsonObject().put("payload", EXPECTED_JSON_OBJECT)
+        .put(CONFIG_KEY_NAME, "info");
+    Action action = new InlinePayloadActionLoggerFactory()
+        .create(ACTION_ALIAS, config, null, null);
 
     // when
     action.apply(new FragmentContext(FRAGMENT, new ClientRequest()),
@@ -157,7 +156,7 @@ class InlinePayloadActionFactoryTest {
                 JsonObject payload = result.result().getFragment().getPayload();
 
                 assertEquals(EXPECTED_JSON_OBJECT, payload.getJsonObject(ACTION_ALIAS));
-                assertEquals(payload, getLogEntry("payload", result.result().getActionLog()));
+                assertEquals(payload, result.result().getActionLog().getLogs().getJsonObject("payload"));
               });
           testContext.completeNow();
         });
@@ -172,11 +171,10 @@ class InlinePayloadActionFactoryTest {
   @DisplayName("Expect JSON array in Fragment payload when JSON array configured")
   void applyActionWhenArray(VertxTestContext testContext) throws Throwable {
     // given
-    Action action = new InlinePayloadActionFactory()
-        .create(
-            new ActionConfig(ACTION_ALIAS,
-                new JsonObject().put("payload", EXPECTED_JSON_ARRAY), ERROR),
-            null);
+    JsonObject config = new JsonObject().put("payload", EXPECTED_JSON_ARRAY)
+        .put(CONFIG_KEY_NAME, "error");
+    Action action = new InlinePayloadActionLoggerFactory()
+        .create(ACTION_ALIAS, config, null, null);
 
     // when
     action.apply(new FragmentContext(FRAGMENT, new ClientRequest()),
@@ -199,14 +197,13 @@ class InlinePayloadActionFactoryTest {
   void expectAllIncomingPayloadEntriesInResult(VertxTestContext testContext) throws Throwable {
     // given
     String expectedKey = "input";
+    JsonObject config = new JsonObject().put("payload", EXPECTED_JSON_OBJECT)
+        .put(CONFIG_KEY_NAME, "error");
 
     Fragment fragment = new Fragment("type", new JsonObject(), "body");
     fragment.appendPayload(expectedKey, "any value");
-    Action action = new InlinePayloadActionFactory()
-        .create(
-            new ActionConfig(ACTION_ALIAS,
-                new JsonObject().put("payload", EXPECTED_JSON_OBJECT), ERROR),
-            null);
+    Action action = new InlinePayloadActionLoggerFactory()
+        .create(ACTION_ALIAS, config, null, null);
 
     // when
     action.apply(new FragmentContext(fragment, new ClientRequest()),

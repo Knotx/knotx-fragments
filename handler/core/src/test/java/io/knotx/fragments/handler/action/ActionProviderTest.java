@@ -17,7 +17,6 @@
  */
 package io.knotx.fragments.handler.action;
 
-import static io.knotx.fragments.handler.api.actionlog.ActionLogMode.ERROR;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertSame;
@@ -28,8 +27,6 @@ import static org.mockito.Mockito.when;
 
 import com.google.common.collect.ImmutableMap;
 
-import io.knotx.fragments.handler.api.ActionConfig;
-import io.knotx.fragments.handler.api.actionlog.ActionLogMode;
 import io.knotx.fragments.handler.api.domain.FragmentContext;
 import io.knotx.fragments.handler.api.domain.FragmentResult;
 import io.knotx.fragments.handler.api.Cacheable;
@@ -65,7 +62,7 @@ class ActionProviderTest {
   void getWithNoAction(Vertx vertx) {
     // given
     ActionProvider tested = new ActionProvider(Collections.emptyMap(),
-        Collections::emptyListIterator, ERROR, vertx);
+        Collections::emptyListIterator, "error", vertx);
 
     // when
     Optional<Action> operation = tested.get(null);
@@ -79,7 +76,7 @@ class ActionProviderTest {
   void getWithNoEntries(Vertx vertx) {
     // given
     ActionProvider tested = new ActionProvider(Collections.emptyMap(),
-        Collections::emptyListIterator, ERROR, vertx);
+        Collections::emptyListIterator, "error", vertx);
 
     // when
     Optional<Action> operation = tested.get("any");
@@ -96,7 +93,7 @@ class ActionProviderTest {
         .singletonMap(PROXY_ALIAS, new ActionOptions("eb", new JsonObject(), null));
 
     ActionProvider tested = new ActionProvider(proxies,
-        Collections::emptyListIterator, ERROR,
+        Collections::emptyListIterator, "error",
         vertx);
 
     // when
@@ -117,7 +114,7 @@ class ActionProviderTest {
         .singletonList(new TestCacheableOperationFactory());
 
     ActionProvider tested = new ActionProvider(proxies,
-        factories::iterator, ERROR, vertx);
+        factories::iterator, "error", vertx);
 
     // when
     Optional<Action> operation = tested.get(PROXY_ALIAS);
@@ -136,7 +133,7 @@ class ActionProviderTest {
     List<ActionFactory> factories = Collections
         .singletonList(new TestOperationFactory());
 
-    ActionProvider tested = new ActionProvider(proxies, factories::iterator, ERROR, vertx);
+    ActionProvider tested = new ActionProvider(proxies, factories::iterator, "error", vertx);
 
     // when
     Optional<Action> firstOperation = tested.get(PROXY_ALIAS);
@@ -159,7 +156,7 @@ class ActionProviderTest {
         .singletonList(new TestCacheableOperationFactory());
 
     ActionProvider tested = new ActionProvider(proxies,
-        factories::iterator, ERROR, vertx);
+        factories::iterator, "error", vertx);
 
     // when
     Optional<Action> firstOperation = tested.get(PROXY_ALIAS);
@@ -180,12 +177,13 @@ class ActionProviderTest {
 
     ActionFactory proxyFactory = Mockito.mock(ActionFactory.class);
     when(proxyFactory.getName()).thenReturn(PROXY_FACTORY_NAME);
-    when(proxyFactory.create(any(), eq(vertx)))
+    when(proxyFactory
+        .create(eq(PROXY_ALIAS), any(), eq(vertx), eq(expectedOperationSecond)))
         .thenReturn(expectedOperation);
 
     ActionFactory proxyFactorySecond = Mockito.mock(ActionFactory.class);
     when(proxyFactorySecond.getName()).thenReturn(PROXY_FACTORY_NAME_SECOND);
-    when(proxyFactorySecond.create(any(), eq(vertx)))
+    when(proxyFactorySecond.create(eq(PROXY_ALIAS_SECOND), any(), eq(vertx), eq(null)))
         .thenReturn(expectedOperationSecond);
 
     Map<String, ActionOptions> proxies = ImmutableMap.of(
@@ -196,16 +194,16 @@ class ActionProviderTest {
     );
     List<ActionFactory> factories = Arrays.asList(proxyFactory, proxyFactorySecond);
 
-    ActionProvider tested = new ActionProvider(proxies, factories::iterator, ERROR, vertx);
+    ActionProvider tested = new ActionProvider(proxies, factories::iterator, "error", vertx);
 
     // when
     tested.get(PROXY_ALIAS);
 
     // then
     Mockito.verify(proxyFactorySecond)
-        .create(any(), eq(vertx));
+        .create(eq(PROXY_ALIAS_SECOND), any(), eq(vertx), eq(null));
     Mockito.verify(proxyFactory)
-        .create(any(), eq(vertx));
+        .create(eq(PROXY_ALIAS), any(), eq(vertx), eq(expectedOperationSecond));
   }
 
   class TestOperationFactory implements ActionFactory {
@@ -216,7 +214,8 @@ class ActionProviderTest {
     }
 
     @Override
-    public Action create(ActionConfig config, Vertx vertx) {
+    public Action create(String alias, JsonObject config, Vertx vertx,
+        Action doAction) {
       // do not change to lambda expression as it can be optimised by compiler
       return new Action() {
         @Override
@@ -237,7 +236,8 @@ class ActionProviderTest {
     }
 
     @Override
-    public Action create(ActionConfig config, Vertx vertx) {
+    public Action create(String alias, JsonObject config, Vertx vertx,
+        Action doAction) {
       // do not change to lambda expression as it can be optimised by compiler
       return new Action() {
         @Override

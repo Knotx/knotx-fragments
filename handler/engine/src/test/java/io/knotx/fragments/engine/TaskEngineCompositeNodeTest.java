@@ -253,7 +253,10 @@ class TaskEngineCompositeNodeTest {
 
     // then
     verifyExecution(result, testContext,
-        fragmentEvent -> assertEquals(Status.SUCCESS, fragmentEvent.getStatus()));
+        fragmentEvent ->{
+          System.out.println(fragmentEvent.getLogAsJson());
+            assertEquals(Status.SUCCESS, fragmentEvent.getStatus());
+    });
   }
 
   @Test

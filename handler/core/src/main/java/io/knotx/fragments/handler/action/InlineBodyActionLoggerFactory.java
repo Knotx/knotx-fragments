@@ -15,8 +15,9 @@
  */
 package io.knotx.fragments.handler.action;
 
+import java.util.Objects;
+
 import io.knotx.fragments.handler.api.Action;
-import io.knotx.fragments.handler.api.ActionConfig;
 import io.knotx.fragments.handler.api.ActionFactory;
 import io.knotx.fragments.handler.api.Cacheable;
 import io.knotx.fragments.handler.api.actionlog.ActionLogger;
@@ -24,6 +25,7 @@ import io.knotx.fragments.handler.api.domain.FragmentResult;
 import io.knotx.fragments.task.options.GraphNodeOptions;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
+import io.vertx.core.json.JsonObject;
 
 /**
  * Inline body action factory class. It can be initialized with a configuration:
@@ -39,7 +41,7 @@ import io.vertx.core.Vertx;
  * {@link GraphNodeOptions#isComposite()}.
  */
 @Cacheable
-public class InlineBodyActionFactory implements ActionFactory {
+public class InlineBodyActionLoggerFactory implements ActionFactory{
 
   private static final String DEFAULT_EMPTY_BODY = "";
 
@@ -55,13 +57,14 @@ public class InlineBodyActionFactory implements ActionFactory {
    * @param vertx - vertx instance
    */
   @Override
-  public Action create(ActionConfig config, Vertx vertx) {
-    if (config.hasAction()) {
+  public Action create(String alias, JsonObject config, Vertx vertx, Action doAction){
+  //public Action create(ActionConfig config, Vertx vertx) {
+    if (Objects.nonNull(doAction)) {
       throw new IllegalArgumentException("Inline body action does not support doAction");
     }
     return (fragmentContext, resultHandler) -> {
-      ActionLogger actionLogger = ActionLogger.create(config);
-      String body = config.getOptions().getString("body", DEFAULT_EMPTY_BODY);
+      ActionLogger actionLogger = ActionLogger.create(alias, config);
+      String body = config.getString("body", DEFAULT_EMPTY_BODY);
       actionLogger.info("original_body", fragmentContext.getFragment().getBody());
       actionLogger.info("body", body);
       fragmentContext.getFragment()

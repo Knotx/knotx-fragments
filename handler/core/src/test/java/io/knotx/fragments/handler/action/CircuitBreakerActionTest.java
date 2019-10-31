@@ -17,9 +17,8 @@
  */
 package io.knotx.fragments.handler.action;
 
-import static io.knotx.fragments.handler.action.CircuitBreakerActionFactory.FALLBACK_TRANSITION;
-import static io.knotx.fragments.handler.api.actionlog.ActionLogMode.INFO;
-import static io.knotx.fragments.handler.api.actionlog.ActionLogger.getStringLogEntry;
+import static io.knotx.fragments.handler.action.CircuitBreakerActionLoggerFactory.FALLBACK_TRANSITION;
+import static io.knotx.fragments.handler.api.actionlog.ActionLogLevel.INFO;
 import static io.knotx.fragments.handler.api.domain.FragmentResult.SUCCESS_TRANSITION;
 
 import java.util.List;
@@ -31,7 +30,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import io.knotx.fragments.api.Fragment;
-import io.knotx.fragments.handler.action.CircuitBreakerActionFactory.CircuitBreakerAction;
+import io.knotx.fragments.handler.action.CircuitBreakerActionLoggerFactory.CircuitBreakerAction;
+import io.knotx.fragments.handler.api.actionlog.ActionLog;
 import io.knotx.fragments.handler.api.actionlog.ActionLogger;
 import io.knotx.fragments.handler.api.domain.FragmentContext;
 import io.knotx.fragments.handler.api.domain.FragmentResult;
@@ -69,10 +69,10 @@ class CircuitBreakerActionTest {
         testContext.succeeding(result -> {
           testContext
               .verify(() -> {
-                List doActionsLog =  result.getActionLog().getJsonArray("doAction").getList();
+                List<ActionLog> doActionsLog =  result.getActionLog().getDoActionLogs();
                 Assertions.assertTrue(doActionsLog.size() == 1);
-                JsonObject actionLogs = (JsonObject) doActionsLog.get(0);
-                Assertions.assertEquals("success", actionLogs.getJsonObject("logs").getString("info"));
+                ActionLog actionLogs = doActionsLog.get(0);
+                Assertions.assertEquals("success", actionLogs.getLogs().getString("info"));
                 Assertions.assertEquals(SUCCESS_TRANSITION, result.getTransition());
               });
           testContext.completeNow();
@@ -107,7 +107,7 @@ class CircuitBreakerActionTest {
         testContext.succeeding(result -> {
           testContext
               .verify(() -> {
-                Assertions.assertNotNull(getStringLogEntry("fallback", result.getActionLog()));
+                Assertions.assertNotNull(result.getActionLog().getLogs().getString("fallback"));
                 Assertions.assertEquals(FALLBACK_TRANSITION, result.getTransition());
               });
           testContext.completeNow();

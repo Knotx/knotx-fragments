@@ -32,6 +32,8 @@ import io.knotx.fragments.engine.FragmentEvent.Status;
 import io.knotx.fragments.engine.FragmentEventLogVerifier.Operation;
 import io.knotx.fragments.engine.graph.ActionNode;
 import io.knotx.fragments.engine.graph.Node;
+import io.knotx.fragments.handler.api.actionlog.ActionLog;
+import io.knotx.fragments.handler.api.actionlog.ActionLogBuilder;
 import io.knotx.fragments.handler.api.domain.FragmentContext;
 import io.knotx.fragments.handler.api.domain.FragmentResult;
 import io.knotx.server.api.context.ClientRequest;
@@ -281,7 +283,9 @@ class TaskEngineSingleOperationTest {
   void expectActionDebugLogEventLogEntriesForSuccess(VertxTestContext testContext, Vertx vertx)
       throws Throwable {
     // given
-    JsonObject successActionLog = new JsonObject().put("debug", "success");
+    ActionLog successActionLog = new ActionLogBuilder("alias")
+        .addLog("debug", "success")
+        .build();
     ActionNode rootNode = new ActionNode("first", successWithActionLog(successActionLog),
         Collections.singletonMap(SUCCESS_TRANSITION,
             new ActionNode("second", success())));
@@ -292,7 +296,7 @@ class TaskEngineSingleOperationTest {
     // then
     verifyExecution(result, testContext,
         event -> FragmentEventLogVerifier.verifyAllLogEntries(event.getLogAsJson(),
-            Operation.exact("task", "first", "SUCCESS", 0, successActionLog),
+            Operation.exact("task", "first", "SUCCESS", 0, successActionLog.toJson()),
             Operation.exact("task", "second", "SUCCESS", 1)
         ));
   }
@@ -302,7 +306,9 @@ class TaskEngineSingleOperationTest {
   void expectActionDebugLogEventLogEntriesForError(VertxTestContext testContext, Vertx vertx)
       throws Throwable {
     // given
-    JsonObject errorActionLog = new JsonObject().put("debug", "error");
+    ActionLog errorActionLog = new ActionLogBuilder("alias")
+        .addLog("debug", "error")
+        .build();
     ActionNode rootNode = new ActionNode("first", errorWithActionLog(errorActionLog),
         Collections.singletonMap(ERROR_TRANSITION,
             new ActionNode("second", success())));
@@ -313,7 +319,7 @@ class TaskEngineSingleOperationTest {
     // then
     verifyExecution(result, testContext,
         event -> FragmentEventLogVerifier.verifyAllLogEntries(event.getLogAsJson(),
-            Operation.exact("task", "first", "SUCCESS", 0, errorActionLog),
+            Operation.exact("task", "first", "SUCCESS", 0, errorActionLog.toJson()),
             Operation.exact("task", "second", "SUCCESS", 1)
         ));
   }

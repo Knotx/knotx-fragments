@@ -54,7 +54,7 @@ Sets <code>Action</code> factory name.
 [frame="topbot"]
 |===
 ^|Name | Type ^| Description
-|[[actionLogMode]]`@actionLogMode`|`link:enums.html#ActionLogMode[ActionLogMode]`|-
+|[[actionLogLevel]]`@actionLogLevel`|`String`|-
 |[[actions]]`@actions`|`link:dataobjects.html#ActionOptions[ActionOptions]`|+++
 Sets named actions with their factory configuration.
 +++

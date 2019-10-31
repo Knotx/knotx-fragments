@@ -15,17 +15,13 @@
  */
 package io.knotx.fragments.handler.action;
 
-import static io.knotx.fragments.handler.api.actionlog.ActionLogMode.ERROR;
-import static io.knotx.fragments.handler.api.actionlog.ActionLogMode.INFO;
-import static io.knotx.fragments.handler.api.actionlog.ActionLogger.getLogs;
-import static io.knotx.fragments.handler.api.actionlog.ActionLogger.getStringLogEntry;
+import static io.knotx.fragments.handler.api.actionlog.ActionLogLevel.CONFIG_KEY_NAME;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.knotx.fragments.api.Fragment;
 import io.knotx.fragments.handler.api.Action;
-import io.knotx.fragments.handler.api.ActionConfig;
 import io.knotx.fragments.handler.api.domain.FragmentContext;
 import io.knotx.junit5.KnotxExtension;
 import io.knotx.server.api.context.ClientRequest;
@@ -52,22 +48,24 @@ class PayloadToBodyActionFactoryTest {
   @Test
   @DisplayName("Expect IllegalArgumentException when doAction specified.")
   void createActionWithDoAction() {
+    //given
+    JsonObject config = new JsonObject().put("key", PAYLOAD_KEY).put(CONFIG_KEY_NAME, "error");
     // when, then
     assertThrows(IllegalArgumentException.class, () -> new PayloadToBodyActionFactory()
-        .create(new ActionConfig(ACTION_ALIAS,
-                (fragmentContext, resultHandler) -> {
-                }, new JsonObject().put("key", PAYLOAD_KEY), ERROR),
-            null));
+        .create(ACTION_ALIAS,
+            config,
+            null,
+            (fragmentContext, resultHandler) -> {
+            }));
   }
 
   @Test
   @DisplayName("Expect body with nested payload under paylod key.")
   void bodyWithNestedPayload(VertxTestContext testContext) throws Throwable {
     // given
+    JsonObject config = new JsonObject().put(PAYLOAD_KEY, "key").put(CONFIG_KEY_NAME, "error");
     Action action = new PayloadToBodyActionFactory()
-        .create(
-            new ActionConfig(ACTION_ALIAS, new JsonObject().put(PAYLOAD_KEY, "key"), ERROR),
-            null);
+        .create(ACTION_ALIAS, config, null, null);
 
     // when
     action.apply(new FragmentContext(FRAGMENT, new ClientRequest()),
@@ -76,7 +74,7 @@ class PayloadToBodyActionFactoryTest {
           testContext.verify(() -> {
             String body = result.result().getFragment().getBody();
             assertTrue(result.succeeded());
-            assertTrue(getLogs(result.result().getActionLog()).isEmpty());
+            assertTrue(result.result().getActionLog().getLogs().isEmpty());
             assertEquals(new JsonObject(body), NESTED_PAYLOAD);
           });
 
@@ -93,9 +91,9 @@ class PayloadToBodyActionFactoryTest {
   @DisplayName("Expect body with nested payload under paylod key in action log entry.")
   void bodyLoggedWithNestedPayload(VertxTestContext testContext) throws Throwable {
     // given
+    JsonObject config = new JsonObject().put(PAYLOAD_KEY, "key").put(CONFIG_KEY_NAME, "info");
     Action action = new PayloadToBodyActionFactory()
-        .create(new ActionConfig(ACTION_ALIAS,
-            new JsonObject().put(PAYLOAD_KEY, "key"), INFO), null);
+        .create(ACTION_ALIAS, config, null, null);
 
     // when
     action.apply(new FragmentContext(FRAGMENT, new ClientRequest()),
@@ -103,7 +101,7 @@ class PayloadToBodyActionFactoryTest {
           // then
           testContext.verify(() -> {
             String body = result.result().getFragment().getBody();
-            assertEquals(body, getStringLogEntry("body", result.result().getActionLog()));
+            assertEquals(body, result.result().getActionLog().getLogs().getString("body"));
             assertEquals(new JsonObject(body), NESTED_PAYLOAD);
           });
 
@@ -120,10 +118,9 @@ class PayloadToBodyActionFactoryTest {
   @DisplayName("Expect body with user payload under paylod key.user.")
   void applyActionWithNestedKey(VertxTestContext testContext) throws Throwable {
     // given
+    JsonObject config = new JsonObject().put(PAYLOAD_KEY, "key.user").put(CONFIG_KEY_NAME, "error");
     Action action = new PayloadToBodyActionFactory()
-        .create(
-            new ActionConfig(ACTION_ALIAS,  new JsonObject().put(PAYLOAD_KEY, "key.user"),
-                ERROR), null);
+        .create(ACTION_ALIAS, config, null, null);
 
     // when
     action.apply(new FragmentContext(FRAGMENT, new ClientRequest()),

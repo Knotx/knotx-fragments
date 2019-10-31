@@ -15,16 +15,13 @@
  */
 package io.knotx.fragments.handler.action;
 
-import static io.knotx.fragments.handler.api.actionlog.ActionLogMode.ERROR;
-import static io.knotx.fragments.handler.api.actionlog.ActionLogMode.INFO;
-import static io.knotx.fragments.handler.api.actionlog.ActionLogger.getLogEntry;
+import static io.knotx.fragments.handler.api.actionlog.ActionLogLevel.CONFIG_KEY_NAME;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.knotx.fragments.api.Fragment;
 import io.knotx.fragments.handler.api.Action;
-import io.knotx.fragments.handler.api.ActionConfig;
 import io.knotx.fragments.handler.api.domain.FragmentContext;
 import io.knotx.fragments.handler.api.domain.FragmentResult;
 import io.knotx.junit5.KnotxExtension;
@@ -47,7 +44,7 @@ class InMemoryCacheActionFactoryTest {
   private static final String ACTION_ALIAS = "action";
   private static final String PAYLOAD_KEY = "product";
 
-  private static final JsonObject ACTION_OPTIONS = new JsonObject().put("payloadKey", PAYLOAD_KEY)
+  private static final JsonObject ACTION_CONFIG = new JsonObject().put("payloadKey", PAYLOAD_KEY)
       .put("cacheKey", "cProduct");
 
   private Fragment firstFragment;
@@ -67,8 +64,8 @@ class InMemoryCacheActionFactoryTest {
         .succeededFuture(new FragmentResult(firstFragment, FragmentResult.SUCCESS_TRANSITION))
         .setHandler(resultHandler);
 
-    ActionConfig actionConfig = new ActionConfig(ACTION_ALIAS, doAction, ACTION_OPTIONS, INFO);
-    Action tested = new InMemoryCacheActionFactory().create(actionConfig, null);
+    Action tested = new InMemoryCacheActionFactory()
+        .create(ACTION_ALIAS, ACTION_CONFIG.put(CONFIG_KEY_NAME, "info"), null, doAction);
 
     // when
     tested.apply(new FragmentContext(firstFragment, new ClientRequest()),
@@ -93,9 +90,8 @@ class InMemoryCacheActionFactoryTest {
         .succeededFuture(new FragmentResult(firstFragment, FragmentResult.ERROR_TRANSITION))
         .setHandler(resultHandler);
 
-    ActionConfig actionConfig = new ActionConfig(ACTION_ALIAS, doAction, ACTION_OPTIONS, ERROR);
     Action tested = new InMemoryCacheActionFactory()
-        .create(actionConfig, null);
+        .create(ACTION_ALIAS, ACTION_CONFIG.put(CONFIG_KEY_NAME, "error"), null, doAction);
 
     // when
     tested.apply(new FragmentContext(firstFragment, new ClientRequest()),
@@ -120,9 +116,8 @@ class InMemoryCacheActionFactoryTest {
         .<FragmentResult>failedFuture(new IllegalStateException())
         .setHandler(resultHandler);
 
-    ActionConfig actionConfig = new ActionConfig(ACTION_ALIAS, doAction, ACTION_OPTIONS, ERROR);
     Action tested = new InMemoryCacheActionFactory()
-        .create(actionConfig, null);
+        .create(ACTION_ALIAS, ACTION_CONFIG.put(CONFIG_KEY_NAME, "error"), null, doAction);
 
     // when
     tested.apply(new FragmentContext(firstFragment, new ClientRequest()),
@@ -145,9 +140,8 @@ class InMemoryCacheActionFactoryTest {
     JsonObject expectedPayloadValue = new JsonObject().put("someKey", "someValue");
     Action doAction = doActionWithPayload(expectedPayloadValue);
 
-    ActionConfig actionConfig = new ActionConfig(ACTION_ALIAS, doAction, ACTION_OPTIONS, ERROR);
     Action tested = new InMemoryCacheActionFactory()
-        .create(actionConfig, null);
+        .create(ACTION_ALIAS, ACTION_CONFIG.put(CONFIG_KEY_NAME, "error"), null, doAction);
 
     // when
     tested.apply(new FragmentContext(firstFragment, new ClientRequest()),
@@ -175,9 +169,8 @@ class InMemoryCacheActionFactoryTest {
     JsonObject expectedPayloadValue = new JsonObject().put("someKey", "someValue");
     Action doAction = doActionWithPayload(expectedPayloadValue);
 
-    ActionConfig actionConfig = new ActionConfig(ACTION_ALIAS, doAction, ACTION_OPTIONS, INFO);
     Action tested = new InMemoryCacheActionFactory()
-        .create(actionConfig, null);
+        .create(ACTION_ALIAS, ACTION_CONFIG.put(CONFIG_KEY_NAME, "info"), null, doAction);
 
     // when
     tested.apply(new FragmentContext(firstFragment, new ClientRequest()),
@@ -185,7 +178,7 @@ class InMemoryCacheActionFactoryTest {
           // then
           testContext.verify(() ->
               assertEquals(expectedPayloadValue,
-                  getLogEntry("new_cached_value", result.result().getActionLog())));
+                   result.result().getActionLog().getLogs().getJsonObject("new_cached_value")));
           testContext.completeNow();
         });
 
@@ -207,10 +200,10 @@ class InMemoryCacheActionFactoryTest {
           .setHandler(resultHandler);
     };
 
-    ActionConfig actionConfig = new ActionConfig(ACTION_ALIAS, doAction, ACTION_OPTIONS
-        .put("cache", new JsonObject().put("maximumSize", 0)), ERROR);
     Action tested = new InMemoryCacheActionFactory()
-        .create(actionConfig, null);
+        .create(ACTION_ALIAS, ACTION_CONFIG
+            .put("cache", new JsonObject().put("maximumSize", 0))
+            .put(CONFIG_KEY_NAME, "error"), null, doAction);
 
     // when
     tested.apply(new FragmentContext(firstFragment, new ClientRequest()),
@@ -240,10 +233,10 @@ class InMemoryCacheActionFactoryTest {
           .setHandler(resultHandler);
     };
 
-    ActionConfig actionConfig = new ActionConfig(ACTION_ALIAS, doAction, ACTION_OPTIONS
-        .put("cache", new JsonObject()), ERROR);
     Action tested = new InMemoryCacheActionFactory()
-        .create(actionConfig, null);
+        .create(ACTION_ALIAS, ACTION_CONFIG
+            .put("cache", new JsonObject())
+            .put(CONFIG_KEY_NAME, "error"), null, doAction);
 
     // when
     tested.apply(new FragmentContext(firstFragment, new ClientRequest()),
@@ -273,10 +266,10 @@ class InMemoryCacheActionFactoryTest {
           .setHandler(resultHandler);
     };
 
-    ActionConfig actionConfig = new ActionConfig(ACTION_ALIAS, doAction, ACTION_OPTIONS
-        .put("cache", new JsonObject()), INFO);
     Action tested = new InMemoryCacheActionFactory()
-        .create(actionConfig, null);
+        .create(ACTION_ALIAS, ACTION_CONFIG
+            .put("cache", new JsonObject())
+            .put(CONFIG_KEY_NAME, "info"), null, doAction);
 
     // when
     tested.apply(new FragmentContext(firstFragment, new ClientRequest()),
@@ -285,7 +278,7 @@ class InMemoryCacheActionFactoryTest {
               testContext.verify(() ->
                   assertEquals(
                       firstResult.result().getFragment().getPayload().getString(PAYLOAD_KEY),
-                      secondResult.result().getActionLog().getJsonObject("logs").getString("cached_value")));
+                      secondResult.result().getActionLog().getLogs().getString("cached_value")));
               testContext.completeNow();
             }));
 
@@ -307,11 +300,13 @@ class InMemoryCacheActionFactoryTest {
           .setHandler(resultHandler);
     };
 
-    ActionConfig actionConfig = new ActionConfig(ACTION_ALIAS, doAction, new JsonObject()
+    JsonObject config = new JsonObject()
         .put("payloadKey", PAYLOAD_KEY)
-        .put("cacheKey", "product-{param.id}"), ERROR);
+        .put("cacheKey", "product-{param.id}")
+        .put(CONFIG_KEY_NAME, "error");
+
     Action tested = new InMemoryCacheActionFactory()
-        .create(actionConfig, null);
+        .create(ACTION_ALIAS, config, null, doAction);
 
     // when
     FragmentContext firstRequestContext = new FragmentContext(firstFragment,
@@ -353,12 +348,13 @@ class InMemoryCacheActionFactoryTest {
       }
     };
 
-    ActionConfig actionConfig = new ActionConfig(ACTION_ALIAS, doAction, new JsonObject()
+    JsonObject config = new JsonObject()
         .put("payloadKey", PAYLOAD_KEY)
-        .put("cacheKey", "product"), ERROR);
+        .put("cacheKey", "product")
+        .put(CONFIG_KEY_NAME, "error");
 
     Action tested = new InMemoryCacheActionFactory()
-        .create(actionConfig, null);
+        .create(ACTION_ALIAS, config, null, doAction);
 
     // when
     FragmentContext errorRequestContext = new FragmentContext(firstFragment,

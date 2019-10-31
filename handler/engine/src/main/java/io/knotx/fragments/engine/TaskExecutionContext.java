@@ -21,6 +21,8 @@ import static io.knotx.fragments.handler.api.domain.FragmentResult.SUCCESS_TRANS
 import io.knotx.fragments.api.Fragment;
 import io.knotx.fragments.engine.FragmentEvent.Status;
 import io.knotx.fragments.engine.graph.Node;
+import io.knotx.fragments.handler.api.actionlog.ActionLog;
+import io.knotx.fragments.handler.api.actionlog.ActionLogBuilder;
 import io.knotx.fragments.handler.api.domain.FragmentContext;
 import io.knotx.fragments.handler.api.domain.FragmentResult;
 import io.knotx.fragments.handler.api.exception.ActionFatalException;
@@ -29,7 +31,6 @@ import io.reactivex.Single;
 import io.reactivex.SingleSource;
 import io.vertx.core.eventbus.ReplyException;
 import io.vertx.core.eventbus.ReplyFailure;
-import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 
@@ -82,8 +83,10 @@ class TaskExecutionContext {
     return Single.just(new FragmentResult(fragmentEvent.getFragment(), ERROR_TRANSITION, prepareErrorActionLog(error)));
   }
 
-  private JsonObject prepareErrorActionLog(Throwable error){
-    return new JsonObject().put("error", error.getMessage());
+  private ActionLog prepareErrorActionLog(Throwable error){
+    return new ActionLogBuilder(currentNode.getId())
+        .addLog("error", error.getMessage())
+        .build();
   }
 
   private void handleFatalError(ActionFatalException error) {

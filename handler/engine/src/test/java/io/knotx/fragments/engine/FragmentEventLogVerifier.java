@@ -17,6 +17,7 @@
  */
 package io.knotx.fragments.engine;
 
+import io.knotx.fragments.handler.api.actionlog.ActionLog;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import java.util.Arrays;

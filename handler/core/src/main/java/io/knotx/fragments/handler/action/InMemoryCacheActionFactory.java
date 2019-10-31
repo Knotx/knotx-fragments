@@ -26,9 +26,9 @@ import com.google.common.cache.CacheBuilder;
 
 import io.knotx.fragments.api.Fragment;
 import io.knotx.fragments.handler.api.Action;
-import io.knotx.fragments.handler.api.ActionConfig;
 import io.knotx.fragments.handler.api.ActionFactory;
 import io.knotx.fragments.handler.api.Cacheable;
+import io.knotx.fragments.handler.api.actionlog.ActionLog;
 import io.knotx.fragments.handler.api.actionlog.ActionLogger;
 import io.knotx.fragments.handler.api.domain.FragmentContext;
 import io.knotx.fragments.handler.api.domain.FragmentResult;
@@ -70,19 +70,16 @@ public class InMemoryCacheActionFactory implements ActionFactory {
   }
 
   @Override
-  public Action create(ActionConfig config, Vertx vertx) {
-
+  public Action create(String alias, JsonObject config, Vertx vertx, Action doAction){
     return new Action() {
-      JsonObject options = config.getOptions();
-      Action doAction = config.getDoAction();
-      ActionLogger actionLogger = ActionLogger.create(config);
-      private Cache<String, Object> cache = createCache(options);
-      private String payloadKey = getPayloadKey(options);
+      ActionLogger actionLogger = ActionLogger.create(alias, config);
+      private Cache<String, Object> cache = createCache(config);
+      private String payloadKey = getPayloadKey(config);
 
       @Override
       public void apply(FragmentContext fragmentContext,
           Handler<AsyncResult<FragmentResult>> resultHandler) {
-        String cacheKey = getCacheKey(options, fragmentContext.getClientRequest());
+        String cacheKey = getCacheKey(config, fragmentContext.getClientRequest());
         Object cachedValue = cache.getIfPresent(cacheKey);
         actionLogger.info("cached_key", cacheKey);
         if (cachedValue == null) {
@@ -123,10 +120,8 @@ public class InMemoryCacheActionFactory implements ActionFactory {
       }
 
       private FragmentResult toResult(FragmentResult fragmentResult) {
-        JsonObject actionLog = Objects.isNull(fragmentResult.getActionLog()) ? actionLogger.toLog()
-            : fragmentResult.getActionLog().mergeIn(actionLogger.toLog());
         return new FragmentResult(fragmentResult.getFragment(), fragmentResult.getTransition(),
-            actionLog);
+            actionLogger.toLog());
       }
     };
   }

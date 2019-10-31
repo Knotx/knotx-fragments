@@ -17,6 +17,9 @@
  */
 package io.knotx.fragments.engine;
 
+import java.util.Optional;
+
+import io.knotx.fragments.handler.api.actionlog.ActionLog;
 import io.knotx.fragments.handler.api.domain.FragmentResult;
 import io.vertx.core.json.JsonObject;
 
@@ -37,7 +40,8 @@ public class EventLogEntry {
   private final JsonObject actionLog;
 
   public static EventLogEntry success(String task, String action, FragmentResult fragmentResult) {
-    return new EventLogEntry(task, action, ActionStatus.SUCCESS, fragmentResult.getTransition(), fragmentResult.getActionLog());
+    JsonObject actionLog = getActionLog(fragmentResult);
+    return new EventLogEntry(task, action, ActionStatus.SUCCESS, fragmentResult.getTransition(), actionLog);
   }
 
   public static EventLogEntry unsupported(String task, String action, String transition) {
@@ -54,6 +58,12 @@ public class EventLogEntry {
 
   public static EventLogEntry timeout(String task, String action) {
     return new EventLogEntry(task, action, ActionStatus.TIMEOUT, null, null);
+  }
+
+  private static JsonObject getActionLog(FragmentResult fragmentResult) {
+    return Optional.ofNullable(fragmentResult.getActionLog())
+        .map(ActionLog::toJson)
+        .orElse(null);
   }
 
   private EventLogEntry(String task, String action, ActionStatus status, String transition, JsonObject actionLog) {

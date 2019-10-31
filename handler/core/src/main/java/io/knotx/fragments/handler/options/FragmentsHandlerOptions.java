@@ -15,11 +15,10 @@
  */
 package io.knotx.fragments.handler.options;
 
-import static io.knotx.fragments.handler.api.actionlog.ActionLogMode.ERROR;
+import static io.knotx.fragments.handler.api.actionlog.ActionLogLevel.ERROR;
 
 import io.knotx.fragments.handler.action.ActionOptions;
 import io.knotx.fragments.task.options.TaskOptions;
-import io.knotx.fragments.handler.api.actionlog.ActionLogMode;
 import io.vertx.codegen.annotations.DataObject;
 import io.vertx.core.json.JsonObject;
 import java.util.Map;
@@ -36,7 +35,7 @@ public class FragmentsHandlerOptions {
 
   private Map<String, ActionOptions> actions;
 
-  private ActionLogMode actionLogMode;
+  private String actionLogLevel;
 
   public FragmentsHandlerOptions(JsonObject json) {
     init();
@@ -45,7 +44,7 @@ public class FragmentsHandlerOptions {
 
   private void init() {
     this.taskKey = DEFAULT_TASK_KEY;
-    actionLogMode = ERROR;
+    actionLogLevel = ERROR.getLevel();
   }
 
   public JsonObject toJson() {
@@ -93,12 +92,12 @@ public class FragmentsHandlerOptions {
     return this;
   }
 
-  public ActionLogMode getActionLogMode() {
-    return actionLogMode;
+  public String getActionLogLevel() {
+    return actionLogLevel;
   }
 
-  public void setActionLogMode(ActionLogMode actionLogMode) {
-    this.actionLogMode = actionLogMode;
+  public void setActionLogLevel(String actionLogLevel) {
+    this.actionLogLevel = actionLogLevel;
   }
 
   @Override
@@ -124,7 +123,7 @@ public class FragmentsHandlerOptions {
     return "FragmentsHandlerOptions{" +
         "tasks=" + tasks +
         ", actions=" + actions +
-        ", actionLogMode=" + actionLogMode +
+        ", actionLogMode=" + actionLogLevel +
         '}';
   }
 }

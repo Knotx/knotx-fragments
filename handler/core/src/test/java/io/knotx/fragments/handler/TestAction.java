@@ -19,7 +19,6 @@ import static io.vertx.core.Future.succeededFuture;
 
 import io.knotx.fragments.api.Fragment;
 import io.knotx.fragments.handler.api.Action;
-import io.knotx.fragments.handler.api.ActionConfig;
 import io.knotx.fragments.handler.api.ActionFactory;
 import io.knotx.fragments.handler.api.domain.FragmentResult;
 import io.vertx.core.Future;
@@ -34,9 +33,9 @@ public class TestAction implements ActionFactory {
   }
 
   @Override
-  public Action create(ActionConfig config, Vertx vertx) {
+  public Action create(String alias, JsonObject config, Vertx vertx, Action doAction) {
 
-    String transition = config.getOptions().getString("transition");
+    String transition = config.getString("transition");
 
     return (fragmentContext, resultHandler) -> {
       Fragment fragment = fragmentContext.getFragment();

@@ -15,11 +15,15 @@
  */
 package io.knotx.fragments.handler.api.domain;
 
+import java.util.Objects;
+import java.util.Optional;
+
+import org.apache.commons.lang3.StringUtils;
+
 import io.knotx.fragments.api.Fragment;
+import io.knotx.fragments.handler.api.actionlog.ActionLog;
 import io.vertx.codegen.annotations.DataObject;
 import io.vertx.core.json.JsonObject;
-import java.util.Objects;
-import org.apache.commons.lang3.StringUtils;
 
 /**
  * Result of the {@code Action} fragment processing.
@@ -36,9 +40,9 @@ public class FragmentResult {
 
   private final Fragment fragment;
   private final String transition;
-  private final JsonObject actionLog;
+  private final ActionLog actionLog;
 
-  public FragmentResult(Fragment fragment, String transition, JsonObject actionLog) {
+  public FragmentResult(Fragment fragment, String transition, ActionLog actionLog) {
     this.fragment = fragment;
     this.transition = transition;
     this.actionLog = actionLog;
@@ -51,7 +55,13 @@ public class FragmentResult {
   public FragmentResult(JsonObject json) {
     this.fragment = new Fragment(json.getJsonObject(FRAGMENT_KEY));
     this.transition = json.getString(TRANSITION_KEY);
-    this.actionLog = json.getJsonObject(ACTION_LOG_KEY);
+    this.actionLog = toActionLog(json);
+  }
+
+  private ActionLog toActionLog(JsonObject json) {
+    return Optional.ofNullable(json.getJsonObject(ACTION_LOG_KEY))
+        .map(ActionLog::new)
+        .orElse(null);
   }
 
   public JsonObject toJson() {
@@ -83,7 +93,7 @@ public class FragmentResult {
     }
   }
 
-  public JsonObject getActionLog() {
+  public ActionLog getActionLog() {
     return actionLog;
   }
 

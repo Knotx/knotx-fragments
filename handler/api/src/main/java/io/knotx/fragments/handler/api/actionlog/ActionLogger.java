@@ -15,94 +15,90 @@
  */
 package io.knotx.fragments.handler.api.actionlog;
 
-import static io.knotx.fragments.handler.api.actionlog.ActionLogMode.INFO;
+import static io.knotx.fragments.handler.api.actionlog.ActionLogLevel.CONFIG_KEY_NAME;
+import static io.knotx.fragments.handler.api.actionlog.ActionLogLevel.INFO;
 
 import java.time.Instant;
+import java.util.Objects;
 import java.util.function.Function;
 
-import io.knotx.fragments.handler.api.ActionConfig;
-import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
 public class ActionLogger {
 
-  private final ActionLogMode actionLogMode;
-  private final JsonObject logs;
-  private final JsonObject actionLog;
+  private final ActionLogLevel actionLogLevel;
+  private final ActionLogBuilder builder;
 
-  private ActionLogger(String alias, ActionLogMode actionLogMode) {
-    this.actionLogMode = actionLogMode;
-    this.logs = new JsonObject();
-    this.actionLog = new JsonObject().put("alias", alias)
-        .put("logs", this.logs)
-        .put("doAction", new JsonArray());
+  private ActionLogger(String alias, ActionLogLevel actionLogLevel) {
+    this.actionLogLevel = actionLogLevel;
+    this.builder = new ActionLogBuilder(alias);
   }
 
-  public static ActionLogger create(String alias, ActionLogMode actionLogMode) {
-    return new ActionLogger(alias, actionLogMode);
+  public static ActionLogger create(String alias, JsonObject config) {
+    return ActionLogger.create(alias, config.getString(CONFIG_KEY_NAME));
   }
 
-  public static ActionLogger create(ActionConfig actionConfig) {
-    return new ActionLogger(actionConfig.getAlias(), actionConfig.getActionLogMode());
+  public static ActionLogger create(String alias, ActionLogLevel actionLogLevel) {
+    return new ActionLogger(alias, actionLogLevel);
   }
 
-  public void info(String key, JsonObject data) {
-    if (actionLogMode == INFO) {
-      this.logs.put(key, data);
-    }
+  public static ActionLogger create(String alias, String actionLogLevel) {
+    ActionLogLevel logLevel = ActionLogLevel.fromConfig(actionLogLevel);
+    return new ActionLogger(alias, logLevel);
   }
 
   public void info(String key, Object data) {
-    if (actionLogMode == INFO) {
-      this.logs.put(key, data);
+    if (actionLogLevel == INFO) {
+      if(data instanceof String){
+        builder.addLog(key, String.valueOf(data));
+        return;
+      }
+      this.builder.addLog(key, JsonObject.mapFrom(data));
+    }
+  }
+
+  public void info(String key, JsonObject data) {
+    if (actionLogLevel == INFO) {
+      this.builder.addLog(key, data);
     }
   }
 
   public <T> void info(String key, T data, Function<T, JsonObject> toJsonFunc) {
-    if (actionLogMode == INFO) {
-      this.logs.put(key, toJsonFunc.apply(data));
+    if (actionLogLevel == INFO) {
+      this.builder.addLog(key, toJsonFunc.apply(data));
     }
   }
 
   public void info(String key, String data) {
-    if (actionLogMode == INFO) {
-      this.logs.put(key, data);
+    if (actionLogLevel == INFO) {
+      this.builder.addLog(key, data);
     }
   }
 
-  public void doActionLog(JsonObject actionLog) {
-    this.actionLog.getJsonArray("doAction").add(actionLog);
+  public void doActionLog(ActionLog actionLog) {
+    if(Objects.isNull(actionLog)){
+      return;
+    }
+    this.builder.addActionLog(actionLog);
   }
 
   public void error(String key, JsonObject data) {
-    this.logs.put(key, data);
+    this.builder.addLog(key, data);
   }
 
   public void error(String key, String data) {
-    this.logs.put(key, data);
+    this.builder.addLog(key, data);
   }
 
   public void error(String data) {
-    this.logs.put(String.valueOf(Instant.now().toEpochMilli()), data);
+    this.builder.addLog(String.valueOf(Instant.now().toEpochMilli()), data);
   }
 
   public <T> void error(String key, T data, Function<T, JsonObject> toJsonFunc) {
-    this.logs.put(key, toJsonFunc.apply(data));
+    this.builder.addLog(key, toJsonFunc.apply(data));
   }
 
-  public JsonObject toLog() {
-    return new JsonObject(this.actionLog.getMap());
-  }
-
-  public static String getStringLogEntry(String key, JsonObject actionLog){
-    return getLogs(actionLog).getString(key);
-  }
-
-  public static JsonObject getLogEntry(String key, JsonObject actionLog){
-    return getLogs(actionLog).getJsonObject(key);
-  }
-
-  public static JsonObject getLogs(JsonObject actionLog){
-    return actionLog.getJsonObject("logs");
+  public ActionLog toLog() {
+    return builder.build();
   }
 }

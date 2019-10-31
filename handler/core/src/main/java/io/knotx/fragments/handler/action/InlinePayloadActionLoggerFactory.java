@@ -15,9 +15,10 @@
  */
 package io.knotx.fragments.handler.action;
 
+import java.util.Objects;
+
 import io.knotx.fragments.api.Fragment;
 import io.knotx.fragments.handler.api.Action;
-import io.knotx.fragments.handler.api.ActionConfig;
 import io.knotx.fragments.handler.api.ActionFactory;
 import io.knotx.fragments.handler.api.Cacheable;
 import io.knotx.fragments.handler.api.actionlog.ActionLogger;
@@ -28,7 +29,7 @@ import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
 
 @Cacheable
-public class InlinePayloadActionFactory implements ActionFactory {
+public class InlinePayloadActionLoggerFactory implements ActionFactory{
 
   @Override
   public String getName() {
@@ -43,19 +44,19 @@ public class InlinePayloadActionFactory implements ActionFactory {
    * @param vertx - vertx instance
    */
   @Override
-  public Action create(ActionConfig config, Vertx vertx) {
-    if (config.hasAction()) {
+  public Action create(String alias, JsonObject config, Vertx vertx, Action doAction){
+  // Action create(ActionConfig config, Vertx vertx) {
+    if (Objects.nonNull(doAction)) {
       throw new IllegalArgumentException("Inline Payload Action does not support doAction");
     }
-    JsonObject options = config.getOptions();
-    if (!options.containsKey("payload")) {
+    if (!config.containsKey("payload")) {
       throw new IllegalArgumentException("Inline Payload Action requires payload parameter");
     }
 
     return (fragmentContext, resultHandler) -> {
-      String key = options.getString("alias", config.getAlias());
-      Object payload = options.getMap().get("payload");
-      ActionLogger actionLogger = ActionLogger.create(config);
+      String key = config.getString("alias", alias);
+      Object payload = config.getMap().get("payload");
+      ActionLogger actionLogger = ActionLogger.create(alias, config);
       Future<FragmentResult> resultFuture = Future
           .succeededFuture(toResult(fragmentContext, key, payload, actionLogger));
       resultFuture.setHandler(resultHandler);
@@ -69,5 +70,4 @@ public class InlinePayloadActionFactory implements ActionFactory {
     logger.info("payload", fragment.getPayload());
     return new FragmentResult(fragment, FragmentResult.SUCCESS_TRANSITION, logger.toLog());
   }
-
 }
