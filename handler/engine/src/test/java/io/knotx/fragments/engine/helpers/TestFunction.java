@@ -17,9 +17,11 @@
  */
 package io.knotx.fragments.engine.helpers;
 
+import static io.knotx.fragments.handler.api.domain.FragmentResult.ERROR_TRANSITION;
 import static io.knotx.fragments.handler.api.domain.FragmentResult.SUCCESS_TRANSITION;
 
 import io.knotx.fragments.api.Fragment;
+import io.knotx.fragments.handler.api.actionlog.ActionLog;
 import io.knotx.fragments.handler.api.domain.FragmentContext;
 import io.knotx.fragments.handler.api.domain.FragmentResult;
 import io.knotx.fragments.handler.api.exception.ActionFatalException;
@@ -45,6 +47,23 @@ public interface TestFunction extends Function<FragmentContext, Single<FragmentR
       return Single.just(result).delay(delayInMs, TimeUnit.MILLISECONDS);
     };
   }
+
+  static TestFunction successWithNodeLog(JsonObject nodeObject) {
+    return fragmentContext -> {
+      Fragment fragment = fragmentContext.getFragment();
+      FragmentResult result = new FragmentResult(fragment, SUCCESS_TRANSITION, nodeObject);
+      return Single.just(result);
+    };
+  }
+
+  static TestFunction errorWithNodeLog(JsonObject nodeLog) {
+    return fragmentContext -> {
+      Fragment fragment = fragmentContext.getFragment();
+      FragmentResult result = new FragmentResult(fragment, ERROR_TRANSITION, nodeLog);
+      return Single.just(result);
+    };
+  }
+
 
   static TestFunction failure() {
     return fragmentContext -> {

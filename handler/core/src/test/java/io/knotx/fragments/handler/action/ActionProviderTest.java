@@ -26,6 +26,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 import com.google.common.collect.ImmutableMap;
+
 import io.knotx.fragments.handler.api.domain.FragmentContext;
 import io.knotx.fragments.handler.api.domain.FragmentResult;
 import io.knotx.fragments.handler.api.Cacheable;
@@ -61,7 +62,7 @@ class ActionProviderTest {
   void getWithNoAction(Vertx vertx) {
     // given
     ActionProvider tested = new ActionProvider(Collections.emptyMap(),
-        Collections::emptyListIterator, vertx);
+        Collections::emptyListIterator, "error", vertx);
 
     // when
     Optional<Action> operation = tested.get(null);
@@ -75,7 +76,7 @@ class ActionProviderTest {
   void getWithNoEntries(Vertx vertx) {
     // given
     ActionProvider tested = new ActionProvider(Collections.emptyMap(),
-        Collections::emptyListIterator, vertx);
+        Collections::emptyListIterator, "error", vertx);
 
     // when
     Optional<Action> operation = tested.get("any");
@@ -92,7 +93,7 @@ class ActionProviderTest {
         .singletonMap(PROXY_ALIAS, new ActionOptions("eb", new JsonObject(), null));
 
     ActionProvider tested = new ActionProvider(proxies,
-        Collections::emptyListIterator,
+        Collections::emptyListIterator, "error",
         vertx);
 
     // when
@@ -113,7 +114,7 @@ class ActionProviderTest {
         .singletonList(new TestCacheableOperationFactory());
 
     ActionProvider tested = new ActionProvider(proxies,
-        factories::iterator, vertx);
+        factories::iterator, "error", vertx);
 
     // when
     Optional<Action> operation = tested.get(PROXY_ALIAS);
@@ -132,7 +133,7 @@ class ActionProviderTest {
     List<ActionFactory> factories = Collections
         .singletonList(new TestOperationFactory());
 
-    ActionProvider tested = new ActionProvider(proxies, factories::iterator, vertx);
+    ActionProvider tested = new ActionProvider(proxies, factories::iterator, "error", vertx);
 
     // when
     Optional<Action> firstOperation = tested.get(PROXY_ALIAS);
@@ -155,7 +156,7 @@ class ActionProviderTest {
         .singletonList(new TestCacheableOperationFactory());
 
     ActionProvider tested = new ActionProvider(proxies,
-        factories::iterator, vertx);
+        factories::iterator, "error", vertx);
 
     // when
     Optional<Action> firstOperation = tested.get(PROXY_ALIAS);
@@ -193,7 +194,7 @@ class ActionProviderTest {
     );
     List<ActionFactory> factories = Arrays.asList(proxyFactory, proxyFactorySecond);
 
-    ActionProvider tested = new ActionProvider(proxies, factories::iterator, vertx);
+    ActionProvider tested = new ActionProvider(proxies, factories::iterator, "error", vertx);
 
     // when
     tested.get(PROXY_ALIAS);
@@ -247,5 +248,4 @@ class ActionProviderTest {
       };
     }
   }
-
 }

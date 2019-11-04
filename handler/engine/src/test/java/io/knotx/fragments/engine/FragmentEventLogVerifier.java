@@ -17,10 +17,12 @@
  */
 package io.knotx.fragments.engine;
 
+import java.util.Arrays;
+import java.util.Objects;
+import java.util.stream.Stream;
+
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
-import java.util.Arrays;
-import java.util.stream.Stream;
 
 class FragmentEventLogVerifier {
 
@@ -65,24 +67,32 @@ class FragmentEventLogVerifier {
   static final class Operation {
 
     private final String task;
-    private final String name;
+    private final String node;
     private final String status;
     private final Position position;
+    private final JsonObject nodeLog;
 
-    private Operation(String task, String action, String status, Position position) {
+    private Operation(String task, String node, String status, Position position,
+        JsonObject nodeLog) {
       this.task = task;
-      this.name = action;
+      this.node = node;
       this.status = status;
       this.position = position;
+      this.nodeLog = nodeLog;
     }
 
-    static Operation exact(String task, String action, String status, int position) {
-      return new Operation(task, action, status, new ExactPosition(position));
+    static Operation exact(String task, String node, String status, int position) {
+      return new Operation(task, node, status, new ExactPosition(position), null);
     }
 
-    static Operation range(String task, String action, String status, int minPosition,
+    static Operation exact(String task, String node, String status, int position, JsonObject actionLog) {
+      return new Operation(task, node, status, new ExactPosition(position), actionLog);
+    }
+
+    static Operation range(String task, String node, String status, int minPosition,
         int maxPosition) {
-      return new Operation(task, action, status, new RangePosition(minPosition, maxPosition));
+      return new Operation(task, node, status, new RangePosition(minPosition, maxPosition),
+          null);
     }
 
     public Position getPosition() {
@@ -91,16 +101,19 @@ class FragmentEventLogVerifier {
 
     public boolean matches(JsonObject operation) {
       return task.equals(operation.getString("task")) &&
-          name.equals(operation.getString("action")) &&
-          status.equals(operation.getString("status"));
+          node.equals(operation.getString("node")) &&
+          status.equals(operation.getString("status")) &&
+          Objects.equals(nodeLog, operation.getJsonObject("nodeLog"));
     }
 
     @Override
     public String toString() {
       return "Operation{" +
           "task='" + task + '\'' +
-          ", name='" + name + '\'' +
+          ", node='" + node + '\'' +
           ", status='" + status + '\'' +
+          ", position=" + position +
+          ", nodeLog=" + nodeLog +
           '}';
     }
   }

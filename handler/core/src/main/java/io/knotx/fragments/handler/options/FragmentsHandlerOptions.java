@@ -15,6 +15,8 @@
  */
 package io.knotx.fragments.handler.options;
 
+import static io.knotx.fragments.handler.api.actionlog.ActionLogLevel.ERROR;
+
 import io.knotx.fragments.handler.action.ActionOptions;
 import io.knotx.fragments.task.options.TaskOptions;
 import io.vertx.codegen.annotations.DataObject;
@@ -33,6 +35,8 @@ public class FragmentsHandlerOptions {
 
   private Map<String, ActionOptions> actions;
 
+  private String actionLogLevel;
+
   public FragmentsHandlerOptions(JsonObject json) {
     init();
     FragmentsHandlerOptionsConverter.fromJson(json, this);
@@ -40,6 +44,7 @@ public class FragmentsHandlerOptions {
 
   private void init() {
     this.taskKey = DEFAULT_TASK_KEY;
+    actionLogLevel = ERROR.getLevel();
   }
 
   public JsonObject toJson() {
@@ -87,6 +92,21 @@ public class FragmentsHandlerOptions {
     return this;
   }
 
+  public String getActionLogLevel() {
+    return actionLogLevel;
+  }
+
+  /**
+   * Sets global action log level possible values: error, info.
+   *
+   * @param actionLogLevel action log level
+   * @return reference to this, so the API can be used fluently
+   */
+  public FragmentsHandlerOptions setActionLogLevel(String actionLogLevel) {
+    this.actionLogLevel = actionLogLevel;
+    return this;
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) {
@@ -110,6 +130,7 @@ public class FragmentsHandlerOptions {
     return "FragmentsHandlerOptions{" +
         "tasks=" + tasks +
         ", actions=" + actions +
+        ", actionLogMode=" + actionLogLevel +
         '}';
   }
 }

@@ -54,6 +54,9 @@ Sets <code>Action</code> factory name.
 [frame="topbot"]
 |===
 ^|Name | Type ^| Description
+|[[actionLogLevel]]`@actionLogLevel`|`String`|+++
+Sets global action log level possible values: error, info.
++++
 |[[actions]]`@actions`|`link:dataobjects.html#ActionOptions[ActionOptions]`|+++
 Sets named actions with their factory configuration.
 +++

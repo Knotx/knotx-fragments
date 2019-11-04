@@ -25,9 +25,22 @@ import static io.knotx.fragments.engine.helpers.TestFunction.appendPayload;
 import static io.knotx.fragments.engine.helpers.TestFunction.failure;
 import static io.knotx.fragments.engine.helpers.TestFunction.fatal;
 import static io.knotx.fragments.engine.helpers.TestFunction.success;
+import static io.knotx.fragments.engine.helpers.TestFunction.successWithNodeLog;
 import static io.knotx.fragments.handler.api.domain.FragmentResult.ERROR_TRANSITION;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 import io.knotx.fragments.api.Fragment;
 import io.knotx.fragments.engine.FragmentEvent.Status;
@@ -35,6 +48,8 @@ import io.knotx.fragments.engine.FragmentEventLogVerifier.Operation;
 import io.knotx.fragments.engine.graph.ActionNode;
 import io.knotx.fragments.engine.graph.CompositeNode;
 import io.knotx.fragments.engine.graph.Node;
+import io.knotx.fragments.handler.api.actionlog.ActionLog;
+import io.knotx.fragments.handler.api.actionlog.ActionLogBuilder;
 import io.knotx.fragments.handler.api.exception.ActionFatalException;
 import io.knotx.server.api.context.ClientRequest;
 import io.reactivex.Single;
@@ -43,18 +58,9 @@ import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.TimeUnit;
-import java.util.function.Consumer;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 
 @ExtendWith(VertxExtension.class)
+// TODO add tests
 class TaskEngineCompositeNodeTest {
 
   private static final String INITIAL_BODY = "initial body";
@@ -112,9 +118,12 @@ class TaskEngineCompositeNodeTest {
   void expectSuccessEventLogEntry(VertxTestContext testContext, Vertx vertx)
       throws Throwable {
     // given
+    JsonObject successActionLog = new JsonObject().put("debug", "success");
     Node rootNode = new CompositeNode(
         parallel(
-            new ActionNode("action", success(), NO_TRANSITIONS)
+            new ActionNode("action", successWithNodeLog(successActionLog), NO_TRANSITIONS),
+            new ActionNode("action1", success(), NO_TRANSITIONS),
+            new ActionNode("action2", successWithNodeLog(successActionLog), NO_TRANSITIONS)
         ), null, null
     );
     // when
@@ -123,8 +132,10 @@ class TaskEngineCompositeNodeTest {
     // then
     verifyExecution(result, testContext,
         event -> verifyAllLogEntries(event.getLogAsJson(),
-            Operation.exact("task", "action", "SUCCESS", 0),
-            Operation.exact("task", COMPOSITE_NODE_ID, "SUCCESS", 1)
+            Operation.exact("task", "action", "SUCCESS", 0, successActionLog),
+            Operation.exact("task", "action1", "SUCCESS", 1),
+            Operation.exact("task", "action2", "SUCCESS", 2, successActionLog),
+            Operation.exact("task", COMPOSITE_NODE_ID, "SUCCESS", 3)
         ));
   }
 
