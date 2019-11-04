@@ -22,7 +22,7 @@ import static io.knotx.fragments.handler.api.domain.FragmentResult.SUCCESS_TRANS
 
 import io.knotx.fragments.engine.FragmentEventContext;
 import io.knotx.fragments.engine.Task;
-import io.knotx.fragments.engine.graph.ActionNode;
+import io.knotx.fragments.engine.graph.SingleNode;
 import io.knotx.fragments.engine.graph.CompositeNode;
 import io.knotx.fragments.engine.graph.Node;
 import io.knotx.fragments.handler.action.ActionProvider;
@@ -73,7 +73,7 @@ public class ConfigurationTaskProvider implements TaskProvider {
     ActionNodeConfigOptions config = new ActionNodeConfigOptions(options.getNode().getConfig());
     Action action = actionProvider.get(config.getAction()).orElseThrow(
         () -> new GraphConfigurationException("No provider for action " + config.getAction()));
-    return new ActionNode(config.getAction(), toRxFunction(action), edges);
+    return new SingleNode(config.getAction(), toRxFunction(action), edges);
   }
 
   private Node buildCompositeNode(GraphNodeOptions options, Map<String, Node> edges) {
@@ -82,7 +82,7 @@ public class ConfigurationTaskProvider implements TaskProvider {
     List<Node> nodes = config.getSubtasks().stream()
         .map(this::initGraphRootNode)
         .collect(Collectors.toList());
-    return new CompositeNode(nodes, edges.get(SUCCESS_TRANSITION), edges.get(ERROR_TRANSITION));
+    return new CompositeNode("composite", nodes, edges.get(SUCCESS_TRANSITION), edges.get(ERROR_TRANSITION));
   }
 
   private Function<FragmentContext, Single<FragmentResult>> toRxFunction(

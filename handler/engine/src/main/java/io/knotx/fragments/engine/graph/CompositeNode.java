@@ -23,12 +23,13 @@ import java.util.Optional;
 
 public class CompositeNode implements Node {
 
-  public static final String COMPOSITE_NODE_ID = "composite";
+  private final String id;
   private final List<Node> nodes;
   private final Node onSuccess;
   private final Node onError;
 
-  public CompositeNode(List<Node> nodes, Node onSuccess, Node onError) {
+  public CompositeNode(String id, List<Node> nodes, Node onSuccess, Node onError) {
+    this.id = id;
     this.nodes = nodes;
     this.onSuccess = onSuccess;
     this.onError = onError;
@@ -36,7 +37,7 @@ public class CompositeNode implements Node {
 
   @Override
   public String getId() {
-    return COMPOSITE_NODE_ID;
+    return id;
   }
 
   @Override
@@ -51,8 +52,8 @@ public class CompositeNode implements Node {
   }
 
   @Override
-  public boolean isComposite() {
-    return true;
+  public NodeType getType() {
+    return NodeType.COMPOSITE;
   }
 
   public List<Node> getNodes() {
@@ -62,7 +63,8 @@ public class CompositeNode implements Node {
   @Override
   public String toString() {
     return "CompositeNode{" +
-        "nodes=" + nodes +
+        "id='" + id + '\'' +
+        ", nodes=" + nodes +
         ", onSuccess=" + onSuccess +
         ", onError=" + onError +
         '}';

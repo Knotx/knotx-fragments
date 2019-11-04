@@ -2,48 +2,56 @@
 Fragments Engine is a reactive asynchronous map-reduce implementation, enjoying the benefits of Reactive Extensions, 
 that evaluates each Fragment independently using a `Task` definition. `Task` specifies a directed graph of Nodes, 
 allowing to transform Fragment into the new one.
-```
-F -> F', T
-```
-- `F` - Fragment to transform
-- `F'` - the modified Fragment
-- `T` represents Transition, a text value, that defines the next Node from the graph
 
 ## How does it work
 Any *Fragment* can define its processing path - a **Task** (which is a **directed graph** of **Nodes**).
 A **Task** specifies the nodes through which Fragments will be routed by the Task Engine. 
 Each Node may define possible *outgoing edges* - **Transitions**.
 
-Additionally, a **Node** can do one of the following:
-  - define a **single** [Action](https://github.com/Knotx/knotx-fragments/tree/master/handler/api#action)
-  that will be applied to Fragment (called [Action Node](#action-node)),
-  - define **many**/**parallel** Actions that are applied to Fragment (called [Composite Node](#composite-node)) .
+### Node
+The node responsibility can be described as: 
+> Graph node gets a fragment, processes it and responds with Transition. So a node is the function 
+>`F -> (F', T)` where `F` is the Fragment, `F'` is a modified Fragment and `T` is the Transition.
 
-### Action Node
-Action that is applied on the node is a transformation function 
-`java.util.function.Function<FragmentContext, Single<FragmentResult>>` that transforms one Fragment 
-into another.
+The node definition is abstract. It allows to define simple processing nodes but also more complex 
+structures such as a list of subgraphs.
 
-Part of the `FragmentResult` is a *Transition* that defines the next *Node* in the graph that the Fragment
-should visit. If there is no transition defined, default `_success` value is used.
-Action Node transformation may return any *Transition*, but all the transitions but `_success` must be
-configured. If there is no **path** configured for the transition, the following logic is applied:
- - if the *Transition* equals `_success` (default value), graph processing finishes
- - otherwise "Unsupported Transition" error occurs.
+There are two **node** types:
+  - **simple nodes** that are simple operations that do some fragment modifications (called [Single Node](#single-node)),
+  - **parallel complex nodes** that represent a list of subgraphs (called [Composite Node](#composite-node)).
+
+### Single Node
+The node represents a single operation that transforms one Fragment into another.
+
+This operation can respond with **custom** transitions.
  
 ### Composite Node
-This Node may consist of other Composite Nodes or Action Nodes or a mix of both.
-It enables parallel processing of independent Actions (e.g. calling two external data sources).
+This node may consist of other Composite Nodes or Single Nodes or a mix of both.
+It enables parallel processing of independent nodes (e.g. calling two external data sources).
 Composite Node may define only two transitions:
   - `_success` - the default one, means that operation ends without any exception
   - `_error` - when operation throws an exception
   
 > Important note!
-> Action Nodes inside the Composite Node may only modify the Fragment's payload and should not modify the Fragment's body.
-> This is because Actions are executed in parallel and the output of modifying a single Fragment's body in parallel
-> may differ between different executions.
+> Single Nodes inside the Composite Node may only modify the Fragment's payload and should not modify the Fragment's body.
 
-## Node states
+### Transition
+A directed graph consists of nodes and edges. Edges are called transitions. Transition is a simple text. 
+
+The pre-defined transitions are:
+- `_success` - the default one, indicates that operation completes successfully (no exception)
+- `_error` - means that operation has throw an exception
+
+There are two important rules to remember:
+> If a node responds with *_success* transition, but the transition is not configured, then 
+>processing is finished.
+
+> If a node responds with *_error* transition, but the transition is not configured, then an 
+>exception is returned.
+
+> If a node responds with a not configured transition, the "Unsupported Transition" error occurs.
+
+#### States
 
 ![Node with exits](assets/images/graph_node.png)
 
