@@ -97,8 +97,8 @@ There are two sections:
 
 ##### Node processing
 The node responsibility can be described as: 
-> Graph node gets a fragment, processes it and responds with Transition. So a node is the function 
->`F -> (F', T)` where `F` is the Fragment, `F'` is a modified Fragment and `T` is the Transition.
+> Graph node gets a fragment, processes it and generate some logs and responds with Transition. So a node is the function 
+>`F -> (F', T, L)` where `F` is the Fragment, `F'` is a modified Fragment, `T` is the Transition and L is Node Loge.
 
 The node definition is abstract. It allows to define simple processing nodes but also more complex 
 structures such as a list of subgraphs. Furthermore, such a definition inspires to provide custom 
@@ -120,7 +120,17 @@ Knot.x provides two node implementations:
 - **Action node** that represents simple steps in a graph such as integration with a data source
 - **Subtasks node** that is a list of unnamed tasks (subtasks) that are evaluated in parallel
 
+####### Node Processing Log
+
+Node processing generates flat logs in the following structure. 
+
+| Task | Node alias | Status | Transition | Node Log |
+|---|---|---|---|---|
+| TASK | A1 | SUCCESS | T1 | L-A1 |
+| TASK | A2 | SUCCESS | T1 | L-A2 |
+
 ###### Action node
+
 An *action node* declares an [action](#actions) to execute by its name:
 ```hocon
 node {
@@ -195,6 +205,16 @@ two independent tasks (graphs) with one node (action).
 
 See the [example section](#the-example) for a more complex scenario. Before we see the full 
 power of graphs, we need to understand how nodes are connected.
+
+####### Subtasks Processing Log
+
+Let's consider above subtasks definition. The processing log will look as follows.  
+
+| Task | Node alias | Status | Transition | Node Log |
+|---|---|---|---|---|
+| TASK | book-rest-api | SUCCESS | T1 | L-book-rest-api |
+| TASK | author-rest-api | SUCCESS | T2 | L-author-rest-api |
+| TASK | composite | SUCCESS | T3 |  |
 
 ##### Transitions
 A directed graph consists of nodes and edges. Edges are called transitions. Their configuration 
@@ -297,6 +317,27 @@ timeouts and errors from APIs.
 Please note that no error strategy has been defined for authors API yet. However, it can be easily 
 configured in the future when business agrees on the fallback logic.
 
+## Task Log
+
+| Node alias | Transition | Node Log |
+|---|---|---|
+| A1 | T1 | AL1 |
+| A2 | T2 | AL2 |
+
+AL ->
+
+The proposal action log structure for the `A1 (A1' -> A1'' -> A1''')` processing can be
+```
+AL = {
+  _alias: A'
+  _logs: {}
+  _doAction [
+    AL, AL, ...
+  ]
+}
+```
+
+
 ## Actions
 Action defines action node logic, it is the `F -> (F',T)` function. Actions integrate with external data sources, 
 do some fragments modifications or fetch data. A data source response is saved in a Fragment's payload (JSON object) 
@@ -374,6 +415,37 @@ and key value `someKey.someNestedKey` body value will look like:
 ```
 
 ### Behaviours
+
+#### Action Log
+
+A scenario with three simple Actions. First action is wrapped with two behaviours, for example in memory cache behaviour and circuit breaker behaviour.
+
+Task log entries:
+
+| Node alias | Transition | Node Log |
+|---|---|---|
+| A1 | T1 | complex AL1 |
+
+
+Behaviours wrap other behaviours or simple actions and delegate a fragment to them (for processing). They can introduce some stability patterns such as retires, it means that they can call a wrapped Action many times.
+
+The proposal action log structure for the `A1 (A1' -> A1'' -> A1''')` processing can be
+```
+{
+  _alias: A'
+  _logs: {}
+  _doAction [
+    {
+      _alias: A''
+      _logs: {}
+      _doAction {
+        _alias: A'''
+        _logs: {}
+      }
+    }
+  ]
+}
+```
 
 #### Circuit Breaker Behaviour
 It wraps a simple action with the [Circuit Breaker implementation from Vert.x](https://vertx.io/docs/vertx-circuit-breaker/java/).
