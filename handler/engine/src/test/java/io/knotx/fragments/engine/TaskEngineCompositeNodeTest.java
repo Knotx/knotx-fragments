@@ -45,10 +45,7 @@ import io.knotx.fragments.engine.FragmentEventLogVerifier.Operation;
 import io.knotx.fragments.engine.graph.SingleNode;
 import io.knotx.fragments.engine.graph.CompositeNode;
 import io.knotx.fragments.engine.graph.Node;
-import io.knotx.fragments.handler.api.actionlog.ActionLog;
-import io.knotx.fragments.handler.api.actionlog.ActionLogBuilder;
-import io.knotx.fragments.engine.graph.SingleNode;
-import io.knotx.fragments.handler.api.exception.ActionFatalException;
+import io.knotx.fragments.handler.api.exception.NodeFatalException;
 import io.knotx.server.api.context.ClientRequest;
 import io.reactivex.Single;
 import io.reactivex.exceptions.CompositeException;
@@ -220,7 +217,7 @@ class TaskEngineCompositeNodeTest {
     // then
     verifyError(result, testContext,
         error -> assertTrue(error.getExceptions().stream()
-            .anyMatch(ActionFatalException.class::isInstance))
+            .anyMatch(NodeFatalException.class::isInstance))
     );
   }
 

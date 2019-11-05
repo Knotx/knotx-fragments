@@ -17,9 +17,6 @@
  */
 package io.knotx.fragments.engine;
 
-import java.util.Optional;
-
-import io.knotx.fragments.handler.api.actionlog.ActionLog;
 import io.knotx.fragments.handler.api.domain.FragmentResult;
 import io.vertx.core.json.JsonObject;
 

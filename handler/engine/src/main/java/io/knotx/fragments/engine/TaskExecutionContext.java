@@ -23,7 +23,7 @@ import io.knotx.fragments.engine.FragmentEvent.Status;
 import io.knotx.fragments.engine.graph.Node;
 import io.knotx.fragments.handler.api.domain.FragmentContext;
 import io.knotx.fragments.handler.api.domain.FragmentResult;
-import io.knotx.fragments.handler.api.exception.ActionFatalException;
+import io.knotx.fragments.handler.api.exception.NodeFatalException;
 import io.knotx.server.api.context.ClientRequest;
 import io.reactivex.Single;
 import io.reactivex.SingleSource;
@@ -74,7 +74,7 @@ class TaskExecutionContext {
 
   SingleSource<? extends FragmentResult> handleError(Throwable error) {
     if (isFatal(error)) {
-      handleFatalError((ActionFatalException) error);
+      handleFatalError((NodeFatalException) error);
     } else {
       handleRegularError(error);
     }
@@ -87,7 +87,7 @@ class TaskExecutionContext {
         .put("error", error.getMessage());
   }
 
-  private void handleFatalError(ActionFatalException error) {
+  private void handleFatalError(NodeFatalException error) {
     LOGGER
         .error("Processing failed with fatal error [{}].", fragmentEventContext.getFragmentEvent(),
             error);
@@ -165,7 +165,7 @@ class TaskExecutionContext {
   }
 
   private boolean isFatal(Throwable error) {
-    return error instanceof ActionFatalException;
+    return error instanceof NodeFatalException;
   }
 
   private void ifNotDefaultTransitionEndAsUnsupportedFailure(String transition) {
