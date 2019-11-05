@@ -82,11 +82,11 @@ public class RedisCache implements Cache {
   private Object getObjectFromResponse(Response response) {
     return Optional.ofNullable(response)
         .map(Response::toString)
-        .map(RedisCache::jsonToObject)
+        .map(RedisCache::valueToObject)
         .orElse(null);
   }
 
-  private static Object jsonToObject(String value) {
+  private static Object valueToObject(String value) {
     value = value.trim();
     if (value.startsWith("{")) {
       return new JsonObject(value);
