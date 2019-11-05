@@ -20,19 +20,18 @@ import io.reactivex.Maybe;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
-import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 
 import io.vertx.core.json.JsonObject;
 
-public class InMemoryCacheProvider implements CacheProvider {
+public class InMemoryCache implements Cache {
 
   private static final long DEFAULT_MAXIMUM_SIZE = 1000;
   private static final long DEFAULT_TTL = 5000;
 
-  private final Cache<String, Object> cache;
+  private final com.google.common.cache.Cache cache;
 
-  public InMemoryCacheProvider(JsonObject config) {
+  public InMemoryCache(JsonObject config) {
     cache = createCache(config);
   }
 
@@ -48,7 +47,7 @@ public class InMemoryCacheProvider implements CacheProvider {
     cache.put(key, value);
   }
 
-  private static Cache<String, Object> createCache(JsonObject config) {
+  private static com.google.common.cache.Cache createCache(JsonObject config) {
     JsonObject cache = config.getJsonObject("cache");
     long maxSize =
         cache == null ? DEFAULT_MAXIMUM_SIZE : cache.getLong("maximumSize", DEFAULT_MAXIMUM_SIZE);

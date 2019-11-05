@@ -25,10 +25,10 @@ public class CacheAction implements Action {
 
   private final JsonObject config;
 
-  private final CacheProvider cache;
+  private final Cache cache;
 
   public CacheAction(Action doAction, JsonObject config,
-      CacheProvider cache) {
+      Cache cache) {
     this.doAction = doAction;
     this.config = config;
     this.payloadKey = getPayloadKey(config);
