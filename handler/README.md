@@ -97,7 +97,7 @@ There are two sections:
 
 ##### Node processing
 The node responsibility can be described as: 
-> Graph node gets a fragment, processes it and generate some logs and responds with Transition. So a node is the function 
+> Graph node gets a fragment, processes it and produce some logs and responds with Transition. So a node is the function 
 >`F -> (F', T, L)` where `F` is the Fragment, `F'` is a modified Fragment, `T` is the Transition and L is Node Loge.
 
 The node definition is abstract. It allows to define simple processing nodes but also more complex 
@@ -122,12 +122,15 @@ Knot.x provides two node implementations:
 
 ####### Node Processing Log
 
-Node processing generates flat logs in the following structure. 
+Node processing produce flat logs in the following structure. 
 
 | Task | Node alias | Status | Transition | Node Log |
 |---|---|---|---|---|
 | TASK | A1 | SUCCESS | T1 | L-A1 |
 | TASK | A2 | SUCCESS | T1 | L-A2 |
+
+
+`Node Log` is a log produced by specific `node` execution. Its structure is defined by each node's implementation. 
 
 ###### Action node
 
@@ -441,9 +444,11 @@ Please note that cacheKey can be parametrized with request data like params, hea
 documentation for more details.
 
 ### Actions log
-Each node can produce specific execution logs. As mention before those logs are stored in  `Node procssing log`
+
+Each node can produce specific execution logs. As mention before those logs are stored in  `Node processing log`
 under key `Node log`
-  
+
+As shown above, the actions are divided into two types: `simple actions` and `behaviors`. Actions log structure need cover those two types.  
 The action log structure for the `A1 (A1' -> A1'' -> A1''')` processing:
 
 ```
@@ -455,3 +460,8 @@ AL = {
   ]
 }
 ```
+
+where:
+ A1 is `behavior` 
+ A1`, A1`` and A1 ``` are corresponding execution of wrapped simple action
+ 
