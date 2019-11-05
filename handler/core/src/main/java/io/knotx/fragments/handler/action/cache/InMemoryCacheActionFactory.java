@@ -33,6 +33,6 @@ public class InMemoryCacheActionFactory implements ActionFactory {
 
   @Override
   public Action create(String alias, JsonObject config, Vertx vertx, Action doAction) {
-    return new CacheAction(doAction, config, new InMemoryCacheProvider(config));
+    return new CacheAction(doAction, config, new InMemoryCache(config));
   }
 }

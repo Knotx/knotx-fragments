@@ -13,9 +13,9 @@ import io.vertx.reactivex.redis.client.Response;
 import io.vertx.redis.client.RedisOptions;
 import java.util.Optional;
 
-public class RedisCacheProvider implements CacheProvider {
+public class RedisCache implements Cache {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(RedisCacheProvider.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(RedisCache.class);
 
   private static final String DEFAULT_HOST = "localhost";
 
@@ -29,7 +29,7 @@ public class RedisCacheProvider implements CacheProvider {
 
   private final long ttl;
 
-  RedisCacheProvider(Vertx vertx, JsonObject config) {
+  RedisCache(Vertx vertx, JsonObject config) {
     ttl = Optional.ofNullable(config.getJsonObject("cache"))
         .map(cacheConfig -> cacheConfig.getLong("ttl", DEFAULT_TTL))
         .orElse(DEFAULT_TTL);
@@ -47,7 +47,7 @@ public class RedisCacheProvider implements CacheProvider {
 
   @Override
   public void put(String key, Object value) {
-    if (value instanceof JsonObject || value instanceof JsonArray) {
+    if (value instanceof JsonObject || value instanceof JsonArray || value instanceof String) {
       String valueToBeCached = value.toString();
       redis.setex(key, Long.toString(ttl), valueToBeCached, response -> {
         if (response.succeeded()) {
@@ -56,39 +56,44 @@ public class RedisCacheProvider implements CacheProvider {
           LOGGER.error("Error while caching new value under key: {}", response.cause(), key);
         }
       });
+    } else {
+      LOGGER.error(
+          "Redis cache implementation supports only JsonObject, JsonArray and String values. "
+              + "Received value: {}", value);
     }
   }
 
   private RedisOptions getRedisOptions(JsonObject config) {
     return Optional.ofNullable(config.getJsonObject("redis"))
-        .map(redisConfig -> {
-          String host = redisConfig.getString("host", DEFAULT_HOST);
-          int port = redisConfig.getInteger("port", DEFAULT_PORT);
-          String password = redisConfig.getString("password", null);
-
-          return new RedisOptions()
-              .setEndpoint(SocketAddress.inetSocketAddress(port, host))
-              .setPassword(password);
-        })
+        .map(this::toRedisOptions)
         .orElseGet(RedisOptions::new);
+  }
+
+  private RedisOptions toRedisOptions(JsonObject redisConfig) {
+    String host = redisConfig.getString("host", DEFAULT_HOST);
+    int port = redisConfig.getInteger("port", DEFAULT_PORT);
+    String password = redisConfig.getString("password", null);
+
+    return new RedisOptions()
+        .setEndpoint(SocketAddress.inetSocketAddress(port, host))
+        .setPassword(password);
   }
 
   private Object getObjectFromResponse(Response response) {
     return Optional.ofNullable(response)
         .map(Response::toString)
-        .map(RedisCacheProvider::jsonToObject)
+        .map(RedisCache::jsonToObject)
         .orElse(null);
   }
 
-  private static Object jsonToObject(String json) {
-    json = json.trim();
-    if (json.startsWith("{")) {
-      return new JsonObject(json);
-    } else if (json.startsWith("[")) {
-      return new JsonArray(json);
+  private static Object jsonToObject(String value) {
+    value = value.trim();
+    if (value.startsWith("{")) {
+      return new JsonObject(value);
+    } else if (value.startsWith("[")) {
+      return new JsonArray(value);
     } else {
-      LOGGER.error("Couldn't deserialize string: {}", json);
-      return null;
+      return value;
     }
   }
 }

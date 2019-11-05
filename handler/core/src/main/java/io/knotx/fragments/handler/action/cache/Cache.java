@@ -2,7 +2,7 @@ package io.knotx.fragments.handler.action.cache;
 
 import io.reactivex.Maybe;
 
-public interface CacheProvider {
+public interface Cache {
 
   Maybe<Object> get(String key);
 
