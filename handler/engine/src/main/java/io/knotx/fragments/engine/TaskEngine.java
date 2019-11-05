@@ -60,7 +60,7 @@ class TaskEngine {
   }
 
   private Single<FragmentResult> getResult(TaskExecutionContext context) {
-    return NodeType.COMPOSITE.equals(context.getCurrentNode().getType())
+    return NodeType.COMPOSITE == context.getCurrentNode().getType()
             ? mapReduce(context)
             : execute(context);
   }

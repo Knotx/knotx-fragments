@@ -82,7 +82,12 @@ public class ConfigurationTaskProvider implements TaskProvider {
     List<Node> nodes = config.getSubtasks().stream()
         .map(this::initGraphRootNode)
         .collect(Collectors.toList());
-    return new CompositeNode("composite", nodes, edges.get(SUCCESS_TRANSITION), edges.get(ERROR_TRANSITION));
+    return new CompositeNode(getNodeId(), nodes, edges.get(SUCCESS_TRANSITION), edges.get(ERROR_TRANSITION));
+  }
+
+  private String getNodeId() {
+    // TODO this value should be calculated based on graph, the behaviour now is not changed
+    return "composite";
   }
 
   private Function<FragmentContext, Single<FragmentResult>> toRxFunction(
