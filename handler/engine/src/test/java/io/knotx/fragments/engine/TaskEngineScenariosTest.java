@@ -80,7 +80,7 @@ class TaskEngineScenariosTest {
     JsonObject taskCPayload = new JsonObject().put("key", "taskCOperation");
 
     Node rootNode = new SingleNode("first", appendBody(":first"),
-        successTransition(new CompositeNode("composite",
+        successTransition(new CompositeNode(COMPOSITE_NODE_ID,
                 parallel(
                     new SingleNode("A", appendPayload("A", taskAPayload), NO_TRANSITIONS),
                     new SingleNode("B", appendPayload("B", taskBPayload), NO_TRANSITIONS),
@@ -118,13 +118,13 @@ class TaskEngineScenariosTest {
   void expectSuccessMultipleParallel(VertxTestContext testContext, Vertx vertx) throws Throwable {
     // given
     Node rootNode = new SingleNode("first", success(),
-        successTransition(new CompositeNode("composite",
+        successTransition(new CompositeNode(COMPOSITE_NODE_ID,
                 parallel(
                     new SingleNode("A", appendPayload("A", ":payloadA"), NO_TRANSITIONS),
                     new SingleNode("B", appendPayload("B", ":payloadB"), NO_TRANSITIONS)
                 ),
                 new SingleNode("middle", success(),
-                    successTransition(new CompositeNode("composite",
+                    successTransition(new CompositeNode(COMPOSITE_NODE_ID,
                         parallel(
                             new SingleNode("X",
                                 appendPayloadBasingOnContext("A", "X", "withX"), NO_TRANSITIONS),
@@ -158,7 +158,7 @@ class TaskEngineScenariosTest {
   void expectProcessingLogsInOrder(VertxTestContext testContext, Vertx vertx) throws Throwable {
     // given
     Node rootNode = new SingleNode("first", success(),
-        successTransition(new CompositeNode("composite",
+        successTransition(new CompositeNode(COMPOSITE_NODE_ID,
                 parallel(
                     new SingleNode("A1", success(), successTransition(
                         new SingleNode("A2", failure(), errorTransition(
@@ -195,12 +195,12 @@ class TaskEngineScenariosTest {
               Operation.range("task", "A2", "ERROR", 1, 4),
               Operation.range("task", "A3-fallback", "SUCCESS", 1, 4),
               Operation.range("task", "B", "SUCCESS", 1, 4),
-              Operation.exact("task", "composite", "SUCCESS", 5),
+              Operation.exact("task", COMPOSITE_NODE_ID, "SUCCESS", 5),
               Operation.exact("task", "middle", "SUCCESS", 6),
               Operation.range("task", "X", "SUCCESS", 7, 9),
               Operation.range("task", "Y1", "SUCCESS", 7, 9),
               Operation.range("task", "Y2", "SUCCESS", 7, 9),
-              Operation.exact("task", "composite", "SUCCESS", 10),
+              Operation.exact("task", COMPOSITE_NODE_ID, "SUCCESS", 10),
               Operation.exact("task", "last", "SUCCESS", 11)
           );
         });
@@ -226,7 +226,7 @@ class TaskEngineScenariosTest {
   void verifyParallelExecution(VertxTestContext testContext, Vertx vertx) throws Throwable {
     // given
     Node rootNode = new SingleNode("first", success(),
-        successTransition(new CompositeNode("composite",
+        successTransition(new CompositeNode(COMPOSITE_NODE_ID,
                 parallel(
                     new SingleNode("A", successWithDelay(500), NO_TRANSITIONS),
                     new SingleNode("B", successWithDelay(500), NO_TRANSITIONS),
@@ -255,10 +255,10 @@ class TaskEngineScenariosTest {
   void verifyNestedParallelExecution(VertxTestContext testContext, Vertx vertx) throws Throwable {
     // given
     Node rootNode = new SingleNode("first", success(),
-        successTransition(new CompositeNode("composite",
+        successTransition(new CompositeNode(COMPOSITE_NODE_ID,
                 parallel(
                     new SingleNode("A", successWithDelay(500), NO_TRANSITIONS),
-                    new CompositeNode("composite",
+                    new CompositeNode(COMPOSITE_NODE_ID,
                         parallel(
                             new SingleNode("B", successWithDelay(500),
                                 successTransition(new SingleNode("B1", appendPayload("B1", "B1Payload"),

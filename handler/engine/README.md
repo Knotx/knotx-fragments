@@ -43,17 +43,17 @@ Composite Node may respond with only two default transitions:
 >the Fragment's body.
 
 ### Transition
-A directed graph consists of nodes and edges. Edges are called transitions. Transition is a simple text. 
+A directed graph consists of nodes and edges. Edges are called transitions. Transition is identified by a string. 
 
 The pre-defined transitions are:
 - `_success` - the default one, indicates that operation completes successfully (no exception)
 - `_error` - means that operation has throw an exception
 
 There are two important rules to remember:
-> If a node responds with *_success* transition, but the transition is not configured, then 
->processing is finished.
+> If a node responds with *_success* transition, but the `_success` transition is not configured, then 
+>processing of the graph/subgraph is finished.
 
-> If a node responds with *_error* transition, but the transition is not configured, then an 
+> If a node responds with *_error* transition, but the `_error` transition is not configured, then an 
 >exception is returned.
 
 > If a node responds with a not configured transition, the "Unsupported Transition" error occurs.

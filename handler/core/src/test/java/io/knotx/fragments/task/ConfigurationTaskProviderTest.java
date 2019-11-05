@@ -176,7 +176,7 @@ class ConfigurationTaskProviderTest {
     assertTrue(task.getRootNode().isPresent());
     Node rootNode = task.getRootNode().get();
     assertTrue(rootNode instanceof CompositeNode);
-    assertEquals("composite", rootNode.getId());
+    assertEquals(COMPOSITE_NODE_ID, rootNode.getId());
     assertFalse(rootNode.next(SUCCESS_TRANSITION).isPresent());
     assertFalse(rootNode.next(ERROR_TRANSITION).isPresent());
 
@@ -209,7 +209,7 @@ class ConfigurationTaskProviderTest {
     assertTrue(task.getRootNode().isPresent());
     Node rootNode = task.getRootNode().get();
     assertTrue(rootNode instanceof CompositeNode);
-    assertEquals("composite", rootNode.getId());
+    assertEquals(COMPOSITE_NODE_ID, rootNode.getId());
     Optional<Node> onSuccess = rootNode.next(SUCCESS_TRANSITION);
     assertTrue(onSuccess.isPresent());
     Node onSuccessNode = onSuccess.get();
@@ -238,7 +238,7 @@ class ConfigurationTaskProviderTest {
     assertTrue(task.getRootNode().isPresent());
     Node rootNode = task.getRootNode().get();
     assertTrue(rootNode instanceof CompositeNode);
-    assertEquals("composite", rootNode.getId());
+    assertEquals(COMPOSITE_NODE_ID, rootNode.getId());
     Optional<Node> onError = rootNode.next(ERROR_TRANSITION);
     assertTrue(onError.isPresent());
     Node onErrorNode = onError.get();
@@ -291,7 +291,7 @@ class ConfigurationTaskProviderTest {
     assertTrue(task.getRootNode().isPresent());
     Node rootNode = task.getRootNode().get();
     assertTrue(rootNode instanceof CompositeNode);
-    assertEquals("composite", rootNode.getId());
+    assertEquals(COMPOSITE_NODE_ID, rootNode.getId());
 
     CompositeNode compositeRootNode = (CompositeNode) rootNode;
     assertEquals(1, compositeRootNode.getNodes().size());
