@@ -90,7 +90,7 @@ public class FragmentResult {
   /**
    * Log produced by node execution.
    *
-   * @return action log
+   * @return node log
    */
   public JsonObject getNodeLog() {
     return nodeLog;
@@ -120,7 +120,7 @@ public class FragmentResult {
     return "FragmentResult{" +
         "fragment=" + fragment +
         ", transition='" + transition + '\'' +
-        ", actionLog=" + nodeLog +
+        ", nodeLog=" + nodeLog +
         '}';
   }
 }

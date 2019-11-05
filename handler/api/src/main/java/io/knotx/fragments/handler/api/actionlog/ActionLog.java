@@ -22,13 +22,12 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.StreamSupport;
 
-import io.knotx.fragments.handler.api.NodeLog;
 import io.vertx.codegen.annotations.DataObject;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
 @DataObject
-public class ActionLog implements NodeLog {
+public class ActionLog {
 
   private final String alias;
   private final JsonObject logs;
@@ -66,7 +65,6 @@ public class ActionLog implements NodeLog {
     return unmodifiableList(doActionLogs);
   }
 
-  @Override
   public JsonObject toJson() {
     return new JsonObject().put("alias", alias).put("logs", getLogs())
         .put("doAction", toDoActionArray());

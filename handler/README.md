@@ -317,29 +317,9 @@ timeouts and errors from APIs.
 Please note that no error strategy has been defined for authors API yet. However, it can be easily 
 configured in the future when business agrees on the fallback logic.
 
-## Task Log
-
-| Node alias | Transition | Node Log |
-|---|---|---|
-| A1 | T1 | AL1 |
-| A2 | T2 | AL2 |
-
-AL ->
-
-The proposal action log structure for the `A1 (A1' -> A1'' -> A1''')` processing can be
-```
-AL = {
-  _alias: A'
-  _logs: {}
-  _doAction [
-    AL, AL, ...
-  ]
-}
-```
-
 
 ## Actions
-Action defines action node logic, it is the `F -> (F',T)` function. Actions integrate with external data sources, 
+Action defines action node logic, it is the `F -> (F',T, L)` function. Actions integrate with external data sources, 
 do some fragments modifications or fetch data. A data source response is saved in a Fragment's payload (JSON object) 
 under an Action's name key and a "\_result" sub-key:
 ```json
@@ -429,24 +409,6 @@ Task log entries:
 
 Behaviours wrap other behaviours or simple actions and delegate a fragment to them (for processing). They can introduce some stability patterns such as retires, it means that they can call a wrapped Action many times.
 
-The proposal action log structure for the `A1 (A1' -> A1'' -> A1''')` processing can be
-```
-{
-  _alias: A'
-  _logs: {}
-  _doAction [
-    {
-      _alias: A''
-      _logs: {}
-      _doAction {
-        _alias: A'''
-        _logs: {}
-      }
-    }
-  ]
-}
-```
-
 #### Circuit Breaker Behaviour
 It wraps a simple action with the [Circuit Breaker implementation from Vert.x](https://vertx.io/docs/vertx-circuit-breaker/java/).
 Its configuration looks like:
@@ -488,3 +450,19 @@ doAction = product-cb
 Please note that cacheKey can be parametrized with request data like params, headers etc. Read 
 [Knot.x HTTP Server Common Placeholders](https://github.com/Knotx/knotx-server-http/tree/master/common/placeholders)
 documentation for more details.
+
+### Actions log
+Each node can produce specific execution logs. As mention before those logs are stored in  `Node procssing log`
+under key `Node log`
+  
+The action log structure for the `A1 (A1' -> A1'' -> A1''')` processing:
+
+```
+AL = {
+  _alias: A'
+  _logs: {}
+  _doAction [
+    AL, AL, ...
+  ]
+}
+```
