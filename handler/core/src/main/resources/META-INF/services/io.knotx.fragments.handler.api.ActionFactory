@@ -14,7 +14,7 @@
 
 # behaviours
 io.knotx.fragments.handler.action.CircuitBreakerActionFactory
-io.knotx.fragments.handler.action.InMemoryCacheActionFactory
+io.knotx.fragments.handler.action.cache.InMemoryCacheActionFactory
 
 # pre-defined actions
 io.knotx.fragments.handler.action.InlineBodyActionFactory
