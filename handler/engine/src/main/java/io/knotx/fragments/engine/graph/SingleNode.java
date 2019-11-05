@@ -22,7 +22,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 
-public class ActionNode implements Node {
+public class SingleNode implements Node {
 
   private String id;
 
@@ -30,11 +30,11 @@ public class ActionNode implements Node {
 
   private Map<String, Node> transitions;
 
-  public ActionNode(String id, Function<FragmentContext, Single<FragmentResult>> action) {
+  public SingleNode(String id, Function<FragmentContext, Single<FragmentResult>> action) {
     this(id, action, null);
   }
 
-  public ActionNode(String id, Function<FragmentContext, Single<FragmentResult>> action,
+  public SingleNode(String id, Function<FragmentContext, Single<FragmentResult>> action,
       Map<String, Node> transitions) {
     this.id = id;
     this.action = action;
@@ -52,8 +52,8 @@ public class ActionNode implements Node {
   }
 
   @Override
-  public boolean isComposite() {
-    return false;
+  public NodeType getType() {
+    return NodeType.SINGLE;
   }
 
   public Single<FragmentResult> doAction(FragmentContext fragmentContext) {

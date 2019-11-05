@@ -15,7 +15,8 @@
  */
 package io.knotx.fragments.engine;
 
-import io.knotx.fragments.engine.graph.ActionNode;
+import io.knotx.fragments.engine.graph.NodeType;
+import io.knotx.fragments.engine.graph.SingleNode;
 import io.knotx.fragments.engine.graph.CompositeNode;
 import io.knotx.fragments.engine.graph.Node;
 import io.knotx.fragments.handler.api.domain.FragmentResult;
@@ -59,14 +60,14 @@ class TaskEngine {
   }
 
   private Single<FragmentResult> getResult(TaskExecutionContext context) {
-    return context.getCurrentNode().isComposite()
+    return NodeType.COMPOSITE == context.getCurrentNode().getType()
             ? mapReduce(context)
             : execute(context);
   }
 
   private Single<FragmentResult> execute(TaskExecutionContext context) {
     return Single.just(context.getCurrentNode())
-        .map(ActionNode.class::cast)
+        .map(SingleNode.class::cast)
         .observeOn(RxHelper.blockingScheduler(vertx))
         .flatMap(gn -> gn.doAction(context.fragmentContextInstance()))
         .doOnSuccess(context::handleSuccess)
