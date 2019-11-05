@@ -396,17 +396,6 @@ and key value `someKey.someNestedKey` body value will look like:
 
 ### Behaviours
 
-#### Action Log
-
-A scenario with three simple Actions. First action is wrapped with two behaviours, for example in memory cache behaviour and circuit breaker behaviour.
-
-Task log entries:
-
-| Node alias | Transition | Node Log |
-|---|---|---|
-| A1 | T1 | complex AL1 |
-
-
 Behaviours wrap other behaviours or simple actions and delegate a fragment to them (for processing). They can introduce some stability patterns such as retires, it means that they can call a wrapped Action many times.
 
 #### Circuit Breaker Behaviour
