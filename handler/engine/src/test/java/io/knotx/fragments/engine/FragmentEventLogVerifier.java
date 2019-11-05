@@ -85,8 +85,8 @@ class FragmentEventLogVerifier {
       return new Operation(task, node, status, new ExactPosition(position), null);
     }
 
-    static Operation exact(String task, String node, String status, int position, JsonObject actionLog) {
-      return new Operation(task, node, status, new ExactPosition(position), actionLog);
+    static Operation exact(String task, String node, String status, int position, JsonObject nodeLog) {
+      return new Operation(task, node, status, new ExactPosition(position), nodeLog);
     }
 
     static Operation range(String task, String node, String status, int minPosition,

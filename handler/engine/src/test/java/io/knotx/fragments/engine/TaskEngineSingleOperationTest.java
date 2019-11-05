@@ -32,8 +32,6 @@ import io.knotx.fragments.engine.FragmentEvent.Status;
 import io.knotx.fragments.engine.FragmentEventLogVerifier.Operation;
 import io.knotx.fragments.engine.graph.ActionNode;
 import io.knotx.fragments.engine.graph.Node;
-import io.knotx.fragments.handler.api.actionlog.ActionLog;
-import io.knotx.fragments.handler.api.actionlog.ActionLogBuilder;
 import io.knotx.fragments.handler.api.domain.FragmentContext;
 import io.knotx.fragments.handler.api.domain.FragmentResult;
 import io.knotx.server.api.context.ClientRequest;
@@ -279,12 +277,12 @@ class TaskEngineSingleOperationTest {
   }
 
   @Test
-  @DisplayName("Expect action debug log event log entries when success transition handled.")
-  void expectActionDebugLogEventLogEntriesForSuccess(VertxTestContext testContext, Vertx vertx)
+  @DisplayName("Expect node debug in log event log entries when success transition handled.")
+  void expectNodeDebugLogEventLogEntriesForSuccess(VertxTestContext testContext, Vertx vertx)
       throws Throwable {
     // given
-    JsonObject successActionLog = new JsonObject().put("debug", "success");
-    ActionNode rootNode = new ActionNode("first", successWithNodeLog(successActionLog),
+    JsonObject successNodeLog = new JsonObject().put("debug", "success");
+    ActionNode rootNode = new ActionNode("first", successWithNodeLog(successNodeLog),
         Collections.singletonMap(SUCCESS_TRANSITION,
             new ActionNode("second", success())));
 
@@ -294,18 +292,18 @@ class TaskEngineSingleOperationTest {
     // then
     verifyExecution(result, testContext,
         event -> FragmentEventLogVerifier.verifyAllLogEntries(event.getLogAsJson(),
-            Operation.exact("task", "first", "SUCCESS", 0, successActionLog),
+            Operation.exact("task", "first", "SUCCESS", 0, successNodeLog),
             Operation.exact("task", "second", "SUCCESS", 1)
         ));
   }
 
   @Test
-  @DisplayName("Expect action debug log event log entries when error transition handled.")
-  void expectActionDebugLogEventLogEntriesForError(VertxTestContext testContext, Vertx vertx)
+  @DisplayName("Expect node log in  event log entries when error transition handled.")
+  void expectNodeDebugLogEventLogEntriesForError(VertxTestContext testContext, Vertx vertx)
       throws Throwable {
     // given
-    JsonObject errorActionLog = new JsonObject().put("debug", "error");
-    ActionNode rootNode = new ActionNode("first", errorWithNodeLog(errorActionLog),
+    JsonObject errorNodeLog = new JsonObject().put("debug", "error");
+    ActionNode rootNode = new ActionNode("first", errorWithNodeLog(errorNodeLog),
         Collections.singletonMap(ERROR_TRANSITION,
             new ActionNode("second", success())));
 
@@ -315,7 +313,7 @@ class TaskEngineSingleOperationTest {
     // then
     verifyExecution(result, testContext,
         event -> FragmentEventLogVerifier.verifyAllLogEntries(event.getLogAsJson(),
-            Operation.exact("task", "first", "SUCCESS", 0, errorActionLog),
+            Operation.exact("task", "first", "SUCCESS", 0, errorNodeLog),
             Operation.exact("task", "second", "SUCCESS", 1)
         ));
   }
