@@ -280,9 +280,9 @@ class TaskEngineSingleOperationTest {
       throws Throwable {
     // given
     JsonObject successNodeLog = new JsonObject().put("debug", "success");
-    ActionNode rootNode = new ActionNode("first", successWithNodeLog(successNodeLog),
+    SingleNode rootNode = new SingleNode("first", successWithNodeLog(successNodeLog),
         Collections.singletonMap(SUCCESS_TRANSITION,
-            new ActionNode("second", success())));
+            new SingleNode("second", success())));
 
     // when
     Single<FragmentEvent> result = new TaskEngine(vertx).start("task", rootNode, eventContext);
@@ -301,9 +301,9 @@ class TaskEngineSingleOperationTest {
       throws Throwable {
     // given
     JsonObject errorNodeLog = new JsonObject().put("debug", "error");
-    ActionNode rootNode = new ActionNode("first", errorWithNodeLog(errorNodeLog),
+    SingleNode rootNode = new SingleNode("first", errorWithNodeLog(errorNodeLog),
         Collections.singletonMap(ERROR_TRANSITION,
-            new ActionNode("second", success())));
+            new SingleNode("second", success())));
 
     // when
     Single<FragmentEvent> result = new TaskEngine(vertx).start("task", rootNode, eventContext);
