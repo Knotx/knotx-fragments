@@ -41,6 +41,6 @@ public class RedisCacheActionFactory implements ActionFactory {
 
   @Override
   public Action create(String alias, JsonObject config, Vertx vertx, Action doAction) {
-    return new CacheAction(doAction, config, new RedisCacheProvider(vertx, config));
+    return new CacheAction(doAction, config, new RedisCache(vertx, config));
   }
 }
