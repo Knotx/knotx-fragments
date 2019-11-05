@@ -141,4 +141,4 @@ with the `_succcess` transition. Finally, the fragment status is `SUCCESS` and t
 | Task       | Node identifier | Node status | Transition | Node Log        |
 |------------|-----------------|-------------|------------|-----------------|
 | `taskName` | `A`             | SUCCESS     | `_success` | { A node log }  |
-| `taskName` | `B`             | SUCCESS     | `_success` | { A node log }  ****|
+| `taskName` | `B`             | SUCCESS     | `_success` | { A node log }  |

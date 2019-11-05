@@ -120,18 +120,6 @@ Knot.x provides two node implementations:
 - **Action node** that represents simple steps in a graph such as integration with a data source
 - **Subtasks node** that is a list of unnamed tasks (subtasks) that are evaluated in parallel
 
-####### Node Processing Log
-
-Node processing produce flat logs in the following structure. 
-
-| Task | Node alias | Status | Transition | Node Log |
-|---|---|---|---|---|
-| TASK | A1 | SUCCESS | T1 | L-A1 |
-| TASK | A2 | SUCCESS | T1 | L-A2 |
-
-
-`Node Log` is a log produced by specific `node` execution. Its structure is defined by each node's implementation. 
-
 ###### Action node
 
 An *action node* declares an [action](#actions) to execute by its name:
@@ -153,6 +141,30 @@ action = reference-to-action
 # onTransitions { }
 ```
 A nice syntax sugar!
+
+####### Logs
+Action node appends a single [fragment's log](https://github.com/Knotx/knotx-fragments/tree/master/handler/engine#fragments-log) 
+entry:
+
+| Task       | Node identifier       | Node status | Transition | Node Log        |
+|------------|-----------------------|-------------|------------|-----------------|
+| `taskName` | `reference-to-action` | SUCCESS     | `_success` |  { }            |
+
+with the custom [node log](https://github.com/Knotx/knotx-fragments/tree/master/handler/engine#node-log) syntax.
+
+Let's assume that `NODE_LOG` is an action's node log with syntax:
+```json5
+{
+  _alias: "reference-to-action",
+  _logs: { 
+    // action log here
+  },
+  _doAction: [
+    // NODE_LOG, NODE_LOG, ...
+  ]
+}
+```
+So it supports both [actions](#actions) and [behaviours](#behaviours).
 
 ###### Subtasks node
 Subtasks node is a node containing a list of subtasks. It evaluates all of them sequentially. 
@@ -209,15 +221,13 @@ two independent tasks (graphs) with one node (action).
 See the [example section](#the-example) for a more complex scenario. Before we see the full 
 power of graphs, we need to understand how nodes are connected.
 
-####### Subtasks Processing Log
+####### Logs
+Subtasks node appends a single [fragment's log](https://github.com/Knotx/knotx-fragments/tree/feature/%2347-action-log-structure/handler/engine#fragments-log) 
+entry when all subgraphs are processed:
 
-Let's consider above subtasks definition. The processing log will look as follows.  
-
-| Task | Node alias | Status | Transition | Node Log |
-|---|---|---|---|---|
-| TASK | book-rest-api | SUCCESS | T1 | L-book-rest-api |
-| TASK | author-rest-api | SUCCESS | T2 | L-author-rest-api |
-| TASK | composite | SUCCESS | T3 |  |
+| Task       | Node identifier | Node status | Transition | Node Log        |
+|------------|-----------------|-------------|------------|-----------------|
+| `taskName` | `composite`     | SUCCESS     | `_success` |                 |
 
 ##### Transitions
 A directed graph consists of nodes and edges. Edges are called transitions. Their configuration 
@@ -442,26 +452,3 @@ doAction = product-cb
 Please note that cacheKey can be parametrized with request data like params, headers etc. Read 
 [Knot.x HTTP Server Common Placeholders](https://github.com/Knotx/knotx-server-http/tree/master/common/placeholders)
 documentation for more details.
-
-### Actions log
-
-Each node can produce specific execution logs. As mention before those logs are stored in  `Node processing log`
-under key `Node log`
-
-As shown above, the actions are divided into two types: `simple actions` and `behaviors`. Actions log structure need cover those two types.  
-The action log structure for the `A1 (A1' -> A1'' -> A1''')` processing:
-
-```
-AL = {
-  _alias: A'
-  _logs: {}
-  _doAction [
-    AL, AL, ...
-  ]
-}
-```
-
-where:
- A1 is `behavior` 
- A1`, A1`` and A1 ``` are corresponding execution of wrapped simple action
- 
