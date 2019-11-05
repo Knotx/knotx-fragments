@@ -12,14 +12,11 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * The code comes from https://github.com/tomaszmichalak/vertx-rx-map-reduce.
  */
 package io.knotx.fragments.engine;
 
 import static io.knotx.fragments.engine.FragmentEventLogVerifier.verifyAllLogEntries;
 import static io.knotx.fragments.engine.FragmentEventLogVerifier.verifyLogEntries;
-import static io.knotx.fragments.engine.graph.CompositeNode.COMPOSITE_NODE_ID;
 import static io.knotx.fragments.engine.helpers.TestFunction.appendBody;
 import static io.knotx.fragments.engine.helpers.TestFunction.appendPayload;
 import static io.knotx.fragments.engine.helpers.TestFunction.failure;
@@ -32,7 +29,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import io.knotx.fragments.api.Fragment;
 import io.knotx.fragments.engine.FragmentEvent.Status;
 import io.knotx.fragments.engine.FragmentEventLogVerifier.Operation;
-import io.knotx.fragments.engine.graph.ActionNode;
+import io.knotx.fragments.engine.graph.SingleNode;
 import io.knotx.fragments.engine.graph.CompositeNode;
 import io.knotx.fragments.engine.graph.Node;
 import io.knotx.fragments.handler.api.exception.ActionFatalException;
@@ -57,6 +54,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 @ExtendWith(VertxExtension.class)
 class TaskEngineCompositeNodeTest {
 
+  private static final String COMPOSITE_NODE_ID = "composite";
+  private static final String INNER_COMPOSITE_NODE_ID = "innerComposite";
   private static final String INITIAL_BODY = "initial body";
   private static final Map<String, Node> NO_TRANSITIONS = Collections.emptyMap();
 
@@ -74,7 +73,7 @@ class TaskEngineCompositeNodeTest {
   void expectUnprocessedWhenEmptyParallelEnds(VertxTestContext testContext, Vertx vertx)
       throws Throwable {
     // given
-    Node rootNode = new CompositeNode(
+    Node rootNode = new CompositeNode(COMPOSITE_NODE_ID,
         Collections.emptyList(),
         null,
         null
@@ -93,9 +92,9 @@ class TaskEngineCompositeNodeTest {
   void expectSuccessWhenSingleProcessingEnds(VertxTestContext testContext, Vertx vertx)
       throws Throwable {
     // given
-    Node rootNode = new CompositeNode(
+    Node rootNode = new CompositeNode(COMPOSITE_NODE_ID,
         parallel(
-            new ActionNode("action", success(), NO_TRANSITIONS)
+            new SingleNode("action", success(), NO_TRANSITIONS)
         ), null, null
     );
 
@@ -112,9 +111,9 @@ class TaskEngineCompositeNodeTest {
   void expectSuccessEventLogEntry(VertxTestContext testContext, Vertx vertx)
       throws Throwable {
     // given
-    Node rootNode = new CompositeNode(
+    Node rootNode = new CompositeNode(COMPOSITE_NODE_ID,
         parallel(
-            new ActionNode("action", success(), NO_TRANSITIONS)
+            new SingleNode("action", success(), NO_TRANSITIONS)
         ), null, null
     );
     // when
@@ -134,9 +133,9 @@ class TaskEngineCompositeNodeTest {
   void expectErrorWhenSingleProcessingFails(VertxTestContext testContext, Vertx vertx)
       throws Throwable {
     // given
-    Node rootNode = new CompositeNode(
+    Node rootNode = new CompositeNode(COMPOSITE_NODE_ID,
         parallel(
-            new ActionNode("action", failure(), NO_TRANSITIONS)
+            new SingleNode("action", failure(), NO_TRANSITIONS)
         ), null, null
     );
 
@@ -153,12 +152,12 @@ class TaskEngineCompositeNodeTest {
   void expectErrorEventLogEntry(VertxTestContext testContext, Vertx vertx)
       throws Throwable {
     // given
-    Node rootNode = new CompositeNode(
+    Node rootNode = new CompositeNode(COMPOSITE_NODE_ID,
         parallel(
-            new ActionNode("action", failure(), NO_TRANSITIONS)
+            new SingleNode("action", failure(), NO_TRANSITIONS)
         ),
         null,
-        new ActionNode("action", success(), NO_TRANSITIONS)
+        new SingleNode("action", success(), NO_TRANSITIONS)
     );
 
     // when
@@ -176,9 +175,9 @@ class TaskEngineCompositeNodeTest {
   void expectUnsupportedEventLogEntryWhenError(VertxTestContext testContext, Vertx vertx)
       throws Throwable {
     // given
-    Node rootNode = new CompositeNode(
+    Node rootNode = new CompositeNode(COMPOSITE_NODE_ID,
         parallel(
-            new ActionNode("action", failure(), NO_TRANSITIONS)
+            new SingleNode("action", failure(), NO_TRANSITIONS)
         ), null, null
     );
     // when
@@ -196,9 +195,9 @@ class TaskEngineCompositeNodeTest {
   void expectExceptionWhenSingleProcessingThrowsFatal(VertxTestContext testContext, Vertx vertx)
       throws Throwable {
     // given
-    Node rootNode = new CompositeNode(
+    Node rootNode = new CompositeNode(COMPOSITE_NODE_ID,
         parallel(
-            new ActionNode("action", fatal(eventContext.getFragmentEvent().getFragment()),
+            new SingleNode("action", fatal(eventContext.getFragmentEvent().getFragment()),
                 NO_TRANSITIONS)
         ), null, null
     );
@@ -220,9 +219,9 @@ class TaskEngineCompositeNodeTest {
     // given
     JsonObject taskAPayload = new JsonObject().put("key", "taskAOperation");
 
-    Node rootNode = new CompositeNode(
+    Node rootNode = new CompositeNode(COMPOSITE_NODE_ID,
         parallel(
-            new ActionNode("A", appendPayload("A", taskAPayload), NO_TRANSITIONS)
+            new SingleNode("A", appendPayload("A", taskAPayload), NO_TRANSITIONS)
         ), null, null
     );
 
@@ -240,11 +239,11 @@ class TaskEngineCompositeNodeTest {
   @DisplayName("Expect success status when parallel inside parallel ends successfully")
   void inception(VertxTestContext testContext, Vertx vertx) throws Throwable {
     // given
-    Node rootNode = new CompositeNode(
+    Node rootNode = new CompositeNode(COMPOSITE_NODE_ID,
         parallel(
-            new CompositeNode(
+            new CompositeNode(INNER_COMPOSITE_NODE_ID,
                 parallel(
-                    new ActionNode("action", success(), NO_TRANSITIONS)
+                    new SingleNode("action", success(), NO_TRANSITIONS)
                 ), null, null)
         ), null, null);
 
@@ -262,11 +261,11 @@ class TaskEngineCompositeNodeTest {
       Vertx vertx) throws Throwable {
     // given
     JsonObject taskAPayload = new JsonObject().put("key", "taskAOperation");
-    Node rootNode = new CompositeNode(
+    Node rootNode = new CompositeNode(COMPOSITE_NODE_ID,
         parallel(
-            new CompositeNode(
+            new CompositeNode(INNER_COMPOSITE_NODE_ID,
                 parallel(
-                    new ActionNode("action", appendPayload("A", taskAPayload), NO_TRANSITIONS)
+                    new SingleNode("action", appendPayload("A", taskAPayload), NO_TRANSITIONS)
                 ), null, null)
         ), null, null);
 
@@ -284,10 +283,10 @@ class TaskEngineCompositeNodeTest {
   void expectSuccessWhenParallelConsistsOfEmptyAndSuccessActions(VertxTestContext testContext,
       Vertx vertx) throws Throwable {
     // given
-    Node rootNode = new CompositeNode(
+    Node rootNode = new CompositeNode(COMPOSITE_NODE_ID,
         parallel(
-            new CompositeNode(parallel(), null, null),
-            new ActionNode("action", success(), NO_TRANSITIONS)
+            new CompositeNode(INNER_COMPOSITE_NODE_ID, parallel(), null, null),
+            new SingleNode("action", success(), NO_TRANSITIONS)
         ), null, null);
 
     // when
@@ -302,10 +301,10 @@ class TaskEngineCompositeNodeTest {
   @DisplayName("Expect error when one of parallel actions ends with error")
   void expectError(VertxTestContext testContext, Vertx vertx) throws Throwable {
     // given
-    Node rootNode = new CompositeNode(
+    Node rootNode = new CompositeNode(COMPOSITE_NODE_ID,
         parallel(
-            new ActionNode("failing", failure(), NO_TRANSITIONS),
-            new ActionNode("success", success(), NO_TRANSITIONS)
+            new SingleNode("failing", failure(), NO_TRANSITIONS),
+            new SingleNode("success", success(), NO_TRANSITIONS)
         ), null, null);
 
     // when
@@ -321,10 +320,10 @@ class TaskEngineCompositeNodeTest {
   void expectLogEntriesOfAllParallelActions(VertxTestContext testContext, Vertx vertx)
       throws Throwable {
     // given
-    Node rootNode = new CompositeNode(
+    Node rootNode = new CompositeNode(COMPOSITE_NODE_ID,
         parallel(
-            new ActionNode("failing", failure(), NO_TRANSITIONS),
-            new ActionNode("success", success(), NO_TRANSITIONS)
+            new SingleNode("failing", failure(), NO_TRANSITIONS),
+            new SingleNode("success", success(), NO_TRANSITIONS)
         ), null, null);
 
     // when
@@ -342,15 +341,38 @@ class TaskEngineCompositeNodeTest {
   }
 
   @Test
+  @DisplayName("Expect inner composite node log entry")
+  void expectNamedInnerCompositeLogEntry(VertxTestContext testContext,
+      Vertx vertx) throws Throwable {
+    // given
+    Node rootNode = new CompositeNode(COMPOSITE_NODE_ID,
+        parallel(
+            new CompositeNode(INNER_COMPOSITE_NODE_ID,
+                parallel(
+                    new SingleNode("success", success(), NO_TRANSITIONS)
+                ), null, null)
+        ), null, null);
+
+    // when
+    Single<FragmentEvent> result = new TaskEngine(vertx).start("task", rootNode, eventContext);
+
+    // then
+    verifyExecution(result, testContext,
+        event -> verifyLogEntries(event.getLogAsJson(),
+            Operation.exact("task", INNER_COMPOSITE_NODE_ID, "SUCCESS", 2)
+        ));
+  }
+
+  @Test
   @DisplayName("Expect success status when parallel processing and one of parallel actions returns error that is handled by parallel section fallback")
   void expectFallbackAppliedAfterParallelProcessing(VertxTestContext testContext, Vertx vertx)
       throws Throwable {
     // given
-    Node rootNode = new CompositeNode(
+    Node rootNode = new CompositeNode(COMPOSITE_NODE_ID,
         parallel(
-            new ActionNode("A", success(), NO_TRANSITIONS),
-            new ActionNode("B", failure(), NO_TRANSITIONS)
-        ), null, new ActionNode("fallback", success(), NO_TRANSITIONS)
+            new SingleNode("A", success(), NO_TRANSITIONS),
+            new SingleNode("B", failure(), NO_TRANSITIONS)
+        ), null, new SingleNode("fallback", success(), NO_TRANSITIONS)
     );
 
     // when
@@ -366,11 +388,11 @@ class TaskEngineCompositeNodeTest {
   void expectFallbackAppliedDuringParallelProcessing(VertxTestContext testContext, Vertx vertx)
       throws Throwable {
     // given
-    Node rootNode = new CompositeNode(
+    Node rootNode = new CompositeNode(COMPOSITE_NODE_ID,
         parallel(
-            new ActionNode("A", success(), NO_TRANSITIONS),
-            new ActionNode("B", failure(), Collections.singletonMap(
-                ERROR_TRANSITION, new ActionNode("fallback", success(), NO_TRANSITIONS)
+            new SingleNode("A", success(), NO_TRANSITIONS),
+            new SingleNode("B", failure(), Collections.singletonMap(
+                ERROR_TRANSITION, new SingleNode("fallback", success(), NO_TRANSITIONS)
             ))
         ), null, null
     );
@@ -391,12 +413,12 @@ class TaskEngineCompositeNodeTest {
   void expectFallbackPayloadWhenParallelProcessingFails(VertxTestContext testContext, Vertx vertx)
       throws Throwable {
     // given
-    Node rootNode = new CompositeNode(
+    Node rootNode = new CompositeNode(COMPOSITE_NODE_ID,
         parallel(
-            new ActionNode("A", failure(), NO_TRANSITIONS),
-            new ActionNode("B", failure(), Collections.singletonMap(
+            new SingleNode("A", failure(), NO_TRANSITIONS),
+            new SingleNode("B", failure(), Collections.singletonMap(
                 ERROR_TRANSITION,
-                new ActionNode("fallback", appendPayload("fallback", "value"), NO_TRANSITIONS)
+                new SingleNode("fallback", appendPayload("fallback", "value"), NO_TRANSITIONS)
             ))
         ), null, null
     );
@@ -406,7 +428,8 @@ class TaskEngineCompositeNodeTest {
 
     // then
     verifyExecution(result, testContext,
-        fragmentEvent -> assertTrue(fragmentEvent.getFragment().getPayload().containsKey("fallback")));
+        fragmentEvent -> assertTrue(
+            fragmentEvent.getFragment().getPayload().containsKey("fallback")));
   }
 
   @Test
@@ -414,11 +437,11 @@ class TaskEngineCompositeNodeTest {
   void expectSuccessAppliedAfterParallelProcessingSuccess(VertxTestContext testContext, Vertx vertx)
       throws Throwable {
     // given
-    Node rootNode = new CompositeNode(
+    Node rootNode = new CompositeNode(COMPOSITE_NODE_ID,
         parallel(
-            new ActionNode("A", success(), NO_TRANSITIONS),
-            new ActionNode("B", success(), NO_TRANSITIONS)
-        ), new ActionNode("last", appendBody(":last"), NO_TRANSITIONS), null
+            new SingleNode("A", success(), NO_TRANSITIONS),
+            new SingleNode("B", success(), NO_TRANSITIONS)
+        ), new SingleNode("last", appendBody(":last"), NO_TRANSITIONS), null
     );
 
     // when
@@ -437,13 +460,13 @@ class TaskEngineCompositeNodeTest {
     // given
 
     JsonObject expectedPayload = new JsonObject().put("key", "value");
-    Node rootNode = new CompositeNode(
+    Node rootNode = new CompositeNode(COMPOSITE_NODE_ID,
         parallel(
-            new ActionNode("A", success(), NO_TRANSITIONS),
-            new ActionNode("B", success(), NO_TRANSITIONS)
-        ), new CompositeNode(
+            new SingleNode("A", success(), NO_TRANSITIONS),
+            new SingleNode("B", success(), NO_TRANSITIONS)
+        ), new CompositeNode(COMPOSITE_NODE_ID,
         parallel(
-            new ActionNode("last", appendPayload("last", expectedPayload), NO_TRANSITIONS)
+            new SingleNode("last", appendPayload("last", expectedPayload), NO_TRANSITIONS)
         ), null, null),
         null
     );
@@ -461,6 +484,7 @@ class TaskEngineCompositeNodeTest {
     return Arrays.asList(nodes);
   }
 
+  @SuppressWarnings("ResultOfMethodCallIgnored")
   private void verifyExecution(Single<FragmentEvent> result, VertxTestContext testContext,
       Consumer<FragmentEvent> successConsumer) throws Throwable {
     // execute
@@ -477,6 +501,7 @@ class TaskEngineCompositeNodeTest {
     }
   }
 
+  @SuppressWarnings("ResultOfMethodCallIgnored")
   private void verifyError(Single<FragmentEvent> result, VertxTestContext testContext,
       Consumer<CompositeException> errorConsumer) throws Throwable {
     // execute

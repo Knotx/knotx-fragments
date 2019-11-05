@@ -18,7 +18,7 @@ package io.knotx.fragments.engine;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.knotx.fragments.api.Fragment;
-import io.knotx.fragments.engine.graph.ActionNode;
+import io.knotx.fragments.engine.graph.SingleNode;
 import io.knotx.fragments.handler.api.domain.FragmentContext;
 import io.knotx.fragments.handler.api.domain.FragmentResult;
 import io.knotx.server.api.context.ClientRequest;
@@ -86,7 +86,7 @@ class FragmentsEngineConcurrencyTest {
   }
 
   private FragmentEventContextTaskAware initFragmentEventContextTaskAware() {
-    ActionNode graphNode = new ActionNode("id", BLOCKING_OPERATION,
+    SingleNode graphNode = new SingleNode("id", BLOCKING_OPERATION,
         Collections.emptyMap());
     Fragment fragment = new Fragment("snippet", new JsonObject(), "some body");
 

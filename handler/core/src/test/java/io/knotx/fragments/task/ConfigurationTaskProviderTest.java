@@ -17,7 +17,6 @@
  */
 package io.knotx.fragments.task;
 
-import static io.knotx.fragments.engine.graph.CompositeNode.COMPOSITE_NODE_ID;
 import static io.knotx.fragments.handler.api.domain.FragmentResult.ERROR_TRANSITION;
 import static io.knotx.fragments.handler.api.domain.FragmentResult.SUCCESS_TRANSITION;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -30,7 +29,7 @@ import io.knotx.fragments.api.Fragment;
 import io.knotx.fragments.engine.FragmentEvent;
 import io.knotx.fragments.engine.FragmentEventContext;
 import io.knotx.fragments.engine.Task;
-import io.knotx.fragments.engine.graph.ActionNode;
+import io.knotx.fragments.engine.graph.SingleNode;
 import io.knotx.fragments.engine.graph.CompositeNode;
 import io.knotx.fragments.engine.graph.Node;
 import io.knotx.fragments.handler.action.ActionProvider;
@@ -62,6 +61,7 @@ class ConfigurationTaskProviderTest {
 
   private static final Map<String, GraphNodeOptions> NO_TRANSITIONS = Collections.emptyMap();
   private static final String TASK_NAME = "task";
+  private static final String COMPOSITE_NODE_ID = "composite";
   private static final FragmentEventContext SAMPLE_FRAGMENT_EVENT =
       new FragmentEventContext(new FragmentEvent(new Fragment("type",
           new JsonObject().put(FragmentsHandlerOptions.DEFAULT_TASK_KEY, TASK_NAME), "body")),
@@ -124,7 +124,7 @@ class ConfigurationTaskProviderTest {
     assertEquals(TASK_NAME, task.getName());
     assertTrue(task.getRootNode().isPresent());
     Node rootNode = task.getRootNode().get();
-    assertTrue(rootNode instanceof ActionNode);
+    assertTrue(rootNode instanceof SingleNode);
     assertEquals("simpleAction", rootNode.getId());
     assertFalse(rootNode.next(SUCCESS_TRANSITION).isPresent());
   }
@@ -148,12 +148,12 @@ class ConfigurationTaskProviderTest {
 
     assertTrue(task.getRootNode().isPresent());
     Node rootNode = task.getRootNode().get();
-    assertTrue(rootNode instanceof ActionNode);
+    assertTrue(rootNode instanceof SingleNode);
     assertEquals("actionA", rootNode.getId());
     Optional<Node> customNode = rootNode.next("customTransition");
     assertTrue(customNode.isPresent());
-    assertTrue(customNode.get() instanceof ActionNode);
-    ActionNode customSingleNode = (ActionNode) customNode.get();
+    assertTrue(customNode.get() instanceof SingleNode);
+    SingleNode customSingleNode = (SingleNode) customNode.get();
     assertEquals("actionB", customSingleNode.getId());
   }
 
@@ -183,7 +183,7 @@ class ConfigurationTaskProviderTest {
     CompositeNode compositeRootNode = (CompositeNode) rootNode;
     assertEquals(1, compositeRootNode.getNodes().size());
     Node node = compositeRootNode.getNodes().get(0);
-    assertTrue(node instanceof ActionNode);
+    assertTrue(node instanceof SingleNode);
     assertEquals("simpleAction", node.getId());
   }
 
@@ -213,7 +213,7 @@ class ConfigurationTaskProviderTest {
     Optional<Node> onSuccess = rootNode.next(SUCCESS_TRANSITION);
     assertTrue(onSuccess.isPresent());
     Node onSuccessNode = onSuccess.get();
-    assertTrue(onSuccessNode instanceof ActionNode);
+    assertTrue(onSuccessNode instanceof SingleNode);
     assertEquals("lastAction", onSuccessNode.getId());
   }
 
@@ -242,7 +242,7 @@ class ConfigurationTaskProviderTest {
     Optional<Node> onError = rootNode.next(ERROR_TRANSITION);
     assertTrue(onError.isPresent());
     Node onErrorNode = onError.get();
-    assertTrue(onErrorNode instanceof ActionNode);
+    assertTrue(onErrorNode instanceof SingleNode);
     assertEquals("fallbackAction", onErrorNode.getId());
   }
 
@@ -302,7 +302,7 @@ class ConfigurationTaskProviderTest {
 
     assertEquals(1, compositeChildNode.getNodes().size());
     Node node = compositeChildNode.getNodes().get(0);
-    assertTrue(node instanceof ActionNode);
+    assertTrue(node instanceof SingleNode);
     assertEquals("simpleAction", node.getId());
   }
 

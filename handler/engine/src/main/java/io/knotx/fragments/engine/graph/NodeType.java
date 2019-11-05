@@ -15,14 +15,7 @@
  */
 package io.knotx.fragments.engine.graph;
 
-import java.util.Optional;
-
-public interface Node {
-
-  String getId();
-
-  Optional<Node> next(String transition);
-
-  NodeType getType();
-
+public enum NodeType {
+  SINGLE,
+  COMPOSITE
 }

@@ -12,13 +12,10 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * The code comes from https://github.com/tomaszmichalak/vertx-rx-map-reduce.
  */
 package io.knotx.fragments.engine;
 
 import static io.knotx.fragments.engine.FragmentEventLogVerifier.verifyAllLogEntries;
-import static io.knotx.fragments.engine.graph.CompositeNode.COMPOSITE_NODE_ID;
 import static io.knotx.fragments.engine.helpers.TestFunction.appendBody;
 import static io.knotx.fragments.engine.helpers.TestFunction.appendBodyWithPayload;
 import static io.knotx.fragments.engine.helpers.TestFunction.appendPayload;
@@ -34,7 +31,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import io.knotx.fragments.api.Fragment;
 import io.knotx.fragments.engine.FragmentEvent.Status;
 import io.knotx.fragments.engine.FragmentEventLogVerifier.Operation;
-import io.knotx.fragments.engine.graph.ActionNode;
+import io.knotx.fragments.engine.graph.SingleNode;
 import io.knotx.fragments.engine.graph.CompositeNode;
 import io.knotx.fragments.engine.graph.Node;
 import io.knotx.server.api.context.ClientRequest;
@@ -58,6 +55,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 @ExtendWith(VertxExtension.class)
 class TaskEngineScenariosTest {
 
+  private static final String COMPOSITE_NODE_ID = "composite";
   private static final String INITIAL_BODY = "initial body";
   private static final Map<String, Node> NO_TRANSITIONS = Collections.emptyMap();
 
@@ -81,14 +79,14 @@ class TaskEngineScenariosTest {
     JsonObject taskBPayload = new JsonObject().put("key", "taskBOperation");
     JsonObject taskCPayload = new JsonObject().put("key", "taskCOperation");
 
-    Node rootNode = new ActionNode("first", appendBody(":first"),
-        successTransition(new CompositeNode(
+    Node rootNode = new SingleNode("first", appendBody(":first"),
+        successTransition(new CompositeNode(COMPOSITE_NODE_ID,
                 parallel(
-                    new ActionNode("A", appendPayload("A", taskAPayload), NO_TRANSITIONS),
-                    new ActionNode("B", appendPayload("B", taskBPayload), NO_TRANSITIONS),
-                    new ActionNode("C", appendPayload("C", taskCPayload), NO_TRANSITIONS)
+                    new SingleNode("A", appendPayload("A", taskAPayload), NO_TRANSITIONS),
+                    new SingleNode("B", appendPayload("B", taskBPayload), NO_TRANSITIONS),
+                    new SingleNode("C", appendPayload("C", taskCPayload), NO_TRANSITIONS)
                 ),
-                new ActionNode("last", appendBody(":last"), NO_TRANSITIONS),
+                new SingleNode("last", appendBody(":last"), NO_TRANSITIONS),
                 null
             )
         ));
@@ -119,21 +117,21 @@ class TaskEngineScenariosTest {
   @DisplayName("Expect body updated after complex processing")
   void expectSuccessMultipleParallel(VertxTestContext testContext, Vertx vertx) throws Throwable {
     // given
-    Node rootNode = new ActionNode("first", success(),
-        successTransition(new CompositeNode(
+    Node rootNode = new SingleNode("first", success(),
+        successTransition(new CompositeNode(COMPOSITE_NODE_ID,
                 parallel(
-                    new ActionNode("A", appendPayload("A", ":payloadA"), NO_TRANSITIONS),
-                    new ActionNode("B", appendPayload("B", ":payloadB"), NO_TRANSITIONS)
+                    new SingleNode("A", appendPayload("A", ":payloadA"), NO_TRANSITIONS),
+                    new SingleNode("B", appendPayload("B", ":payloadB"), NO_TRANSITIONS)
                 ),
-                new ActionNode("middle", success(),
-                    successTransition(new CompositeNode(
+                new SingleNode("middle", success(),
+                    successTransition(new CompositeNode(COMPOSITE_NODE_ID,
                         parallel(
-                            new ActionNode("X",
+                            new SingleNode("X",
                                 appendPayloadBasingOnContext("A", "X", "withX"), NO_TRANSITIONS),
-                            new ActionNode("Y",
+                            new SingleNode("Y",
                                 appendPayloadBasingOnContext("B", "Y", "withY"), NO_TRANSITIONS)
                         ),
-                        new ActionNode("last", appendBodyWithPayload("X", "Y"), NO_TRANSITIONS),
+                        new SingleNode("last", appendBodyWithPayload("X", "Y"), NO_TRANSITIONS),
                         null
                     ))),
                 null
@@ -159,26 +157,26 @@ class TaskEngineScenariosTest {
   @DisplayName("Expect logs in order after complex processing")
   void expectProcessingLogsInOrder(VertxTestContext testContext, Vertx vertx) throws Throwable {
     // given
-    Node rootNode = new ActionNode("first", success(),
-        successTransition(new CompositeNode(
+    Node rootNode = new SingleNode("first", success(),
+        successTransition(new CompositeNode(COMPOSITE_NODE_ID,
                 parallel(
-                    new ActionNode("A1", success(), successTransition(
-                        new ActionNode("A2", failure(), errorTransition(
-                            new ActionNode("A3-fallback", success(), NO_TRANSITIONS)
+                    new SingleNode("A1", success(), successTransition(
+                        new SingleNode("A2", failure(), errorTransition(
+                            new SingleNode("A3-fallback", success(), NO_TRANSITIONS)
                         ))
                     )),
-                    new ActionNode("B", success(), NO_TRANSITIONS)
+                    new SingleNode("B", success(), NO_TRANSITIONS)
                 ),
-                new ActionNode("middle", success(),
-                    successTransition(new CompositeNode(
+                new SingleNode("middle", success(),
+                    successTransition(new CompositeNode(COMPOSITE_NODE_ID,
                         parallel(
-                            new ActionNode("X", success(), NO_TRANSITIONS),
-                            new ActionNode("Y1", success(), successTransition(
-                                new ActionNode("Y2", success(), NO_TRANSITIONS)
+                            new SingleNode("X", success(), NO_TRANSITIONS),
+                            new SingleNode("Y1", success(), successTransition(
+                                new SingleNode("Y2", success(), NO_TRANSITIONS)
 
                             ))
                         ),
-                        new ActionNode("last", success(), NO_TRANSITIONS),
+                        new SingleNode("last", success(), NO_TRANSITIONS),
                         null
                     ))),
                 null
@@ -227,14 +225,14 @@ class TaskEngineScenariosTest {
   @DisplayName("Expect parallel nodes processed in parallel when delays")
   void verifyParallelExecution(VertxTestContext testContext, Vertx vertx) throws Throwable {
     // given
-    Node rootNode = new ActionNode("first", success(),
-        successTransition(new CompositeNode(
+    Node rootNode = new SingleNode("first", success(),
+        successTransition(new CompositeNode(COMPOSITE_NODE_ID,
                 parallel(
-                    new ActionNode("A", successWithDelay(500), NO_TRANSITIONS),
-                    new ActionNode("B", successWithDelay(500), NO_TRANSITIONS),
-                    new ActionNode("C", successWithDelay(500), NO_TRANSITIONS)
+                    new SingleNode("A", successWithDelay(500), NO_TRANSITIONS),
+                    new SingleNode("B", successWithDelay(500), NO_TRANSITIONS),
+                    new SingleNode("C", successWithDelay(500), NO_TRANSITIONS)
                 ),
-                new ActionNode("last", success(), NO_TRANSITIONS),
+                new SingleNode("last", success(), NO_TRANSITIONS),
                 null
             )
         ));
@@ -256,23 +254,23 @@ class TaskEngineScenariosTest {
   @DisplayName("Expect nested parallel nodes processed in parallel when delays")
   void verifyNestedParallelExecution(VertxTestContext testContext, Vertx vertx) throws Throwable {
     // given
-    Node rootNode = new ActionNode("first", success(),
-        successTransition(new CompositeNode(
+    Node rootNode = new SingleNode("first", success(),
+        successTransition(new CompositeNode(COMPOSITE_NODE_ID,
                 parallel(
-                    new ActionNode("A", successWithDelay(500), NO_TRANSITIONS),
-                    new CompositeNode(
+                    new SingleNode("A", successWithDelay(500), NO_TRANSITIONS),
+                    new CompositeNode(COMPOSITE_NODE_ID,
                         parallel(
-                            new ActionNode("B", successWithDelay(500),
-                                successTransition(new ActionNode("B1", appendPayload("B1", "B1Payload"),
+                            new SingleNode("B", successWithDelay(500),
+                                successTransition(new SingleNode("B1", appendPayload("B1", "B1Payload"),
                                     NO_TRANSITIONS))),
-                            new ActionNode("C", successWithDelay(500), NO_TRANSITIONS)
+                            new SingleNode("C", successWithDelay(500), NO_TRANSITIONS)
                         ),
                         null,
                         null
                     ),
-                    new ActionNode("D", successWithDelay(500), NO_TRANSITIONS)
+                    new SingleNode("D", successWithDelay(500), NO_TRANSITIONS)
                 ),
-                new ActionNode("last", success(), NO_TRANSITIONS),
+                new SingleNode("last", success(), NO_TRANSITIONS),
                 null
             )
         ));
