@@ -46,6 +46,7 @@ import io.knotx.fragments.engine.graph.SingleNode;
 import io.knotx.fragments.engine.graph.CompositeNode;
 import io.knotx.fragments.engine.graph.Node;
 import io.knotx.fragments.handler.api.exception.NodeFatalException;
+import io.knotx.fragments.handler.api.exception.ActionFatalException;
 import io.knotx.server.api.context.ClientRequest;
 import io.reactivex.Single;
 import io.reactivex.exceptions.CompositeException;
@@ -55,7 +56,6 @@ import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
 
 @ExtendWith(VertxExtension.class)
-// TODO add tests
 class TaskEngineCompositeNodeTest {
 
   private static final String COMPOSITE_NODE_ID = "composite";
@@ -115,12 +115,13 @@ class TaskEngineCompositeNodeTest {
   void expectSuccessEventLogEntry(VertxTestContext testContext, Vertx vertx)
       throws Throwable {
     // given
-    JsonObject successActionLog = new JsonObject().put("debug", "success");
+    JsonObject successNodeLog = new JsonObject().put("debug", "success");
+    JsonObject successNode2Log = new JsonObject().put("debug", "success2");
     Node rootNode = new CompositeNode(COMPOSITE_NODE_ID,
         parallel(
-            new SingleNode("action", successWithNodeLog(successActionLog), NO_TRANSITIONS),
+            new SingleNode("action", successWithNodeLog(successNodeLog), NO_TRANSITIONS),
             new SingleNode("action1", success(), NO_TRANSITIONS),
-            new SingleNode("action2", successWithNodeLog(successActionLog), NO_TRANSITIONS)
+            new SingleNode("action2", successWithNodeLog(successNode2Log), NO_TRANSITIONS)
         ), null, null
     );
     // when
@@ -129,9 +130,9 @@ class TaskEngineCompositeNodeTest {
     // then
     verifyExecution(result, testContext,
         event -> verifyAllLogEntries(event.getLogAsJson(),
-            Operation.exact("task", "action", "SUCCESS", 0, successActionLog),
+            Operation.exact("task", "action", "SUCCESS", 0, successNodeLog),
             Operation.exact("task", "action1", "SUCCESS", 1),
-            Operation.exact("task", "action2", "SUCCESS", 2, successActionLog),
+            Operation.exact("task", "action2", "SUCCESS", 2, successNode2Log),
             Operation.exact("task", COMPOSITE_NODE_ID, "SUCCESS", 3)
         ));
   }
@@ -368,7 +369,7 @@ class TaskEngineCompositeNodeTest {
     // then
     verifyExecution(result, testContext,
         event -> verifyLogEntries(event.getLogAsJson(),
-            Operation.exact("task", INNER_COMPOSITE_NODE_ID, "SUCCESS", 2)
+            Operation.exact("task", INNER_COMPOSITE_NODE_ID, "SUCCESS", 1)
         ));
   }
 
