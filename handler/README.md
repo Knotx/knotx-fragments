@@ -151,19 +151,21 @@ entry:
 
 with the custom [node log](https://github.com/Knotx/knotx-fragments/tree/master/handler/engine#node-log) syntax.
 
-Let's assume that `NODE_LOG` is an action's node log with syntax:
+Let's assume that `NODE_LOG` is an action's node log. The node log has the syntax:
 ```json5
 {
   _alias: "reference-to-action",
   _logs: { 
-    // action log here
+    // action log goes here
   },
   _doAction: [
     // NODE_LOG, NODE_LOG, ...
   ]
 }
 ```
-So it supports both [actions](#actions) and [behaviours](#behaviours).
+So it supports both [actions](#actions) and [behaviours](#behaviours). Actions deliver their custom 
+[logger](https://github.com/Knotx/knotx-fragments/blob/feature/%2347-action-log-structure/handler/api/src/main/java/io/knotx/fragments/handler/api/actionlog/ActionLogBuilder.java) 
+implementation that hides syntax complexity.
 
 ###### Subtasks node
 Subtasks node is a node containing a list of subtasks. It evaluates all of them sequentially. 
@@ -227,6 +229,8 @@ entry when all subgraphs are processed:
 | Task       | Node identifier | Node status | Transition | Node Log        |
 |------------|-----------------|-------------|------------|-----------------|
 | `taskName` | `composite`     | SUCCESS     | `_success` |                 |
+
+Please note that the node log is empty.
 
 ##### Transitions
 A directed graph consists of nodes and edges. Edges are called transitions. Their configuration 
