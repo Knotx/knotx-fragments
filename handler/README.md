@@ -331,8 +331,8 @@ configured in the future when business agrees on the fallback logic.
 
 
 ## Actions
-Action defines action node logic, it is the `F -> (F',T, L)` function. Actions integrate with external data sources, 
-do some fragments modifications or fetch data. A data source response is saved in a Fragment's payload (JSON object) 
+Action defines action node logic. Actions can integrate with external data sources, do some fragments 
+modifications or fetch data. A data source response is saved in a Fragment's payload (JSON object) 
 under an Action's name key and a "\_result" sub-key:
 ```json
 {
@@ -408,7 +408,9 @@ and key value `someKey.someNestedKey` body value will look like:
 
 ### Behaviours
 
-Behaviours wrap other behaviours or simple actions and delegate a fragment to them (for processing). They can introduce some stability patterns such as retires, it means that they can call a wrapped Action many times.
+Behaviours wrap other behaviours or simple actions and delegate a fragment to them (for processing). 
+They can introduce some stability patterns such as retires, it means that they can call a wrapped 
+Action many times.
 
 #### Circuit Breaker Behaviour
 It wraps a simple action with the [Circuit Breaker implementation from Vert.x](https://vertx.io/docs/vertx-circuit-breaker/java/).
