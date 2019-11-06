@@ -96,14 +96,14 @@ There are two sections:
 - `onTransitions` is a map that represents outgoing edges in a graph
 
 ##### Node
-Node's definition is are described [here](https://github.com/Knotx/knotx-fragments/tree/master/handler/engine#node).
+Node is described [here](https://github.com/Knotx/knotx-fragments/tree/master/handler/engine#node).
 
-Fragments Handler introduces defines custom node types that are finally converted to the 
+Fragments Handler introduces custom node types that are finally converted to the 
 [engine node types](https://github.com/Knotx/knotx-fragments/tree/master/handler/engine#node-types).
-It allows to quickly introduce new node types, with different configuration options, without modifying
+It allows to quickly add new node types, with different configuration options, without modifying
 the engine.
 
-Each node defines its custom factory. The configuration is simple::
+Each node defines its custom factory. The configuration is simple:
 ```hocon
 node {
   factory = factory-name
