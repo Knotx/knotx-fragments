@@ -95,16 +95,15 @@ There are two sections:
 - `node` defines a fragment processing logic
 - `onTransitions` is a map that represents outgoing edges in a graph
 
-##### Node processing
-The node responsibility can be described as: 
-> Graph node gets a fragment, processes it and produce some logs and responds with Transition. So a node is the function 
->`F -> (F', T, L)` where `F` is the Fragment, `F'` is a modified Fragment, `T` is the Transition and L is Node Loge.
+##### Node
+Node's definition is are described [here](https://github.com/Knotx/knotx-fragments/tree/master/handler/engine#node).
 
-The node definition is abstract. It allows to define simple processing nodes but also more complex 
-structures such as a list of subgraphs. Furthermore, such a definition inspires to provide custom 
-node implementations.
+Fragments Handler introduces defines custom node types that are finally converted to the 
+[engine node types](https://github.com/Knotx/knotx-fragments/tree/master/handler/engine#node-types).
+It allows to quickly introduce new node types, with different configuration options, without modifying
+the engine.
 
-The `node` configuration is simple:
+Each node defines its custom factory. The configuration is simple::
 ```hocon
 node {
   factory = factory-name
@@ -116,7 +115,7 @@ node {
 The `factory` parameter specifies a node factory name, `config` contains all options passed to 
 the factory. 
 
-Knot.x provides two node implementations:
+Fragments Handler provides two node implementations:
 - **Action node** that represents simple steps in a graph such as integration with a data source
 - **Subtasks node** that is a list of unnamed tasks (subtasks) that are evaluated in parallel
 

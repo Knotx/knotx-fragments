@@ -17,6 +17,10 @@ The node responsibility can be described as:
 The node definition is abstract. It allows to define simple processing nodes but also more complex 
 structures such as a list of subgraphs.
 
+The node definition is abstract. It allows to define simple processing nodes but also more complex 
+structures such as a list of subgraphs. Furthermore, such a definition inspires to provide custom 
+node implementations.
+
 ### Node types
 There are two **node** types:
   - **single nodes** that are simple operations that do some fragments modifications (called [Single Node](#single-node)),
