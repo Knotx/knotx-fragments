@@ -15,11 +15,15 @@
  */
 package io.knotx.fragments.handler.api.domain;
 
+import java.util.Objects;
+import java.util.Optional;
+
+import org.apache.commons.lang3.StringUtils;
+
 import io.knotx.fragments.api.Fragment;
+import io.knotx.fragments.handler.api.actionlog.ActionLog;
 import io.vertx.codegen.annotations.DataObject;
 import io.vertx.core.json.JsonObject;
-import java.util.Objects;
-import org.apache.commons.lang3.StringUtils;
 
 /**
  * Result of the {@code Action} fragment processing.
@@ -32,24 +36,33 @@ public class FragmentResult {
 
   private static final String FRAGMENT_KEY = "fragment";
   private static final String TRANSITION_KEY = "transition";
+  private static final String NODE_LOG_KEY = "nodeLog";
 
-  private Fragment fragment;
-  private String transition;
+  private final Fragment fragment;
+  private final String transition;
+  private final JsonObject nodeLog;
 
-  public FragmentResult(Fragment fragment, String transition) {
+  public FragmentResult(Fragment fragment, String transition, JsonObject nodeLog) {
     this.fragment = fragment;
     this.transition = transition;
+    this.nodeLog = nodeLog;
+  }
+
+  public FragmentResult(Fragment fragment, String transition) {
+    this(fragment, transition, null);
   }
 
   public FragmentResult(JsonObject json) {
     this.fragment = new Fragment(json.getJsonObject(FRAGMENT_KEY));
     this.transition = json.getString(TRANSITION_KEY);
+    this.nodeLog = json.getJsonObject(NODE_LOG_KEY);
   }
 
   public JsonObject toJson() {
     return new JsonObject()
         .put(FRAGMENT_KEY, fragment.toJson())
-        .put(TRANSITION_KEY, transition);
+        .put(TRANSITION_KEY, transition)
+        .put(NODE_LOG_KEY, nodeLog);
   }
 
   /**
@@ -74,6 +87,15 @@ public class FragmentResult {
     }
   }
 
+  /**
+   * Log produced by node execution.
+   *
+   * @return node log
+   */
+  public JsonObject getNodeLog() {
+    return nodeLog;
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) {
@@ -84,12 +106,13 @@ public class FragmentResult {
     }
     FragmentResult that = (FragmentResult) o;
     return Objects.equals(fragment, that.fragment) &&
-        Objects.equals(transition, that.transition);
+        Objects.equals(transition, that.transition) &&
+        Objects.equals(nodeLog, that.nodeLog);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(fragment, transition);
+    return Objects.hash(fragment, transition, nodeLog);
   }
 
   @Override
@@ -97,6 +120,7 @@ public class FragmentResult {
     return "FragmentResult{" +
         "fragment=" + fragment +
         ", transition='" + transition + '\'' +
+        ", nodeLog=" + nodeLog +
         '}';
   }
 }

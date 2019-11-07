@@ -17,8 +17,10 @@ package io.knotx.fragments.engine;
 
 import static io.knotx.fragments.engine.FragmentEventLogVerifier.verifyAllLogEntries;
 import static io.knotx.fragments.engine.helpers.TestFunction.appendBody;
+import static io.knotx.fragments.engine.helpers.TestFunction.errorWithNodeLog;
 import static io.knotx.fragments.engine.helpers.TestFunction.failure;
 import static io.knotx.fragments.engine.helpers.TestFunction.success;
+import static io.knotx.fragments.engine.helpers.TestFunction.successWithNodeLog;
 import static io.knotx.fragments.handler.api.domain.FragmentResult.ERROR_TRANSITION;
 import static io.knotx.fragments.handler.api.domain.FragmentResult.SUCCESS_TRANSITION;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -268,6 +270,48 @@ class TaskEngineSingleOperationTest {
     verifyExecution(result, testContext,
         event -> FragmentEventLogVerifier.verifyAllLogEntries(event.getLogAsJson(),
             Operation.exact("task", "first", "ERROR", 0),
+            Operation.exact("task", "second", "SUCCESS", 1)
+        ));
+  }
+
+  @Test
+  @DisplayName("Expect node debug in log event log entries when success transition handled.")
+  void expectNodeDebugLogEventLogEntriesForSuccess(VertxTestContext testContext, Vertx vertx)
+      throws Throwable {
+    // given
+    JsonObject successNodeLog = new JsonObject().put("debug", "success");
+    SingleNode rootNode = new SingleNode("first", successWithNodeLog(successNodeLog),
+        Collections.singletonMap(SUCCESS_TRANSITION,
+            new SingleNode("second", success())));
+
+    // when
+    Single<FragmentEvent> result = new TaskEngine(vertx).start("task", rootNode, eventContext);
+
+    // then
+    verifyExecution(result, testContext,
+        event -> FragmentEventLogVerifier.verifyAllLogEntries(event.getLogAsJson(),
+            Operation.exact("task", "first", "SUCCESS", 0, successNodeLog),
+            Operation.exact("task", "second", "SUCCESS", 1)
+        ));
+  }
+
+  @Test
+  @DisplayName("Expect node log in  event log entries when error transition handled.")
+  void expectNodeDebugLogEventLogEntriesForError(VertxTestContext testContext, Vertx vertx)
+      throws Throwable {
+    // given
+    JsonObject errorNodeLog = new JsonObject().put("debug", "error");
+    SingleNode rootNode = new SingleNode("first", errorWithNodeLog(errorNodeLog),
+        Collections.singletonMap(ERROR_TRANSITION,
+            new SingleNode("second", success())));
+
+    // when
+    Single<FragmentEvent> result = new TaskEngine(vertx).start("task", rootNode, eventContext);
+
+    // then
+    verifyExecution(result, testContext,
+        event -> FragmentEventLogVerifier.verifyAllLogEntries(event.getLogAsJson(),
+            Operation.exact("task", "first", "SUCCESS", 0, errorNodeLog),
             Operation.exact("task", "second", "SUCCESS", 1)
         ));
   }

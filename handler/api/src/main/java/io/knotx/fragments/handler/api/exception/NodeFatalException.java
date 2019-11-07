@@ -19,11 +19,11 @@ package io.knotx.fragments.handler.api.exception;
 
 import io.knotx.fragments.api.Fragment;
 
-public class ActionFatalException extends IllegalStateException {
+public class NodeFatalException extends IllegalStateException {
 
   private Fragment fragment;
 
-  public ActionFatalException(Fragment fragment) {
+  public NodeFatalException(Fragment fragment) {
     super("Failed during fragment processing [" + fragment.getId() + "]");
     this.fragment = fragment;
   }

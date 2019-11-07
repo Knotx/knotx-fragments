@@ -15,9 +15,10 @@
  */
 package io.knotx.fragments.handler.action;
 
+import java.util.Objects;
+
 import io.vertx.codegen.annotations.DataObject;
 import io.vertx.core.json.JsonObject;
-import java.util.Objects;
 
 @DataObject(generateConverter = true)
 public class ActionOptions {
@@ -35,6 +36,7 @@ public class ActionOptions {
     this.config = config;
     this.doAction = doAction;
   }
+
 
   public ActionOptions(JsonObject json) {
     ActionOptionsConverter.fromJson(json, this);
@@ -91,7 +93,6 @@ public class ActionOptions {
     this.doAction = doAction;
     return this;
   }
-
 
   @Override
   public boolean equals(Object o) {

@@ -70,7 +70,7 @@ class TaskEngine {
         .map(SingleNode.class::cast)
         .observeOn(RxHelper.blockingScheduler(vertx))
         .flatMap(gn -> gn.doAction(context.fragmentContextInstance()))
-        .doOnSuccess(fr -> context.handleSuccess(fr.getTransition()))
+        .doOnSuccess(context::handleSuccess)
         .onErrorResumeNext(context::handleError);
   }
 

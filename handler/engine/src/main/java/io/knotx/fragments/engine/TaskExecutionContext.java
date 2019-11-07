@@ -23,12 +23,13 @@ import io.knotx.fragments.engine.FragmentEvent.Status;
 import io.knotx.fragments.engine.graph.Node;
 import io.knotx.fragments.handler.api.domain.FragmentContext;
 import io.knotx.fragments.handler.api.domain.FragmentResult;
-import io.knotx.fragments.handler.api.exception.ActionFatalException;
+import io.knotx.fragments.handler.api.exception.NodeFatalException;
 import io.knotx.server.api.context.ClientRequest;
 import io.reactivex.Single;
 import io.reactivex.SingleSource;
 import io.vertx.core.eventbus.ReplyException;
 import io.vertx.core.eventbus.ReplyFailure;
+import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 
@@ -73,15 +74,20 @@ class TaskExecutionContext {
 
   SingleSource<? extends FragmentResult> handleError(Throwable error) {
     if (isFatal(error)) {
-      handleFatalError((ActionFatalException) error);
+      handleFatalError((NodeFatalException) error);
     } else {
       handleRegularError(error);
     }
     FragmentEvent fragmentEvent = fragmentEventContext.getFragmentEvent();
-    return Single.just(new FragmentResult(fragmentEvent.getFragment(), ERROR_TRANSITION));
+    return Single.just(new FragmentResult(fragmentEvent.getFragment(), ERROR_TRANSITION, prepareErrorActionLog(error)));
   }
 
-  private void handleFatalError(ActionFatalException error) {
+  private JsonObject prepareErrorActionLog(Throwable error){
+    return new JsonObject()
+        .put("error", error.getMessage());
+  }
+
+  private void handleFatalError(NodeFatalException error) {
     LOGGER
         .error("Processing failed with fatal error [{}].", fragmentEventContext.getFragmentEvent(),
             error);
@@ -119,13 +125,14 @@ class TaskExecutionContext {
     FragmentEvent fragmentEvent = fragmentEventContext.getFragmentEvent();
     Status status = fragmentEvent.getStatus();
     String nextTransition = status.getDefaultTransition().orElse(null);
+    FragmentResult result = new FragmentResult(fragmentEvent.getFragment(), nextTransition);
     if (status == Status.SUCCESS) {
-      handleSuccess(nextTransition);
+      handleSuccess(result);
     } else {
       fragmentEvent
           .log(EventLogEntry.error(taskName, currentNode.getId(), nextTransition));
     }
-    return new FragmentResult(fragmentEvent.getFragment(), nextTransition);
+    return result;
   }
 
   boolean hasNext() {
@@ -134,6 +141,7 @@ class TaskExecutionContext {
 
   void updateResult(FragmentResult fragmentResult) {
     fragmentEventContext.getFragmentEvent().setFragment(fragmentResult.getFragment());
+
     currentNode = currentNode
         .next(fragmentResult.getTransition())
         .orElseGet(() -> {
@@ -142,11 +150,11 @@ class TaskExecutionContext {
         });
   }
 
-  void handleSuccess(String transition) {
+  void handleSuccess(FragmentResult fragmentResult) {
     FragmentEvent fragmentEvent = fragmentEventContext.getFragmentEvent();
     fragmentEvent.setStatus(Status.SUCCESS);
     fragmentEvent
-        .log(EventLogEntry.success(taskName, currentNode.getId(), transition));
+        .log(EventLogEntry.success(taskName, currentNode.getId(), fragmentResult));
   }
 
   private EventLogEntry getEventLogEntry(Throwable error) {
@@ -157,7 +165,7 @@ class TaskExecutionContext {
   }
 
   private boolean isFatal(Throwable error) {
-    return error instanceof ActionFatalException;
+    return error instanceof NodeFatalException;
   }
 
   private void ifNotDefaultTransitionEndAsUnsupportedFailure(String transition) {

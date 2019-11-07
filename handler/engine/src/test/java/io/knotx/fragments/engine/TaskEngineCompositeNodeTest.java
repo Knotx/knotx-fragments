@@ -22,6 +22,7 @@ import static io.knotx.fragments.engine.helpers.TestFunction.appendPayload;
 import static io.knotx.fragments.engine.helpers.TestFunction.failure;
 import static io.knotx.fragments.engine.helpers.TestFunction.fatal;
 import static io.knotx.fragments.engine.helpers.TestFunction.success;
+import static io.knotx.fragments.engine.helpers.TestFunction.successWithNodeLog;
 import static io.knotx.fragments.handler.api.domain.FragmentResult.ERROR_TRANSITION;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -29,10 +30,10 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import io.knotx.fragments.api.Fragment;
 import io.knotx.fragments.engine.FragmentEvent.Status;
 import io.knotx.fragments.engine.FragmentEventLogVerifier.Operation;
-import io.knotx.fragments.engine.graph.SingleNode;
 import io.knotx.fragments.engine.graph.CompositeNode;
 import io.knotx.fragments.engine.graph.Node;
-import io.knotx.fragments.handler.api.exception.ActionFatalException;
+import io.knotx.fragments.engine.graph.SingleNode;
+import io.knotx.fragments.handler.api.exception.NodeFatalException;
 import io.knotx.server.api.context.ClientRequest;
 import io.reactivex.Single;
 import io.reactivex.exceptions.CompositeException;
@@ -111,9 +112,13 @@ class TaskEngineCompositeNodeTest {
   void expectSuccessEventLogEntry(VertxTestContext testContext, Vertx vertx)
       throws Throwable {
     // given
+    JsonObject successNodeLog = new JsonObject().put("debug", "success");
+    JsonObject successNode2Log = new JsonObject().put("debug", "success2");
     Node rootNode = new CompositeNode(COMPOSITE_NODE_ID,
         parallel(
-            new SingleNode("action", success(), NO_TRANSITIONS)
+            new SingleNode("action", successWithNodeLog(successNodeLog), NO_TRANSITIONS),
+            new SingleNode("action1", success(), NO_TRANSITIONS),
+            new SingleNode("action2", successWithNodeLog(successNode2Log), NO_TRANSITIONS)
         ), null, null
     );
     // when
@@ -122,8 +127,10 @@ class TaskEngineCompositeNodeTest {
     // then
     verifyExecution(result, testContext,
         event -> verifyAllLogEntries(event.getLogAsJson(),
-            Operation.exact("task", "action", "SUCCESS", 0),
-            Operation.exact("task", COMPOSITE_NODE_ID, "SUCCESS", 1)
+            Operation.exact("task", "action", "SUCCESS", 0, successNodeLog),
+            Operation.exact("task", "action1", "SUCCESS", 1),
+            Operation.exact("task", "action2", "SUCCESS", 2, successNode2Log),
+            Operation.exact("task", COMPOSITE_NODE_ID, "SUCCESS", 3)
         ));
   }
 
@@ -208,7 +215,7 @@ class TaskEngineCompositeNodeTest {
     // then
     verifyError(result, testContext,
         error -> assertTrue(error.getExceptions().stream()
-            .anyMatch(ActionFatalException.class::isInstance))
+            .anyMatch(NodeFatalException.class::isInstance))
     );
   }
 
@@ -359,7 +366,7 @@ class TaskEngineCompositeNodeTest {
     // then
     verifyExecution(result, testContext,
         event -> verifyLogEntries(event.getLogAsJson(),
-            Operation.exact("task", INNER_COMPOSITE_NODE_ID, "SUCCESS", 2)
+            Operation.exact("task", INNER_COMPOSITE_NODE_ID, "SUCCESS", 1)
         ));
   }
 

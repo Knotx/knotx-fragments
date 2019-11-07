@@ -17,75 +17,86 @@
  */
 package io.knotx.fragments.engine;
 
+import io.knotx.fragments.handler.api.domain.FragmentResult;
 import io.vertx.core.json.JsonObject;
 
 public class EventLogEntry {
 
   private static final String TASK_KEY = "task";
-  private static final String ACTION_KEY = "action";
+  private static final String NODE_KEY = "node";
   private static final String STATUS_KEY = "status";
   private static final String TRANSITION_KEY = "transition";
   private static final String TIMESTAMP_KEY = "timestamp";
+  private static final String NODE_LOG_KEY = "nodeLog";
 
-  private String task;
-  private String action;
-  private ActionStatus status;
-  private String transition;
-  private long timestamp;
+  private final String task;
+  private final String node;
+  private final NodeStatus status;
+  private final String transition;
+  private final long timestamp;
+  private final JsonObject nodeLog;
 
-  public static EventLogEntry success(String task, String action, String transition) {
-    return new EventLogEntry(task, action, ActionStatus.SUCCESS, transition);
+  public static EventLogEntry success(String task, String node, FragmentResult fragmentResult) {
+    return new EventLogEntry(task, node, NodeStatus.SUCCESS, fragmentResult.getTransition(), fragmentResult.getNodeLog());
   }
 
-  public static EventLogEntry unsupported(String task, String action, String transition) {
-    return new EventLogEntry(task, action, ActionStatus.UNSUPPORTED_TRANSITION, transition);
+  public static EventLogEntry unsupported(String task, String node, String transition) {
+    return new EventLogEntry(task, node, NodeStatus.UNSUPPORTED_TRANSITION, transition,null);
   }
 
-  public static EventLogEntry error(String task, String action, String transition) {
-    return new EventLogEntry(task, action, ActionStatus.ERROR, transition);
+  public static EventLogEntry error(String task, String node, String transition, JsonObject actionLog) {
+    return new EventLogEntry(task, node, NodeStatus.ERROR, transition, actionLog);
   }
 
-  public static EventLogEntry timeout(String task, String action) {
-    return new EventLogEntry(task, action, ActionStatus.TIMEOUT, null);
+  public static EventLogEntry error(String task, String node, String transition) {
+    return new EventLogEntry(task, node, NodeStatus.ERROR, transition,null);
   }
 
-  private EventLogEntry(String task, String action, ActionStatus status, String transition) {
+  public static EventLogEntry timeout(String task, String node) {
+    return new EventLogEntry(task, node, NodeStatus.TIMEOUT, null, null);
+  }
+
+  private EventLogEntry(String task, String node, NodeStatus status, String transition, JsonObject nodeLog) {
     this.task = task;
-    this.action = action;
+    this.node = node;
     this.status = status;
     this.transition = transition;
     this.timestamp = System.currentTimeMillis();
+    this.nodeLog = nodeLog;
   }
 
   EventLogEntry(JsonObject json) {
     this.task = json.getString(TASK_KEY);
-    this.action = json.getString(ACTION_KEY);
-    this.status = ActionStatus.valueOf(json.getString(STATUS_KEY));
+    this.node = json.getString(NODE_KEY);
+    this.status = NodeStatus.valueOf(json.getString(STATUS_KEY));
     this.transition = json.getString(TRANSITION_KEY);
     this.timestamp = json.getLong(TIMESTAMP_KEY);
+    this.nodeLog = json.getJsonObject(NODE_LOG_KEY);
   }
 
   JsonObject toJson() {
     return new JsonObject()
         .put(TASK_KEY, task)
-        .put(ACTION_KEY, action)
+        .put(NODE_KEY, node)
         .put(STATUS_KEY, status.name())
         .put(TRANSITION_KEY, transition)
-        .put(TIMESTAMP_KEY, timestamp);
+        .put(TIMESTAMP_KEY, timestamp)
+        .put(NODE_LOG_KEY, nodeLog);
   }
 
   @Override
   public String toString() {
     return "EventLogEntry{" +
         "task='" + task + '\'' +
-        ", action='" + action + '\'' +
+        ", node='" + node + '\'' +
         ", status=" + status +
         ", transition='" + transition + '\'' +
         ", timestamp=" + timestamp +
+        ", nodeLog=" + nodeLog +
         '}';
   }
 
-  enum ActionStatus {
+  enum NodeStatus {
     SUCCESS,
     UNSUPPORTED_TRANSITION,
     ERROR,

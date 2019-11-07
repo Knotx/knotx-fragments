@@ -95,16 +95,15 @@ There are two sections:
 - `node` defines a fragment processing logic
 - `onTransitions` is a map that represents outgoing edges in a graph
 
-##### Node processing
-The node responsibility can be described as: 
-> Graph node gets a fragment, processes it and responds with Transition. So a node is the function 
->`F -> (F', T)` where `F` is the Fragment, `F'` is a modified Fragment and `T` is the Transition.
+##### Node
+Node is described [here](https://github.com/Knotx/knotx-fragments/tree/master/handler/engine#node).
 
-The node definition is abstract. It allows to define simple processing nodes but also more complex 
-structures such as a list of subgraphs. Furthermore, such a definition inspires to provide custom 
-node implementations.
+Fragments Handler introduces custom node types that are finally converted to the 
+[engine node types](https://github.com/Knotx/knotx-fragments/tree/master/handler/engine#node-types).
+It allows to quickly add new node types, with different configuration options, without modifying
+the engine.
 
-The `node` configuration is simple:
+Each node defines its custom factory. The configuration is simple:
 ```hocon
 node {
   factory = factory-name
@@ -116,11 +115,12 @@ node {
 The `factory` parameter specifies a node factory name, `config` contains all options passed to 
 the factory. 
 
-Knot.x provides two node implementations:
+Fragments Handler provides two node implementations:
 - **Action node** that represents simple steps in a graph such as integration with a data source
 - **Subtasks node** that is a list of unnamed tasks (subtasks) that are evaluated in parallel
 
 ###### Action node
+
 An *action node* declares an [action](#actions) to execute by its name:
 ```hocon
 node {
@@ -140,6 +140,32 @@ action = reference-to-action
 # onTransitions { }
 ```
 A nice syntax sugar!
+
+####### Logs
+Action node appends a single [fragment's log](https://github.com/Knotx/knotx-fragments/tree/master/handler/engine#fragments-log) 
+entry:
+
+| Task       | Node identifier       | Node status | Transition | Node Log        |
+|------------|-----------------------|-------------|------------|-----------------|
+| `taskName` | `reference-to-action` | SUCCESS     | `_success` |  { }            |
+
+with the custom [node log](https://github.com/Knotx/knotx-fragments/tree/master/handler/engine#node-log) syntax.
+
+Let's assume that `NODE_LOG` is an action's node log. The node log has the syntax:
+```json5
+{
+  _alias: "reference-to-action",
+  _logs: { 
+    // action log goes here
+  },
+  _doAction: [
+    // NODE_LOG, NODE_LOG, ...
+  ]
+}
+```
+So it supports both [actions](#actions) and [behaviours](#behaviours). Actions deliver their custom 
+[logger](https://github.com/Knotx/knotx-fragments/blob/feature/%2347-action-log-structure/handler/api/src/main/java/io/knotx/fragments/handler/api/actionlog/ActionLogBuilder.java) 
+implementation that hides syntax complexity.
 
 ###### Subtasks node
 Subtasks node is a node containing a list of subtasks. It evaluates all of them sequentially. 
@@ -195,6 +221,16 @@ two independent tasks (graphs) with one node (action).
 
 See the [example section](#the-example) for a more complex scenario. Before we see the full 
 power of graphs, we need to understand how nodes are connected.
+
+####### Logs
+Subtasks node appends a single [fragment's log](https://github.com/Knotx/knotx-fragments/tree/feature/%2347-action-log-structure/handler/engine#fragments-log) 
+entry when all subgraphs are processed:
+
+| Task       | Node identifier | Node status | Transition | Node Log        |
+|------------|-----------------|-------------|------------|-----------------|
+| `taskName` | `composite`     | SUCCESS     | `_success` |                 |
+
+Please note that the node log is empty.
 
 ##### Transitions
 A directed graph consists of nodes and edges. Edges are called transitions. Their configuration 
@@ -297,9 +333,10 @@ timeouts and errors from APIs.
 Please note that no error strategy has been defined for authors API yet. However, it can be easily 
 configured in the future when business agrees on the fallback logic.
 
+
 ## Actions
-Action defines action node logic, it is the `F -> (F',T)` function. Actions integrate with external data sources, 
-do some fragments modifications or fetch data. A data source response is saved in a Fragment's payload (JSON object) 
+Action defines action node logic. Actions can integrate with external data sources, do some fragments 
+modifications or fetch data. A data source response is saved in a Fragment's payload (JSON object) 
 under an Action's name key and a "\_result" sub-key:
 ```json
 {
@@ -374,6 +411,10 @@ and key value `someKey.someNestedKey` body value will look like:
 ```
 
 ### Behaviours
+
+Behaviours wrap other behaviours or simple actions and delegate a fragment to them (for processing). 
+They can introduce some stability patterns such as retires, it means that they can call a wrapped 
+Action many times.
 
 #### Circuit Breaker Behaviour
 It wraps a simple action with the [Circuit Breaker implementation from Vert.x](https://vertx.io/docs/vertx-circuit-breaker/java/).
