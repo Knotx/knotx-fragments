@@ -10,7 +10,7 @@ Each Node may define possible *outgoing edges* - **Transitions**.
 
 ## Node
 The node responsibility can be described as: 
-> Graph node gets a fragment, processes it, add some processing logs and responds with a transition. 
+> Graph node gets a fragment, processes it, adds some processing logs and responds with a transition. 
 > So a node is the F -> (F', T, L) function where F is a fragment, F' is a modified Fragment, T is a 
 > transition and L is a node log.
 
@@ -134,7 +134,7 @@ in the fragment's log containing:
 Node status is a simple text value managed by the engine. It resembles a fragment's status but is a 
 bit more accurate (such as a `UNSUPPORTED_TRANSITION` value).
 
-Let's see the example fragment's log. There is a fragment that defines a task named `taskName`. The 
+Let's see an example fragment's log. There is a fragment that defines a task named `taskName`. The 
 task is a graph of two nodes: `A` and `B`.
 
 ![A and B ends correctly](assets/images/a_success_b_success.png)
