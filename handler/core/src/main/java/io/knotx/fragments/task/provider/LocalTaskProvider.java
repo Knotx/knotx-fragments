@@ -15,24 +15,26 @@
  *
  * The code comes from https://github.com/tomaszmichalak/vertx-rx-map-reduce.
  */
-package io.knotx.fragments.task;
+package io.knotx.fragments.task.provider;
 
 import static io.knotx.fragments.handler.api.domain.FragmentResult.ERROR_TRANSITION;
 import static io.knotx.fragments.handler.api.domain.FragmentResult.SUCCESS_TRANSITION;
 
 import io.knotx.fragments.engine.FragmentEventContext;
 import io.knotx.fragments.engine.Task;
-import io.knotx.fragments.engine.graph.SingleNode;
 import io.knotx.fragments.engine.graph.CompositeNode;
 import io.knotx.fragments.engine.graph.Node;
+import io.knotx.fragments.engine.graph.SingleNode;
 import io.knotx.fragments.handler.action.ActionProvider;
 import io.knotx.fragments.handler.api.Action;
 import io.knotx.fragments.handler.api.domain.FragmentContext;
 import io.knotx.fragments.handler.api.domain.FragmentResult;
+import io.knotx.fragments.task.TaskDefinition;
+import io.knotx.fragments.task.TaskProvider;
 import io.knotx.fragments.task.exception.GraphConfigurationException;
 import io.knotx.fragments.task.options.ActionNodeConfigOptions;
-import io.knotx.fragments.task.options.SubtasksNodeConfigOptions;
 import io.knotx.fragments.task.options.GraphNodeOptions;
+import io.knotx.fragments.task.options.SubtasksNodeConfigOptions;
 import io.reactivex.Single;
 import java.util.HashMap;
 import java.util.List;
@@ -40,16 +42,16 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-public class ConfigurationTaskProvider implements TaskProvider {
+public class LocalTaskProvider implements TaskProvider {
 
   private final ActionProvider actionProvider;
 
-  ConfigurationTaskProvider(ActionProvider proxyProvider) {
+  public LocalTaskProvider(ActionProvider proxyProvider) {
     this.actionProvider = proxyProvider;
   }
 
   @Override
-  public Task newInstance(Configuration taskConfig, FragmentEventContext event) {
+  public Task newInstance(TaskDefinition taskConfig, FragmentEventContext event) {
     Node rootNode = initGraphRootNode(taskConfig.getGraphNodeOptions());
     return new Task(taskConfig.getTaskName(), rootNode);
   }
@@ -96,5 +98,7 @@ public class ConfigurationTaskProvider implements TaskProvider {
         .newInstance(action);
     return rxAction::rxApply;
   }
+
+
 
 }

@@ -37,6 +37,7 @@ import io.knotx.fragments.handler.api.Action;
 import io.knotx.fragments.handler.options.FragmentsHandlerOptions;
 import io.knotx.fragments.task.exception.GraphConfigurationException;
 import io.knotx.fragments.task.options.GraphNodeOptions;
+import io.knotx.fragments.task.provider.LocalTaskProvider;
 import io.knotx.server.api.context.ClientRequest;
 import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.VertxExtension;
@@ -89,8 +90,8 @@ class ConfigurationTaskProviderTest {
     GraphNodeOptions graph = new GraphNodeOptions("simpleAction", NO_TRANSITIONS);
 
     // when
-    Task task = new ConfigurationTaskProvider(actionProvider)
-        .newInstance(new Configuration(TASK_NAME, graph), SAMPLE_FRAGMENT_EVENT_WITH_CUSTOM_TASK_KEY);
+    Task task = new LocalTaskProvider(actionProvider)
+        .newInstance(new TaskDefinition(TASK_NAME, graph), SAMPLE_FRAGMENT_EVENT_WITH_CUSTOM_TASK_KEY);
 
     // then
     assertEquals(TASK_NAME, task.getName());
@@ -307,8 +308,8 @@ class ConfigurationTaskProviderTest {
   }
 
   private Task getTask(GraphNodeOptions graph) {
-    return new ConfigurationTaskProvider(actionProvider)
-        .newInstance(new Configuration(TASK_NAME, graph), SAMPLE_FRAGMENT_EVENT);
+    return new LocalTaskProvider(actionProvider)
+        .newInstance(new TaskDefinition(TASK_NAME, graph), SAMPLE_FRAGMENT_EVENT);
   }
 
   private List<GraphNodeOptions> subTasks(GraphNodeOptions... nodes) {

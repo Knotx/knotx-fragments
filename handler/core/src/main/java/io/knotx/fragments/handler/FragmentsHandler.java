@@ -26,8 +26,6 @@ import io.knotx.fragments.engine.FragmentEventContext;
 import io.knotx.fragments.engine.FragmentEventContextTaskAware;
 import io.knotx.fragments.engine.FragmentsEngine;
 import io.knotx.fragments.engine.Task;
-import io.knotx.fragments.handler.action.ActionProvider;
-import io.knotx.fragments.handler.api.ActionFactory;
 import io.knotx.fragments.handler.options.FragmentsHandlerOptions;
 import io.knotx.fragments.task.TaskFactory;
 import io.knotx.server.api.context.ClientRequest;
@@ -41,24 +39,21 @@ import io.vertx.core.Handler;
 import io.vertx.core.json.JsonObject;
 import io.vertx.reactivex.core.Vertx;
 import io.vertx.reactivex.ext.web.RoutingContext;
-import java.util.Iterator;
 import java.util.List;
-import java.util.ServiceLoader;
 import java.util.function.Predicate;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 public class FragmentsHandler implements Handler<RoutingContext> {
 
-  private final FragmentsEngine engine;
   private final RequestContextEngine requestContextEngine;
+
+  private final FragmentsEngine engine;
   private final TaskFactory taskFactory;
 
   FragmentsHandler(Vertx vertx, JsonObject config) {
     FragmentsHandlerOptions options = new FragmentsHandlerOptions(config);
-    ActionProvider proxyProvider = new ActionProvider(options.getActions(),
-        supplyFactories(), options.getLogLevel(), vertx.getDelegate());
-    taskFactory = new TaskFactory(options.getTaskKey(), options.getTasks(), proxyProvider);
+
+    taskFactory = new TaskFactory(options.getTaskKey(), options.getTasks(), vertx);
     engine = new FragmentsEngine(vertx);
     requestContextEngine = new DefaultRequestContextEngine(getClass().getSimpleName());
   }
@@ -84,14 +79,6 @@ public class FragmentsHandler implements Handler<RoutingContext> {
 
   private RoutingContext putFragments(RoutingContext routingContext, List<FragmentEvent> events) {
     return routingContext.put("fragments", retrieveFragments(events, alwaysTrue()));
-  }
-
-  private Supplier<Iterator<ActionFactory>> supplyFactories() {
-    return () -> {
-      ServiceLoader<ActionFactory> factories = ServiceLoader
-          .load(ActionFactory.class);
-      return factories.iterator();
-    };
   }
 
   private RequestEventHandlerResult toHandlerResult(List<FragmentEvent> events,

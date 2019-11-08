@@ -15,13 +15,10 @@
  */
 package io.knotx.fragments.handler.action;
 
-import static io.knotx.fragments.handler.api.actionlog.ActionLogLevel.CONFIG_KEY_NAME;
-
-import io.knotx.fragments.handler.api.Cacheable;
 import io.knotx.fragments.handler.api.Action;
 import io.knotx.fragments.handler.api.ActionFactory;
+import io.knotx.fragments.handler.api.Cacheable;
 import io.vertx.core.Vertx;
-import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import java.util.HashMap;
@@ -41,14 +38,12 @@ public class ActionProvider {
 
   private final Map<String, ActionFactory> factories;
   private final Map<String, Action> cache;
-  private final String globalActionLogLevel;
 
   public ActionProvider(Map<String, ActionOptions> options,
-      Supplier<Iterator<ActionFactory>> factoriesSupplier, String globalActionLogLevel, Vertx vertx) {
+      Supplier<Iterator<ActionFactory>> factoriesSupplier, Vertx vertx) {
     this.options = options;
     this.vertx = vertx;
     this.factories = loadFactories(factoriesSupplier);
-    this.globalActionLogLevel = globalActionLogLevel;
     this.cache = new HashMap<>();
   }
 
@@ -85,18 +80,8 @@ public class ActionProvider {
         .flatMap(this::get)
         .orElse(null);
 
-    return factory.create(action, prepareActionConfig(actionOptions), vertx, operation);
-  }
-
-  private JsonObject prepareActionConfig(ActionOptions actionOptions){
-    JsonObject config = actionOptions.getConfig();
-
-    if(config.fieldNames().contains(CONFIG_KEY_NAME)){
-      return config;
-    }
-
-    return config.put(CONFIG_KEY_NAME, globalActionLogLevel);
-  }
+    return factory.create(action, actionOptions.getConfig(), vertx, operation);
+  }#49-
 
   private boolean isCacheable(ActionFactory factory) {
     return factory.getClass().isAnnotationPresent(Cacheable.class);
