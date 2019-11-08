@@ -58,7 +58,7 @@ import org.mockito.quality.Strictness;
 @ExtendWith(VertxExtension.class)
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
-class DefaultTaskFactoryTest {
+class LocalTaskFactoryTest {
 
   private static final Map<String, GraphNodeOptions> NO_TRANSITIONS = Collections.emptyMap();
   private static final String TASK_NAME = "task";
