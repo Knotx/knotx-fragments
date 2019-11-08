@@ -15,7 +15,7 @@
  */
 package io.knotx.fragments.task.options;
 
-import io.knotx.fragments.task.ConfigurationTaskProviderFactory;
+import io.knotx.fragments.task.provider.LocalTaskProviderFactory;
 import io.knotx.fragments.task.TaskProviderFactory;
 import io.vertx.codegen.annotations.DataObject;
 import io.vertx.core.json.JsonObject;
@@ -40,7 +40,7 @@ public class TaskOptions {
   }
 
   private void init() {
-    factory = ConfigurationTaskProviderFactory.NAME;
+    factory = LocalTaskProviderFactory.NAME;
     config = new JsonObject();
   }
 

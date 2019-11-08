@@ -15,13 +15,13 @@
  */
 package io.knotx.fragments.task;
 
-import io.knotx.fragments.handler.action.ActionProvider;
 import io.vertx.core.json.JsonObject;
+import io.vertx.reactivex.core.Vertx;
 
 public interface TaskProviderFactory {
 
   String getName();
 
-  TaskProvider create(JsonObject config, ActionProvider proxyProvider);
+  TaskProvider create(JsonObject config, Vertx vertx);
 
 }

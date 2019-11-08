@@ -54,10 +54,6 @@ Sets <code>Action</code> factory name.
 [frame="topbot"]
 |===
 ^|Name | Type ^| Description
-|[[actions]]`@actions`|`link:dataobjects.html#ActionOptions[ActionOptions]`|+++
-Sets named actions with their factory configuration.
-+++
-|[[logLevel]]`@logLevel`|`String`|-
 |[[taskKey]]`@taskKey`|`String`|-
 |[[tasks]]`@tasks`|`link:dataobjects.html#TaskOptions[TaskOptions]`|+++
 Sets <code>Task</code> list, which are named, directed graphs of <code>Actions</code>.
@@ -118,6 +114,18 @@ Sets outgoing graph node edges, called <code>Transitions</code>. Transition is S
 |[[subtasks]]`@subtasks`|`Array of link:dataobjects.html#GraphNodeOptions[GraphNodeOptions]`|+++
 
 +++
+|===
+
+[[LocalTaskProviderFactoryOptions]]
+== LocalTaskProviderFactoryOptions
+
+
+[cols=">25%,25%,50%"]
+[frame="topbot"]
+|===
+^|Name | Type ^| Description
+|[[actions]]`@actions`|`link:dataobjects.html#ActionOptions[ActionOptions]`|-
+|[[logLevel]]`@logLevel`|`String`|-
 |===
 
 [[NodeOptions]]

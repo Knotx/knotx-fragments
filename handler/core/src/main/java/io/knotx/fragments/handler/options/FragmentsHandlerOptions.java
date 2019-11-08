@@ -34,10 +34,6 @@ public class FragmentsHandlerOptions {
 
   private Map<String, TaskOptions> tasks;
 
-  private Map<String, ActionOptions> actions;
-
-  private String logLevel;
-
   public FragmentsHandlerOptions(JsonObject json) {
     init(json);
     FragmentsHandlerOptionsConverter.fromJson(json, this);
@@ -45,7 +41,6 @@ public class FragmentsHandlerOptions {
 
   private void init(JsonObject json) {
     this.taskKey = DEFAULT_TASK_KEY;
-    logLevel = json.getString(ActionLogLevel.CONFIG_KEY_NAME, ERROR.getLevel());
   }
 
   public JsonObject toJson() {
@@ -78,25 +73,6 @@ public class FragmentsHandlerOptions {
     return this;
   }
 
-  public Map<String, ActionOptions> getActions() {
-    return actions;
-  }
-
-  /**
-   * Sets named actions with their factory configuration.
-   *
-   * @param actions list of named {@code Actions} (name -&gt; Action)
-   * @return reference to this, so the API can be used fluently
-   */
-  public FragmentsHandlerOptions setActions(Map<String, ActionOptions> actions) {
-    this.actions = actions;
-    return this;
-  }
-
-  public String getLogLevel() {
-    return logLevel;
-  }
-
   @Override
   public boolean equals(Object o) {
     if (this == o) {
@@ -106,21 +82,20 @@ public class FragmentsHandlerOptions {
       return false;
     }
     FragmentsHandlerOptions that = (FragmentsHandlerOptions) o;
-    return Objects.equals(tasks, that.tasks) &&
-        Objects.equals(actions, that.actions);
+    return Objects.equals(taskKey, that.taskKey) &&
+        Objects.equals(tasks, that.tasks);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(tasks, actions);
+    return Objects.hash(taskKey, tasks);
   }
 
   @Override
   public String toString() {
     return "FragmentsHandlerOptions{" +
-        "tasks=" + tasks +
-        ", actions=" + actions +
-        ", actionLogMode=" + logLevel +
+        "taskKey='" + taskKey + '\'' +
+        ", tasks=" + tasks +
         '}';
   }
 }

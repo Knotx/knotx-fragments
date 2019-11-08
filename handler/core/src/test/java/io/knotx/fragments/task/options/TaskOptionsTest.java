@@ -16,9 +16,10 @@
 package io.knotx.fragments.task.options;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import io.knotx.fragments.task.ConfigurationTaskProviderFactory;
+import io.knotx.fragments.task.provider.LocalTaskProviderFactory;
 import io.vertx.config.ConfigRetriever;
 import io.vertx.config.ConfigRetrieverOptions;
 import io.vertx.config.ConfigStoreOptions;
@@ -44,8 +45,18 @@ class TaskOptionsTest {
   void expectDefaultTaskProvider(Vertx vertx) throws Throwable {
     verify("tasks/defaultTaskProvider.conf", config -> {
       TaskOptions options = new TaskOptions(config);
-      assertEquals(ConfigurationTaskProviderFactory.NAME, options.getFactory());
+      assertEquals(LocalTaskProviderFactory.NAME, options.getFactory());
       assertTrue(options.getConfig().isEmpty());
+    }, vertx);
+  }
+
+  @Test
+  @DisplayName("Expect configuration Task provider when only configuration defined")
+  void expectDefaultTaskProviderWhenConfiguration(Vertx vertx) throws Throwable {
+    verify("tasks/defaultTaskProviderWithConfig.conf", config -> {
+      TaskOptions options = new TaskOptions(config);
+      assertEquals(LocalTaskProviderFactory.NAME, options.getFactory());
+      assertFalse(options.getConfig().isEmpty());
     }, vertx);
   }
 

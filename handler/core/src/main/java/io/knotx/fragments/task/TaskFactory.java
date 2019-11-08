@@ -20,12 +20,12 @@ package io.knotx.fragments.task;
 import io.knotx.fragments.api.Fragment;
 import io.knotx.fragments.engine.FragmentEventContext;
 import io.knotx.fragments.engine.Task;
-import io.knotx.fragments.handler.action.ActionProvider;
 import io.knotx.fragments.task.exception.GraphConfigurationException;
 import io.knotx.fragments.task.exception.TaskNotFoundException;
 import io.knotx.fragments.task.options.TaskOptions;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
+import io.vertx.reactivex.core.Vertx;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -35,17 +35,16 @@ public class TaskFactory {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(TaskFactory.class);
 
-  private String taskKey;
-  private Map<String, TaskProviderFactory> providersFactories;
-  private Map<String, TaskOptions> tasks;
-  private ActionProvider actionProvider;
+  private final String taskKey;
+  private final Map<String, TaskProviderFactory> providersFactories;
+  private final Map<String, TaskOptions> tasks;
+  private final Vertx vertx;
 
-  public TaskFactory(String taskKey, Map<String, TaskOptions> tasks,
-      ActionProvider actionProvider) {
+  public TaskFactory(String taskKey, Map<String, TaskOptions> tasks, Vertx vertx) {
     this.taskKey = taskKey;
     this.tasks = tasks;
-    this.actionProvider = actionProvider;
     providersFactories = initProviders();
+    this.vertx = vertx;
   }
 
   public Optional<Task> newInstance(FragmentEventContext fragmentEventContext) {
@@ -54,7 +53,7 @@ public class TaskFactory {
         .map(this::getTaskName)
         .map(taskName -> {
           TaskProvider factory = getProvider(taskName);
-          Configuration taskConfig = getTaskConfiguration(taskName);
+          TaskDefinition taskConfig = getTaskConfiguration(taskName);
           return factory.newInstance(taskConfig, fragmentEventContext);
         });
   }
@@ -67,8 +66,8 @@ public class TaskFactory {
     return fragment.getConfiguration().containsKey(taskKey);
   }
 
-  private Configuration getTaskConfiguration(String taskName) {
-    return new Configuration(taskName, tasks.get(taskName).getGraph());
+  private TaskDefinition getTaskConfiguration(String taskName) {
+    return new TaskDefinition(taskName, tasks.get(taskName).getGraph());
   }
 
   private TaskProvider getProvider(String taskName) {
@@ -79,7 +78,7 @@ public class TaskFactory {
     }
     String factoryName = taskOptions.getFactory();
     return Optional.ofNullable(providersFactories.get(factoryName))
-        .map(f -> f.create(taskOptions.getConfig(), actionProvider))
+        .map(f -> f.create(taskOptions.getConfig(), vertx))
         .orElseThrow(() -> new GraphConfigurationException("Could not find task builder"));
   }
 
