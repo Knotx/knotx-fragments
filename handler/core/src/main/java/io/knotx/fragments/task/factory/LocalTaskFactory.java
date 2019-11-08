@@ -12,79 +12,100 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * The code comes from https://github.com/tomaszmichalak/vertx-rx-map-reduce.
  */
-package io.knotx.fragments.task.provider;
+package io.knotx.fragments.task.factory;
 
 import static io.knotx.fragments.handler.api.domain.FragmentResult.ERROR_TRANSITION;
 import static io.knotx.fragments.handler.api.domain.FragmentResult.SUCCESS_TRANSITION;
+import static io.knotx.fragments.task.factory.LocalTaskFactoryOptions.NODE_LOG_LEVEL_KEY;
 
-import io.knotx.fragments.engine.FragmentEventContext;
 import io.knotx.fragments.engine.Task;
 import io.knotx.fragments.engine.graph.CompositeNode;
 import io.knotx.fragments.engine.graph.Node;
 import io.knotx.fragments.engine.graph.SingleNode;
+import io.knotx.fragments.handler.action.ActionOptions;
 import io.knotx.fragments.handler.action.ActionProvider;
 import io.knotx.fragments.handler.api.Action;
+import io.knotx.fragments.handler.api.ActionFactory;
 import io.knotx.fragments.handler.api.domain.FragmentContext;
 import io.knotx.fragments.handler.api.domain.FragmentResult;
+import io.knotx.fragments.task.TaskContext;
 import io.knotx.fragments.task.TaskDefinition;
-import io.knotx.fragments.task.TaskProvider;
+import io.knotx.fragments.task.TaskFactory;
 import io.knotx.fragments.task.exception.GraphConfigurationException;
 import io.knotx.fragments.task.options.ActionNodeConfigOptions;
 import io.knotx.fragments.task.options.GraphNodeOptions;
 import io.knotx.fragments.task.options.SubtasksNodeConfigOptions;
 import io.reactivex.Single;
+import io.vertx.core.json.JsonObject;
+import io.vertx.reactivex.core.Vertx;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.ServiceLoader;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-public class LocalTaskProvider implements TaskProvider {
+public class LocalTaskFactory implements TaskFactory {
 
-  private final ActionProvider actionProvider;
+  public static final String NAME = "local";
 
-  public LocalTaskProvider(ActionProvider proxyProvider) {
-    this.actionProvider = proxyProvider;
+  @Override
+  public String getName() {
+    return NAME;
   }
 
   @Override
-  public Task newInstance(TaskDefinition taskConfig, FragmentEventContext event) {
-    Node rootNode = initGraphRootNode(taskConfig.getGraphNodeOptions());
-    return new Task(taskConfig.getTaskName(), rootNode);
+  public Task newInstance(TaskContext taskContext, JsonObject factoryOptions, Vertx vertx) {
+    LocalTaskFactoryOptions options = new LocalTaskFactoryOptions(factoryOptions);
+    Map<String, ActionOptions> actions = options.getActions();
+    if (actions == null) {
+      throw new GraphConfigurationException("The 'actions' property not configured!");
+    }
+    prepareActionConfig(actions, options.getLogLevel());
+
+    ActionProvider actionProvider = new ActionProvider(actions, supplyFactories(),
+        vertx.getDelegate());
+
+    TaskDefinition taskDefinition = taskContext.getTaskDefinition();
+    Node rootNode = initGraphRootNode(taskDefinition.getGraphNodeOptions(), actionProvider);
+    return new Task(taskDefinition.getTaskName(), rootNode);
   }
 
-  private Node initGraphRootNode(GraphNodeOptions options) {
+  private Node initGraphRootNode(GraphNodeOptions options, ActionProvider actionProvider) {
     Map<String, GraphNodeOptions> transitions = options.getOnTransitions();
     Map<String, Node> edges = new HashMap<>();
     transitions.forEach((transition, childGraphOptions) -> {
-      edges.put(transition, initGraphRootNode(childGraphOptions));
+      edges.put(transition, initGraphRootNode(childGraphOptions, actionProvider));
     });
     final Node node;
     if (options.isComposite()) {
-      node = buildCompositeNode(options, edges);
+      node = buildCompositeNode(options, edges, actionProvider);
     } else {
-      node = buildActionNode(options, edges);
+      node = buildActionNode(options, edges, actionProvider);
     }
     return node;
   }
 
-  private Node buildActionNode(GraphNodeOptions options, Map<String, Node> edges) {
+  private Node buildActionNode(GraphNodeOptions options, Map<String, Node> edges,
+      ActionProvider actionProvider) {
     ActionNodeConfigOptions config = new ActionNodeConfigOptions(options.getNode().getConfig());
     Action action = actionProvider.get(config.getAction()).orElseThrow(
         () -> new GraphConfigurationException("No provider for action " + config.getAction()));
     return new SingleNode(config.getAction(), toRxFunction(action), edges);
   }
 
-  private Node buildCompositeNode(GraphNodeOptions options, Map<String, Node> edges) {
+  private Node buildCompositeNode(GraphNodeOptions options, Map<String, Node> edges,
+      ActionProvider actionProvider) {
     SubtasksNodeConfigOptions config = new SubtasksNodeConfigOptions(
         options.getNode().getConfig());
     List<Node> nodes = config.getSubtasks().stream()
-        .map(this::initGraphRootNode)
+        .map((GraphNodeOptions o) -> initGraphRootNode(o, actionProvider))
         .collect(Collectors.toList());
-    return new CompositeNode(getNodeId(), nodes, edges.get(SUCCESS_TRANSITION), edges.get(ERROR_TRANSITION));
+    return new CompositeNode(getNodeId(), nodes, edges.get(SUCCESS_TRANSITION),
+        edges.get(ERROR_TRANSITION));
   }
 
   private String getNodeId() {
@@ -98,6 +119,27 @@ public class LocalTaskProvider implements TaskProvider {
         .newInstance(action);
     return rxAction::rxApply;
   }
+
+  private Supplier<Iterator<ActionFactory>> supplyFactories() {
+    return () -> {
+      ServiceLoader<ActionFactory> factories = ServiceLoader
+          .load(ActionFactory.class);
+      return factories.iterator();
+    };
+  }
+
+  private void prepareActionConfig(Map<String, ActionOptions> actionOptions,
+      String globalActionLogLevel) {
+    actionOptions.values().stream()
+        .map(options -> {
+          JsonObject config = options.getConfig();
+          if (config.fieldNames().contains(NODE_LOG_LEVEL_KEY)) {
+            return config;
+          }
+          return config.put(NODE_LOG_LEVEL_KEY, globalActionLogLevel);
+        });
+  }
+
 
 
 

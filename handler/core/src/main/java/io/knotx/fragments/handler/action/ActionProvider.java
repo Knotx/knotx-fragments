@@ -81,7 +81,7 @@ public class ActionProvider {
         .orElse(null);
 
     return factory.create(action, actionOptions.getConfig(), vertx, operation);
-  }#49-
+  }
 
   private boolean isCacheable(ActionFactory factory) {
     return factory.getClass().isAnnotationPresent(Cacheable.class);
