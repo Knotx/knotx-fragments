@@ -15,32 +15,31 @@
  */
 package io.knotx.fragments.task;
 
-import io.knotx.fragments.task.options.GraphNodeOptions;
+import io.knotx.fragments.engine.FragmentEventContext;
 
-public class TaskDefinition {
+public class TaskContext {
 
-  private final String taskName;
+  private TaskDefinition taskDefinition;
+  private FragmentEventContext fragmentEventContext;
 
-  private final GraphNodeOptions graphNodeOptions;
-
-  public TaskDefinition(String taskName, GraphNodeOptions graphNodeOptions) {
-    this.taskName = taskName;
-    this.graphNodeOptions = graphNodeOptions;
+  public TaskContext(TaskDefinition taskDefinition, FragmentEventContext fragmentEventContext) {
+    this.taskDefinition = taskDefinition;
+    this.fragmentEventContext = fragmentEventContext;
   }
 
-  public String getTaskName() {
-    return taskName;
+  public TaskDefinition getTaskDefinition() {
+    return taskDefinition;
   }
 
-  public GraphNodeOptions getGraphNodeOptions() {
-    return graphNodeOptions;
+  public FragmentEventContext getFragmentEventContext() {
+    return fragmentEventContext;
   }
 
   @Override
   public String toString() {
-    return "TaskDefinition{" +
-        "taskName='" + taskName + '\'' +
-        ", graphNodeOptions=" + graphNodeOptions +
+    return "TaskContext{" +
+        "taskDefinition=" + taskDefinition +
+        ", fragmentEventContext=" + fragmentEventContext +
         '}';
   }
 }

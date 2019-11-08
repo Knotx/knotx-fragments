@@ -1,7 +1,6 @@
 {
   "tasks": {
     "failing-task": {
-      "factory": "configuration",
       "config": {
         "actions": {
           "failing-action": {

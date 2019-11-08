@@ -27,7 +27,7 @@ import io.knotx.fragments.engine.FragmentEventContextTaskAware;
 import io.knotx.fragments.engine.FragmentsEngine;
 import io.knotx.fragments.engine.Task;
 import io.knotx.fragments.handler.options.FragmentsHandlerOptions;
-import io.knotx.fragments.task.TaskFactory;
+import io.knotx.fragments.task.TaskProvider;
 import io.knotx.server.api.context.ClientRequest;
 import io.knotx.server.api.context.RequestContext;
 import io.knotx.server.api.context.RequestEvent;
@@ -48,12 +48,12 @@ public class FragmentsHandler implements Handler<RoutingContext> {
   private final RequestContextEngine requestContextEngine;
 
   private final FragmentsEngine engine;
-  private final TaskFactory taskFactory;
+  private final TaskProvider taskProvider;
 
   FragmentsHandler(Vertx vertx, JsonObject config) {
     FragmentsHandlerOptions options = new FragmentsHandlerOptions(config);
 
-    taskFactory = new TaskFactory(options.getTaskKey(), options.getTasks(), vertx);
+    taskProvider = new TaskProvider(options.getTaskKey(), options.getTasks(), vertx);
     engine = new FragmentsEngine(vertx);
     requestContextEngine = new DefaultRequestContextEngine(getClass().getSimpleName());
   }
@@ -126,7 +126,7 @@ public class FragmentsHandler implements Handler<RoutingContext> {
             fragment -> {
               FragmentEventContext fragmentEventContext = new FragmentEventContext(
                   new FragmentEvent(fragment), clientRequest);
-              return taskFactory.newInstance(fragmentEventContext)
+              return taskProvider.newInstance(fragmentEventContext)
                   .map(
                       task -> new FragmentEventContextTaskAware(task, fragmentEventContext))
                   .orElseGet(() -> new FragmentEventContextTaskAware(new Task("_NOT_DEFINED"),

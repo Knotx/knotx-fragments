@@ -1,7 +1,6 @@
 {
   "tasks": {
     "success-task": {
-      "factory": "configuration",
       "config": {
         "actions": {
           "success-action": {

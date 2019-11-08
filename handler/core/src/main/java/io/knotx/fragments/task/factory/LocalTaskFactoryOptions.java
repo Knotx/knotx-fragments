@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.knotx.fragments.task.provider;
+package io.knotx.fragments.task.factory;
 
 import io.knotx.fragments.handler.action.ActionOptions;
 import io.vertx.codegen.annotations.DataObject;
@@ -22,20 +22,20 @@ import java.util.Map;
 import java.util.Objects;
 
 @DataObject(generateConverter = true)
-public class LocalTaskProviderFactoryOptions {
+public class LocalTaskFactoryOptions {
 
   public static final String NODE_LOG_LEVEL_KEY = "logLevel";
 
   private Map<String, ActionOptions> actions;
   private String logLevel;
 
-  public LocalTaskProviderFactoryOptions(JsonObject json) {
-    LocalTaskProviderFactoryOptionsConverter.fromJson(json, this);
+  public LocalTaskFactoryOptions(JsonObject json) {
+    LocalTaskFactoryOptionsConverter.fromJson(json, this);
   }
 
   public JsonObject toJson() {
     JsonObject jsonObject = new JsonObject();
-    LocalTaskProviderFactoryOptionsConverter.toJson(this, jsonObject);
+    LocalTaskFactoryOptionsConverter.toJson(this, jsonObject);
     return jsonObject;
   }
 
@@ -43,17 +43,19 @@ public class LocalTaskProviderFactoryOptions {
     return actions;
   }
 
-  public void setActions(
+  public LocalTaskFactoryOptions setActions(
       Map<String, ActionOptions> actions) {
     this.actions = actions;
+    return this;
   }
 
   public String getLogLevel() {
     return logLevel;
   }
 
-  public void setLogLevel(String logLevel) {
+  public LocalTaskFactoryOptions setLogLevel(String logLevel) {
     this.logLevel = logLevel;
+    return this;
   }
 
   @Override
@@ -64,7 +66,7 @@ public class LocalTaskProviderFactoryOptions {
     if (o == null || getClass() != o.getClass()) {
       return false;
     }
-    LocalTaskProviderFactoryOptions that = (LocalTaskProviderFactoryOptions) o;
+    LocalTaskFactoryOptions that = (LocalTaskFactoryOptions) o;
     return Objects.equals(actions, that.actions) &&
         Objects.equals(logLevel, that.logLevel);
   }
@@ -76,7 +78,7 @@ public class LocalTaskProviderFactoryOptions {
 
   @Override
   public String toString() {
-    return "ConfigurableTaskProviderOptions{" +
+    return "LocalTaskFactoryOptions{" +
         "actions=" + actions +
         ", logLevel='" + logLevel + '\'' +
         '}';

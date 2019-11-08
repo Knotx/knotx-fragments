@@ -116,8 +116,8 @@ Sets outgoing graph node edges, called <code>Transitions</code>. Transition is S
 +++
 |===
 
-[[LocalTaskProviderFactoryOptions]]
-== LocalTaskProviderFactoryOptions
+[[LocalTaskFactoryOptions]]
+== LocalTaskFactoryOptions
 
 
 [cols=">25%,25%,50%"]
