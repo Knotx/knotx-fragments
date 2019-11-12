@@ -19,6 +19,8 @@ import static java.lang.String.format;
 
 import java.util.Arrays;
 
+import io.vertx.core.json.JsonObject;
+
 public enum ActionLogLevel {
   INFO("info"), ERROR("error");
 
@@ -33,6 +35,9 @@ public enum ActionLogLevel {
     return level;
   }
 
+  public static  ActionLogLevel fromConfig(JsonObject config){
+    return  fromConfig(config.getString(CONFIG_KEY_NAME));
+  }
   public static ActionLogLevel fromConfig(String level) {
     return Arrays.asList(ActionLogLevel.values())
         .stream()
