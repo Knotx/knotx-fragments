@@ -22,20 +22,20 @@ import java.util.Map;
 import java.util.Objects;
 
 @DataObject(generateConverter = true)
-public class LocalTaskFactoryOptions {
+public class TaskOptions {
 
-  public static final String NODE_LOG_LEVEL_KEY = "logLevel";
+  static final String NODE_LOG_LEVEL_KEY = "logLevel";
 
   private Map<String, ActionOptions> actions;
   private String logLevel;
 
-  public LocalTaskFactoryOptions(JsonObject json) {
-    LocalTaskFactoryOptionsConverter.fromJson(json, this);
+  public TaskOptions(JsonObject json) {
+    TaskOptionsConverter.fromJson(json, this);
   }
 
   public JsonObject toJson() {
     JsonObject jsonObject = new JsonObject();
-    LocalTaskFactoryOptionsConverter.toJson(this, jsonObject);
+    TaskOptionsConverter.toJson(this, jsonObject);
     return jsonObject;
   }
 
@@ -43,7 +43,7 @@ public class LocalTaskFactoryOptions {
     return actions;
   }
 
-  public LocalTaskFactoryOptions setActions(
+  public TaskOptions setActions(
       Map<String, ActionOptions> actions) {
     this.actions = actions;
     return this;
@@ -53,7 +53,7 @@ public class LocalTaskFactoryOptions {
     return logLevel;
   }
 
-  public LocalTaskFactoryOptions setLogLevel(String logLevel) {
+  public TaskOptions setLogLevel(String logLevel) {
     this.logLevel = logLevel;
     return this;
   }
@@ -66,7 +66,7 @@ public class LocalTaskFactoryOptions {
     if (o == null || getClass() != o.getClass()) {
       return false;
     }
-    LocalTaskFactoryOptions that = (LocalTaskFactoryOptions) o;
+    TaskOptions that = (TaskOptions) o;
     return Objects.equals(actions, that.actions) &&
         Objects.equals(logLevel, that.logLevel);
   }
@@ -78,7 +78,7 @@ public class LocalTaskFactoryOptions {
 
   @Override
   public String toString() {
-    return "LocalTaskFactoryOptions{" +
+    return "TaskOptions{" +
         "actions=" + actions +
         ", logLevel='" + logLevel + '\'' +
         '}';

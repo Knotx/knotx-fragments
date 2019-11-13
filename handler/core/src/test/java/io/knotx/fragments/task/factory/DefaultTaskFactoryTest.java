@@ -23,22 +23,14 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import io.knotx.fragments.api.Fragment;
-import io.knotx.fragments.engine.FragmentEvent;
-import io.knotx.fragments.engine.FragmentEventContext;
 import io.knotx.fragments.engine.Task;
 import io.knotx.fragments.engine.graph.CompositeNode;
 import io.knotx.fragments.engine.graph.Node;
 import io.knotx.fragments.engine.graph.SingleNode;
 import io.knotx.fragments.handler.action.ActionOptions;
-import io.knotx.fragments.handler.options.FragmentsHandlerOptions;
-import io.knotx.fragments.task.TaskContext;
 import io.knotx.fragments.task.TaskDefinition;
 import io.knotx.fragments.task.exception.GraphConfigurationException;
-import io.knotx.fragments.task.factory.LocalTaskFactory;
-import io.knotx.fragments.task.factory.LocalTaskFactoryOptions;
 import io.knotx.fragments.task.options.GraphNodeOptions;
-import io.knotx.server.api.context.ClientRequest;
 import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.reactivex.core.Vertx;
@@ -58,41 +50,30 @@ import org.mockito.quality.Strictness;
 @ExtendWith(VertxExtension.class)
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
-class LocalTaskFactoryTest {
+class DefaultTaskFactoryTest {
 
-  private static final Map<String, GraphNodeOptions> NO_TRANSITIONS = Collections.emptyMap();
   private static final String TASK_NAME = "task";
   private static final String COMPOSITE_NODE_ID = "composite";
-  private static final FragmentEventContext SAMPLE_FRAGMENT_EVENT =
-      new FragmentEventContext(new FragmentEvent(new Fragment("type",
-          new JsonObject().put(FragmentsHandlerOptions.DEFAULT_TASK_KEY, TASK_NAME), "body")),
-          new ClientRequest());
+  private static final Map<String, GraphNodeOptions> NO_TRANSITIONS = Collections.emptyMap();
 
-  private static final String MY_TASK_KEY = "myTaskKey";
-
-  private static final FragmentEventContext SAMPLE_FRAGMENT_EVENT_WITH_CUSTOM_TASK_KEY =
-      new FragmentEventContext(new FragmentEvent(new Fragment("type",
-          new JsonObject().put(MY_TASK_KEY, TASK_NAME), "body")),
-          new ClientRequest());
-
+  // TODO move to fragments handler
   @Test
   @DisplayName("Expect graph when custom task key is defined.")
   void expectGraphWhenCustomTaskKey(Vertx vertx) {
     // given
     JsonObject options = options("A", SUCCESS_TRANSITION);
     GraphNodeOptions graph = new GraphNodeOptions("A", NO_TRANSITIONS);
-    TaskContext taskContext = new TaskContext(new TaskDefinition(TASK_NAME, graph),
-        SAMPLE_FRAGMENT_EVENT_WITH_CUSTOM_TASK_KEY);
 
     // when
-    Task task = new LocalTaskFactory().newInstance(taskContext, options, vertx);
+    Task task = new DefaultTaskFactory()
+        .newInstance(new TaskDefinition(TASK_NAME, graph), options, vertx);
 
     // then
     assertEquals(TASK_NAME, task.getName());
   }
 
   @Test
-  @DisplayName("Expect exception when action not defined.")
+  @DisplayName("Expect exception when `actions` not defined.")
   void expectExceptionWhenActionsNotConfigured(Vertx vertx) {
     // given
     JsonObject options = new JsonObject();
@@ -312,13 +293,12 @@ class LocalTaskFactoryTest {
   }
 
   private Task getTask(GraphNodeOptions graph, JsonObject factoryOptions, Vertx vertx) {
-    return new LocalTaskFactory()
-        .newInstance(new TaskContext(new TaskDefinition(TASK_NAME, graph), SAMPLE_FRAGMENT_EVENT),
-            factoryOptions, vertx);
+    return new DefaultTaskFactory()
+        .newInstance(new TaskDefinition(TASK_NAME, graph), factoryOptions, vertx);
   }
 
   private JsonObject options(String actionName, String transition) {
-    return new LocalTaskFactoryOptions(new JsonObject())
+    return new TaskOptions(new JsonObject())
         .setActions(Collections.singletonMap(actionName,
             new ActionOptions(new JsonObject())
                 .setFactory("test-action")
