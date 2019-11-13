@@ -15,7 +15,7 @@
  *
  * The code comes from https://github.com/tomaszmichalak/vertx-rx-map-reduce.
  */
-package io.knotx.fragments.handler.action;
+package io.knotx.fragments.task.factory;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
@@ -23,20 +23,22 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.google.common.collect.ImmutableMap;
-
-import io.knotx.fragments.handler.api.domain.FragmentContext;
-import io.knotx.fragments.handler.api.domain.FragmentResult;
-import io.knotx.fragments.handler.api.Cacheable;
+import io.knotx.fragments.handler.action.ActionOptions;
 import io.knotx.fragments.handler.api.Action;
 import io.knotx.fragments.handler.api.ActionFactory;
+import io.knotx.fragments.handler.api.Cacheable;
+import io.knotx.fragments.handler.api.domain.FragmentContext;
+import io.knotx.fragments.handler.api.domain.FragmentResult;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
-import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.VertxExtension;
+import io.vertx.reactivex.core.Vertx;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -45,7 +47,6 @@ import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(VertxExtension.class)
@@ -61,11 +62,10 @@ class ActionProviderTest {
   @DisplayName("Expect no action when empty or null action alias defined.")
   void getWithNoAction(Vertx vertx) {
     // given
-    ActionProvider tested = new ActionProvider(Collections.emptyMap(),
-        Collections::emptyListIterator, vertx);
+    ActionProvider tested = new ActionProvider(Collections::emptyListIterator);
 
     // when
-    Optional<Action> operation = tested.get(null);
+    Optional<Action> operation = tested.get(null, Collections.emptyMap(), vertx);
 
     // then
     assertFalse(operation.isPresent());
@@ -75,11 +75,10 @@ class ActionProviderTest {
   @DisplayName("Expect no action when no action alias defined in configuration.")
   void getWithNoEntries(Vertx vertx) {
     // given
-    ActionProvider tested = new ActionProvider(Collections.emptyMap(),
-        Collections::emptyListIterator, vertx);
+    ActionProvider tested = new ActionProvider(Collections::emptyListIterator);
 
     // when
-    Optional<Action> operation = tested.get("any");
+    Optional<Action> operation = tested.get("any", Collections.emptyMap(), vertx);
 
     // then
     assertFalse(operation.isPresent());
@@ -92,10 +91,10 @@ class ActionProviderTest {
     Map<String, ActionOptions> proxies = Collections
         .singletonMap(PROXY_ALIAS, new ActionOptions("eb", new JsonObject(), null));
 
-    ActionProvider tested = new ActionProvider(proxies, Collections::emptyListIterator, vertx);
+    ActionProvider tested = new ActionProvider(Collections::emptyListIterator);
 
     // when
-    Optional<Action> operation = tested.get(PROXY_ALIAS);
+    Optional<Action> operation = tested.get(PROXY_ALIAS, proxies, vertx);
 
     // then
     assertFalse(operation.isPresent());
@@ -111,14 +110,15 @@ class ActionProviderTest {
     List<ActionFactory> factories = Collections
         .singletonList(new TestCacheableOperationFactory());
 
-    ActionProvider tested = new ActionProvider(proxies, factories::iterator, vertx);
+    ActionProvider tested = new ActionProvider(factories::iterator);
 
     // when
-    Optional<Action> operation = tested.get(PROXY_ALIAS);
+    Optional<Action> operation = tested.get(PROXY_ALIAS, proxies, vertx);
 
     // then
     assertTrue(operation.isPresent());
   }
+
 
   @Test
   @DisplayName("Expect new action every time we call non cacheable factory.")
@@ -130,11 +130,11 @@ class ActionProviderTest {
     List<ActionFactory> factories = Collections
         .singletonList(new TestOperationFactory());
 
-    ActionProvider tested = new ActionProvider(proxies, factories::iterator, vertx);
+    ActionProvider tested = new ActionProvider(factories::iterator);
 
     // when
-    Optional<Action> firstOperation = tested.get(PROXY_ALIAS);
-    Optional<Action> secondOperation = tested.get(PROXY_ALIAS);
+    Optional<Action> firstOperation = tested.get(PROXY_ALIAS, proxies, vertx);
+    Optional<Action> secondOperation = tested.get(PROXY_ALIAS, proxies, vertx);
 
     // then
     assertTrue(firstOperation.isPresent());
@@ -152,12 +152,11 @@ class ActionProviderTest {
     List<ActionFactory> factories = Collections
         .singletonList(new TestCacheableOperationFactory());
 
-    ActionProvider tested = new ActionProvider(proxies,
-        factories::iterator, vertx);
+    ActionProvider tested = new ActionProvider(factories::iterator);
 
     // when
-    Optional<Action> firstOperation = tested.get(PROXY_ALIAS);
-    Optional<Action> secondOperation = tested.get(PROXY_ALIAS);
+    Optional<Action> firstOperation = tested.get(PROXY_ALIAS, proxies, vertx);
+    Optional<Action> secondOperation = tested.get(PROXY_ALIAS, proxies, vertx);
 
     // then
     assertTrue(firstOperation.isPresent());
@@ -169,18 +168,19 @@ class ActionProviderTest {
   @DisplayName("Expect not null action defined as doAction while creating action.")
   void getComplexOperation(Vertx vertx) {
     // given
-    Action expectedOperation = Mockito.mock(Action.class);
-    Action expectedOperationSecond = Mockito.mock(Action.class);
+    Action expectedOperation = mock(Action.class);
+    Action expectedOperationSecond = mock(Action.class);
 
-    ActionFactory proxyFactory = Mockito.mock(ActionFactory.class);
+    ActionFactory proxyFactory = mock(ActionFactory.class);
     when(proxyFactory.getName()).thenReturn(PROXY_FACTORY_NAME);
     when(proxyFactory
-        .create(eq(PROXY_ALIAS), any(), eq(vertx), eq(expectedOperationSecond)))
+        .create(eq(PROXY_ALIAS), any(), eq(vertx.getDelegate()), eq(expectedOperationSecond)))
         .thenReturn(expectedOperation);
 
-    ActionFactory proxyFactorySecond = Mockito.mock(ActionFactory.class);
+    ActionFactory proxyFactorySecond = mock(ActionFactory.class);
     when(proxyFactorySecond.getName()).thenReturn(PROXY_FACTORY_NAME_SECOND);
-    when(proxyFactorySecond.create(eq(PROXY_ALIAS_SECOND), any(), eq(vertx), eq(null)))
+    when(
+        proxyFactorySecond.create(eq(PROXY_ALIAS_SECOND), any(), eq(vertx.getDelegate()), eq(null)))
         .thenReturn(expectedOperationSecond);
 
     Map<String, ActionOptions> proxies = ImmutableMap.of(
@@ -191,19 +191,19 @@ class ActionProviderTest {
     );
     List<ActionFactory> factories = Arrays.asList(proxyFactory, proxyFactorySecond);
 
-    ActionProvider tested = new ActionProvider(proxies, factories::iterator, vertx);
+    ActionProvider tested = new ActionProvider(factories::iterator);
 
     // when
-    tested.get(PROXY_ALIAS);
+    tested.get(PROXY_ALIAS, proxies, vertx);
 
     // then
-    Mockito.verify(proxyFactorySecond)
-        .create(eq(PROXY_ALIAS_SECOND), any(), eq(vertx), eq(null));
-    Mockito.verify(proxyFactory)
-        .create(eq(PROXY_ALIAS), any(), eq(vertx), eq(expectedOperationSecond));
+    verify(proxyFactorySecond)
+        .create(eq(PROXY_ALIAS_SECOND), any(), eq(vertx.getDelegate()), eq(null));
+    verify(proxyFactory)
+        .create(eq(PROXY_ALIAS), any(), eq(vertx.getDelegate()), eq(expectedOperationSecond));
   }
 
-  class TestOperationFactory implements ActionFactory {
+  static class TestOperationFactory implements ActionFactory {
 
     @Override
     public String getName() {
@@ -211,7 +211,7 @@ class ActionProviderTest {
     }
 
     @Override
-    public Action create(String alias, JsonObject config, Vertx vertx,
+    public Action create(String alias, JsonObject config, io.vertx.core.Vertx vertx,
         Action doAction) {
       // do not change to lambda expression as it can be optimised by compiler
       return new Action() {
@@ -225,7 +225,7 @@ class ActionProviderTest {
   }
 
   @Cacheable
-  class TestCacheableOperationFactory implements ActionFactory {
+  static class TestCacheableOperationFactory implements ActionFactory {
 
     @Override
     public String getName() {
@@ -233,7 +233,7 @@ class ActionProviderTest {
     }
 
     @Override
-    public Action create(String alias, JsonObject config, Vertx vertx,
+    public Action create(String alias, JsonObject config, io.vertx.core.Vertx vertx,
         Action doAction) {
       // do not change to lambda expression as it can be optimised by compiler
       return new Action() {

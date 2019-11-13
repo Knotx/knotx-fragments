@@ -23,6 +23,6 @@ public interface TaskFactory {
 
   String getName();
 
-  Task newInstance(TaskContext taskContext, JsonObject factoryOptions, Vertx vertx);
+  Task newInstance(TaskDefinition taskDefinition, JsonObject taskOptions, Vertx vertx);
 
 }

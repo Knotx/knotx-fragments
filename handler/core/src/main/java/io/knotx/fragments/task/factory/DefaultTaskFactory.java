@@ -17,19 +17,17 @@ package io.knotx.fragments.task.factory;
 
 import static io.knotx.fragments.handler.api.domain.FragmentResult.ERROR_TRANSITION;
 import static io.knotx.fragments.handler.api.domain.FragmentResult.SUCCESS_TRANSITION;
-import static io.knotx.fragments.task.factory.LocalTaskFactoryOptions.NODE_LOG_LEVEL_KEY;
+import static io.knotx.fragments.task.factory.TaskOptions.NODE_LOG_LEVEL_KEY;
 
 import io.knotx.fragments.engine.Task;
 import io.knotx.fragments.engine.graph.CompositeNode;
 import io.knotx.fragments.engine.graph.Node;
 import io.knotx.fragments.engine.graph.SingleNode;
 import io.knotx.fragments.handler.action.ActionOptions;
-import io.knotx.fragments.handler.action.ActionProvider;
 import io.knotx.fragments.handler.api.Action;
 import io.knotx.fragments.handler.api.ActionFactory;
 import io.knotx.fragments.handler.api.domain.FragmentContext;
 import io.knotx.fragments.handler.api.domain.FragmentResult;
-import io.knotx.fragments.task.TaskContext;
 import io.knotx.fragments.task.TaskDefinition;
 import io.knotx.fragments.task.TaskFactory;
 import io.knotx.fragments.task.exception.GraphConfigurationException;
@@ -48,9 +46,15 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-public class LocalTaskFactory implements TaskFactory {
+public class DefaultTaskFactory implements TaskFactory {
 
-  public static final String NAME = "local";
+  public static final String NAME = "default";
+
+  private ActionProvider actionProvider;
+
+  public DefaultTaskFactory() {
+    actionProvider = new ActionProvider(supplyFactories());
+  }
 
   @Override
   public String getName() {
@@ -58,51 +62,48 @@ public class LocalTaskFactory implements TaskFactory {
   }
 
   @Override
-  public Task newInstance(TaskContext taskContext, JsonObject factoryOptions, Vertx vertx) {
-    LocalTaskFactoryOptions options = new LocalTaskFactoryOptions(factoryOptions);
-    Map<String, ActionOptions> actions = options.getActions();
-    if (actions == null) {
+  public Task newInstance(TaskDefinition taskDefinition, JsonObject taskOptions, Vertx vertx) {
+    TaskOptions options = new TaskOptions(taskOptions);
+    Map<String, ActionOptions> actionNameToOptions = options.getActions();
+    if (actionNameToOptions == null) {
       throw new GraphConfigurationException("The 'actions' property not configured!");
     }
-    prepareActionConfig(actions, options.getLogLevel());
+    initOptions(actionNameToOptions, options.getLogLevel());
 
-    ActionProvider actionProvider = new ActionProvider(actions, supplyFactories(),
-        vertx.getDelegate());
-
-    TaskDefinition taskDefinition = taskContext.getTaskDefinition();
-    Node rootNode = initGraphRootNode(taskDefinition.getGraphNodeOptions(), actionProvider);
+    Node rootNode = initGraphRootNode(taskDefinition.getGraphNodeOptions(), actionNameToOptions,
+        vertx);
     return new Task(taskDefinition.getTaskName(), rootNode);
   }
 
-  private Node initGraphRootNode(GraphNodeOptions options, ActionProvider actionProvider) {
-    Map<String, GraphNodeOptions> transitions = options.getOnTransitions();
+  private Node initGraphRootNode(GraphNodeOptions nodeOptions,
+      Map<String, ActionOptions> actionNameToOptions, Vertx vertx) {
+    Map<String, GraphNodeOptions> transitions = nodeOptions.getOnTransitions();
     Map<String, Node> edges = new HashMap<>();
-    transitions.forEach((transition, childGraphOptions) -> {
-      edges.put(transition, initGraphRootNode(childGraphOptions, actionProvider));
-    });
+    transitions.forEach((transition, childGraphOptions) -> edges
+        .put(transition, initGraphRootNode(childGraphOptions, actionNameToOptions, vertx)));
     final Node node;
-    if (options.isComposite()) {
-      node = buildCompositeNode(options, edges, actionProvider);
+    if (nodeOptions.isComposite()) {
+      node = buildCompositeNode(nodeOptions, edges, actionNameToOptions, vertx);
     } else {
-      node = buildActionNode(options, edges, actionProvider);
+      node = buildActionNode(nodeOptions, edges, actionNameToOptions, vertx);
     }
     return node;
   }
 
   private Node buildActionNode(GraphNodeOptions options, Map<String, Node> edges,
-      ActionProvider actionProvider) {
+      Map<String, ActionOptions> actionNameToOptions, Vertx vertx) {
     ActionNodeConfigOptions config = new ActionNodeConfigOptions(options.getNode().getConfig());
-    Action action = actionProvider.get(config.getAction()).orElseThrow(
+    Action action = actionProvider.get(config.getAction(), actionNameToOptions, vertx).orElseThrow(
         () -> new GraphConfigurationException("No provider for action " + config.getAction()));
     return new SingleNode(config.getAction(), toRxFunction(action), edges);
   }
 
   private Node buildCompositeNode(GraphNodeOptions options, Map<String, Node> edges,
-      ActionProvider actionProvider) {
+      Map<String, ActionOptions> actionNameToOptions, Vertx vertx) {
     SubtasksNodeConfigOptions config = new SubtasksNodeConfigOptions(
         options.getNode().getConfig());
     List<Node> nodes = config.getSubtasks().stream()
-        .map((GraphNodeOptions o) -> initGraphRootNode(o, actionProvider))
+        .map((GraphNodeOptions o) -> initGraphRootNode(o, actionNameToOptions, vertx))
         .collect(Collectors.toList());
     return new CompositeNode(getNodeId(), nodes, edges.get(SUCCESS_TRANSITION),
         edges.get(ERROR_TRANSITION));
@@ -120,6 +121,17 @@ public class LocalTaskFactory implements TaskFactory {
     return rxAction::rxApply;
   }
 
+  private void initOptions(Map<String, ActionOptions> nodeNameToOptions, String logLevel) {
+    nodeNameToOptions.values().stream()
+        .map(options -> {
+          JsonObject config = options.getConfig();
+          if (config.fieldNames().contains(NODE_LOG_LEVEL_KEY)) {
+            return config;
+          }
+          return config.put(NODE_LOG_LEVEL_KEY, logLevel);
+        });
+  }
+
   private Supplier<Iterator<ActionFactory>> supplyFactories() {
     return () -> {
       ServiceLoader<ActionFactory> factories = ServiceLoader
@@ -127,20 +139,5 @@ public class LocalTaskFactory implements TaskFactory {
       return factories.iterator();
     };
   }
-
-  private void prepareActionConfig(Map<String, ActionOptions> actionOptions,
-      String globalActionLogLevel) {
-    actionOptions.values().stream()
-        .map(options -> {
-          JsonObject config = options.getConfig();
-          if (config.fieldNames().contains(NODE_LOG_LEVEL_KEY)) {
-            return config;
-          }
-          return config.put(NODE_LOG_LEVEL_KEY, globalActionLogLevel);
-        });
-  }
-
-
-
 
 }

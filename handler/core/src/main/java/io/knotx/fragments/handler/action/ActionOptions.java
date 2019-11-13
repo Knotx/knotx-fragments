@@ -27,11 +27,11 @@ public class ActionOptions {
   private JsonObject config;
   private String doAction;
 
-  ActionOptions(String factory, JsonObject config) {
+  public ActionOptions(String factory, JsonObject config) {
     this(factory, config, null);
   }
 
-  ActionOptions(String factory, JsonObject config, String doAction) {
+  public ActionOptions(String factory, JsonObject config, String doAction) {
     this.factory = factory;
     this.config = config;
     this.doAction = doAction;
