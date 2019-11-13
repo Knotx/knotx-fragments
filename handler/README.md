@@ -24,16 +24,11 @@ such a case the `collect` diagram represents fragments joining.
 
 Read more about the benefits [here](http://knotx.io/blog/configurable-integrations/).
 
-## Task
-Task decompose business logic into lightweight independent parts.  Those parts are graph nodes, 
-connected by transitions. Graph node can, for example, represent some REST API invocation. So a task 
-is a directed graph of nodes.
-```
-(A) ───> (B) ───> (C)
-    └──> (D)
-```
+## How to configure
 
-Tasks are configured with HOCON configuration in form of a dictionary (`taskName -> definition`):
+### Task
+[Tasks](https://github.com/Knotx/knotx-fragments/tree/master/handler/engine#task) are configured 
+with HOCON configuration in form of a dictionary (`taskName -> definition`):
 ```hocon
 tasks {
   # unique task name
