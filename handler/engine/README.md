@@ -1,12 +1,42 @@
 # Fragments Engine
-Fragments Engine is a reactive asynchronous map-reduce implementation, enjoying the benefits of Reactive Extensions, 
-that evaluates each Fragment independently using a `Task` definition. `Task` specifies a directed graph of Nodes, 
-allowing to transform Fragment into the new one.
+Fragments Engine is a [reactive](https://www.reactivemanifesto.org/) asynchronous 
+[map-reduce](https://en.wikipedia.org/wiki/MapReduce) implementation, enjoying the benefits of 
+[Reactive Extensions](http://reactivex.io/), that evaluates each 
+[Fragment](https://github.com/Knotx/knotx-fragments/tree/master/api) independently using a 
+[Task](#task) definition. Task specifies Nodes through which Fragments will be routed by 
+(a directed graph of [Nodes](#node)), allowing to transform Fragment into the new one.
 
 ## How does it work
-Any *Fragment* can define its processing path - a **Task** (which is a **directed graph** of **Nodes**).
-A **Task** specifies the nodes through which Fragments will be routed by the Task Engine. 
-Each Node may define possible *outgoing edges* - **Transitions**.
+Fragments engine accepts a list of fragments decorated with its [status](#fragments-status), 
+[processing log](#fragments-status) and the incoming HTTP request data. All operations, nodes 
+evaluations and graph executions are asynchronous. So the engine responds with RX handler that 
+enables the user to press the play button (with the `io.reactivex.SingleSource.subscribe` method). 
+This is where map-reduce magic begins.
+
+When the user calls the `subscribe` method, then all fragments are evaluated in parallel. Finally, 
+we get a list of modified fragments that contain also their statuses and processing log.
+
+The engine handles all exceptions launched by nodes with a graph logic. It translates errors to 
+`_error` transitions and tries to manage them.\
+All `io.knotx.fragments.handler.api.exception.NodeFatalException` exceptions break the processing 
+of all fragments and call the `io.reactivex.SingleObserver#onError` method to indicate that all 
+fragments have failed. Then the client can handle this situation.
+
+## How to configure
+The engine is stateless, so no configuration is required. The clients provide their custom 
+configurations and build tasks. Tasks contain all details about graph processing.
+
+# Task
+Task decomposes business logic into lightweight independent parts. Those parts are graph nodes 
+connected by transitions. So a task is a directed graph of nodes. Nodes specify fragment's 
+processing, whereas transitions draw business decisions.
+```
+(A) ───> (B) ───> (C)
+ └─────> (D)
+```
+The above graph contains nodes, represented by `(A)`, and transitions illustrated as arrows. Arrows 
+set a node's contract. So, for example, the node can invoke some API and write its response to the 
+fragment. Then it responds with the modified fragment and transition.
 
 ## Node
 The node responsibility can be described as: 
@@ -15,11 +45,8 @@ The node responsibility can be described as:
 > transition and L is a node log.
 
 The node definition is abstract. It allows to define simple processing nodes but also more complex 
-structures such as a list of subgraphs.
-
-The node definition is abstract. It allows to define simple processing nodes but also more complex 
-structures such as a list of subgraphs. Furthermore, such a definition inspires to provide custom 
-node implementations.
+structures such as a list of subgraphs. Each node may define possible outgoing edges, called 
+transitions.
 
 ### Node types
 There are two **node** types:
