@@ -104,7 +104,6 @@ Sets <code>Task</code> list, which are named, directed graphs of <code>Actions</
 |[[actions]]`@actions`|`Array of link:dataobjects.html#GraphNodeOptions[GraphNodeOptions]`|+++
 
 +++
-|[[composite]]`@composite`|`Boolean`|-
 |[[node]]`@node`|`link:dataobjects.html#NodeOptions[NodeOptions]`|+++
 Sets node options defining node factory and its configuration.
 +++
