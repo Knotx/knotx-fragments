@@ -18,12 +18,9 @@ package io.knotx.fragments.task.factory;
 import io.knotx.fragments.engine.graph.Node;
 import io.knotx.fragments.task.options.GraphNodeOptions;
 import io.vertx.reactivex.core.Vertx;
-import java.util.Map;
 
-public interface NodeFactory {
+public interface NodeProvider {
 
-  String getName();
-
-  Node newInstance(GraphNodeOptions nodeOptions, Map<String, Node> edges, String taskName,
-      TaskFactoryOptions taskOptions, NodeProvider nodeProvider, Vertx vertx);
+  Node newInstance(String taskName, GraphNodeOptions nodeOptions, TaskFactoryOptions options,
+      Vertx vertx);
 }
