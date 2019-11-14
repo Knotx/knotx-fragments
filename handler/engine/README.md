@@ -30,13 +30,18 @@ configurations and build tasks. Tasks contain all details about graph processing
 Task decomposes business logic into lightweight independent parts. Those parts are graph nodes 
 connected by transitions. So a task is a directed graph of nodes. Nodes specify fragment's 
 processing, whereas transitions draw business decisions.
+This graph is acyclic and each of its nodes can be reached only from exactly one path (transition). 
+These properties enable us to treat the Task as a tree structure.
 ```
 (A) ───> (B) ───> (C)
  └─────> (D)
 ```
 The above graph contains nodes, represented by `(A)`, and transitions illustrated as arrows. Arrows 
-set a node's contract. So, for example, the node can invoke some API and write its response to the 
-fragment. Then it responds with the modified fragment and transition.
+set a node's contract. 
+
+So, for example, a node can invoke API and store the response in the fragment. Then it 
+responds with the modified fragment and transition.
+
 
 ## Node
 The node responsibility can be described as: 
@@ -94,6 +99,9 @@ There are two important rules to remember:
 >exception is returned.
 
 > If a node responds with a not configured transition, the "Unsupported Transition" error occurs.
+
+Nodes can declare custom transitions. Custom transitions allow to react to non standard situations 
+such as data sources timeouts, fallbacks etc.
 
 ## Fragment's status
 During fragment's processing, a fragment's status is calculated. Each node responds with a transition. 
