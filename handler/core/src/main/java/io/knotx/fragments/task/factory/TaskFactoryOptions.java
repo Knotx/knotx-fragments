@@ -22,20 +22,20 @@ import java.util.Map;
 import java.util.Objects;
 
 @DataObject(generateConverter = true)
-public class TaskOptions {
+public class TaskFactoryOptions {
 
   static final String NODE_LOG_LEVEL_KEY = "logLevel";
 
   private Map<String, ActionOptions> actions;
   private String logLevel;
 
-  public TaskOptions(JsonObject json) {
-    TaskOptionsConverter.fromJson(json, this);
+  public TaskFactoryOptions(JsonObject json) {
+    TaskFactoryOptionsConverter.fromJson(json, this);
   }
 
   public JsonObject toJson() {
     JsonObject jsonObject = new JsonObject();
-    TaskOptionsConverter.toJson(this, jsonObject);
+    TaskFactoryOptionsConverter.toJson(this, jsonObject);
     return jsonObject;
   }
 
@@ -43,7 +43,7 @@ public class TaskOptions {
     return actions;
   }
 
-  public TaskOptions setActions(
+  public TaskFactoryOptions setActions(
       Map<String, ActionOptions> actions) {
     this.actions = actions;
     return this;
@@ -53,7 +53,7 @@ public class TaskOptions {
     return logLevel;
   }
 
-  public TaskOptions setLogLevel(String logLevel) {
+  public TaskFactoryOptions setLogLevel(String logLevel) {
     this.logLevel = logLevel;
     return this;
   }
@@ -66,7 +66,7 @@ public class TaskOptions {
     if (o == null || getClass() != o.getClass()) {
       return false;
     }
-    TaskOptions that = (TaskOptions) o;
+    TaskFactoryOptions that = (TaskFactoryOptions) o;
     return Objects.equals(actions, that.actions) &&
         Objects.equals(logLevel, that.logLevel);
   }

@@ -16,6 +16,7 @@
 package io.knotx.fragments.task;
 
 import io.knotx.fragments.engine.Task;
+import io.knotx.fragments.task.options.GraphNodeOptions;
 import io.vertx.core.json.JsonObject;
 import io.vertx.reactivex.core.Vertx;
 
@@ -23,6 +24,6 @@ public interface TaskFactory {
 
   String getName();
 
-  Task newInstance(TaskDefinition taskDefinition, JsonObject taskOptions, Vertx vertx);
-
+  Task newInstance(String taskName, GraphNodeOptions nodeOptions, JsonObject taskOptions,
+      Vertx vertx);
 }

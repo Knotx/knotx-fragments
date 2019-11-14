@@ -76,9 +76,11 @@ public class TaskProvider {
     return new TaskDefinition(taskName, tasks.get(taskName).getGraph());
   }
 
-  private Task newInstance(TaskDefinition taskDefinition, String factoryName, JsonObject factoryOptions) {
+  private Task newInstance(TaskDefinition taskDefinition, String factoryName,
+      JsonObject factoryOptions) {
     return Optional.ofNullable(factories.get(factoryName))
-        .map(f -> f.newInstance(taskDefinition, factoryOptions, vertx))
+        .map(f -> f.newInstance(taskDefinition.getTaskName(), taskDefinition.getGraphNodeOptions(),
+            factoryOptions, vertx))
         .orElseThrow(() -> new GraphConfigurationException("Could not find task builder"));
   }
 

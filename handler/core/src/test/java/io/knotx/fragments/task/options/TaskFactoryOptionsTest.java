@@ -38,7 +38,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 @ExtendWith(VertxExtension.class)
-class TaskOptionsTest {
+class TaskFactoryOptionsTest {
 
   @Test
   @DisplayName("Expect configuration Task provider when factory not defined")

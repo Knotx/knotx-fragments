@@ -66,7 +66,7 @@ class DefaultTaskFactoryTest {
 
     // when
     Task task = new DefaultTaskFactory()
-        .newInstance(new TaskDefinition(TASK_NAME, graph), options, vertx);
+        .newInstance(TASK_NAME, graph, options, vertx);
 
     // then
     assertEquals(TASK_NAME, task.getName());
@@ -294,11 +294,11 @@ class DefaultTaskFactoryTest {
 
   private Task getTask(GraphNodeOptions graph, JsonObject factoryOptions, Vertx vertx) {
     return new DefaultTaskFactory()
-        .newInstance(new TaskDefinition(TASK_NAME, graph), factoryOptions, vertx);
+        .newInstance(TASK_NAME, graph, factoryOptions, vertx);
   }
 
   private JsonObject options(String actionName, String transition) {
-    return new TaskOptions(new JsonObject())
+    return new TaskFactoryOptions(new JsonObject())
         .setActions(Collections.singletonMap(actionName,
             new ActionOptions(new JsonObject())
                 .setFactory("test-action")
