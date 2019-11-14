@@ -59,7 +59,7 @@ class CircuitBreakerActionTest {
   private static final int TIMEOUT_IN_MS = 500;
 
   @Test
-  @DisplayName("Expect operation ends when doAction ends on time. Action logs from doAction present.")
+  @DisplayName("Expect operation ends when doAction ends on time.")
   void expectOperationEnds(VertxTestContext testContext, Vertx vertx) throws Throwable {
     // given
     CircuitBreakerOptions options = new CircuitBreakerOptions().setTimeout(TIMEOUT_IN_MS);
@@ -75,7 +75,33 @@ class CircuitBreakerActionTest {
           testContext
               .verify(() -> {
                 Assertions.assertEquals(SUCCESS_TRANSITION, result.getTransition());
+              });
+          testContext.completeNow();
+        }));
 
+    //then
+    Assertions.assertTrue(testContext.awaitCompletion(5, TimeUnit.SECONDS));
+    if (testContext.failed()) {
+      throw testContext.causeOfFailure();
+    }
+  }
+
+  @Test
+  @DisplayName("Expect action logs from doAction when doAction ends on time.")
+  void expectActionLogs(VertxTestContext testContext, Vertx vertx) throws Throwable {
+    // given
+    CircuitBreakerOptions options = new CircuitBreakerOptions().setTimeout(TIMEOUT_IN_MS);
+    CircuitBreaker circuitBreaker = new CircuitBreakerImpl("name", vertx, options);
+
+    CircuitBreakerAction tested = new CircuitBreakerAction(circuitBreaker,
+        CircuitBreakerActionTest::applySuccessWithActionLogs,
+        "tested", INFO, ERROR_TRANSITION);
+
+    // when
+    tested.apply(new FragmentContext(FRAGMENT, new ClientRequest()),
+        testContext.succeeding(result -> {
+          testContext
+              .verify(() -> {
                 ActionLog actionLog = new ActionLog(result.getNodeLog());
                 List<ActionInvocationLog> doActionsLogs = actionLog.getDoActionLogs();
                 String invocationCount = actionLog.getLogs().getString("invocationCount");
@@ -236,6 +262,12 @@ class CircuitBreakerActionTest {
   }
 
   private static void applySuccess(FragmentContext fragmentContext,
+      Handler<AsyncResult<FragmentResult>> resultHandler) {
+    Future.succeededFuture(new FragmentResult(fragmentContext.getFragment(), SUCCESS_TRANSITION))
+        .setHandler(resultHandler);
+  }
+
+  private static void applySuccessWithActionLogs(FragmentContext fragmentContext,
       Handler<AsyncResult<FragmentResult>> resultHandler) {
     ActionLogger actionLogger = ActionLogger.create("action", INFO);
     actionLogger.info("info", "success");

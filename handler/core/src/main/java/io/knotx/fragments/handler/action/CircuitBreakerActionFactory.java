@@ -70,7 +70,8 @@ public class CircuitBreakerActionFactory implements ActionFactory {
     CircuitBreaker circuitBreaker = new CircuitBreakerImpl(circuitBreakerName, vertx,
         circuitBreakerOptions);
 
-    return new CircuitBreakerAction(circuitBreaker, doAction, alias, fromConfig(config), errorTransition);
+    return new CircuitBreakerAction(circuitBreaker, doAction, alias, fromConfig(config),
+        errorTransition);
   }
 
   public static class CircuitBreakerAction implements Action {
@@ -113,22 +114,23 @@ public class CircuitBreakerActionFactory implements ActionFactory {
     private void doActionResultHandler(Promise<FragmentResult> promise,
         FragmentResult result, int invocation, long startTime, ActionLogger actionLogger) {
       if (isError(result)) {
-        handleFail(promise, result, invocation, startTime, actionLogger);
+        handleFail(promise, result, startTime, actionLogger);
       } else {
         handleSuccess(promise, result, invocation, startTime, actionLogger);
       }
     }
 
-    private boolean isError(FragmentResult result){
+    private boolean isError(FragmentResult result) {
       return errorTransition.equals(result.getTransition());
     }
+
     private void handleFail(Promise<FragmentResult> f, FragmentResult result,
-        int invocation, long startTime, ActionLogger actionLogger) {
-      actionLogger.failedDoActionLog(executionTime(startTime),  result.getNodeLog());
+        long startTime, ActionLogger actionLogger) {
+      actionLogger.failedDoActionLog(executionTime(startTime), result.getNodeLog());
       f.fail(new DoActionExecuteException(format("Action end up %s transition", errorTransition)));
     }
 
-    private static long executionTime(long startTime){
+    private static long executionTime(long startTime) {
       return now().toEpochMilli() - startTime;
     }
 
@@ -145,7 +147,8 @@ public class CircuitBreakerActionFactory implements ActionFactory {
       Fragment fragment = fragmentContext.getFragment();
       actionLogger.info("invocationCount", valueOf(counter.get()));
       actionLogger
-          .error("fallback", format("Exception: %s. %s", throwable.getClass(), throwable.getLocalizedMessage()));
+          .error("fallback",
+              format("Exception: %s. %s", throwable.getClass(), throwable.getLocalizedMessage()));
       return new FragmentResult(fragment, FALLBACK_TRANSITION, actionLogger.toLog().toJson());
     }
   }
