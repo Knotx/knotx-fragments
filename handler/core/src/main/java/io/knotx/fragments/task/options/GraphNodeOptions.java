@@ -171,11 +171,6 @@ public class GraphNodeOptions {
     return this;
   }
 
-  // TODO remove when node factories finished
-  public boolean isComposite() {
-    return SUBTASKS.equals(node.getFactory());
-  }
-
   @Override
   public boolean equals(Object o) {
     if (this == o) {

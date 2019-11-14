@@ -50,10 +50,11 @@ public class DefaultTaskFactory implements TaskFactory {
 
   public static final String NAME = "default";
 
-  private ActionProvider actionProvider;
+  private Map<String, NodeFactory> nodeFactories;
 
   public DefaultTaskFactory() {
-    actionProvider = new ActionProvider(supplyFactories());
+
+    nodeFactories = initNodeFactories();
   }
 
   @Override
@@ -63,62 +64,41 @@ public class DefaultTaskFactory implements TaskFactory {
 
   @Override
   public Task newInstance(TaskDefinition taskDefinition, JsonObject taskOptions, Vertx vertx) {
+    TaskOptions options = initTaskOptions(taskOptions);
+    Node rootNode = initNode(taskDefinition.getGraphNodeOptions(), options, vertx);
+    return new Task(taskDefinition.getTaskName(), rootNode);
+  }
+
+  private TaskOptions initTaskOptions(JsonObject taskOptions) {
     TaskOptions options = new TaskOptions(taskOptions);
     Map<String, ActionOptions> actionNameToOptions = options.getActions();
     if (actionNameToOptions == null) {
       throw new GraphConfigurationException("The 'actions' property not configured!");
     }
     initOptions(actionNameToOptions, options.getLogLevel());
-
-    Node rootNode = initGraphRootNode(taskDefinition.getGraphNodeOptions(), actionNameToOptions,
-        vertx);
-    return new Task(taskDefinition.getTaskName(), rootNode);
+    return options;
   }
 
-  private Node initGraphRootNode(GraphNodeOptions nodeOptions,
-      Map<String, ActionOptions> actionNameToOptions, Vertx vertx) {
-    Map<String, GraphNodeOptions> transitions = nodeOptions.getOnTransitions();
-    Map<String, Node> edges = new HashMap<>();
-    transitions.forEach((transition, childGraphOptions) -> edges
-        .put(transition, initGraphRootNode(childGraphOptions, actionNameToOptions, vertx)));
+  private Node initNode(GraphNodeOptions nodeOptions,
+      TaskOptions options, Vertx vertx) {
+    Map<String, Node> transitionToNodeMap = initTransitions(nodeOptions, options, vertx);
     final Node node;
-    if (nodeOptions.isComposite()) {
-      node = buildCompositeNode(nodeOptions, edges, actionNameToOptions, vertx);
+    if (GraphNodeOptions.SUBTASKS.equals(nodeOptions.getNode().getFactory())) {
+      node = new SubtasksNodeFactory()
+          .newInstance(nodeOptions, transitionToNodeMap, options, vertx);
     } else {
-      node = buildActionNode(nodeOptions, edges, actionNameToOptions, vertx);
+      node = new ActionNodeFactory().newInstance(nodeOptions, transitionToNodeMap, options, vertx);
     }
     return node;
   }
 
-  private Node buildActionNode(GraphNodeOptions options, Map<String, Node> edges,
-      Map<String, ActionOptions> actionNameToOptions, Vertx vertx) {
-    ActionNodeConfigOptions config = new ActionNodeConfigOptions(options.getNode().getConfig());
-    Action action = actionProvider.get(config.getAction(), actionNameToOptions, vertx).orElseThrow(
-        () -> new GraphConfigurationException("No provider for action " + config.getAction()));
-    return new SingleNode(config.getAction(), toRxFunction(action), edges);
-  }
-
-  private Node buildCompositeNode(GraphNodeOptions options, Map<String, Node> edges,
-      Map<String, ActionOptions> actionNameToOptions, Vertx vertx) {
-    SubtasksNodeConfigOptions config = new SubtasksNodeConfigOptions(
-        options.getNode().getConfig());
-    List<Node> nodes = config.getSubtasks().stream()
-        .map((GraphNodeOptions o) -> initGraphRootNode(o, actionNameToOptions, vertx))
-        .collect(Collectors.toList());
-    return new CompositeNode(getNodeId(), nodes, edges.get(SUCCESS_TRANSITION),
-        edges.get(ERROR_TRANSITION));
-  }
-
-  private String getNodeId() {
-    // TODO this value should be calculated based on graph, the behaviour now is not changed
-    return "composite";
-  }
-
-  private Function<FragmentContext, Single<FragmentResult>> toRxFunction(
-      Action action) {
-    io.knotx.fragments.handler.reactivex.api.Action rxAction = io.knotx.fragments.handler.reactivex.api.Action
-        .newInstance(action);
-    return rxAction::rxApply;
+  private Map<String, Node> initTransitions(GraphNodeOptions nodeOptions, TaskOptions options,
+      Vertx vertx) {
+    Map<String, GraphNodeOptions> transitions = nodeOptions.getOnTransitions();
+    Map<String, Node> edges = new HashMap<>();
+    transitions.forEach((transition, childGraphOptions) -> edges
+        .put(transition, initNode(childGraphOptions, options, vertx)));
+    return edges;
   }
 
   private void initOptions(Map<String, ActionOptions> nodeNameToOptions, String logLevel) {
@@ -132,12 +112,74 @@ public class DefaultTaskFactory implements TaskFactory {
         });
   }
 
-  private Supplier<Iterator<ActionFactory>> supplyFactories() {
-    return () -> {
-      ServiceLoader<ActionFactory> factories = ServiceLoader
-          .load(ActionFactory.class);
-      return factories.iterator();
-    };
+  private Map<String, NodeFactory> initNodeFactories() {
+    ServiceLoader<NodeFactory> factories = ServiceLoader.load(NodeFactory.class);
+    Map<String, NodeFactory> nodeFactories = new HashMap<>();
+    factories.iterator().forEachRemaining(nodeFactory -> {
+      nodeFactories.put(nodeFactory.getName(), nodeFactory);
+    });
+    return nodeFactories;
   }
 
+  private static class ActionNodeFactory implements NodeFactory {
+
+    private ActionProvider actionProvider;
+
+    public ActionNodeFactory() {
+      actionProvider = new ActionProvider(supplyFactories());
+    }
+
+    @Override
+    public String getName() {
+      return "action";
+    }
+
+    @Override
+    public Node newInstance(GraphNodeOptions options, Map<String, Node> edges,
+        TaskOptions task, Vertx vertx) {
+      ActionNodeConfigOptions config = new ActionNodeConfigOptions(options.getNode().getConfig());
+      Action action = actionProvider.get(config.getAction(), task.getActions(), vertx).orElseThrow(
+          () -> new GraphConfigurationException("No provider for action " + config.getAction()));
+      return new SingleNode(config.getAction(), toRxFunction(action), edges);
+    }
+
+    private Function<FragmentContext, Single<FragmentResult>> toRxFunction(
+        Action action) {
+      io.knotx.fragments.handler.reactivex.api.Action rxAction = io.knotx.fragments.handler.reactivex.api.Action
+          .newInstance(action);
+      return rxAction::rxApply;
+    }
+
+    private Supplier<Iterator<ActionFactory>> supplyFactories() {
+      return () -> {
+        ServiceLoader<ActionFactory> factories = ServiceLoader
+            .load(ActionFactory.class);
+        return factories.iterator();
+      };
+    }
+  }
+
+  private class SubtasksNodeFactory implements NodeFactory {
+
+    @Override
+    public String getName() {
+      return "subtasks";
+    }
+
+    public Node newInstance(GraphNodeOptions nodeOptions, Map<String, Node> edges,
+        TaskOptions taskOptions, Vertx vertx) {
+      SubtasksNodeConfigOptions config = new SubtasksNodeConfigOptions(
+          nodeOptions.getNode().getConfig());
+      List<Node> nodes = config.getSubtasks().stream()
+          .map((GraphNodeOptions nextNodeOptions) -> initNode(nextNodeOptions, taskOptions, vertx))
+          .collect(Collectors.toList());
+      return new CompositeNode(getNodeId(), nodes, edges.get(SUCCESS_TRANSITION),
+          edges.get(ERROR_TRANSITION));
+    }
+
+    private String getNodeId() {
+      // TODO this value should be calculated based on graph, the behaviour now is not changed
+      return "composite";
+    }
+  }
 }
