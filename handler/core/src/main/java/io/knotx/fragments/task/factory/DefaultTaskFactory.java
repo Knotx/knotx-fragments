@@ -17,7 +17,7 @@ package io.knotx.fragments.task.factory;
 
 import static io.knotx.fragments.handler.api.domain.FragmentResult.ERROR_TRANSITION;
 import static io.knotx.fragments.handler.api.domain.FragmentResult.SUCCESS_TRANSITION;
-import static io.knotx.fragments.task.factory.TaskOptions.NODE_LOG_LEVEL_KEY;
+import static io.knotx.fragments.task.factory.TaskFactoryOptions.NODE_LOG_LEVEL_KEY;
 
 import io.knotx.fragments.engine.Task;
 import io.knotx.fragments.engine.graph.CompositeNode;
@@ -28,9 +28,9 @@ import io.knotx.fragments.handler.api.Action;
 import io.knotx.fragments.handler.api.ActionFactory;
 import io.knotx.fragments.handler.api.domain.FragmentContext;
 import io.knotx.fragments.handler.api.domain.FragmentResult;
-import io.knotx.fragments.task.TaskDefinition;
 import io.knotx.fragments.task.TaskFactory;
 import io.knotx.fragments.task.exception.GraphConfigurationException;
+import io.knotx.fragments.task.exception.NodeFactoryNotFoundException;
 import io.knotx.fragments.task.options.ActionNodeConfigOptions;
 import io.knotx.fragments.task.options.GraphNodeOptions;
 import io.knotx.fragments.task.options.SubtasksNodeConfigOptions;
@@ -41,6 +41,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.ServiceLoader;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -53,7 +54,6 @@ public class DefaultTaskFactory implements TaskFactory {
   private Map<String, NodeFactory> nodeFactories;
 
   public DefaultTaskFactory() {
-
     nodeFactories = initNodeFactories();
   }
 
@@ -63,14 +63,15 @@ public class DefaultTaskFactory implements TaskFactory {
   }
 
   @Override
-  public Task newInstance(TaskDefinition taskDefinition, JsonObject taskOptions, Vertx vertx) {
-    TaskOptions options = initTaskOptions(taskOptions);
-    Node rootNode = initNode(taskDefinition.getGraphNodeOptions(), options, vertx);
-    return new Task(taskDefinition.getTaskName(), rootNode);
+  public Task newInstance(String taskName, GraphNodeOptions nodeOptions, JsonObject taskOptions,
+      Vertx vertx) {
+    TaskFactoryOptions options = initTaskOptions(taskOptions);
+    Node rootNode = initNode(taskName, nodeOptions, options, vertx);
+    return new Task(taskName, rootNode);
   }
 
-  private TaskOptions initTaskOptions(JsonObject taskOptions) {
-    TaskOptions options = new TaskOptions(taskOptions);
+  private TaskFactoryOptions initTaskOptions(JsonObject taskOptions) {
+    TaskFactoryOptions options = new TaskFactoryOptions(taskOptions);
     Map<String, ActionOptions> actionNameToOptions = options.getActions();
     if (actionNameToOptions == null) {
       throw new GraphConfigurationException("The 'actions' property not configured!");
@@ -79,25 +80,26 @@ public class DefaultTaskFactory implements TaskFactory {
     return options;
   }
 
-  private Node initNode(GraphNodeOptions nodeOptions,
-      TaskOptions options, Vertx vertx) {
-    Map<String, Node> transitionToNodeMap = initTransitions(nodeOptions, options, vertx);
-    final Node node;
-    if (GraphNodeOptions.SUBTASKS.equals(nodeOptions.getNode().getFactory())) {
-      node = new SubtasksNodeFactory()
-          .newInstance(nodeOptions, transitionToNodeMap, options, vertx);
-    } else {
-      node = new ActionNodeFactory().newInstance(nodeOptions, transitionToNodeMap, options, vertx);
-    }
-    return node;
+  public Node initNode(String taskName, GraphNodeOptions nodeOptions,
+      TaskFactoryOptions options, Vertx vertx) {
+    Map<String, Node> transitionToNodeMap = initTransitions(taskName, nodeOptions, options, vertx);
+    Optional<NodeFactory> nodeFactory = getNodeFactory(nodeOptions);
+    return nodeFactory
+        .map(f -> f.newInstance(taskName, nodeOptions, transitionToNodeMap, options, this, vertx))
+        .orElseThrow(() -> new NodeFactoryNotFoundException(nodeOptions.getNode().getFactory()));
   }
 
-  private Map<String, Node> initTransitions(GraphNodeOptions nodeOptions, TaskOptions options,
+  private Optional<NodeFactory> getNodeFactory(GraphNodeOptions nodeOptions) {
+    return Optional.ofNullable(nodeFactories.get(nodeOptions.getNode().getFactory()));
+  }
+
+  private Map<String, Node> initTransitions(String taskName, GraphNodeOptions nodeOptions,
+      TaskFactoryOptions options,
       Vertx vertx) {
     Map<String, GraphNodeOptions> transitions = nodeOptions.getOnTransitions();
     Map<String, Node> edges = new HashMap<>();
     transitions.forEach((transition, childGraphOptions) -> edges
-        .put(transition, initNode(childGraphOptions, options, vertx)));
+        .put(transition, initNode(taskName, childGraphOptions, options, vertx)));
     return edges;
   }
 
@@ -121,65 +123,4 @@ public class DefaultTaskFactory implements TaskFactory {
     return nodeFactories;
   }
 
-  private static class ActionNodeFactory implements NodeFactory {
-
-    private ActionProvider actionProvider;
-
-    public ActionNodeFactory() {
-      actionProvider = new ActionProvider(supplyFactories());
-    }
-
-    @Override
-    public String getName() {
-      return "action";
-    }
-
-    @Override
-    public Node newInstance(GraphNodeOptions options, Map<String, Node> edges,
-        TaskOptions task, Vertx vertx) {
-      ActionNodeConfigOptions config = new ActionNodeConfigOptions(options.getNode().getConfig());
-      Action action = actionProvider.get(config.getAction(), task.getActions(), vertx).orElseThrow(
-          () -> new GraphConfigurationException("No provider for action " + config.getAction()));
-      return new SingleNode(config.getAction(), toRxFunction(action), edges);
-    }
-
-    private Function<FragmentContext, Single<FragmentResult>> toRxFunction(
-        Action action) {
-      io.knotx.fragments.handler.reactivex.api.Action rxAction = io.knotx.fragments.handler.reactivex.api.Action
-          .newInstance(action);
-      return rxAction::rxApply;
-    }
-
-    private Supplier<Iterator<ActionFactory>> supplyFactories() {
-      return () -> {
-        ServiceLoader<ActionFactory> factories = ServiceLoader
-            .load(ActionFactory.class);
-        return factories.iterator();
-      };
-    }
-  }
-
-  private class SubtasksNodeFactory implements NodeFactory {
-
-    @Override
-    public String getName() {
-      return "subtasks";
-    }
-
-    public Node newInstance(GraphNodeOptions nodeOptions, Map<String, Node> edges,
-        TaskOptions taskOptions, Vertx vertx) {
-      SubtasksNodeConfigOptions config = new SubtasksNodeConfigOptions(
-          nodeOptions.getNode().getConfig());
-      List<Node> nodes = config.getSubtasks().stream()
-          .map((GraphNodeOptions nextNodeOptions) -> initNode(nextNodeOptions, taskOptions, vertx))
-          .collect(Collectors.toList());
-      return new CompositeNode(getNodeId(), nodes, edges.get(SUCCESS_TRANSITION),
-          edges.get(ERROR_TRANSITION));
-    }
-
-    private String getNodeId() {
-      // TODO this value should be calculated based on graph, the behaviour now is not changed
-      return "composite";
-    }
-  }
 }

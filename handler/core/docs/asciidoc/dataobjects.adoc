@@ -162,6 +162,18 @@ Sets list of link that represents link
 +++
 |===
 
+[[TaskFactoryOptions]]
+== TaskFactoryOptions
+
+
+[cols=">25%,25%,50%"]
+[frame="topbot"]
+|===
+^|Name | Type ^| Description
+|[[actions]]`@actions`|`link:dataobjects.html#ActionOptions[ActionOptions]`|-
+|[[logLevel]]`@logLevel`|`String`|-
+|===
+
 [[TaskOptions]]
 == TaskOptions
 
@@ -183,17 +195,5 @@ Sets task provider factory name
 |[[graph]]`@graph`|`link:dataobjects.html#GraphNodeOptions[GraphNodeOptions]`|+++
 Sets task graph.
 +++
-|===
-
-[[TaskOptions]]
-== TaskOptions
-
-
-[cols=">25%,25%,50%"]
-[frame="topbot"]
-|===
-^|Name | Type ^| Description
-|[[actions]]`@actions`|`link:dataobjects.html#ActionOptions[ActionOptions]`|-
-|[[logLevel]]`@logLevel`|`String`|-
 |===
 

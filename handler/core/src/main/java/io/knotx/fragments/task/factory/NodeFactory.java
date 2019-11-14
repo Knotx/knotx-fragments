@@ -24,6 +24,6 @@ public interface NodeFactory {
 
   String getName();
 
-  Node newInstance(GraphNodeOptions options, Map<String, Node> edges,
-      TaskOptions task, Vertx vertx);
+  Node newInstance(String taskName, GraphNodeOptions options, Map<String, Node> edges,
+      TaskFactoryOptions task, DefaultTaskFactory taskFactory, Vertx vertx);
 }
