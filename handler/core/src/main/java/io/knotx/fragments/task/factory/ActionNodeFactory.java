@@ -46,11 +46,10 @@ public class ActionNodeFactory implements NodeFactory {
   }
 
   @Override
-  public Node newInstance(String taskName, GraphNodeOptions options,
-      Map<String, Node> edges,
-      TaskFactoryOptions task, DefaultTaskFactory taskFactory, Vertx vertx) {
-    ActionNodeConfigOptions config = new ActionNodeConfigOptions(options.getNode().getConfig());
-    Action action = actionProvider.get(config.getAction(), task.getActions(), vertx).orElseThrow(
+  public Node newInstance(GraphNodeOptions nodeOptions, Map<String, Node> edges, String taskName,
+      TaskFactoryOptions taskOptions, NodeProvider nodeProvider, Vertx vertx) {
+    ActionNodeConfigOptions config = new ActionNodeConfigOptions(nodeOptions.getNode().getConfig());
+    Action action = actionProvider.get(config.getAction(), taskOptions.getActions(), vertx).orElseThrow(
         () -> new GraphConfigurationException("No provider for action " + config.getAction()));
     return new SingleNode(config.getAction(), toRxFunction(action), edges);
   }

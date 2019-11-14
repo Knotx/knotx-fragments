@@ -34,14 +34,13 @@ public class SubtasksNodeFactory implements NodeFactory {
     return "subtasks";
   }
 
-  public Node newInstance(String taskName, GraphNodeOptions nodeOptions,
-      Map<String, Node> edges,
-      TaskFactoryOptions taskFactoryOptions, DefaultTaskFactory taskFactory, Vertx vertx) {
+  public Node newInstance(GraphNodeOptions nodeOptions, Map<String, Node> edges, String taskName,
+      TaskFactoryOptions taskOptions, NodeProvider nodeProvider, Vertx vertx) {
     SubtasksNodeConfigOptions config = new SubtasksNodeConfigOptions(
         nodeOptions.getNode().getConfig());
     List<Node> nodes = config.getSubtasks().stream()
-        .map((GraphNodeOptions nextNodeOptions) -> taskFactory
-            .initNode(taskName, nextNodeOptions, taskFactoryOptions,
+        .map((GraphNodeOptions nextNodeOptions) -> nodeProvider
+            .newInstance(taskName, nextNodeOptions, taskOptions,
                 vertx))
         .collect(Collectors.toList());
     return new CompositeNode(getNodeId(), nodes, edges.get(SUCCESS_TRANSITION),
