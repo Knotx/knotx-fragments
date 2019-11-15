@@ -20,7 +20,8 @@ package io.knotx.fragments.task;
 import io.knotx.fragments.api.Fragment;
 import io.knotx.fragments.engine.FragmentEventContext;
 import io.knotx.fragments.engine.Task;
-import io.knotx.fragments.task.exception.GraphConfigurationException;
+import io.knotx.fragments.task.exception.NodeGraphException;
+import io.knotx.fragments.task.exception.TaskFactoryNotFoundException;
 import io.knotx.fragments.task.exception.TaskNotFoundException;
 import io.knotx.fragments.task.options.TaskOptions;
 import io.vertx.core.json.JsonObject;
@@ -76,12 +77,11 @@ public class TaskProvider {
     return new TaskDefinition(taskName, tasks.get(taskName).getGraph());
   }
 
-  private Task newInstance(TaskDefinition taskDefinition, String factoryName,
-      JsonObject factoryOptions) {
-    return Optional.ofNullable(factories.get(factoryName))
-        .map(f -> f.newInstance(taskDefinition.getTaskName(), taskDefinition.getGraphNodeOptions(),
-            factoryOptions, vertx))
-        .orElseThrow(() -> new GraphConfigurationException("Could not find task builder"));
+  private Task newInstance(TaskDefinition definition, String factory, JsonObject config) {
+    return Optional.ofNullable(factories.get(factory))
+        .map(f -> f.newInstance(definition.getTaskName(), definition.getGraphNodeOptions(),
+            config, vertx))
+        .orElseThrow(() -> new TaskFactoryNotFoundException(factory));
   }
 
   private Map<String, TaskFactory> initFactories() {

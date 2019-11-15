@@ -15,9 +15,7 @@
  */
 package io.knotx.fragments.task.exception;
 
-import io.knotx.fragments.handler.exception.ConfigurationException;
-
-public class TaskNotFoundException extends ConfigurationException {
+public class TaskNotFoundException extends TaskConfigurationException {
 
   private String taskName;
 

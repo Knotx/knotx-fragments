@@ -28,8 +28,9 @@ import io.knotx.fragments.engine.graph.CompositeNode;
 import io.knotx.fragments.engine.graph.Node;
 import io.knotx.fragments.engine.graph.SingleNode;
 import io.knotx.fragments.handler.action.ActionOptions;
-import io.knotx.fragments.task.TaskDefinition;
-import io.knotx.fragments.task.exception.GraphConfigurationException;
+import io.knotx.fragments.task.exception.NodeGraphException;
+import io.knotx.fragments.task.exception.NodeConfigException;
+import io.knotx.fragments.task.factory.config.ActionsConfig;
 import io.knotx.fragments.task.options.GraphNodeOptions;
 import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.VertxExtension;
@@ -80,8 +81,8 @@ class DefaultTaskFactoryTest {
     GraphNodeOptions graph = new GraphNodeOptions("A", NO_TRANSITIONS);
 
     // when, then
-    Assertions.assertThrows(GraphConfigurationException.class,
-        () -> getTask(graph, options, vertx));
+    Assertions.assertThrows(
+        NodeConfigException.class, () -> getTask(graph, options, vertx));
   }
 
   @Test
@@ -92,8 +93,8 @@ class DefaultTaskFactoryTest {
     GraphNodeOptions graph = new GraphNodeOptions("A", NO_TRANSITIONS);
 
     // when, then
-    Assertions.assertThrows(GraphConfigurationException.class,
-        () -> getTask(graph, options, vertx));
+    Assertions.assertThrows(
+        NodeGraphException.class, () -> getTask(graph, options, vertx));
   }
 
 
@@ -292,14 +293,13 @@ class DefaultTaskFactoryTest {
     assertEquals("A", node.getId());
   }
 
-  private Task getTask(GraphNodeOptions graph, JsonObject factoryOptions, Vertx vertx) {
+  private Task getTask(GraphNodeOptions graph, JsonObject nodeOptions, Vertx vertx) {
     return new DefaultTaskFactory()
-        .newInstance(TASK_NAME, graph, factoryOptions, vertx);
+        .newInstance(TASK_NAME, graph, nodeOptions, vertx);
   }
 
   private JsonObject options(String actionName, String transition) {
-    return new TaskFactoryOptions(new JsonObject())
-        .setActions(Collections.singletonMap(actionName,
+    return new ActionsConfig(Collections.singletonMap(actionName,
             new ActionOptions(new JsonObject())
                 .setFactory("test-action")
                 .setConfig(new JsonObject().put("transition", transition))))

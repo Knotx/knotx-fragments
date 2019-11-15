@@ -15,11 +15,15 @@
  */
 package io.knotx.fragments.task.exception;
 
-import io.knotx.fragments.handler.exception.ConfigurationException;
+public class TaskFactoryNotFoundException extends TaskConfigurationException {
 
-public class GraphConfigurationException extends ConfigurationException {
+  private String factory;
 
-  public GraphConfigurationException(String message) {
-    super(message);
+  public TaskFactoryNotFoundException(String factory) {
+    super("Task factory not found [" + factory + "]");
+  }
+
+  public String getFactory() {
+    return factory;
   }
 }

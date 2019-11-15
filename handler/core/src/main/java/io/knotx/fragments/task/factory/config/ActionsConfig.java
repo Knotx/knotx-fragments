@@ -13,29 +13,44 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.knotx.fragments.task.factory;
+package io.knotx.fragments.task.factory.config;
 
 import io.knotx.fragments.handler.action.ActionOptions;
+import io.knotx.fragments.task.exception.NodeConfigException;
 import io.vertx.codegen.annotations.DataObject;
 import io.vertx.core.json.JsonObject;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 
 @DataObject(generateConverter = true)
-public class TaskFactoryOptions {
-
-  static final String NODE_LOG_LEVEL_KEY = "logLevel";
+public class ActionsConfig {
 
   private Map<String, ActionOptions> actions;
-  private String logLevel;
 
-  public TaskFactoryOptions(JsonObject json) {
-    TaskFactoryOptionsConverter.fromJson(json, this);
+  public ActionsConfig(Map<String, ActionOptions> actions) {
+    this.actions = actions;
+  }
+
+  public ActionsConfig(JsonObject json) {
+    ActionsConfigConverter.fromJson(json, this);
+    initActionLogLevel(json);
+  }
+
+  private void initActionLogLevel(JsonObject json) {
+    LogLevelConfig defaultLogLevel = new LogLevelConfig(json);
+    Optional.ofNullable(actions).map(actions -> {
+      actions.values().forEach(actionOptions -> {
+        JsonObject actionConfig = actionOptions.getConfig();
+        LogLevelConfig.override(actionConfig, defaultLogLevel.getLogLevel());
+      });
+      return actions;
+    }).orElseThrow(() -> new NodeConfigException(json));
   }
 
   public JsonObject toJson() {
     JsonObject jsonObject = new JsonObject();
-    TaskFactoryOptionsConverter.toJson(this, jsonObject);
+    ActionsConfigConverter.toJson(this, jsonObject);
     return jsonObject;
   }
 
@@ -43,18 +58,9 @@ public class TaskFactoryOptions {
     return actions;
   }
 
-  public TaskFactoryOptions setActions(
+  public ActionsConfig setActions(
       Map<String, ActionOptions> actions) {
     this.actions = actions;
-    return this;
-  }
-
-  public String getLogLevel() {
-    return logLevel;
-  }
-
-  public TaskFactoryOptions setLogLevel(String logLevel) {
-    this.logLevel = logLevel;
     return this;
   }
 
@@ -66,21 +72,19 @@ public class TaskFactoryOptions {
     if (o == null || getClass() != o.getClass()) {
       return false;
     }
-    TaskFactoryOptions that = (TaskFactoryOptions) o;
-    return Objects.equals(actions, that.actions) &&
-        Objects.equals(logLevel, that.logLevel);
+    ActionsConfig that = (ActionsConfig) o;
+    return Objects.equals(actions, that.actions);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(actions, logLevel);
+    return Objects.hash(actions);
   }
 
   @Override
   public String toString() {
-    return "TaskOptions{" +
+    return "ActionsConfig{" +
         "actions=" + actions +
-        ", logLevel='" + logLevel + '\'' +
         '}';
   }
 }
