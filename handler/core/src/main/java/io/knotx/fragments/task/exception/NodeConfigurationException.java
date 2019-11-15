@@ -13,19 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.knotx.fragments.task.factory;
+package io.knotx.fragments.task.exception;
 
-import io.knotx.fragments.engine.graph.Node;
-import io.knotx.fragments.task.factory.config.ActionsConfig;
-import io.knotx.fragments.task.options.GraphNodeOptions;
-import io.vertx.core.json.JsonObject;
-import io.vertx.reactivex.core.Vertx;
-import java.util.Map;
+import io.knotx.fragments.handler.exception.ConfigurationException;
 
-public interface NodeFactory {
+public class NodeConfigurationException extends ConfigurationException {
 
-  String getName();
-
-  Node initNode(GraphNodeOptions nodeOptions, Map<String, Node> edges, String taskName,
-      JsonObject taskConfig, NodeProvider nodeProvider, Vertx vertx);
+  public NodeConfigurationException(String message) {
+    super(message);
+  }
+  
 }

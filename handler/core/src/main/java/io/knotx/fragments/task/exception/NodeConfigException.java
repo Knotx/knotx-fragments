@@ -13,19 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.knotx.fragments.task.factory;
+package io.knotx.fragments.task.exception;
 
-import io.knotx.fragments.engine.graph.Node;
-import io.knotx.fragments.task.factory.config.ActionsConfig;
-import io.knotx.fragments.task.options.GraphNodeOptions;
 import io.vertx.core.json.JsonObject;
-import io.vertx.reactivex.core.Vertx;
-import java.util.Map;
 
-public interface NodeFactory {
+public class NodeConfigException extends NodeConfigurationException {
 
-  String getName();
+  private JsonObject config;
 
-  Node initNode(GraphNodeOptions nodeOptions, Map<String, Node> edges, String taskName,
-      JsonObject taskConfig, NodeProvider nodeProvider, Vertx vertx);
+  public NodeConfigException(JsonObject config) {
+    super("Node configuration is incorrect [" + config + "]");
+    this.config = config;
+  }
+
+  public JsonObject getConfig() {
+    return config;
+  }
 }

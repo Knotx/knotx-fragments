@@ -46,6 +46,17 @@ Sets <code>Action</code> factory name.
 +++
 |===
 
+[[ActionsConfig]]
+== ActionsConfig
+
+
+[cols=">25%,25%,50%"]
+[frame="topbot"]
+|===
+^|Name | Type ^| Description
+|[[actions]]`@actions`|`link:dataobjects.html#ActionOptions[ActionOptions]`|-
+|===
+
 [[FragmentsHandlerOptions]]
 == FragmentsHandlerOptions
 
@@ -115,6 +126,17 @@ Sets outgoing graph node edges, called <code>Transitions</code>. Transition is S
 +++
 |===
 
+[[LogLevelConfig]]
+== LogLevelConfig
+
+
+[cols=">25%,25%,50%"]
+[frame="topbot"]
+|===
+^|Name | Type ^| Description
+|[[logLevel]]`@logLevel`|`String`|-
+|===
+
 [[NodeOptions]]
 == NodeOptions
 
@@ -160,18 +182,6 @@ Sets node factory name
 Sets list of link that represents link
  that will be executed in parallel.
 +++
-|===
-
-[[TaskFactoryOptions]]
-== TaskFactoryOptions
-
-
-[cols=">25%,25%,50%"]
-[frame="topbot"]
-|===
-^|Name | Type ^| Description
-|[[actions]]`@actions`|`link:dataobjects.html#ActionOptions[ActionOptions]`|-
-|[[logLevel]]`@logLevel`|`String`|-
 |===
 
 [[TaskOptions]]

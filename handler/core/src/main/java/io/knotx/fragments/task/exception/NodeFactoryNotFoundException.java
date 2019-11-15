@@ -15,7 +15,7 @@
  */
 package io.knotx.fragments.task.exception;
 
-public class NodeFactoryNotFoundException extends RuntimeException{
+public class NodeFactoryNotFoundException extends NodeConfigurationException {
 
   public NodeFactoryNotFoundException(String factory) {
     super("Factory not registered for [" + factory + "]");

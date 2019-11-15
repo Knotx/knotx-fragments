@@ -31,14 +31,14 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import org.apache.commons.lang3.StringUtils;
 
-class ActionProvider {
+public class ActionProvider {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(ActionProvider.class);
 
   private final Map<String, ActionFactory> factories;
   private final Map<String, Action> cache;
 
-  ActionProvider(Supplier<Iterator<ActionFactory>> supplier) {
+  public ActionProvider(Supplier<Iterator<ActionFactory>> supplier) {
     this.factories = loadFactories(supplier);
     this.cache = new HashMap<>();
   }
