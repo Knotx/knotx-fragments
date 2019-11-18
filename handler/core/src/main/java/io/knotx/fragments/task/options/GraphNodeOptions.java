@@ -118,6 +118,7 @@ public class GraphNodeOptions {
    * Optional#empty()} is returned.
    *
    * @param transition transition
+   * @return  node options if defined
    */
   public Optional<GraphNodeOptions> get(String transition) {
     return Optional.ofNullable(onTransitions.get(transition));
@@ -145,24 +146,28 @@ public class GraphNodeOptions {
   }
 
   /**
+   * @param action action name / alias
    * @see ActionNodeConfigOptions#setAction(String)
    */
-  public GraphNodeOptions setAction(String actionName) {
+  public GraphNodeOptions setAction(String action) {
     node.setFactory(ACTION);
-    node.setConfig(new ActionNodeConfigOptions(actionName).toJson());
+    node.setConfig(new ActionNodeConfigOptions(action).toJson());
     return this;
   }
 
   /**
+   * @param subtasks subtasks node options
    * @see SubtasksNodeConfigOptions#setSubtasks(List)
+   * @deprecated use subtasks
    */
   @Deprecated
-  public GraphNodeOptions setActions(List<GraphNodeOptions> subTasks) {
-    setSubtasks(subTasks);
+  public GraphNodeOptions setActions(List<GraphNodeOptions> subtasks) {
+    setSubtasks(subtasks);
     return this;
   }
 
   /**
+   * @param subtasks subtasks node options
    * @see SubtasksNodeConfigOptions#setSubtasks(List)
    */
   public GraphNodeOptions setSubtasks(List<GraphNodeOptions> subtasks) {
