@@ -1,11 +1,5 @@
 # Generated files #
 ###################
-node_modules
-node
-target-grunt
-.sass-cache
-.grunt
-C:
 .project
 .classpath
 .settings
@@ -13,12 +7,7 @@ generated
 
 # Compiled source #
 ###################
-# *.com
 *.class
-*.dll
-*.exe
-*.o
-*.so
 
 # Packages #
 ############
@@ -39,8 +28,6 @@ generated
 # Logs and databases #
 ######################
 *.log
-*.sql
-*.sqlite
 
 # OS generated files #
 ######################
