@@ -34,8 +34,8 @@ import io.vertx.core.json.JsonObject;
  *     }
  *   }
  * </pre>
- * WARNING: This action modifies Fragment body so it should not be used in composite nodes
- * {@link GraphNodeOptions#isComposite()}.
+ * WARNING: This action modifies Fragment body so it should not be used in subtasks nodes
+ * {@link io.knotx.fragments.task.factory.node.SubtasksNodeFactory}.
  */
 @Cacheable
 public class InlineBodyActionFactory implements ActionFactory {
