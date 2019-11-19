@@ -36,8 +36,6 @@ public class DefaultTaskFactory implements TaskFactory, NodeProvider {
 
   private Map<String, NodeFactory> nodeFactories;
 
-  private String taskKey = "data-knotx-task";
-
   public DefaultTaskFactory() {
     nodeFactories = initNodeFactories();
   }
@@ -53,8 +51,11 @@ public class DefaultTaskFactory implements TaskFactory, NodeProvider {
   }
 
   @Override
-  public Task newInstance(FragmentEventContext eventContext, JsonObject factoryConfig, Vertx vertx) {
+  public Task newInstance(FragmentEventContext eventContext, JsonObject factoryConfig,
+      Vertx vertx) {
     Fragment fragment = eventContext.getFragmentEvent().getFragment();
+    String taskKey = factoryConfig.getString("taskNameKey", "data-knotx-task");
+
     String taskName = fragment.getConfiguration().getString(taskKey);
 
     JsonObject taskOptionsJson = factoryConfig.getJsonObject("tasks").getJsonObject(taskName);
@@ -65,8 +66,10 @@ public class DefaultTaskFactory implements TaskFactory, NodeProvider {
   }
 
   @Override
-  public Node initNode(String taskName, GraphNodeOptions nodeOptions, JsonObject taskConfig, Vertx vertx) {
-    Map<String, Node> transitionToNodeMap = initTransitions(taskName, nodeOptions, taskConfig, vertx);
+  public Node initNode(String taskName, GraphNodeOptions nodeOptions, JsonObject taskConfig,
+      Vertx vertx) {
+    Map<String, Node> transitionToNodeMap = initTransitions(taskName, nodeOptions, taskConfig,
+        vertx);
     Optional<NodeFactory> nodeFactory = getNodeFactory(nodeOptions);
     return nodeFactory
         .map(f -> f.initNode(nodeOptions, transitionToNodeMap, taskName, taskConfig, this, vertx))
