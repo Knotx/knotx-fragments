@@ -57,6 +57,16 @@ Sets <code>Action</code> factory name.
 |[[actions]]`@actions`|`link:dataobjects.html#ActionOptions[ActionOptions]`|-
 |===
 
+[[DefaultTaskFactoryOptions]]
+== DefaultTaskFactoryOptions
+
+
+[cols=">25%,25%,50%"]
+[frame="topbot"]
+|===
+^|Name | Type ^| Description
+|===
+
 [[FragmentsHandlerOptions]]
 == FragmentsHandlerOptions
 

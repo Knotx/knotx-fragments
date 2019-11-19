@@ -13,23 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.knotx.fragments.task;
+package io.knotx.fragments.task.factory;
 
-import io.knotx.fragments.engine.FragmentEventContext;
-import io.knotx.fragments.engine.Task;
-import io.knotx.fragments.task.options.GraphNodeOptions;
-import io.knotx.fragments.task.options.TaskOptions;
+import io.knotx.fragments.handler.action.ActionOptions;
+import io.vertx.codegen.annotations.DataObject;
 import io.vertx.core.json.JsonObject;
-import io.vertx.reactivex.core.Vertx;
 import java.util.Map;
 
-public interface TaskFactory {
+@DataObject
+public class DefaultTaskFactoryOptions {
 
-  String getName();
+  private Map<String, ActionOptions> actions;
 
-//  void init(JsonObject taskFactoryOptions);
+  public DefaultTaskFactoryOptions(JsonObject json) {
 
-  boolean accept(FragmentEventContext eventContext);
+  }
 
-  Task newInstance(FragmentEventContext eventContext, JsonObject factoryConfig, Vertx vertx);
+  public JsonObject toJson() {
+    JsonObject result = new JsonObject();
+    return result;
+  }
+
 }

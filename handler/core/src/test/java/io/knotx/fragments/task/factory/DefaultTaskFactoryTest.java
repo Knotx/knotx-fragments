@@ -75,21 +75,26 @@ class DefaultTaskFactoryTest {
           new JsonObject().put(MY_TASK_KEY, TASK_NAME), "body")),
           new ClientRequest());
 
-  // TODO move to fragments handler
-//  @Test
-//  @DisplayName("Expect graph when custom task key is defined.")
-//  void expectGraphWhenCustomTaskKey(Vertx vertx) {
-//    // given
-//    JsonObject options = options("A", SUCCESS_TRANSITION);
-//    GraphNodeOptions graph = new GraphNodeOptions("A", NO_TRANSITIONS);
-//
-//    // when
-//    Task task = new DefaultTaskFactory()
-//        .newInstance(TASK_NAME, graph, options, vertx);
-//
-//    // then
-//    assertEquals(TASK_NAME, task.getName());
-//  }
+  @Test
+  @DisplayName("Expect graph when custom task key is defined.")
+  void expectGraphWhenCustomTaskKey(Vertx vertx) {
+    // given
+    JsonObject options = options("A", SUCCESS_TRANSITION);
+    GraphNodeOptions graph = new GraphNodeOptions("A", NO_TRANSITIONS);
+
+    JsonObject factoryOptions = new JsonObject();
+    factoryOptions.mergeIn(options);
+    factoryOptions
+        .put("tasks", new JsonObject().put(TASK_NAME, new TaskOptions().setGraph(graph).toJson()));
+    factoryOptions.put("taskNameKey", MY_TASK_KEY);
+
+    // when
+    Task task = new DefaultTaskFactory()
+        .newInstance(SAMPLE_FRAGMENT_EVENT_WITH_CUSTOM_TASK_KEY, factoryOptions, vertx);
+
+    // then
+    assertEquals(TASK_NAME, task.getName());
+  }
 
   @Test
   @DisplayName("Expect exception when `actions` not defined.")
@@ -311,17 +316,20 @@ class DefaultTaskFactoryTest {
     assertEquals("A", node.getId());
   }
 
-  private Task getTask(GraphNodeOptions graph, JsonObject factoryOptions, Vertx vertx) {
-    factoryOptions.put("tasks", Collections.singletonMap(TASK_NAME, new TaskOptions().setGraph(graph)));
+  private Task getTask(GraphNodeOptions graph, JsonObject actions, Vertx vertx) {
+    JsonObject factoryOptions = new JsonObject();
+    factoryOptions.mergeIn(actions);
+    factoryOptions
+        .put("tasks", new JsonObject().put(TASK_NAME, new TaskOptions().setGraph(graph).toJson()));
 
     return new DefaultTaskFactory().newInstance(SAMPLE_FRAGMENT_EVENT, factoryOptions, vertx);
   }
 
   private JsonObject options(String actionName, String transition) {
     return new ActionsConfig(Collections.singletonMap(actionName,
-            new ActionOptions(new JsonObject())
-                .setFactory("test-action")
-                .setConfig(new JsonObject().put("transition", transition))))
+        new ActionOptions(new JsonObject())
+            .setFactory("test-action")
+            .setConfig(new JsonObject().put("transition", transition))))
         .toJson();
   }
 
