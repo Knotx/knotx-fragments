@@ -15,11 +15,14 @@
  */
 package io.knotx.fragments.task.factory;
 
+import io.knotx.fragments.api.Fragment;
+import io.knotx.fragments.engine.FragmentEventContext;
 import io.knotx.fragments.engine.Task;
 import io.knotx.fragments.engine.graph.Node;
 import io.knotx.fragments.task.TaskFactory;
 import io.knotx.fragments.task.exception.NodeFactoryNotFoundException;
 import io.knotx.fragments.task.options.GraphNodeOptions;
+import io.knotx.fragments.task.options.TaskOptions;
 import io.vertx.core.json.JsonObject;
 import io.vertx.reactivex.core.Vertx;
 import java.util.HashMap;
@@ -33,6 +36,8 @@ public class DefaultTaskFactory implements TaskFactory, NodeProvider {
 
   private Map<String, NodeFactory> nodeFactories;
 
+  private String taskKey = "data-knotx-task";
+
   public DefaultTaskFactory() {
     nodeFactories = initNodeFactories();
   }
@@ -43,9 +48,19 @@ public class DefaultTaskFactory implements TaskFactory, NodeProvider {
   }
 
   @Override
-  public Task newInstance(String taskName, GraphNodeOptions nodeOptions, JsonObject taskConfig,
-      Vertx vertx) {
-    Node rootNode = initNode(taskName, nodeOptions, taskConfig, vertx);
+  public boolean accept(FragmentEventContext eventContext) {
+    return true;
+  }
+
+  @Override
+  public Task newInstance(FragmentEventContext eventContext, JsonObject factoryConfig, Vertx vertx) {
+    Fragment fragment = eventContext.getFragmentEvent().getFragment();
+    String taskName = fragment.getConfiguration().getString(taskKey);
+
+    JsonObject taskOptionsJson = factoryConfig.getJsonObject("tasks").getJsonObject(taskName);
+
+    GraphNodeOptions nodeOptions = new TaskOptions(taskOptionsJson).getGraph();
+    Node rootNode = initNode(taskName, nodeOptions, factoryConfig, vertx);
     return new Task(taskName, rootNode);
   }
 

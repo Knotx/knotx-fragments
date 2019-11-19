@@ -31,6 +31,9 @@ public class TaskOptions {
   private JsonObject config;
   private GraphNodeOptions graph;
 
+  public TaskOptions() {
+  }
+
   public TaskOptions(JsonObject json) {
     init();
     TaskOptionsConverter.fromJson(json, this);

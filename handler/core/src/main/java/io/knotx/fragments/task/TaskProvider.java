@@ -20,15 +20,15 @@ package io.knotx.fragments.task;
 import io.knotx.fragments.api.Fragment;
 import io.knotx.fragments.engine.FragmentEventContext;
 import io.knotx.fragments.engine.Task;
-import io.knotx.fragments.task.exception.NodeGraphException;
-import io.knotx.fragments.task.exception.TaskFactoryNotFoundException;
-import io.knotx.fragments.task.exception.TaskNotFoundException;
-import io.knotx.fragments.task.options.TaskOptions;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import io.vertx.reactivex.core.Vertx;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.ServiceLoader;
@@ -39,30 +39,38 @@ public class TaskProvider {
 
   private final String taskKey;
   private final Map<String, TaskFactory> factories;
-  private final Map<String, TaskOptions> tasks;
+  private final JsonArray factoryOptions;
   private final Vertx vertx;
 
-  public TaskProvider(String taskKey, Map<String, TaskOptions> tasks, Vertx vertx) {
+  private List<TaskFactory> orderedFactories;
+
+  public TaskProvider(String taskKey, JsonArray factoryOptions, Vertx vertx) {
     this.taskKey = taskKey;
-    this.tasks = tasks;
+    this.factoryOptions = factoryOptions;
     factories = initFactories();
+    orderedFactories = init(factoryOptions);
     this.vertx = vertx;
   }
 
-  public Optional<Task> newInstance(FragmentEventContext fragmentEventContext) {
-    return Optional.of(fragmentEventContext.getFragmentEvent().getFragment())
-        .filter(this::hasTask)
-        .map(this::getTaskName)
-        .map(taskName -> {
-          TaskOptions taskOptions = tasks.get(taskName);
-          if (taskOptions == null) {
-            LOGGER.error("Could not find task [{}] in tasks [{}]", taskName, tasks);
-            throw new TaskNotFoundException(taskName);
-          }
-          taskOptions.getConfig();
-          TaskDefinition taskDefinition = getTaskConfiguration(taskName);
-          return newInstance(taskDefinition, taskOptions.getFactory(), taskOptions.getConfig());
-        });
+  public Optional<Task> newInstance(FragmentEventContext eventContext) {
+    return orderedFactories.stream()
+        .filter(f -> f.accept(eventContext))
+        .findFirst()
+        .map(f -> f.newInstance(eventContext, get(f.getName()), vertx));
+  }
+
+  private JsonObject get(String name) {
+    JsonObject config = new JsonObject();
+    Iterator<Object> iterator = factoryOptions.iterator();
+    while(iterator.hasNext()) {
+      JsonObject options = (JsonObject) iterator.next();
+      String factory = options.getString("name");
+      if (name.equals(factory)) {
+        config = options.getJsonObject("config");
+        break;
+      }
+    }
+    return config;
   }
 
   private String getTaskName(Fragment fragment) {
@@ -73,15 +81,14 @@ public class TaskProvider {
     return fragment.getConfiguration().containsKey(taskKey);
   }
 
-  private TaskDefinition getTaskConfiguration(String taskName) {
-    return new TaskDefinition(taskName, tasks.get(taskName).getGraph());
-  }
-
-  private Task newInstance(TaskDefinition definition, String factory, JsonObject config) {
-    return Optional.ofNullable(factories.get(factory))
-        .map(f -> f.newInstance(definition.getTaskName(), definition.getGraphNodeOptions(),
-            config, vertx))
-        .orElseThrow(() -> new TaskFactoryNotFoundException(factory));
+  List<TaskFactory> init(JsonArray factoryOptions) {
+    List<TaskFactory> orderedFactories = new ArrayList<>();
+    factoryOptions.iterator().forEachRemaining(options -> {
+      String factory = ((JsonObject) options).getString("name");
+      JsonObject config = ((JsonObject) options).getJsonObject("config");
+      orderedFactories.add(factories.get(factory));
+    });
+    return orderedFactories;
   }
 
   private Map<String, TaskFactory> initFactories() {

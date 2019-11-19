@@ -52,7 +52,7 @@ public class FragmentsHandler implements Handler<RoutingContext> {
   FragmentsHandler(Vertx vertx, JsonObject config) {
     FragmentsHandlerOptions options = new FragmentsHandlerOptions(config);
 
-    taskProvider = new TaskProvider(options.getTaskKey(), options.getTasks(), vertx);
+    taskProvider = new TaskProvider(options.getTaskKey(), config.getJsonArray("taskFactories"), vertx);
     engine = new FragmentsEngine(vertx);
     requestContextEngine = new DefaultRequestContextEngine(getClass().getSimpleName());
   }
