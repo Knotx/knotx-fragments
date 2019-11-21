@@ -13,7 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.knotx.fragments.task.exception;
+package io.knotx.fragments.handler.exception;
+
+import io.knotx.fragments.task.exception.TaskConfigurationException;
 
 public class TaskFactoryNotFoundException extends TaskConfigurationException {
 
@@ -21,6 +23,7 @@ public class TaskFactoryNotFoundException extends TaskConfigurationException {
 
   public TaskFactoryNotFoundException(String factory) {
     super("Task factory not found [" + factory + "]");
+    this.factory = factory;
   }
 
   public String getFactory() {

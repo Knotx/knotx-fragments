@@ -13,24 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.knotx.fragments.handler.options;
+package io.knotx.fragments.handler;
 
-import static io.knotx.fragments.handler.api.actionlog.ActionLogLevel.ERROR;
-
-import io.knotx.fragments.handler.action.ActionOptions;
-import io.knotx.fragments.handler.api.actionlog.ActionLogLevel;
-import io.knotx.fragments.task.options.TaskOptions;
 import io.vertx.codegen.annotations.DataObject;
 import io.vertx.core.json.JsonObject;
-import java.util.Map;
+import java.util.List;
 import java.util.Objects;
 
 @DataObject(generateConverter = true)
 public class FragmentsHandlerOptions {
 
-  public static final String DEFAULT_TASK_KEY = "data-knotx-task";
-
-  private Map<String, TaskOptions> tasks;
+  private List<TaskFactoryOptions> taskFactories;
 
   public FragmentsHandlerOptions(JsonObject json) {
     FragmentsHandlerOptionsConverter.fromJson(json, this);
@@ -42,19 +35,12 @@ public class FragmentsHandlerOptions {
     return jsonObject;
   }
 
-  public Map<String, TaskOptions> getTasks() {
-    return tasks;
+  public List<TaskFactoryOptions> getTaskFactories() {
+    return taskFactories;
   }
 
-  /**
-   * Sets {@code Task} list, which are named, directed graphs of {@code Actions}.
-   *
-   * @param tasks list of defined {@code Tasks}.
-   * @return reference to this, so the API can be used fluently
-   */
-  public FragmentsHandlerOptions setTasks(Map<String, TaskOptions> tasks) {
-    this.tasks = tasks;
-    return this;
+  public void setTaskFactories(List<TaskFactoryOptions> taskFactories) {
+    this.taskFactories = taskFactories;
   }
 
   @Override
@@ -66,18 +52,18 @@ public class FragmentsHandlerOptions {
       return false;
     }
     FragmentsHandlerOptions that = (FragmentsHandlerOptions) o;
-    return Objects.equals(tasks, that.tasks);
+    return Objects.equals(taskFactories, that.taskFactories);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(tasks);
+    return Objects.hash(taskFactories);
   }
 
   @Override
   public String toString() {
     return "FragmentsHandlerOptions{" +
-        "tasks=" + tasks +
+        "taskFactories=" + taskFactories +
         '}';
   }
 }

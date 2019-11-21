@@ -13,20 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.knotx.fragments.task.exception;
+package io.knotx.fragments.handler.exception;
 
-import io.knotx.fragments.handler.exception.ConfigurationException;
 import io.vertx.core.json.JsonObject;
 
 public class TaskFactoryNameNotDefinedException extends ConfigurationException {
 
-  private String factory;
+  private JsonObject configuration;
 
-  public TaskFactoryNameNotDefinedException(JsonObject jsonObject) {
-    super("Task factory name not defined [" + jsonObject + "]");
+  public TaskFactoryNameNotDefinedException(JsonObject configuration) {
+    super("Task factory name not defined [" + configuration + "]");
+    this.configuration = configuration;
   }
 
-  public String getFactory() {
-    return factory;
+  public JsonObject getConfiguration() {
+    return configuration;
   }
 }

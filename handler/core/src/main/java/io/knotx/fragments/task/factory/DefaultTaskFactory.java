@@ -33,8 +33,8 @@ import java.util.ServiceLoader;
 public class DefaultTaskFactory implements TaskFactory, NodeProvider {
 
   public static final String NAME = "default";
-  public static final String TASK_NAME_KEY_OPTION = "taskNameKey";
-  private static final String DEFAULT_TASK_NAME_KEY = "data-knotx-task";
+  private static final String TASK_NAME_KEY_OPTION = "taskNameKey";
+  public static final String DEFAULT_TASK_NAME_KEY = "data-knotx-task";
 
   private JsonObject factoryConfig;
   private Map<String, NodeFactory> nodeFactories;
@@ -57,7 +57,8 @@ public class DefaultTaskFactory implements TaskFactory, NodeProvider {
   @Override
   public boolean accept(FragmentEventContext eventContext) {
     String taskNameKey = factoryConfig.getString(TASK_NAME_KEY_OPTION, DEFAULT_TASK_NAME_KEY);
-    return eventContext.getFragmentEvent().getFragment().getConfiguration().containsKey(taskNameKey);
+    return eventContext.getFragmentEvent().getFragment().getConfiguration()
+        .containsKey(taskNameKey);
   }
 
   @Override
@@ -102,9 +103,8 @@ public class DefaultTaskFactory implements TaskFactory, NodeProvider {
   private Map<String, NodeFactory> initNodeFactories() {
     ServiceLoader<NodeFactory> factories = ServiceLoader.load(NodeFactory.class);
     Map<String, NodeFactory> nodeFactories = new HashMap<>();
-    factories.iterator().forEachRemaining(nodeFactory -> {
-      nodeFactories.put(nodeFactory.getName(), nodeFactory);
-    });
+    factories.iterator()
+        .forEachRemaining(nodeFactory -> nodeFactories.put(nodeFactory.getName(), nodeFactory));
     return nodeFactories;
   }
 }
