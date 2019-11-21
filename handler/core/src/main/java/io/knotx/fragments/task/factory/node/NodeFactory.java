@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.knotx.fragments.task.factory;
+package io.knotx.fragments.task.factory.node;
 
 import io.knotx.fragments.engine.graph.Node;
-import io.knotx.fragments.task.factory.config.ActionsConfig;
+import io.knotx.fragments.task.factory.NodeProvider;
 import io.knotx.fragments.task.options.GraphNodeOptions;
 import io.vertx.core.json.JsonObject;
 import io.vertx.reactivex.core.Vertx;
@@ -26,6 +26,9 @@ public interface NodeFactory {
 
   String getName();
 
+  NodeFactory configure(JsonObject nodeConfig, Vertx vertx);
+
   Node initNode(GraphNodeOptions nodeOptions, Map<String, Node> edges, String taskName,
-      JsonObject taskConfig, NodeProvider nodeProvider, Vertx vertx);
+      JsonObject taskConfig, NodeProvider nodeProvider);
+
 }

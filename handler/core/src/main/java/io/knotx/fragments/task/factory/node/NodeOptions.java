@@ -13,8 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.knotx.fragments.task.options;
+package io.knotx.fragments.task.factory.node;
 
+import io.knotx.fragments.task.factory.node.action.ActionNodeConfig;
+import io.knotx.fragments.task.factory.node.subtasks.SubtasksNodeConfig;
 import io.vertx.codegen.annotations.DataObject;
 import io.vertx.core.json.JsonObject;
 import java.util.Objects;
@@ -28,12 +30,12 @@ public class NodeOptions {
   private String factory;
   private JsonObject config;
 
-  NodeOptions() {
+  public NodeOptions() {
     init();
   }
 
   public NodeOptions(JsonObject json) {
-    init();
+    this();
     NodeOptionsConverter.fromJson(json, this);
   }
 
@@ -70,8 +72,8 @@ public class NodeOptions {
   /**
    * Gets node configuration. The default ones are:
    * <pre>
-   * - {@link ActionNodeConfigOptions}
-   * - {@link SubtasksNodeConfigOptions}
+   * - {@link ActionNodeConfig}
+   * - {@link SubtasksNodeConfig}
    * </pre>
    *
    * @return JSON representation of above config options

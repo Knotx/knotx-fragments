@@ -27,7 +27,7 @@ import io.knotx.fragments.engine.FragmentEvent;
 import io.knotx.fragments.engine.FragmentEvent.Status;
 import io.knotx.fragments.handler.exception.TaskFactoryNameNotDefinedException;
 import io.knotx.fragments.handler.exception.TaskFactoryNotFoundException;
-import io.knotx.fragments.task.factory.DefaultTaskFactory;
+import io.knotx.fragments.task.factory.DefaultTaskFactoryConfig;
 import io.knotx.server.api.context.ClientRequest;
 import io.knotx.server.api.context.RequestContext;
 import io.knotx.server.api.context.RequestEvent;
@@ -107,7 +107,7 @@ class FragmentsHandlerTest {
       //given
       FragmentsHandler underTest = new FragmentsHandler(vertx, config);
       Fragment fragment = new Fragment("type",
-          new JsonObject().put(DefaultTaskFactory.DEFAULT_TASK_NAME_KEY, "success-task"), EMPTY_BODY);
+          new JsonObject().put(DefaultTaskFactoryConfig.DEFAULT_TASK_NAME_KEY, "success-task"), EMPTY_BODY);
       String expectedBody = "success";
 
       //when
@@ -218,6 +218,6 @@ class FragmentsHandlerTest {
 
   private Fragment fragment(String task) {
     return new Fragment("type",
-        new JsonObject().put(DefaultTaskFactory.DEFAULT_TASK_NAME_KEY, task), "");
+        new JsonObject().put(DefaultTaskFactoryConfig.DEFAULT_TASK_NAME_KEY, task), "");
   }
 }

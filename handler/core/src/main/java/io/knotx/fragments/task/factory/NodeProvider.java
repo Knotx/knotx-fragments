@@ -16,16 +16,13 @@
 package io.knotx.fragments.task.factory;
 
 import io.knotx.fragments.engine.graph.Node;
-import io.knotx.fragments.task.factory.config.ActionsConfig;
 import io.knotx.fragments.task.options.GraphNodeOptions;
-import io.vertx.core.json.JsonObject;
-import io.vertx.reactivex.core.Vertx;
 
 /**
  * Inits node based on node options.
  */
 public interface NodeProvider {
 
-  Node initNode(String taskName, GraphNodeOptions nodeOptions, JsonObject taskConfig, Vertx vertx);
+  Node initNode(String taskName, GraphNodeOptions nodeOptions);
 
 }

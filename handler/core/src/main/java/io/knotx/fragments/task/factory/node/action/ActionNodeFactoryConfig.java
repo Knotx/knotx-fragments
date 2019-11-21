@@ -13,10 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.knotx.fragments.task.factory.config;
+package io.knotx.fragments.task.factory.node.action;
 
 import io.knotx.fragments.handler.action.ActionOptions;
 import io.knotx.fragments.task.exception.NodeConfigException;
+import io.knotx.fragments.task.factory.config.LogLevelConfig;
 import io.vertx.codegen.annotations.DataObject;
 import io.vertx.core.json.JsonObject;
 import java.util.Map;
@@ -24,16 +25,16 @@ import java.util.Objects;
 import java.util.Optional;
 
 @DataObject(generateConverter = true)
-public class ActionsConfig {
+public class ActionNodeFactoryConfig {
 
   private Map<String, ActionOptions> actions;
 
-  public ActionsConfig(Map<String, ActionOptions> actions) {
+  public ActionNodeFactoryConfig(Map<String, ActionOptions> actions) {
     this.actions = actions;
   }
 
-  public ActionsConfig(JsonObject json) {
-    ActionsConfigConverter.fromJson(json, this);
+  public ActionNodeFactoryConfig(JsonObject json) {
+    ActionNodeFactoryConfigConverter.fromJson(json, this);
     initActionLogLevel(json);
   }
 
@@ -50,7 +51,7 @@ public class ActionsConfig {
 
   public JsonObject toJson() {
     JsonObject jsonObject = new JsonObject();
-    ActionsConfigConverter.toJson(this, jsonObject);
+    ActionNodeFactoryConfigConverter.toJson(this, jsonObject);
     return jsonObject;
   }
 
@@ -58,7 +59,7 @@ public class ActionsConfig {
     return actions;
   }
 
-  public ActionsConfig setActions(
+  public ActionNodeFactoryConfig setActions(
       Map<String, ActionOptions> actions) {
     this.actions = actions;
     return this;
@@ -72,7 +73,7 @@ public class ActionsConfig {
     if (o == null || getClass() != o.getClass()) {
       return false;
     }
-    ActionsConfig that = (ActionsConfig) o;
+    ActionNodeFactoryConfig that = (ActionNodeFactoryConfig) o;
     return Objects.equals(actions, that.actions);
   }
 

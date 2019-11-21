@@ -21,6 +21,8 @@ import io.knotx.fragments.engine.Task;
 import io.knotx.fragments.engine.graph.Node;
 import io.knotx.fragments.task.TaskFactory;
 import io.knotx.fragments.task.exception.NodeFactoryNotFoundException;
+import io.knotx.fragments.task.exception.TaskNotFoundException;
+import io.knotx.fragments.task.factory.node.NodeFactory;
 import io.knotx.fragments.task.options.GraphNodeOptions;
 import io.knotx.fragments.task.options.TaskOptions;
 import io.vertx.core.json.JsonObject;
@@ -29,19 +31,18 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.ServiceLoader;
+import java.util.Spliterator;
+import java.util.Spliterators;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 public class DefaultTaskFactory implements TaskFactory, NodeProvider {
 
   public static final String NAME = "default";
-  private static final String TASK_NAME_KEY_OPTION = "taskNameKey";
-  public static final String DEFAULT_TASK_NAME_KEY = "data-knotx-task";
 
-  private JsonObject factoryConfig;
+  private DefaultTaskFactoryConfig taskFactoryConfig;
   private Map<String, NodeFactory> nodeFactories;
-
-  public DefaultTaskFactory() {
-    nodeFactories = initNodeFactories();
-  }
 
   @Override
   public String getName() {
@@ -49,62 +50,70 @@ public class DefaultTaskFactory implements TaskFactory, NodeProvider {
   }
 
   @Override
-  public DefaultTaskFactory configure(JsonObject factoryConfig) {
-    this.factoryConfig = factoryConfig;
+  public DefaultTaskFactory configure(JsonObject taskFactoryConfig, Vertx vertx) {
+    this.taskFactoryConfig = new DefaultTaskFactoryConfig(taskFactoryConfig);
+    nodeFactories = initFactories(vertx);
     return this;
   }
 
   @Override
   public boolean accept(FragmentEventContext eventContext) {
-    String taskNameKey = factoryConfig.getString(TASK_NAME_KEY_OPTION, DEFAULT_TASK_NAME_KEY);
-    return eventContext.getFragmentEvent().getFragment().getConfiguration()
-        .containsKey(taskNameKey);
+    Fragment fragment = eventContext.getFragmentEvent().getFragment();
+    // TODO validate if it is on the list
+    return fragment.getConfiguration().containsKey(taskFactoryConfig.getTaskNameKey());
   }
 
   @Override
-  public Task newInstance(FragmentEventContext eventContext, Vertx vertx) {
+  public Task newInstance(FragmentEventContext eventContext) {
     Fragment fragment = eventContext.getFragmentEvent().getFragment();
-    String taskKey = factoryConfig.getString(TASK_NAME_KEY_OPTION, DEFAULT_TASK_NAME_KEY);
-
+    String taskKey = taskFactoryConfig.getTaskNameKey();
     String taskName = fragment.getConfiguration().getString(taskKey);
 
-    JsonObject taskOptionsJson = factoryConfig.getJsonObject("tasks").getJsonObject(taskName);
-
-    GraphNodeOptions nodeOptions = new TaskOptions(taskOptionsJson).getGraph();
-    Node rootNode = initNode(taskName, nodeOptions, factoryConfig, vertx);
-    return new Task(taskName, rootNode);
+    Map<String, TaskOptions> tasks = taskFactoryConfig.getTasks();
+    return Optional.ofNullable(tasks.get(taskName))
+        .map(taskOptions -> {
+          Node rootNode = initNode(taskName, taskOptions.getGraph());
+          return new Task(taskName, rootNode);
+        }).orElseThrow(() -> new TaskNotFoundException(taskName));
   }
 
   @Override
-  public Node initNode(String taskName, GraphNodeOptions nodeOptions, JsonObject taskConfig,
-      Vertx vertx) {
-    Map<String, Node> transitionToNodeMap = initTransitions(taskName, nodeOptions, taskConfig,
-        vertx);
-    Optional<NodeFactory> nodeFactory = getNodeFactory(nodeOptions);
+  public Node initNode(String taskName, GraphNodeOptions nodeOptions) {
+    Map<String, Node> transitionToNodeMap = initTransitions(taskName, nodeOptions);
+    Optional<NodeFactory> nodeFactory = findNodeFactory(nodeOptions);
     return nodeFactory
-        .map(f -> f.initNode(nodeOptions, transitionToNodeMap, taskName, taskConfig, this, vertx))
+        .map(f -> f.initNode(nodeOptions, transitionToNodeMap, taskName,
+            taskFactoryConfig.getTasks().get(taskName).getConfig(), this))
         .orElseThrow(() -> new NodeFactoryNotFoundException(nodeOptions.getNode().getFactory()));
   }
 
-  private Optional<NodeFactory> getNodeFactory(GraphNodeOptions nodeOptions) {
+  private Optional<NodeFactory> findNodeFactory(GraphNodeOptions nodeOptions) {
     return Optional.ofNullable(nodeFactories.get(nodeOptions.getNode().getFactory()));
   }
 
-  private Map<String, Node> initTransitions(String taskName, GraphNodeOptions nodeOptions,
-      JsonObject taskConfig,
-      Vertx vertx) {
+  private Map<String, Node> initTransitions(String taskName, GraphNodeOptions nodeOptions) {
     Map<String, GraphNodeOptions> transitions = nodeOptions.getOnTransitions();
     Map<String, Node> edges = new HashMap<>();
     transitions.forEach((transition, childGraphOptions) -> edges
-        .put(transition, initNode(taskName, childGraphOptions, taskConfig, vertx)));
+        .put(transition, initNode(taskName, childGraphOptions)));
     return edges;
   }
 
-  private Map<String, NodeFactory> initNodeFactories() {
+  private Map<String, NodeFactory> initFactories(Vertx vertx) {
     ServiceLoader<NodeFactory> factories = ServiceLoader.load(NodeFactory.class);
-    Map<String, NodeFactory> nodeFactories = new HashMap<>();
-    factories.iterator()
-        .forEachRemaining(nodeFactory -> nodeFactories.put(nodeFactory.getName(), nodeFactory));
-    return nodeFactories;
+    return taskFactoryConfig.getNodeFactories().stream()
+        .map(options -> {
+          NodeFactory factory = findNodeFactory(factories, options.getFactory());
+          return factory.configure(options.getConfig(), vertx);
+        }).collect(Collectors.toMap(NodeFactory::getName, f -> f));
+  }
+
+  private NodeFactory findNodeFactory(ServiceLoader<NodeFactory> factories, String factory) {
+    Stream<NodeFactory> factoryStream = StreamSupport.stream(
+        Spliterators.spliteratorUnknownSize(factories.iterator(), Spliterator.ORDERED),
+        false);
+
+    return factoryStream.filter(f -> f.getName().equals(factory)).findFirst()
+        .orElseThrow(() -> new IllegalStateException("Node not decfined"));
   }
 }

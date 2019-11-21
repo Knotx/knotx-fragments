@@ -33,7 +33,10 @@ import io.knotx.fragments.engine.graph.SingleNode;
 import io.knotx.fragments.handler.action.ActionOptions;
 import io.knotx.fragments.task.exception.NodeConfigException;
 import io.knotx.fragments.task.exception.NodeGraphException;
-import io.knotx.fragments.task.factory.config.ActionsConfig;
+import io.knotx.fragments.task.factory.node.action.ActionNodeFactoryConfig;
+import io.knotx.fragments.task.factory.node.action.ActionNodeFactory;
+import io.knotx.fragments.task.factory.node.NodeFactoryOptions;
+import io.knotx.fragments.task.factory.node.subtasks.SubtasksNodeFactory;
 import io.knotx.fragments.task.options.GraphNodeOptions;
 import io.knotx.fragments.task.options.TaskOptions;
 import io.knotx.server.api.context.ClientRequest;
@@ -64,7 +67,7 @@ class DefaultTaskFactoryTest {
 
   private static final FragmentEventContext SAMPLE_FRAGMENT_EVENT =
       new FragmentEventContext(new FragmentEvent(new Fragment("type",
-          new JsonObject().put(DefaultTaskFactory.DEFAULT_TASK_NAME_KEY, TASK_NAME), "body")),
+          new JsonObject().put(DefaultTaskFactoryConfig.DEFAULT_TASK_NAME_KEY, TASK_NAME), "body")),
           new ClientRequest());
 
   private static final String MY_TASK_KEY = "myTaskKey";
@@ -78,45 +81,30 @@ class DefaultTaskFactoryTest {
   @DisplayName("Expect graph when custom task key is defined.")
   void expectGraphWhenCustomTaskKey(Vertx vertx) {
     // given
-    JsonObject options = options("A", SUCCESS_TRANSITION);
+    JsonObject actionNodeConfig = createActionNodeConfig("A", SUCCESS_TRANSITION);
     GraphNodeOptions graph = new GraphNodeOptions("A", NO_TRANSITIONS);
 
-    JsonObject factoryOptions = new JsonObject();
-    factoryOptions.mergeIn(options);
-    factoryOptions
-        .put("tasks", new JsonObject().put(TASK_NAME, new TaskOptions().setGraph(graph).toJson()));
-    factoryOptions.put("taskNameKey", MY_TASK_KEY);
+    DefaultTaskFactoryConfig taskFactoryConfig = getTaskFactoryConfig(graph, actionNodeConfig);
+    taskFactoryConfig.setTaskNameKey(MY_TASK_KEY);
 
     // when
-    Task task = new DefaultTaskFactory().configure(factoryOptions)
-        .newInstance(SAMPLE_FRAGMENT_EVENT_WITH_CUSTOM_TASK_KEY, vertx);
+    Task task = new DefaultTaskFactory().configure(taskFactoryConfig.toJson(), vertx)
+        .newInstance(SAMPLE_FRAGMENT_EVENT_WITH_CUSTOM_TASK_KEY);
 
     // then
     assertEquals(TASK_NAME, task.getName());
   }
 
   @Test
-  @DisplayName("Expect exception when `actions` not defined.")
-  void expectExceptionWhenActionsNotConfigured(Vertx vertx) {
-    // given
-    JsonObject options = new JsonObject();
-    GraphNodeOptions graph = new GraphNodeOptions("A", NO_TRANSITIONS);
-
-    // when, then
-    Assertions.assertThrows(
-        NodeConfigException.class, () -> getTask(graph, options, vertx));
-  }
-
-  @Test
   @DisplayName("Expect exception when action not defined.")
   void expectExceptionWhenActionNotConfigured(Vertx vertx) {
     // given
-    JsonObject options = new JsonObject().put("actions", new JsonObject());
+    ActionNodeFactoryConfig nodeFactoryConfig = new ActionNodeFactoryConfig(Collections.emptyMap());
     GraphNodeOptions graph = new GraphNodeOptions("A", NO_TRANSITIONS);
 
     // when, then
     Assertions.assertThrows(
-        NodeGraphException.class, () -> getTask(graph, options, vertx));
+        NodeGraphException.class, () -> getTask(graph, nodeFactoryConfig.toJson(), vertx));
   }
 
 
@@ -124,7 +112,7 @@ class DefaultTaskFactoryTest {
   @DisplayName("Expect graph with single action node without transitions.")
   void expectSingleActionNodeGraph(Vertx vertx) {
     // given
-    JsonObject options = options("A", SUCCESS_TRANSITION);
+    JsonObject options = createActionNodeConfig("A", SUCCESS_TRANSITION);
     GraphNodeOptions graph = new GraphNodeOptions("A", NO_TRANSITIONS);
 
     // when
@@ -143,7 +131,7 @@ class DefaultTaskFactoryTest {
   @DisplayName("Expect graph of two action nodes with transition between.")
   void expectActionNodesGraphWithTransition(Vertx vertx) {
     // given
-    JsonObject options = options("A", SUCCESS_TRANSITION);
+    JsonObject options = createActionNodeConfig("A", SUCCESS_TRANSITION);
     merge(options, "B", SUCCESS_TRANSITION);
 
     GraphNodeOptions graph = new GraphNodeOptions("A", Collections
@@ -171,7 +159,7 @@ class DefaultTaskFactoryTest {
   @DisplayName("Expect graph with single composite node without transitions.")
   void expectSingleCompositeNodeGraphWithNoEdges(Vertx vertx) {
     // given
-    JsonObject options = options("A", SUCCESS_TRANSITION);
+    JsonObject options = createActionNodeConfig("A", SUCCESS_TRANSITION);
     GraphNodeOptions graph = new GraphNodeOptions(
         subTasks(new GraphNodeOptions("A", NO_TRANSITIONS)),
         NO_TRANSITIONS
@@ -201,7 +189,7 @@ class DefaultTaskFactoryTest {
   @DisplayName("Expect graph with composite node and success transition to action node.")
   void expectCompositeNodeWithSingleNodeOnSuccessGraph(Vertx vertx) {
     // given
-    JsonObject options = options("A", SUCCESS_TRANSITION);
+    JsonObject options = createActionNodeConfig("A", SUCCESS_TRANSITION);
     merge(options, "B", SUCCESS_TRANSITION);
 
     GraphNodeOptions graph = new GraphNodeOptions(
@@ -230,7 +218,7 @@ class DefaultTaskFactoryTest {
   @DisplayName("Expect graph with composite node and error transition to action node.")
   void expectCompositeNodeWithSingleNodeOnErrorGraph(Vertx vertx) {
     // given
-    JsonObject options = options("A", ERROR_TRANSITION);
+    JsonObject options = createActionNodeConfig("A", ERROR_TRANSITION);
     merge(options, "fallback", SUCCESS_TRANSITION);
 
     GraphNodeOptions graph = new GraphNodeOptions(
@@ -258,7 +246,7 @@ class DefaultTaskFactoryTest {
   @Test
   void expectCompositeNodeAcceptsOnlySuccessAndErrorTransitions(Vertx vertx) {
     // given
-    JsonObject options = options("A", "customTransition");
+    JsonObject options = createActionNodeConfig("A", "customTransition");
     merge(options, "B", SUCCESS_TRANSITION);
 
     GraphNodeOptions graph = new GraphNodeOptions(
@@ -283,7 +271,7 @@ class DefaultTaskFactoryTest {
   @DisplayName("Expect graph with nested composite nodes")
   void expectNestedCompositeNodesGraph(Vertx vertx) {
     // given
-    JsonObject options = options("A", SUCCESS_TRANSITION);
+    JsonObject options = createActionNodeConfig("A", SUCCESS_TRANSITION);
 
     GraphNodeOptions graph = new GraphNodeOptions(
         subTasks(
@@ -315,18 +303,26 @@ class DefaultTaskFactoryTest {
     assertEquals("A", node.getId());
   }
 
-  private Task getTask(GraphNodeOptions graph, JsonObject actions, Vertx vertx) {
-    JsonObject factoryOptions = new JsonObject();
-    factoryOptions.mergeIn(actions);
-    factoryOptions
-        .put("tasks", new JsonObject().put(TASK_NAME, new TaskOptions().setGraph(graph).toJson()));
-
-    return new DefaultTaskFactory().configure(factoryOptions)
-        .newInstance(SAMPLE_FRAGMENT_EVENT, vertx);
+  private Task getTask(GraphNodeOptions graph, JsonObject actionNodeConfig, Vertx vertx) {
+    DefaultTaskFactoryConfig taskFactoryConfig = getTaskFactoryConfig(graph, actionNodeConfig);
+    return new DefaultTaskFactory().configure(taskFactoryConfig.toJson(), vertx)
+        .newInstance(SAMPLE_FRAGMENT_EVENT);
   }
 
-  private JsonObject options(String actionName, String transition) {
-    return new ActionsConfig(Collections.singletonMap(actionName,
+  private DefaultTaskFactoryConfig getTaskFactoryConfig(GraphNodeOptions graph,
+      JsonObject actionNodeConfig) {
+    DefaultTaskFactoryConfig taskFactoryConfig = new DefaultTaskFactoryConfig();
+    taskFactoryConfig
+        .setTasks(Collections.singletonMap(TASK_NAME, new TaskOptions().setGraph(graph)));
+    List<NodeFactoryOptions> nodeFactories = Arrays.asList(
+        new NodeFactoryOptions().setFactory(ActionNodeFactory.NAME).setConfig(actionNodeConfig),
+        new NodeFactoryOptions().setFactory(SubtasksNodeFactory.NAME));
+    taskFactoryConfig.setNodeFactories(nodeFactories);
+    return taskFactoryConfig;
+  }
+
+  private JsonObject createActionNodeConfig(String actionName, String transition) {
+    return new ActionNodeFactoryConfig(Collections.singletonMap(actionName,
         new ActionOptions(new JsonObject())
             .setFactory("test-action")
             .setConfig(new JsonObject().put("transition", transition))))
@@ -334,7 +330,7 @@ class DefaultTaskFactoryTest {
   }
 
   private JsonObject merge(JsonObject current, String actionName, String transition) {
-    JsonObject newOptions = options(actionName, transition);
+    JsonObject newOptions = createActionNodeConfig(actionName, transition);
     return current.getJsonObject("actions").mergeIn(newOptions.getJsonObject("actions"));
   }
 

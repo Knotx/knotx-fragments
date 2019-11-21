@@ -12,8 +12,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * The code comes from https://github.com/tomaszmichalak/vertx-rx-map-reduce.
  */
 package io.knotx.fragments.task.factory;
 
@@ -34,6 +32,7 @@ import io.knotx.fragments.handler.api.ActionFactory;
 import io.knotx.fragments.handler.api.Cacheable;
 import io.knotx.fragments.handler.api.domain.FragmentContext;
 import io.knotx.fragments.handler.api.domain.FragmentResult;
+import io.knotx.fragments.task.factory.node.action.ActionProvider;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.core.json.JsonObject;
@@ -62,10 +61,11 @@ class ActionProviderTest {
   @DisplayName("Expect no action when empty or null action alias defined.")
   void getWithNoAction(Vertx vertx) {
     // given
-    ActionProvider tested = new ActionProvider(Collections::emptyListIterator);
+    ActionProvider tested = new ActionProvider(Collections::emptyListIterator,
+        Collections.emptyMap(), vertx);
 
     // when
-    Optional<Action> operation = tested.get(null, Collections.emptyMap(), vertx);
+    Optional<Action> operation = tested.get(null);
 
     // then
     assertFalse(operation.isPresent());
@@ -75,10 +75,11 @@ class ActionProviderTest {
   @DisplayName("Expect no action when no action alias defined in configuration.")
   void getWithNoEntries(Vertx vertx) {
     // given
-    ActionProvider tested = new ActionProvider(Collections::emptyListIterator);
+    ActionProvider tested = new ActionProvider(Collections::emptyListIterator,
+        Collections.emptyMap(), vertx);
 
     // when
-    Optional<Action> operation = tested.get("any", Collections.emptyMap(), vertx);
+    Optional<Action> operation = tested.get("any");
 
     // then
     assertFalse(operation.isPresent());
@@ -91,10 +92,11 @@ class ActionProviderTest {
     Map<String, ActionOptions> proxies = Collections
         .singletonMap(PROXY_ALIAS, new ActionOptions("eb", new JsonObject(), null));
 
-    ActionProvider tested = new ActionProvider(Collections::emptyListIterator);
+    ActionProvider tested = new ActionProvider(Collections::emptyListIterator,
+        proxies, vertx);
 
     // when
-    Optional<Action> operation = tested.get(PROXY_ALIAS, proxies, vertx);
+    Optional<Action> operation = tested.get(PROXY_ALIAS);
 
     // then
     assertFalse(operation.isPresent());
@@ -110,10 +112,11 @@ class ActionProviderTest {
     List<ActionFactory> factories = Collections
         .singletonList(new TestCacheableOperationFactory());
 
-    ActionProvider tested = new ActionProvider(factories::iterator);
+    ActionProvider tested = new ActionProvider(factories::iterator, proxies,
+        vertx);
 
     // when
-    Optional<Action> operation = tested.get(PROXY_ALIAS, proxies, vertx);
+    Optional<Action> operation = tested.get(PROXY_ALIAS);
 
     // then
     assertTrue(operation.isPresent());
@@ -150,11 +153,11 @@ class ActionProviderTest {
     List<ActionFactory> factories = Collections
         .singletonList(new TestOperationFactory());
 
-    ActionProvider tested = new ActionProvider(factories::iterator);
+    ActionProvider tested = new ActionProvider(factories::iterator, proxies, vertx);
 
     // when
-    Optional<Action> firstOperation = tested.get(PROXY_ALIAS, proxies, vertx);
-    Optional<Action> secondOperation = tested.get(PROXY_ALIAS, proxies, vertx);
+    Optional<Action> firstOperation = tested.get(PROXY_ALIAS);
+    Optional<Action> secondOperation = tested.get(PROXY_ALIAS);
 
     // then
     assertTrue(firstOperation.isPresent());
@@ -172,11 +175,12 @@ class ActionProviderTest {
     List<ActionFactory> factories = Collections
         .singletonList(new TestCacheableOperationFactory());
 
-    ActionProvider tested = new ActionProvider(factories::iterator);
+    ActionProvider tested = new ActionProvider(factories::iterator, proxies,
+        vertx);
 
     // when
-    Optional<Action> firstOperation = tested.get(PROXY_ALIAS, proxies, vertx);
-    Optional<Action> secondOperation = tested.get(PROXY_ALIAS, proxies, vertx);
+    Optional<Action> firstOperation = tested.get(PROXY_ALIAS);
+    Optional<Action> secondOperation = tested.get(PROXY_ALIAS);
 
     // then
     assertTrue(firstOperation.isPresent());
@@ -211,10 +215,11 @@ class ActionProviderTest {
     );
     List<ActionFactory> factories = Arrays.asList(proxyFactory, proxyFactorySecond);
 
-    ActionProvider tested = new ActionProvider(factories::iterator);
+    ActionProvider tested = new ActionProvider(factories::iterator, proxies,
+        vertx);
 
     // when
-    tested.get(PROXY_ALIAS, proxies, vertx);
+    tested.get(PROXY_ALIAS);
 
     // then
     verify(proxyFactorySecond)

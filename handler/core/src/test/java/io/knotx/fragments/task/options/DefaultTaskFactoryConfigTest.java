@@ -20,6 +20,11 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.knotx.fragments.task.factory.DefaultTaskFactory;
+import io.knotx.fragments.task.factory.node.action.ActionNodeConfig;
+import io.knotx.fragments.task.factory.node.action.ActionNodeFactory;
+import io.knotx.fragments.task.factory.node.action.ActionNodeFactoryConfig;
+import io.knotx.fragments.task.factory.node.subtasks.SubtasksNodeConfig;
+import io.knotx.fragments.task.factory.node.subtasks.SubtasksNodeFactory;
 import io.vertx.config.ConfigRetriever;
 import io.vertx.config.ConfigRetrieverOptions;
 import io.vertx.config.ConfigStoreOptions;
@@ -124,7 +129,7 @@ class DefaultTaskFactoryConfigTest {
     verify(file, config -> {
       GraphNodeOptions graphNodeOptions = new TaskOptions(config).getGraph();
       assertEquals("a", getAction(graphNodeOptions));
-      assertEquals(GraphNodeOptions.ACTION, graphNodeOptions.getNode().getFactory());
+      assertEquals(ActionNodeFactory.NAME, graphNodeOptions.getNode().getFactory());
     }, vertx);
   }
 
@@ -132,15 +137,15 @@ class DefaultTaskFactoryConfigTest {
     verify(file, config -> {
       TaskOptions taskOptions = new TaskOptions(config);
       GraphNodeOptions graphNodeOptions = taskOptions.getGraph();
-      assertEquals(GraphNodeOptions.SUBTASKS, graphNodeOptions.getNode().getFactory());
-      SubtasksNodeConfigOptions subtasks = new SubtasksNodeConfigOptions(
+      assertEquals(SubtasksNodeFactory.NAME, graphNodeOptions.getNode().getFactory());
+      SubtasksNodeConfig subtasks = new SubtasksNodeConfig(
           graphNodeOptions.getNode().getConfig());
       assertEquals(2, subtasks.getSubtasks().size());
     }, vertx);
   }
 
   private String getAction(GraphNodeOptions graphNodeOptions) {
-    return new ActionNodeConfigOptions(
+    return new ActionNodeConfig(
         graphNodeOptions.getNode().getConfig()).getAction();
   }
 

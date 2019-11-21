@@ -12,5 +12,5 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
-io.knotx.fragments.task.factory.node.ActionNodeFactory
-io.knotx.fragments.task.factory.node.SubtasksNodeFactory
+io.knotx.fragments.task.factory.node.action.ActionNodeFactory
+io.knotx.fragments.task.factory.node.subtasks.SubtasksNodeFactory
