@@ -30,32 +30,16 @@ public class FragmentsHandlerOptions {
 
   public static final String DEFAULT_TASK_KEY = "data-knotx-task";
 
-  private String taskKey;
-
   private Map<String, TaskOptions> tasks;
 
   public FragmentsHandlerOptions(JsonObject json) {
-    init(json);
     FragmentsHandlerOptionsConverter.fromJson(json, this);
-  }
-
-  private void init(JsonObject json) {
-    this.taskKey = DEFAULT_TASK_KEY;
   }
 
   public JsonObject toJson() {
     JsonObject jsonObject = new JsonObject();
     FragmentsHandlerOptionsConverter.toJson(this, jsonObject);
     return jsonObject;
-  }
-
-  public String getTaskKey() {
-    return taskKey;
-  }
-
-  public FragmentsHandlerOptions setTaskKey(String taskKey) {
-    this.taskKey = taskKey;
-    return this;
   }
 
   public Map<String, TaskOptions> getTasks() {
@@ -82,20 +66,18 @@ public class FragmentsHandlerOptions {
       return false;
     }
     FragmentsHandlerOptions that = (FragmentsHandlerOptions) o;
-    return Objects.equals(taskKey, that.taskKey) &&
-        Objects.equals(tasks, that.tasks);
+    return Objects.equals(tasks, that.tasks);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(taskKey, tasks);
+    return Objects.hash(tasks);
   }
 
   @Override
   public String toString() {
     return "FragmentsHandlerOptions{" +
-        "taskKey='" + taskKey + '\'' +
-        ", tasks=" + tasks +
+        "tasks=" + tasks +
         '}';
   }
 }

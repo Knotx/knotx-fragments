@@ -33,7 +33,10 @@ import java.util.ServiceLoader;
 public class DefaultTaskFactory implements TaskFactory, NodeProvider {
 
   public static final String NAME = "default";
+  public static final String TASK_NAME_KEY_OPTION = "taskNameKey";
+  private static final String DEFAULT_TASK_NAME_KEY = "data-knotx-task";
 
+  private JsonObject factoryConfig;
   private Map<String, NodeFactory> nodeFactories;
 
   public DefaultTaskFactory() {
@@ -46,15 +49,21 @@ public class DefaultTaskFactory implements TaskFactory, NodeProvider {
   }
 
   @Override
-  public boolean accept(FragmentEventContext eventContext) {
-    return true;
+  public DefaultTaskFactory configure(JsonObject factoryConfig) {
+    this.factoryConfig = factoryConfig;
+    return this;
   }
 
   @Override
-  public Task newInstance(FragmentEventContext eventContext, JsonObject factoryConfig,
-      Vertx vertx) {
+  public boolean accept(FragmentEventContext eventContext) {
+    String taskNameKey = factoryConfig.getString(TASK_NAME_KEY_OPTION, DEFAULT_TASK_NAME_KEY);
+    return eventContext.getFragmentEvent().getFragment().getConfiguration().containsKey(taskNameKey);
+  }
+
+  @Override
+  public Task newInstance(FragmentEventContext eventContext, Vertx vertx) {
     Fragment fragment = eventContext.getFragmentEvent().getFragment();
-    String taskKey = factoryConfig.getString("taskNameKey", "data-knotx-task");
+    String taskKey = factoryConfig.getString(TASK_NAME_KEY_OPTION, DEFAULT_TASK_NAME_KEY);
 
     String taskName = fragment.getConfiguration().getString(taskKey);
 

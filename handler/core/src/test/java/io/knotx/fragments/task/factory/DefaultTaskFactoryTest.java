@@ -89,8 +89,8 @@ class DefaultTaskFactoryTest {
     factoryOptions.put("taskNameKey", MY_TASK_KEY);
 
     // when
-    Task task = new DefaultTaskFactory()
-        .newInstance(SAMPLE_FRAGMENT_EVENT_WITH_CUSTOM_TASK_KEY, factoryOptions, vertx);
+    Task task = new DefaultTaskFactory().configure(factoryOptions)
+        .newInstance(SAMPLE_FRAGMENT_EVENT_WITH_CUSTOM_TASK_KEY, vertx);
 
     // then
     assertEquals(TASK_NAME, task.getName());
@@ -322,7 +322,8 @@ class DefaultTaskFactoryTest {
     factoryOptions
         .put("tasks", new JsonObject().put(TASK_NAME, new TaskOptions().setGraph(graph).toJson()));
 
-    return new DefaultTaskFactory().newInstance(SAMPLE_FRAGMENT_EVENT, factoryOptions, vertx);
+    return new DefaultTaskFactory().configure(factoryOptions)
+        .newInstance(SAMPLE_FRAGMENT_EVENT, vertx);
   }
 
   private JsonObject options(String actionName, String transition) {

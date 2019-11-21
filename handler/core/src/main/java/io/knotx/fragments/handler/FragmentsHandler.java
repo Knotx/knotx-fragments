@@ -27,13 +27,14 @@ import io.knotx.fragments.engine.FragmentEventContextTaskAware;
 import io.knotx.fragments.engine.FragmentsEngine;
 import io.knotx.fragments.engine.Task;
 import io.knotx.fragments.handler.options.FragmentsHandlerOptions;
-import io.knotx.fragments.task.TaskProvider;
+import io.knotx.fragments.task.factory.TaskProvider;
 import io.knotx.server.api.context.ClientRequest;
 import io.knotx.server.api.context.RequestContext;
 import io.knotx.server.api.context.RequestEvent;
 import io.knotx.server.api.handler.DefaultRequestContextEngine;
 import io.knotx.server.api.handler.RequestContextEngine;
 import io.knotx.server.api.handler.RequestEventHandlerResult;
+import io.reactivex.Single;
 import io.vertx.core.Handler;
 import io.vertx.core.json.JsonObject;
 import io.vertx.reactivex.core.Vertx;
@@ -52,19 +53,20 @@ public class FragmentsHandler implements Handler<RoutingContext> {
   FragmentsHandler(Vertx vertx, JsonObject config) {
     FragmentsHandlerOptions options = new FragmentsHandlerOptions(config);
 
-    taskProvider = new TaskProvider(options.getTaskKey(), config.getJsonArray("taskFactories"), vertx);
+    taskProvider = new TaskProvider(config.getJsonArray("taskFactories"),
+        vertx);
     engine = new FragmentsEngine(vertx);
     requestContextEngine = new DefaultRequestContextEngine(getClass().getSimpleName());
   }
 
   @Override
   public void handle(RoutingContext routingContext) {
-    RequestContext requestContext = routingContext.get(RequestContext.KEY);
+    final RequestContext requestContext = routingContext.get(RequestContext.KEY);
     final List<Fragment> fragments = routingContext.get("fragments");
+    final ClientRequest clientRequest = requestContext.getRequestEvent().getClientRequest();
 
-    ClientRequest clientRequest = requestContext.getRequestEvent().getClientRequest();
-
-    engine.execute(toEvents(fragments, clientRequest))
+    Single<List<FragmentEvent>> doHandle = doHandle(fragments, clientRequest);
+    doHandle
         .doOnSuccess(events -> putFragments(routingContext, events))
         .map(events -> toHandlerResult(events, requestContext))
         .subscribe(
@@ -72,6 +74,11 @@ public class FragmentsHandler implements Handler<RoutingContext> {
                 .processAndSaveResult(result, routingContext, requestContext),
             error -> requestContextEngine.handleFatal(routingContext, requestContext, error)
         );
+  }
+
+  protected Single<List<FragmentEvent>> doHandle(List<Fragment> fragments,
+      ClientRequest clientRequest) {
+    return engine.execute(toEvents(fragments, clientRequest));
   }
 
   private RoutingContext putFragments(RoutingContext routingContext, List<FragmentEvent> events) {

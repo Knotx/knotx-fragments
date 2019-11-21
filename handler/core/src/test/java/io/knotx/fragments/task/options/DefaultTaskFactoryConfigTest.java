@@ -43,7 +43,7 @@ class DefaultTaskFactoryConfigTest {
   @Test
   @DisplayName("Expect configuration Task provider when factory not defined")
   void expectDefaultTaskProvider(Vertx vertx) throws Throwable {
-    verify("tasks/defaultTaskProvider.conf", config -> {
+    verify("task/defaultTaskProvider.conf", config -> {
       TaskOptions options = new TaskOptions(config);
       assertEquals(DefaultTaskFactory.NAME, options.getFactory());
       assertTrue(options.getConfig().isEmpty());
@@ -53,7 +53,7 @@ class DefaultTaskFactoryConfigTest {
   @Test
   @DisplayName("Expect configuration Task provider when only configuration defined")
   void expectDefaultTaskProviderWhenConfiguration(Vertx vertx) throws Throwable {
-    verify("tasks/defaultTaskProviderWithConfig.conf", config -> {
+    verify("task/defaultTaskProviderWithConfig.conf", config -> {
       TaskOptions options = new TaskOptions(config);
       assertEquals(DefaultTaskFactory.NAME, options.getFactory());
       assertFalse(options.getConfig().isEmpty());
@@ -63,7 +63,7 @@ class DefaultTaskFactoryConfigTest {
   @Test
   @DisplayName("Expect custom Task provider with configuration when factory and config defined.")
   void expectCustomTaskProvider(Vertx vertx) throws Throwable {
-    verify("tasks/customTaskProvider.conf", config -> {
+    verify("task/customTaskProvider.conf", config -> {
       TaskOptions options = new TaskOptions(config);
       assertEquals("custom", options.getFactory());
       assertEquals(new JsonObject().put("anyKey", "anyValue"), options.getConfig());
@@ -73,43 +73,43 @@ class DefaultTaskFactoryConfigTest {
   @Test
   @DisplayName("Expect task with action node when simplified task definition.")
   void expectActionNodeWhenSimplifiedTask(Vertx vertx) throws Throwable {
-    validateActionNode("tasks/taskSimplified.conf", vertx);
+    validateActionNode("task/taskSimplified.conf", vertx);
   }
 
   @Test
   @DisplayName("Expect task with action node when action defined directly in the task.")
   void expectActionNodeWhenActionDirectlyDefinedInGraph(Vertx vertx) throws Throwable {
-    validateActionNode("tasks/taskWithActionNode.conf", vertx);
+    validateActionNode("task/taskWithActionNode.conf", vertx);
   }
 
   @Test
   @DisplayName("Expect task with Action node when action is configured.")
   void expectActionNodeWhenActionDefined(Vertx vertx) throws Throwable {
-    validateActionNode("tasks/taskWithActionNode-fullSyntax.conf", vertx);
+    validateActionNode("task/taskWithActionNode-fullSyntax.conf", vertx);
   }
 
   @Test
   @DisplayName("Expect subtasks node when actions is configured")
   void expectSubTaskNodeWhenActionsDefined(Vertx vertx) throws Throwable {
-    validateSubtasksNode("tasks/taskWithSubtasksDeprecated.conf", vertx);
+    validateSubtasksNode("task/taskWithSubtasksDeprecated.conf", vertx);
   }
 
   @Test
   @DisplayName("Expect subtasks node when subtasks directly is configured")
   void expectSubtasksNodeWhenSubtasksDirectlyDefined(Vertx vertx) throws Throwable {
-    validateSubtasksNode("tasks/taskWithSubtasks.conf", vertx);
+    validateSubtasksNode("task/taskWithSubtasks.conf", vertx);
   }
 
   @Test
   @DisplayName("Expect subtasks node when subtasks is configured")
   void expectSubtasksNodeWhenSubtasksDefined(Vertx vertx) throws Throwable {
-    validateSubtasksNode("tasks/taskWithSubtasks-fullSyntax.conf", vertx);
+    validateSubtasksNode("task/taskWithSubtasks-fullSyntax.conf", vertx);
   }
 
   @Test
   @DisplayName("Expect nodes configured with _success flow")
   void expectTransitionSuccessWithNodeBThenNodeC(Vertx vertx) throws Throwable {
-    verify("tasks/taskWithTransitions.conf", config -> {
+    verify("task/taskWithTransitions.conf", config -> {
       GraphNodeOptions graphNodeOptions = new TaskOptions(config).getGraph();
       Optional<GraphNodeOptions> nodeB = graphNodeOptions.get("_success");
       assertTrue(nodeB.isPresent());
