@@ -28,9 +28,9 @@ public interface TaskFactory {
 
   String getName();
 
-  DefaultTaskFactory configure(JsonObject factoryConfig);
+  DefaultTaskFactory configure(JsonObject factoryConfig, Vertx vertx);
 
   boolean accept(FragmentEventContext eventContext);
 
-  Task newInstance(FragmentEventContext eventContext, Vertx vertx);
+  Task newInstance(FragmentEventContext eventContext);
 }

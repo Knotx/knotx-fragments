@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.knotx.fragments.task.factory;
+package io.knotx.fragments.task.factory.node.action;
 
 import io.knotx.fragments.handler.action.ActionOptions;
 import io.knotx.fragments.handler.api.Action;
@@ -26,7 +26,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Optional;
-import java.util.ServiceLoader;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import org.apache.commons.lang3.StringUtils;
@@ -38,13 +37,17 @@ public class ActionProvider {
   private final Map<String, ActionFactory> factories;
   private final Map<String, Action> cache;
 
-  public ActionProvider(Supplier<Iterator<ActionFactory>> supplier) {
+  private Map<String, ActionOptions> actionNameToOptions;
+  private Vertx vertx;
+
+  public ActionProvider(Supplier<Iterator<ActionFactory>> supplier, Map<String, ActionOptions> actionNameToOptions, Vertx vertx) {
+    this.actionNameToOptions = actionNameToOptions;
+    this.vertx = vertx;
     this.factories = loadFactories(supplier);
     this.cache = new HashMap<>();
   }
 
-  public Optional<Action> get(String action, Map<String, ActionOptions> actionNameToOptions,
-      Vertx vertx) {
+  public Optional<Action> get(String action) {
     if (StringUtils.isBlank(action)) {
       return Optional.empty();
     }
@@ -61,24 +64,20 @@ public class ActionProvider {
     }
 
     if (isCacheable(factory)) {
-      return Optional.of(cache.computeIfAbsent(action, toAction(actionOptions, factory, actionNameToOptions, vertx)));
+      return Optional.of(cache.computeIfAbsent(action, toAction(actionOptions, factory)));
     } else {
-      return Optional.of(createAction(action, actionOptions, factory, actionNameToOptions, vertx));
+      return Optional.of(createAction(action, actionOptions, factory));
     }
   }
 
-  private Function<String, Action> toAction(ActionOptions actionOptions, ActionFactory factory,
-      Map<String, ActionOptions> actionNameToOptions,
-      Vertx vertx) {
-    return action -> createAction(action, actionOptions, factory, actionNameToOptions, vertx);
+  private Function<String, Action> toAction(ActionOptions actionOptions, ActionFactory factory) {
+    return action -> createAction(action, actionOptions, factory);
   }
 
-  private Action createAction(String action, ActionOptions actionOptions, ActionFactory factory,
-      Map<String, ActionOptions> actionNameToOptions,
-      Vertx vertx) {
+  private Action createAction(String action, ActionOptions actionOptions, ActionFactory factory) {
     // recurrence here :)
     Action operation = Optional.ofNullable(actionOptions.getDoAction())
-        .flatMap(actionName -> get(actionName, actionNameToOptions, vertx))
+        .flatMap(this::get)
         .orElse(null);
 
     return factory.create(action, actionOptions.getConfig(), vertx.getDelegate(), operation);

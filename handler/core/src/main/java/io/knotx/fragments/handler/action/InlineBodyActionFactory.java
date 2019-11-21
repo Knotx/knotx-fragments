@@ -19,7 +19,7 @@ import io.knotx.fragments.handler.api.Action;
 import io.knotx.fragments.handler.api.ActionFactory;
 import io.knotx.fragments.handler.api.Cacheable;
 import io.knotx.fragments.handler.api.domain.FragmentResult;
-import io.knotx.fragments.task.options.GraphNodeOptions;
+import io.knotx.fragments.task.factory.node.subtasks.SubtasksNodeFactory;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
@@ -35,7 +35,7 @@ import io.vertx.core.json.JsonObject;
  *   }
  * </pre>
  * WARNING: This action modifies Fragment body so it should not be used in subtasks nodes
- * {@link io.knotx.fragments.task.factory.node.SubtasksNodeFactory}.
+ * {@link SubtasksNodeFactory}.
  */
 @Cacheable
 public class InlineBodyActionFactory implements ActionFactory {

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.knotx.fragments.task.factory.node;
+package io.knotx.fragments.task.factory.node.action;
 
 import io.knotx.fragments.engine.graph.Node;
 import io.knotx.fragments.engine.graph.SingleNode;
@@ -22,11 +22,8 @@ import io.knotx.fragments.handler.api.ActionFactory;
 import io.knotx.fragments.handler.api.domain.FragmentContext;
 import io.knotx.fragments.handler.api.domain.FragmentResult;
 import io.knotx.fragments.task.exception.NodeGraphException;
-import io.knotx.fragments.task.factory.ActionProvider;
-import io.knotx.fragments.task.factory.NodeFactory;
 import io.knotx.fragments.task.factory.NodeProvider;
-import io.knotx.fragments.task.factory.config.ActionsConfig;
-import io.knotx.fragments.task.options.ActionNodeConfigOptions;
+import io.knotx.fragments.task.factory.node.NodeFactory;
 import io.knotx.fragments.task.options.GraphNodeOptions;
 import io.reactivex.Single;
 import io.vertx.core.json.JsonObject;
@@ -39,26 +36,27 @@ import java.util.function.Supplier;
 
 public class ActionNodeFactory implements NodeFactory {
 
+  public static final String NAME = "action";
   private ActionProvider actionProvider;
-
-  public ActionNodeFactory() {
-    actionProvider = new ActionProvider(supplyFactories());
-  }
 
   @Override
   public String getName() {
-    return "action";
+    return NAME;
+  }
+
+  @Override
+  public ActionNodeFactory configure(JsonObject nodeConfig, Vertx vertx) {
+    actionProvider = new ActionProvider(supplyFactories(),
+        new ActionNodeFactoryConfig(nodeConfig).getActions(), vertx);
+    return this;
   }
 
   @Override
   public Node initNode(GraphNodeOptions nodeOptions, Map<String, Node> edges, String taskName,
-      JsonObject taskConfig, NodeProvider nodeProvider, Vertx vertx) {
-    ActionsConfig actionsConfig = new ActionsConfig(taskConfig);
-
-    ActionNodeConfigOptions config = new ActionNodeConfigOptions(nodeOptions.getNode().getConfig());
-    Action action = actionProvider.get(config.getAction(), actionsConfig.getActions(), vertx)
-        .orElseThrow(
-            () -> new NodeGraphException("No provider for action " + config.getAction()));
+      JsonObject taskConfig, NodeProvider nodeProvider) {
+    ActionNodeConfig config = new ActionNodeConfig(nodeOptions.getNode().getConfig());
+    Action action = actionProvider.get(config.getAction()).orElseThrow(
+        () -> new NodeGraphException("No provider for action " + config.getAction()));
     return new SingleNode(config.getAction(), toRxFunction(action), edges);
   }
 

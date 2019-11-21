@@ -15,6 +15,11 @@
  */
 package io.knotx.fragments.task.options;
 
+import io.knotx.fragments.task.factory.node.NodeOptions;
+import io.knotx.fragments.task.factory.node.action.ActionNodeConfig;
+import io.knotx.fragments.task.factory.node.action.ActionNodeFactory;
+import io.knotx.fragments.task.factory.node.subtasks.SubtasksNodeConfig;
+import io.knotx.fragments.task.factory.node.subtasks.SubtasksNodeFactory;
 import io.vertx.codegen.annotations.DataObject;
 import io.vertx.core.json.JsonObject;
 import java.util.Collections;
@@ -55,8 +60,6 @@ import java.util.Optional;
 @DataObject(generateConverter = true)
 public class GraphNodeOptions {
 
-  // TODO move to node factories
-  public static final String SUBTASKS = "subtasks";
   public static final String ACTION = "action";
 
   private NodeOptions node;
@@ -147,17 +150,17 @@ public class GraphNodeOptions {
 
   /**
    * @param action action name / alias
-   * @see ActionNodeConfigOptions#setAction(String)
+   * @see ActionNodeConfig#setAction(String)
    */
   public GraphNodeOptions setAction(String action) {
-    node.setFactory(ACTION);
-    node.setConfig(new ActionNodeConfigOptions(action).toJson());
+    node.setFactory(ActionNodeFactory.NAME);
+    node.setConfig(new ActionNodeConfig(action).toJson());
     return this;
   }
 
   /**
    * @param subtasks subtasks node options
-   * @see SubtasksNodeConfigOptions#setSubtasks(List)
+   * @see SubtasksNodeConfig#setSubtasks(List)
    * @deprecated use subtasks
    */
   @Deprecated
@@ -168,11 +171,11 @@ public class GraphNodeOptions {
 
   /**
    * @param subtasks subtasks node options
-   * @see SubtasksNodeConfigOptions#setSubtasks(List)
+   * @see SubtasksNodeConfig#setSubtasks(List)
    */
   public GraphNodeOptions setSubtasks(List<GraphNodeOptions> subtasks) {
-    node.setFactory(SUBTASKS);
-    node.setConfig(new SubtasksNodeConfigOptions(subtasks).toJson());
+    node.setFactory(SubtasksNodeFactory.NAME);
+    node.setConfig(new SubtasksNodeConfig(subtasks).toJson());
     return this;
   }
 

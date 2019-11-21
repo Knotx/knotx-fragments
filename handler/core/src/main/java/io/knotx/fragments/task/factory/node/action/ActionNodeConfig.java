@@ -13,57 +13,63 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.knotx.fragments.task.options;
+package io.knotx.fragments.task.factory.node.action;
 
+import io.knotx.fragments.task.factory.node.NodeOptions;
 import io.vertx.codegen.annotations.DataObject;
 import io.vertx.core.json.JsonObject;
-import java.util.List;
 import java.util.Objects;
 
 /**
- * Subtask node configuration. It is model for {@link NodeOptions#getConfig()} JSON object.
+ * Action node configuration model. It is model for {@link NodeOptions#getConfig()} JSON object.
  *
  * <pre>
  * node {
- *   factory = subtasks
- *   config { //represented by SubtasksNodeConfigOptions
+ *   factory = action
+ *   config { //represented by ActionNodeConfig
  *     ...
  *   }
  * }
  * </pre>
  */
 @DataObject(generateConverter = true)
-public class SubtasksNodeConfigOptions {
+public class ActionNodeConfig {
 
-  private List<GraphNodeOptions> subtasks;
+  private String action;
 
-  public SubtasksNodeConfigOptions(List<GraphNodeOptions> subtasks) {
-    this.subtasks = subtasks;
+  public ActionNodeConfig(String action) {
+    setAction(action);
   }
 
-  public SubtasksNodeConfigOptions(JsonObject json) {
-    SubtasksNodeConfigOptionsConverter.fromJson(json, this);
+  public ActionNodeConfig(JsonObject json) {
+    ActionNodeConfigConverter.fromJson(json, this);
   }
 
   public JsonObject toJson() {
     JsonObject json = new JsonObject();
-    SubtasksNodeConfigOptionsConverter.toJson(this, json);
+    ActionNodeConfigConverter.toJson(this, json);
     return json;
   }
 
-  public List<GraphNodeOptions> getSubtasks() {
-    return subtasks;
+
+  /**
+   * {@link io.knotx.fragments.handler.api.Action} name
+   *
+   * @return Action name
+   */
+  public String getAction() {
+    return action;
   }
 
   /**
-   * Sets list of {@link GraphNodeOptions} that represents {@link io.knotx.fragments.engine.Task}
-   * that will be executed in parallel.
+   * Sets {@link io.knotx.fragments.handler.api.Action} name. The specified Action is executed
+   * during processing of given graph node.
    *
-   * @param subtasks list of {@link GraphNodeOptions}
+   * @param action action name
    * @return reference to this, so the API can be used fluently
    */
-  public SubtasksNodeConfigOptions setSubtasks(List<GraphNodeOptions> subtasks) {
-    this.subtasks = subtasks;
+  public ActionNodeConfig setAction(String action) {
+    this.action = action;
     return this;
   }
 
@@ -75,19 +81,19 @@ public class SubtasksNodeConfigOptions {
     if (o == null || getClass() != o.getClass()) {
       return false;
     }
-    SubtasksNodeConfigOptions that = (SubtasksNodeConfigOptions) o;
-    return Objects.equals(subtasks, that.subtasks);
+    ActionNodeConfig that = (ActionNodeConfig) o;
+    return Objects.equals(action, that.action);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(subtasks);
+    return Objects.hash(action);
   }
 
   @Override
   public String toString() {
-    return "SubtasksNodeOptions{" +
-        "subtasks=" + subtasks +
+    return "ActionNodeOptions{" +
+        "action='" + action + '\'' +
         '}';
   }
 }

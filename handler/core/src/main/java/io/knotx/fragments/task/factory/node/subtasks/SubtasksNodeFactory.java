@@ -13,17 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.knotx.fragments.task.factory.node;
+package io.knotx.fragments.task.factory.node.subtasks;
 
 import static io.knotx.fragments.handler.api.domain.FragmentResult.ERROR_TRANSITION;
 import static io.knotx.fragments.handler.api.domain.FragmentResult.SUCCESS_TRANSITION;
 
 import io.knotx.fragments.engine.graph.CompositeNode;
 import io.knotx.fragments.engine.graph.Node;
-import io.knotx.fragments.task.factory.NodeFactory;
 import io.knotx.fragments.task.factory.NodeProvider;
+import io.knotx.fragments.task.factory.node.NodeFactory;
 import io.knotx.fragments.task.options.GraphNodeOptions;
-import io.knotx.fragments.task.options.SubtasksNodeConfigOptions;
 import io.vertx.core.json.JsonObject;
 import io.vertx.reactivex.core.Vertx;
 import java.util.List;
@@ -32,19 +31,26 @@ import java.util.stream.Collectors;
 
 public class SubtasksNodeFactory implements NodeFactory {
 
+  public static final String NAME = "subtasks";
+
   @Override
   public String getName() {
-    return "subtasks";
+    return NAME;
+  }
+
+  @Override
+  public SubtasksNodeFactory configure(JsonObject nodeConfig, Vertx vertx) {
+    // empty
+    return this;
   }
 
   @Override
   public Node initNode(GraphNodeOptions nodeOptions, Map<String, Node> edges, String taskName,
-      JsonObject taskConfig, NodeProvider nodeProvider, Vertx vertx) {
-    SubtasksNodeConfigOptions config = new SubtasksNodeConfigOptions(
+      JsonObject taskConfig, NodeProvider nodeProvider) {
+    SubtasksNodeConfig config = new SubtasksNodeConfig(
         nodeOptions.getNode().getConfig());
     List<Node> nodes = config.getSubtasks().stream()
-        .map((GraphNodeOptions nextNodeOptions) -> nodeProvider
-            .initNode(taskName, nextNodeOptions, taskConfig, vertx))
+        .map((GraphNodeOptions nextNodeOptions) -> nodeProvider.initNode(taskName, nextNodeOptions))
         .collect(Collectors.toList());
     return new CompositeNode(getNodeId(), nodes, edges.get(SUCCESS_TRANSITION),
         edges.get(ERROR_TRANSITION));

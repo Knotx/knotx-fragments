@@ -1,15 +1,15 @@
 = Cheatsheets
 
-[[ActionNodeConfigOptions]]
-== ActionNodeConfigOptions
+[[ActionNodeConfig]]
+== ActionNodeConfig
 
 ++++
- Action node configuration model. It is model for link JSON object.
+ Action node configuration model. It is model for  JSON object.
 
  <pre>
  node {
    factory = action
-   config { //represented by ActionNodeConfigOptions
+   config { //represented by ActionNodeConfig
      ...
    }
  }
@@ -25,6 +25,17 @@
 Sets link name. The specified Action is executed
  during processing of given graph node.
 +++
+|===
+
+[[ActionNodeFactoryConfig]]
+== ActionNodeFactoryConfig
+
+
+[cols=">25%,25%,50%"]
+[frame="topbot"]
+|===
+^|Name | Type ^| Description
+|[[actions]]`@actions`|`link:dataobjects.html#ActionOptions[ActionOptions]`|-
 |===
 
 [[ActionOptions]]
@@ -46,25 +57,17 @@ Sets <code>Action</code> factory name.
 +++
 |===
 
-[[ActionsConfig]]
-== ActionsConfig
+[[DefaultTaskFactoryConfig]]
+== DefaultTaskFactoryConfig
 
 
 [cols=">25%,25%,50%"]
 [frame="topbot"]
 |===
 ^|Name | Type ^| Description
-|[[actions]]`@actions`|`link:dataobjects.html#ActionOptions[ActionOptions]`|-
-|===
-
-[[DefaultTaskFactoryOptions]]
-== DefaultTaskFactoryOptions
-
-
-[cols=">25%,25%,50%"]
-[frame="topbot"]
-|===
-^|Name | Type ^| Description
+|[[logLevel]]`@logLevel`|`String`|-
+|[[nodeFactories]]`@nodeFactories`|`Array of link:dataobjects.html#NodeFactoryOptions[NodeFactoryOptions]`|-
+|[[taskNameKey]]`@taskNameKey`|`String`|-
 |[[tasks]]`@tasks`|`link:dataobjects.html#TaskOptions[TaskOptions]`|+++
 Sets <code>Task</code> list, which are named, directed graphs of <code>Actions</code>.
 +++
@@ -86,7 +89,7 @@ Sets <code>Task</code> list, which are named, directed graphs of <code>Actions</
 
 ++++
  It is link processing configuration. Task is graph of nodes (in
- fact it is tree structure). It defines link and outgoing directed graph edges,
+ fact it is tree structure). It defines  and outgoing directed graph edges,
  called <code>Transitions</code>.
 
  It represents JSON configuration:
@@ -147,6 +150,18 @@ Sets outgoing graph node edges, called <code>Transitions</code>. Transition is S
 |[[logLevel]]`@logLevel`|`String`|-
 |===
 
+[[NodeFactoryOptions]]
+== NodeFactoryOptions
+
+
+[cols=">25%,25%,50%"]
+[frame="topbot"]
+|===
+^|Name | Type ^| Description
+|[[config]]`@config`|`Json object`|-
+|[[factory]]`@factory`|`String`|-
+|===
+
 [[NodeOptions]]
 == NodeOptions
 
@@ -167,11 +182,11 @@ Sets node factory name
 +++
 |===
 
-[[SubtasksNodeConfigOptions]]
-== SubtasksNodeConfigOptions
+[[SubtasksNodeConfig]]
+== SubtasksNodeConfig
 
 ++++
- Subtask node configuration. It is model for link JSON object.
+ Subtask node configuration. It is model for  JSON object.
 
  <pre>
  node {
@@ -189,7 +204,7 @@ Sets node factory name
 |===
 ^|Name | Type ^| Description
 |[[subtasks]]`@subtasks`|`Array of link:dataobjects.html#GraphNodeOptions[GraphNodeOptions]`|+++
-Sets list of link that represents link
+Sets list of  that represents link
  that will be executed in parallel.
 +++
 |===

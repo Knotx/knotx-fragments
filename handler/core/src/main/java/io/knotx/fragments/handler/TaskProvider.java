@@ -40,32 +40,31 @@ class TaskProvider {
   private final Vertx vertx;
 
   TaskProvider(List<TaskFactoryOptions> factoryOptions, Vertx vertx) {
-    factories = initFactories(factoryOptions);
     this.vertx = vertx;
+    factories = initFactories(factoryOptions);
   }
 
   Optional<Task> newInstance(FragmentEventContext eventContext) {
     return factories.stream()
         .filter(f -> f.accept(eventContext))
         .findFirst()
-        .map(f -> f.newInstance(eventContext, vertx));
+        .map(f -> f.newInstance(eventContext));
   }
 
   private List<TaskFactory> initFactories(List<TaskFactoryOptions> optionsList) {
     Map<String, TaskFactory> loadedFactories = loadFactories();
 
-    List<TaskFactory> orderedFactories = new ArrayList<>();
-    optionsList.iterator()
-        .forEachRemaining(options -> orderedFactories.add(
-            configureFactory(loadedFactories, options.getFactory(), options.getConfig())));
-    return orderedFactories;
+    List<TaskFactory> result = new ArrayList<>();
+    optionsList.iterator().forEachRemaining(options -> result.add(
+        configureFactory(loadedFactories, options.getFactory(), options.getConfig())));
+    return result;
   }
 
   private TaskFactory configureFactory(Map<String, TaskFactory> loadedFactories, String factory,
       JsonObject config) {
     LOGGER.debug("Initializing task factory [{}] with config [{}]", factory, config);
     return Optional.ofNullable(loadedFactories.get(factory))
-        .map(f -> f.configure(config))
+        .map(f -> f.configure(config, vertx))
         .orElseThrow(() -> new TaskFactoryNotFoundException(factory));
   }
 
