@@ -65,6 +65,9 @@ Sets <code>Action</code> factory name.
 [frame="topbot"]
 |===
 ^|Name | Type ^| Description
+|[[tasks]]`@tasks`|`link:dataobjects.html#TaskOptions[TaskOptions]`|+++
+Sets <code>Task</code> list, which are named, directed graphs of <code>Actions</code>.
++++
 |===
 
 [[FragmentsHandlerOptions]]
@@ -75,9 +78,7 @@ Sets <code>Action</code> factory name.
 [frame="topbot"]
 |===
 ^|Name | Type ^| Description
-|[[tasks]]`@tasks`|`link:dataobjects.html#TaskOptions[TaskOptions]`|+++
-Sets <code>Task</code> list, which are named, directed graphs of <code>Actions</code>.
-+++
+|[[taskFactories]]`@taskFactories`|`Array of link:dataobjects.html#TaskFactoryOptions[TaskFactoryOptions]`|-
 |===
 
 [[GraphNodeOptions]]
@@ -191,6 +192,18 @@ Sets node factory name
 Sets list of link that represents link
  that will be executed in parallel.
 +++
+|===
+
+[[TaskFactoryOptions]]
+== TaskFactoryOptions
+
+
+[cols=">25%,25%,50%"]
+[frame="topbot"]
+|===
+^|Name | Type ^| Description
+|[[config]]`@config`|`Json object`|-
+|[[factory]]`@factory`|`String`|-
 |===
 
 [[TaskOptions]]

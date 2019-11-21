@@ -16,6 +16,7 @@
 package io.knotx.fragments.task.factory;
 
 import io.knotx.fragments.handler.action.ActionOptions;
+import io.knotx.fragments.task.options.TaskOptions;
 import io.vertx.codegen.annotations.DataObject;
 import io.vertx.core.json.JsonObject;
 import java.util.Map;
@@ -24,6 +25,8 @@ import java.util.Map;
 public class DefaultTaskFactoryOptions {
 
   private Map<String, ActionOptions> actions;
+
+  private Map<String, TaskOptions> tasks;
 
   public DefaultTaskFactoryOptions(JsonObject json) {
 
@@ -34,4 +37,19 @@ public class DefaultTaskFactoryOptions {
     return result;
   }
 
+
+  public Map<String, TaskOptions> getTasks() {
+    return tasks;
+  }
+
+  /**
+   * Sets {@code Task} list, which are named, directed graphs of {@code Actions}.
+   *
+   * @param tasks list of defined {@code Tasks}.
+   * @return reference to this, so the API can be used fluently
+   */
+  public DefaultTaskFactoryOptions setTasks(Map<String, TaskOptions> tasks) {
+    this.tasks = tasks;
+    return this;
+  }
 }

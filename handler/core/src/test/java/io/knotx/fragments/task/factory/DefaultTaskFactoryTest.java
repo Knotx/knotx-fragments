@@ -31,7 +31,6 @@ import io.knotx.fragments.engine.graph.CompositeNode;
 import io.knotx.fragments.engine.graph.Node;
 import io.knotx.fragments.engine.graph.SingleNode;
 import io.knotx.fragments.handler.action.ActionOptions;
-import io.knotx.fragments.handler.options.FragmentsHandlerOptions;
 import io.knotx.fragments.task.exception.NodeConfigException;
 import io.knotx.fragments.task.exception.NodeGraphException;
 import io.knotx.fragments.task.factory.config.ActionsConfig;
@@ -65,7 +64,7 @@ class DefaultTaskFactoryTest {
 
   private static final FragmentEventContext SAMPLE_FRAGMENT_EVENT =
       new FragmentEventContext(new FragmentEvent(new Fragment("type",
-          new JsonObject().put(FragmentsHandlerOptions.DEFAULT_TASK_KEY, TASK_NAME), "body")),
+          new JsonObject().put(DefaultTaskFactory.DEFAULT_TASK_NAME_KEY, TASK_NAME), "body")),
           new ClientRequest());
 
   private static final String MY_TASK_KEY = "myTaskKey";

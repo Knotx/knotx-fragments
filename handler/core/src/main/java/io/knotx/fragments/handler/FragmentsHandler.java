@@ -17,8 +17,6 @@
  */
 package io.knotx.fragments.handler;
 
-import static com.google.common.base.Predicates.alwaysTrue;
-
 import io.knotx.fragments.api.Fragment;
 import io.knotx.fragments.engine.FragmentEvent;
 import io.knotx.fragments.engine.FragmentEvent.Status;
@@ -26,8 +24,6 @@ import io.knotx.fragments.engine.FragmentEventContext;
 import io.knotx.fragments.engine.FragmentEventContextTaskAware;
 import io.knotx.fragments.engine.FragmentsEngine;
 import io.knotx.fragments.engine.Task;
-import io.knotx.fragments.handler.options.FragmentsHandlerOptions;
-import io.knotx.fragments.task.factory.TaskProvider;
 import io.knotx.server.api.context.ClientRequest;
 import io.knotx.server.api.context.RequestContext;
 import io.knotx.server.api.context.RequestEvent;
@@ -50,11 +46,9 @@ public class FragmentsHandler implements Handler<RoutingContext> {
   private final FragmentsEngine engine;
   private final TaskProvider taskProvider;
 
-  FragmentsHandler(Vertx vertx, JsonObject config) {
-    FragmentsHandlerOptions options = new FragmentsHandlerOptions(config);
-
-    taskProvider = new TaskProvider(config.getJsonArray("taskFactories"),
-        vertx);
+  FragmentsHandler(Vertx vertx, JsonObject options) {
+    FragmentsHandlerOptions handlerOptions = new FragmentsHandlerOptions(options);
+    taskProvider = new TaskProvider(handlerOptions.getTaskFactories(), vertx);
     engine = new FragmentsEngine(vertx);
     requestContextEngine = new DefaultRequestContextEngine(getClass().getSimpleName());
   }
@@ -81,14 +75,15 @@ public class FragmentsHandler implements Handler<RoutingContext> {
     return engine.execute(toEvents(fragments, clientRequest));
   }
 
-  private RoutingContext putFragments(RoutingContext routingContext, List<FragmentEvent> events) {
-    return routingContext.put("fragments", retrieveFragments(events, alwaysTrue()));
+  private void putFragments(RoutingContext routingContext, List<FragmentEvent> events) {
+    routingContext.put("fragments", retrieveFragments(events, fragmentEvent -> true));
   }
 
   private RequestEventHandlerResult toHandlerResult(List<FragmentEvent> events,
       RequestContext requestContext) {
 
-    List<Fragment> failedFragments = retrieveFragments(events, hasStatus(Status.FAILURE));
+    List<Fragment> failedFragments = retrieveFragments(events,
+        e -> e.getStatus() == Status.FAILURE);
 
     if (!failedFragments.isEmpty()) {
       return RequestEventHandlerResult.fail(buildErrorMessage(failedFragments));
@@ -109,10 +104,6 @@ public class FragmentsHandler implements Handler<RoutingContext> {
 
   private RequestEvent copyRequestEvent(RequestEvent requestEvent) {
     return new RequestEvent(requestEvent.getClientRequest(), requestEvent.getPayload());
-  }
-
-  private Predicate<FragmentEvent> hasStatus(Status status) {
-    return e -> e.getStatus() == status;
   }
 
   private List<Fragment> retrieveFragments(List<FragmentEvent> events,

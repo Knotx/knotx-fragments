@@ -26,8 +26,9 @@ import io.knotx.fragments.HoconLoader;
 import io.knotx.fragments.api.Fragment;
 import io.knotx.fragments.engine.FragmentEvent;
 import io.knotx.fragments.engine.FragmentEvent.Status;
-import io.knotx.fragments.handler.options.FragmentsHandlerOptions;
-import io.knotx.fragments.task.exception.TaskFactoryNameNotDefinedException;
+import io.knotx.fragments.handler.exception.TaskFactoryNameNotDefinedException;
+import io.knotx.fragments.handler.exception.TaskFactoryNotFoundException;
+import io.knotx.fragments.task.factory.DefaultTaskFactory;
 import io.knotx.junit5.util.FileReader;
 import io.knotx.server.api.context.ClientRequest;
 import io.knotx.server.api.context.RequestContext;
@@ -144,6 +145,20 @@ class FragmentsHandlerTest {
     }, testContext, vertx);
   }
 
+  @Test
+  @DisplayName("Expect exception when task factory name not found")
+  void taskFactoryNotFound(Vertx vertx, VertxTestContext testContext)
+      throws Throwable {
+    HoconLoader.verify("handler/taskFactoryNotFound.conf", config -> {
+      //given
+      try {
+        new FragmentsHandler(vertx, config);
+      } catch (TaskFactoryNotFoundException e) {
+        testContext.completed();
+      }
+    }, testContext, vertx);
+  }
+
   private RoutingContext mockRoutingContext(String task) {
     RequestContext requestContext = new RequestContext(
         new RequestEvent(new ClientRequest(), new JsonObject()));
@@ -158,7 +173,7 @@ class FragmentsHandlerTest {
 
   private Fragment fragment(String task) {
     return new Fragment("type",
-        new JsonObject().put(FragmentsHandlerOptions.DEFAULT_TASK_KEY, task), "");
+        new JsonObject().put(DefaultTaskFactory.DEFAULT_TASK_NAME_KEY, task), "");
   }
 
   private JsonObject from(String fileName) throws IOException {
