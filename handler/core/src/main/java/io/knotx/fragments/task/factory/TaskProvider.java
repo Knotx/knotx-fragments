@@ -15,11 +15,12 @@
  *
  * The code comes from https://github.com/tomaszmichalak/vertx-rx-map-reduce.
  */
-package io.knotx.fragments.task;
+package io.knotx.fragments.task.factory;
 
-import io.knotx.fragments.api.Fragment;
 import io.knotx.fragments.engine.FragmentEventContext;
 import io.knotx.fragments.engine.Task;
+import io.knotx.fragments.task.TaskFactory;
+import io.knotx.fragments.task.exception.TaskFactoryNameNotDefinedException;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
@@ -27,7 +28,6 @@ import io.vertx.core.logging.LoggerFactory;
 import io.vertx.reactivex.core.Vertx;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -37,17 +37,11 @@ public class TaskProvider {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(TaskProvider.class);
 
-  private final String taskKey;
-  private final Map<String, TaskFactory> factories;
-  private final JsonArray factoryOptions;
   private final Vertx vertx;
 
   private List<TaskFactory> orderedFactories;
 
-  public TaskProvider(String taskKey, JsonArray factoryOptions, Vertx vertx) {
-    this.taskKey = taskKey;
-    this.factoryOptions = factoryOptions;
-    factories = initFactories();
+  public TaskProvider(JsonArray factoryOptions, Vertx vertx) {
     orderedFactories = init(factoryOptions);
     this.vertx = vertx;
   }
@@ -56,47 +50,48 @@ public class TaskProvider {
     return orderedFactories.stream()
         .filter(f -> f.accept(eventContext))
         .findFirst()
-        .map(f -> f.newInstance(eventContext, get(f.getName()), vertx));
+        .map(f -> f.newInstance(eventContext, vertx));
   }
 
-  private JsonObject get(String name) {
-    JsonObject config = new JsonObject();
-    Iterator<Object> iterator = factoryOptions.iterator();
-    while(iterator.hasNext()) {
-      JsonObject options = (JsonObject) iterator.next();
-      String factory = options.getString("name");
-      if (name.equals(factory)) {
-        config = options.getJsonObject("config");
-        break;
-      }
-    }
-    return config;
-  }
+  private List<TaskFactory> init(JsonArray factoryOptionsArray) {
+    Map<String, TaskFactory> loadedFactories = loadFactories();
 
-  private String getTaskName(Fragment fragment) {
-    return fragment.getConfiguration().getString(taskKey);
-  }
-
-  private boolean hasTask(Fragment fragment) {
-    return fragment.getConfiguration().containsKey(taskKey);
-  }
-
-  List<TaskFactory> init(JsonArray factoryOptions) {
     List<TaskFactory> orderedFactories = new ArrayList<>();
-    factoryOptions.iterator().forEachRemaining(options -> {
-      String factory = ((JsonObject) options).getString("name");
-      JsonObject config = ((JsonObject) options).getJsonObject("config");
-      orderedFactories.add(factories.get(factory));
+    factoryOptionsArray.iterator().forEachRemaining(options -> {
+      JsonObject factoryOptions = (JsonObject) options;
+      orderedFactories.add(
+          configureFactory(loadedFactories, getName(factoryOptions), getConfig(factoryOptions)));
     });
     return orderedFactories;
   }
 
-  private Map<String, TaskFactory> initFactories() {
+  private TaskFactory configureFactory(Map<String, TaskFactory> loadedFactories, String factoryName,
+      JsonObject config) {
+    TaskFactory factory = loadedFactories.get(factoryName);
+    factory.configure(config);
+    return factory;
+  }
+
+  private Map<String, TaskFactory> loadFactories() {
     Map<String, TaskFactory> factories = new HashMap<>();
     ServiceLoader
         .load(TaskFactory.class).iterator()
-        .forEachRemaining(f -> factories.put(f.getName(), f));
+        .forEachRemaining(f -> {
+          LOGGER.info("Registering task factory [{}]", f.getName());
+          factories.put(f.getName(), f);
+        });
+
     return factories;
   }
+
+  private JsonObject getConfig(JsonObject factoryOptions) {
+    return factoryOptions.getJsonObject("config", new JsonObject());
+  }
+
+  private String getName(JsonObject factoryOptions) {
+    return Optional.ofNullable(factoryOptions.getString("name"))
+        .orElseThrow(() -> new TaskFactoryNameNotDefinedException(factoryOptions));
+  }
+
 
 }

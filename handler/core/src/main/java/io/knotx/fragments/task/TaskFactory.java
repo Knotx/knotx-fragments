@@ -17,6 +17,7 @@ package io.knotx.fragments.task;
 
 import io.knotx.fragments.engine.FragmentEventContext;
 import io.knotx.fragments.engine.Task;
+import io.knotx.fragments.task.factory.DefaultTaskFactory;
 import io.knotx.fragments.task.options.GraphNodeOptions;
 import io.knotx.fragments.task.options.TaskOptions;
 import io.vertx.core.json.JsonObject;
@@ -27,9 +28,9 @@ public interface TaskFactory {
 
   String getName();
 
-//  void init(JsonObject taskFactoryOptions);
+  DefaultTaskFactory configure(JsonObject factoryConfig);
 
   boolean accept(FragmentEventContext eventContext);
 
-  Task newInstance(FragmentEventContext eventContext, JsonObject factoryConfig, Vertx vertx);
+  Task newInstance(FragmentEventContext eventContext, Vertx vertx);
 }
