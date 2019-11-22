@@ -32,6 +32,7 @@ import java.util.stream.Collectors;
 public class SubtasksNodeFactory implements NodeFactory {
 
   public static final String NAME = "subtasks";
+  public static final String COMPOSITE_NODE_ID = "composite";
 
   @Override
   public String getName() {
@@ -57,6 +58,6 @@ public class SubtasksNodeFactory implements NodeFactory {
 
   private String getNodeId() {
     // TODO this value should be calculated based on graph, the behaviour now is not changed
-    return "composite";
+    return COMPOSITE_NODE_ID;
   }
 }

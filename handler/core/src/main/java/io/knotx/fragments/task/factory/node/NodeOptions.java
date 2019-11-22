@@ -31,16 +31,18 @@ public class NodeOptions {
   private JsonObject config;
 
   public NodeOptions() {
-    init();
+    config = new JsonObject();
+  }
+
+  public NodeOptions(String factory, JsonObject config) {
+    this();
+    this.factory = factory;
+    this.config = config;
   }
 
   public NodeOptions(JsonObject json) {
     this();
     NodeOptionsConverter.fromJson(json, this);
-  }
-
-  private void init() {
-    config = new JsonObject();
   }
 
   public JsonObject toJson() {

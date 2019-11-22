@@ -63,6 +63,11 @@ public class GraphNodeOptions {
   private NodeOptions node;
   private Map<String, GraphNodeOptions> onTransitions;
 
+  public GraphNodeOptions(NodeOptions nodeOptions, Map<String, GraphNodeOptions> transitions) {
+    this.node = nodeOptions;
+    this.onTransitions = transitions;
+  }
+
   public GraphNodeOptions(String action, Map<String, GraphNodeOptions> transitions) {
     init();
     setAction(action);
