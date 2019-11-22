@@ -21,6 +21,7 @@ import io.knotx.fragments.engine.FragmentEventContext;
 import io.knotx.fragments.engine.Task;
 import io.knotx.fragments.handler.exception.TaskFactoryNotFoundException;
 import io.knotx.fragments.task.TaskFactory;
+import io.knotx.fragments.task.TaskFactoryOptions;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;

@@ -128,7 +128,7 @@ class FragmentsHandlerTest {
   }
 
   @Test
-  @DisplayName("Expect unprocessed fragment when factory does not accept fragment.")
+  @DisplayName("Expect unprocessed fragment when all factories do not accept fragment.")
   void singleFactoryNotAcceptingFragment(Vertx vertx, VertxTestContext testContext)
       throws Throwable {
     HoconLoader.verify("handler/singleTaskFactoryWithSuccessTask.conf", config -> {

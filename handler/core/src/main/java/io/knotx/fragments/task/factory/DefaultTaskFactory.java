@@ -72,18 +72,17 @@ public class DefaultTaskFactory implements TaskFactory, NodeProvider {
     Map<String, TaskOptions> tasks = taskFactoryConfig.getTasks();
     return Optional.ofNullable(tasks.get(taskName))
         .map(taskOptions -> {
-          Node rootNode = initNode(taskName, taskOptions.getGraph());
+          Node rootNode = initNode(taskOptions.getGraph());
           return new Task(taskName, rootNode);
         }).orElseThrow(() -> new TaskNotFoundException(taskName));
   }
 
   @Override
-  public Node initNode(String taskName, GraphNodeOptions nodeOptions) {
-    Map<String, Node> transitionToNodeMap = initTransitions(taskName, nodeOptions);
+  public Node initNode(GraphNodeOptions nodeOptions) {
+    Map<String, Node> transitionToNodeMap = initTransitions(nodeOptions);
     Optional<NodeFactory> nodeFactory = findNodeFactory(nodeOptions);
     return nodeFactory
-        .map(f -> f.initNode(nodeOptions, transitionToNodeMap, taskName,
-            taskFactoryConfig.getTasks().get(taskName).getConfig(), this))
+        .map(f -> f.initNode(nodeOptions, transitionToNodeMap,this))
         .orElseThrow(() -> new NodeFactoryNotFoundException(nodeOptions.getNode().getFactory()));
   }
 
@@ -91,11 +90,11 @@ public class DefaultTaskFactory implements TaskFactory, NodeProvider {
     return Optional.ofNullable(nodeFactories.get(nodeOptions.getNode().getFactory()));
   }
 
-  private Map<String, Node> initTransitions(String taskName, GraphNodeOptions nodeOptions) {
+  private Map<String, Node> initTransitions(GraphNodeOptions nodeOptions) {
     Map<String, GraphNodeOptions> transitions = nodeOptions.getOnTransitions();
     Map<String, Node> edges = new HashMap<>();
     transitions.forEach((transition, childGraphOptions) -> edges
-        .put(transition, initNode(taskName, childGraphOptions)));
+        .put(transition, initNode(childGraphOptions)));
     return edges;
   }
 

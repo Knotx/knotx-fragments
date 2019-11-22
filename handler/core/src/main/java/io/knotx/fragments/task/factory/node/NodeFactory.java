@@ -28,7 +28,6 @@ public interface NodeFactory {
 
   NodeFactory configure(JsonObject nodeConfig, Vertx vertx);
 
-  Node initNode(GraphNodeOptions nodeOptions, Map<String, Node> edges, String taskName,
-      JsonObject taskConfig, NodeProvider nodeProvider);
+  Node initNode(GraphNodeOptions nodeOptions, Map<String, Node> edges, NodeProvider nodeProvider);
 
 }

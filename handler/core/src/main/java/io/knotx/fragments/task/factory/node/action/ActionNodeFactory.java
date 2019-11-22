@@ -52,8 +52,8 @@ public class ActionNodeFactory implements NodeFactory {
   }
 
   @Override
-  public Node initNode(GraphNodeOptions nodeOptions, Map<String, Node> edges, String taskName,
-      JsonObject taskConfig, NodeProvider nodeProvider) {
+  public Node initNode(GraphNodeOptions nodeOptions, Map<String, Node> edges,
+      NodeProvider nodeProvider) {
     ActionNodeConfig config = new ActionNodeConfig(nodeOptions.getNode().getConfig());
     Action action = actionProvider.get(config.getAction()).orElseThrow(
         () -> new NodeGraphException("No provider for action " + config.getAction()));

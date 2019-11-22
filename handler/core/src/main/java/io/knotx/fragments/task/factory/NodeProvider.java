@@ -23,6 +23,6 @@ import io.knotx.fragments.task.options.GraphNodeOptions;
  */
 public interface NodeProvider {
 
-  Node initNode(String taskName, GraphNodeOptions nodeOptions);
+  Node initNode(GraphNodeOptions nodeOptions);
 
 }

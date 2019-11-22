@@ -217,8 +217,12 @@ Sets list of  that represents link
 [frame="topbot"]
 |===
 ^|Name | Type ^| Description
-|[[config]]`@config`|`Json object`|-
-|[[factory]]`@factory`|`String`|-
+|[[config]]`@config`|`Json object`|+++
+Sets task factory configuration.
++++
+|[[factory]]`@factory`|`String`|+++
+Sets task provider factory name
++++
 |===
 
 [[TaskOptions]]
@@ -233,12 +237,6 @@ Sets list of  that represents link
 [frame="topbot"]
 |===
 ^|Name | Type ^| Description
-|[[config]]`@config`|`Json object`|+++
-Gets task provider factory configuration.
-+++
-|[[factory]]`@factory`|`String`|+++
-Sets task provider factory name
-+++
 |[[graph]]`@graph`|`link:dataobjects.html#GraphNodeOptions[GraphNodeOptions]`|+++
 Sets task graph.
 +++
