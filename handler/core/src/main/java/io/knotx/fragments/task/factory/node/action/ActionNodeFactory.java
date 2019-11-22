@@ -56,7 +56,7 @@ public class ActionNodeFactory implements NodeFactory {
       NodeProvider nodeProvider) {
     ActionNodeConfig config = new ActionNodeConfig(nodeOptions.getNode().getConfig());
     Action action = actionProvider.get(config.getAction()).orElseThrow(
-        () -> new NodeGraphException("No provider for action " + config.getAction()));
+        () -> new ActionNotFoundException(config.getAction()));
     return new SingleNode(config.getAction(), toRxFunction(action), edges);
   }
 

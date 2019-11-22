@@ -22,6 +22,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.knotx.fragments.engine.Task;
 import io.knotx.fragments.engine.graph.Node;
+import io.knotx.fragments.engine.graph.NodeType;
 import io.knotx.fragments.engine.graph.SingleNode;
 import io.knotx.fragments.handler.action.ActionOptions;
 import io.knotx.fragments.task.exception.NodeConfigException;
@@ -31,6 +32,7 @@ import io.vertx.junit5.VertxExtension;
 import io.vertx.reactivex.core.Vertx;
 import java.util.Collections;
 import java.util.Map;
+import java.util.Optional;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -53,17 +55,55 @@ class ActionNodeFactoryTest {
   }
 
   @Test
-  @DisplayName("Expect graph with single action node without transitions.")
-  void expectSingleActionNodeGraph(Vertx vertx) {
+  @DisplayName("Expect exception when action not found.")
+  void expectExceptionWhenActionNotFound(Vertx vertx) {
     // given
-    JsonObject nodeConfig = createNodeConfig("A", SUCCESS_TRANSITION);
-    GraphNodeOptions graph = new GraphNodeOptions("A", NO_TRANSITIONS);
+    String actionAlias = "A";
+    JsonObject config = createNodeConfig("otherAction", SUCCESS_TRANSITION);
+    GraphNodeOptions graph = new GraphNodeOptions(actionAlias, NO_TRANSITIONS);
 
-    ActionNodeFactory nodeFactory = new ActionNodeFactory();
-    nodeFactory.configure(nodeConfig, vertx);
+    // when, then
+    Assertions.assertThrows(
+        ActionNotFoundException.class, () -> new ActionNodeFactory().configure(config, vertx)
+            .initNode(graph, Collections.emptyMap(), null));
+  }
 
-    nodeFactory.initNode(graph, Collections.emptyMap(), null);
+  @Test
+  @DisplayName("Expect A node when action node defined.")
+  void expectSingleActionNode(Vertx vertx) {
+    // given
+    String actionAlias = "A";
+    JsonObject config = createNodeConfig(actionAlias, SUCCESS_TRANSITION);
+    GraphNodeOptions graph = new GraphNodeOptions(actionAlias, NO_TRANSITIONS);
 
+    // when
+    ActionNodeFactory tested = new ActionNodeFactory().configure(config, vertx);
+    Node node = tested.initNode(graph, Collections.emptyMap(), null);
+
+    // then
+    assertEquals(actionAlias, node.getId());
+    assertTrue(node instanceof SingleNode);
+  }
+
+  @Test
+  @DisplayName("Expect node contains passed transitions.")
+  void expectActionNodesGraphWithTransition(Vertx vertx) {
+    // given
+    String actionAlias = "A";
+    String transition = "transition";
+    JsonObject config = createNodeConfig(actionAlias, SUCCESS_TRANSITION);
+    // this invalid configuration is expected
+    GraphNodeOptions graph = new GraphNodeOptions(actionAlias, Collections.emptyMap());
+
+    // when
+    ActionNodeFactory tested = new ActionNodeFactory().configure(config, vertx);
+    Node node = tested
+        .initNode(graph, Collections.singletonMap(transition, new StubNode("B")), null);
+
+    // then
+    Optional<Node> nextNode = node.next(transition);
+    assertTrue(nextNode.isPresent());
+    assertEquals("B", nextNode.get().getId());
   }
 
   private JsonObject createNodeConfig(String actionName, String transition) {
@@ -74,4 +114,27 @@ class ActionNodeFactoryTest {
         .toJson();
   }
 
+  private class StubNode implements Node {
+
+    private String id;
+
+    public StubNode(String id) {
+      this.id = id;
+    }
+
+    @Override
+    public String getId() {
+      return id;
+    }
+
+    @Override
+    public Optional<Node> next(String transition) {
+      return Optional.empty();
+    }
+
+    @Override
+    public NodeType getType() {
+      return NodeType.SINGLE;
+    }
+  }
 }

@@ -96,40 +96,8 @@ class DefaultTaskFactoryTest {
   }
 
   @Test
-  @DisplayName("Expect exception when action not defined.")
-  void expectExceptionWhenActionNotConfigured(Vertx vertx) {
-    // given
-    ActionNodeFactoryConfig nodeFactoryConfig = new ActionNodeFactoryConfig(Collections.emptyMap());
-    GraphNodeOptions graph = new GraphNodeOptions("A", NO_TRANSITIONS);
-
-    // when, then
-    Assertions.assertThrows(
-        NodeGraphException.class, () -> getTask(graph, nodeFactoryConfig.toJson(), vertx));
-  }
-
-
-  @Test
-  @DisplayName("Expect graph with single action node without transitions.")
-  void expectSingleActionNodeGraph(Vertx vertx) {
-    // given
-    JsonObject options = createActionNodeConfig("A", SUCCESS_TRANSITION);
-    GraphNodeOptions graph = new GraphNodeOptions("A", NO_TRANSITIONS);
-
-    // when
-    Task task = getTask(graph, options, vertx);
-
-    // then
-    assertEquals(TASK_NAME, task.getName());
-    assertTrue(task.getRootNode().isPresent());
-    Node rootNode = task.getRootNode().get();
-    assertTrue(rootNode instanceof SingleNode);
-    assertEquals("A", rootNode.getId());
-    assertFalse(rootNode.next(SUCCESS_TRANSITION).isPresent());
-  }
-
-  @Test
   @DisplayName("Expect graph of two action nodes with transition between.")
-  void expectActionNodesGraphWithTransition(Vertx vertx) {
+  void expectNodesWithTransitionBetween(Vertx vertx) {
     // given
     JsonObject options = createActionNodeConfig("A", SUCCESS_TRANSITION);
     merge(options, "B", SUCCESS_TRANSITION);

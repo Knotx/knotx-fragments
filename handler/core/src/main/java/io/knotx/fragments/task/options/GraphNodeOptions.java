@@ -60,8 +60,6 @@ import java.util.Optional;
 @DataObject(generateConverter = true)
 public class GraphNodeOptions {
 
-  public static final String ACTION = "action";
-
   private NodeOptions node;
   private Map<String, GraphNodeOptions> onTransitions;
 
@@ -121,7 +119,7 @@ public class GraphNodeOptions {
    * Optional#empty()} is returned.
    *
    * @param transition transition
-   * @return  node options if defined
+   * @return node options if defined
    */
   public Optional<GraphNodeOptions> get(String transition) {
     return Optional.ofNullable(onTransitions.get(transition));
