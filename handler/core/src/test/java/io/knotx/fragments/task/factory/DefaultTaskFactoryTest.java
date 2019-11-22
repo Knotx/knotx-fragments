@@ -12,15 +12,11 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * The code comes from https://github.com/tomaszmichalak/vertx-rx-map-reduce.
  */
 package io.knotx.fragments.task.factory;
 
-import static io.knotx.fragments.handler.api.domain.FragmentResult.ERROR_TRANSITION;
 import static io.knotx.fragments.handler.api.domain.FragmentResult.SUCCESS_TRANSITION;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.knotx.fragments.api.Fragment;
@@ -31,11 +27,9 @@ import io.knotx.fragments.engine.graph.CompositeNode;
 import io.knotx.fragments.engine.graph.Node;
 import io.knotx.fragments.engine.graph.SingleNode;
 import io.knotx.fragments.handler.action.ActionOptions;
-import io.knotx.fragments.task.exception.NodeConfigException;
-import io.knotx.fragments.task.exception.NodeGraphException;
-import io.knotx.fragments.task.factory.node.action.ActionNodeFactoryConfig;
-import io.knotx.fragments.task.factory.node.action.ActionNodeFactory;
 import io.knotx.fragments.task.factory.node.NodeFactoryOptions;
+import io.knotx.fragments.task.factory.node.action.ActionNodeFactory;
+import io.knotx.fragments.task.factory.node.action.ActionNodeFactoryConfig;
 import io.knotx.fragments.task.factory.node.subtasks.SubtasksNodeFactory;
 import io.knotx.fragments.task.options.GraphNodeOptions;
 import io.knotx.fragments.task.options.TaskOptions;
@@ -48,7 +42,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -121,118 +114,6 @@ class DefaultTaskFactoryTest {
     assertTrue(customNode.get() instanceof SingleNode);
     SingleNode customSingleNode = (SingleNode) customNode.get();
     assertEquals("B", customSingleNode.getId());
-  }
-
-  @Test
-  @DisplayName("Expect graph with single composite node without transitions.")
-  void expectSingleCompositeNodeGraphWithNoEdges(Vertx vertx) {
-    // given
-    JsonObject options = createActionNodeConfig("A", SUCCESS_TRANSITION);
-    GraphNodeOptions graph = new GraphNodeOptions(
-        subTasks(new GraphNodeOptions("A", NO_TRANSITIONS)),
-        NO_TRANSITIONS
-    );
-
-    // when
-    Task task = getTask(graph, options, vertx);
-
-    // then
-    assertEquals(TASK_NAME, task.getName());
-    assertTrue(task.getRootNode().isPresent());
-    Node rootNode = task.getRootNode().get();
-    assertTrue(rootNode instanceof CompositeNode);
-    assertEquals(COMPOSITE_NODE_ID, rootNode.getId());
-    assertFalse(rootNode.next(SUCCESS_TRANSITION).isPresent());
-    assertFalse(rootNode.next(ERROR_TRANSITION).isPresent());
-
-    CompositeNode compositeRootNode = (CompositeNode) rootNode;
-    assertEquals(1, compositeRootNode.getNodes().size());
-    Node node = compositeRootNode.getNodes().get(0);
-    assertTrue(node instanceof SingleNode);
-    assertEquals("A", node.getId());
-  }
-
-
-  @Test
-  @DisplayName("Expect graph with composite node and success transition to action node.")
-  void expectCompositeNodeWithSingleNodeOnSuccessGraph(Vertx vertx) {
-    // given
-    JsonObject options = createActionNodeConfig("A", SUCCESS_TRANSITION);
-    merge(options, "B", SUCCESS_TRANSITION);
-
-    GraphNodeOptions graph = new GraphNodeOptions(
-        subTasks(new GraphNodeOptions("A", NO_TRANSITIONS)),
-        Collections
-            .singletonMap(SUCCESS_TRANSITION, new GraphNodeOptions("B", NO_TRANSITIONS))
-    );
-
-    // when
-    Task task = getTask(graph, options, vertx);
-
-    // then
-    assertEquals(TASK_NAME, task.getName());
-    assertTrue(task.getRootNode().isPresent());
-    Node rootNode = task.getRootNode().get();
-    assertTrue(rootNode instanceof CompositeNode);
-    assertEquals(COMPOSITE_NODE_ID, rootNode.getId());
-    Optional<Node> onSuccess = rootNode.next(SUCCESS_TRANSITION);
-    assertTrue(onSuccess.isPresent());
-    Node onSuccessNode = onSuccess.get();
-    assertTrue(onSuccessNode instanceof SingleNode);
-    assertEquals("B", onSuccessNode.getId());
-  }
-
-  @Test
-  @DisplayName("Expect graph with composite node and error transition to action node.")
-  void expectCompositeNodeWithSingleNodeOnErrorGraph(Vertx vertx) {
-    // given
-    JsonObject options = createActionNodeConfig("A", ERROR_TRANSITION);
-    merge(options, "fallback", SUCCESS_TRANSITION);
-
-    GraphNodeOptions graph = new GraphNodeOptions(
-        subTasks(new GraphNodeOptions("A", NO_TRANSITIONS)),
-        Collections.singletonMap(ERROR_TRANSITION,
-            new GraphNodeOptions("fallback", NO_TRANSITIONS))
-    );
-
-    // when
-    Task task = getTask(graph, options, vertx);
-
-    // then
-    assertEquals(TASK_NAME, task.getName());
-    assertTrue(task.getRootNode().isPresent());
-    Node rootNode = task.getRootNode().get();
-    assertTrue(rootNode instanceof CompositeNode);
-    assertEquals(COMPOSITE_NODE_ID, rootNode.getId());
-    Optional<Node> onError = rootNode.next(ERROR_TRANSITION);
-    assertTrue(onError.isPresent());
-    Node onErrorNode = onError.get();
-    assertTrue(onErrorNode instanceof SingleNode);
-    assertEquals("fallback", onErrorNode.getId());
-  }
-
-  @Test
-  void expectCompositeNodeAcceptsOnlySuccessAndErrorTransitions(Vertx vertx) {
-    // given
-    JsonObject options = createActionNodeConfig("A", "customTransition");
-    merge(options, "B", SUCCESS_TRANSITION);
-
-    GraphNodeOptions graph = new GraphNodeOptions(
-        subTasks(new GraphNodeOptions("A", NO_TRANSITIONS)),
-        Collections
-            .singletonMap("customTransition", new GraphNodeOptions("B", NO_TRANSITIONS))
-    );
-
-    // when
-    Task task = getTask(graph, options, vertx);
-
-    // then
-    assertTrue(task.getRootNode().isPresent());
-    Node rootNode = task.getRootNode().get();
-    assertTrue(rootNode instanceof CompositeNode);
-    assertFalse(rootNode.next(SUCCESS_TRANSITION).isPresent());
-    assertFalse(rootNode.next(ERROR_TRANSITION).isPresent());
-    assertFalse(rootNode.next("customTransition").isPresent());
   }
 
   @Test

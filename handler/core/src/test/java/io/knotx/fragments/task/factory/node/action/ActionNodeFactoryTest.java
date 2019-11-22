@@ -17,15 +17,13 @@ package io.knotx.fragments.task.factory.node.action;
 
 import static io.knotx.fragments.handler.api.domain.FragmentResult.SUCCESS_TRANSITION;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import io.knotx.fragments.engine.Task;
 import io.knotx.fragments.engine.graph.Node;
-import io.knotx.fragments.engine.graph.NodeType;
 import io.knotx.fragments.engine.graph.SingleNode;
 import io.knotx.fragments.handler.action.ActionOptions;
 import io.knotx.fragments.task.exception.NodeConfigException;
+import io.knotx.fragments.task.factory.node.StubNode;
 import io.knotx.fragments.task.options.GraphNodeOptions;
 import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.VertxExtension;
@@ -77,8 +75,8 @@ class ActionNodeFactoryTest {
     GraphNodeOptions graph = new GraphNodeOptions(actionAlias, NO_TRANSITIONS);
 
     // when
-    ActionNodeFactory tested = new ActionNodeFactory().configure(config, vertx);
-    Node node = tested.initNode(graph, Collections.emptyMap(), null);
+    Node node = new ActionNodeFactory().configure(config, vertx)
+        .initNode(graph, Collections.emptyMap(), null);
 
     // then
     assertEquals(actionAlias, node.getId());
@@ -96,8 +94,7 @@ class ActionNodeFactoryTest {
     GraphNodeOptions graph = new GraphNodeOptions(actionAlias, Collections.emptyMap());
 
     // when
-    ActionNodeFactory tested = new ActionNodeFactory().configure(config, vertx);
-    Node node = tested
+    Node node = new ActionNodeFactory().configure(config, vertx)
         .initNode(graph, Collections.singletonMap(transition, new StubNode("B")), null);
 
     // then
@@ -112,29 +109,5 @@ class ActionNodeFactoryTest {
             .setFactory("test-action")
             .setConfig(new JsonObject().put("transition", transition))))
         .toJson();
-  }
-
-  private class StubNode implements Node {
-
-    private String id;
-
-    public StubNode(String id) {
-      this.id = id;
-    }
-
-    @Override
-    public String getId() {
-      return id;
-    }
-
-    @Override
-    public Optional<Node> next(String transition) {
-      return Optional.empty();
-    }
-
-    @Override
-    public NodeType getType() {
-      return NodeType.SINGLE;
-    }
   }
 }
