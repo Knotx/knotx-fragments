@@ -45,12 +45,11 @@ public class SubtasksNodeFactory implements NodeFactory {
   }
 
   @Override
-  public Node initNode(GraphNodeOptions nodeOptions, Map<String, Node> edges, String taskName,
-      JsonObject taskConfig, NodeProvider nodeProvider) {
-    SubtasksNodeConfig config = new SubtasksNodeConfig(
-        nodeOptions.getNode().getConfig());
+  public Node initNode(GraphNodeOptions nodeOptions, Map<String, Node> edges,
+      NodeProvider nodeProvider) {
+    SubtasksNodeConfig config = new SubtasksNodeConfig(nodeOptions.getNode().getConfig());
     List<Node> nodes = config.getSubtasks().stream()
-        .map((GraphNodeOptions nextNodeOptions) -> nodeProvider.initNode(taskName, nextNodeOptions))
+        .map(nodeProvider::initNode)
         .collect(Collectors.toList());
     return new CompositeNode(getNodeId(), nodes, edges.get(SUCCESS_TRANSITION),
         edges.get(ERROR_TRANSITION));

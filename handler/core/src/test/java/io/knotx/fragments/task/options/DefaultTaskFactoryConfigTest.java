@@ -45,35 +45,35 @@ import org.junit.jupiter.api.extension.ExtendWith;
 @ExtendWith(VertxExtension.class)
 class DefaultTaskFactoryConfigTest {
 
-  @Test
-  @DisplayName("Expect configuration Task provider when factory not defined")
-  void expectDefaultTaskProvider(Vertx vertx) throws Throwable {
-    verify("task/defaultTaskProvider.conf", config -> {
-      TaskOptions options = new TaskOptions(config);
-      assertEquals(DefaultTaskFactory.NAME, options.getFactory());
-      assertTrue(options.getConfig().isEmpty());
-    }, vertx);
-  }
-
-  @Test
-  @DisplayName("Expect configuration Task provider when only configuration defined")
-  void expectDefaultTaskProviderWhenConfiguration(Vertx vertx) throws Throwable {
-    verify("task/defaultTaskProviderWithConfig.conf", config -> {
-      TaskOptions options = new TaskOptions(config);
-      assertEquals(DefaultTaskFactory.NAME, options.getFactory());
-      assertFalse(options.getConfig().isEmpty());
-    }, vertx);
-  }
-
-  @Test
-  @DisplayName("Expect custom Task provider with configuration when factory and config defined.")
-  void expectCustomTaskProvider(Vertx vertx) throws Throwable {
-    verify("task/customTaskProvider.conf", config -> {
-      TaskOptions options = new TaskOptions(config);
-      assertEquals("custom", options.getFactory());
-      assertEquals(new JsonObject().put("anyKey", "anyValue"), options.getConfig());
-    }, vertx);
-  }
+//  @Test
+//  @DisplayName("Expect configuration Task provider when factory not defined")
+//  void expectDefaultTaskProvider(Vertx vertx) throws Throwable {
+//    verify("task/defaultTaskProvider.conf", config -> {
+//      TaskOptions options = new TaskOptions(config);
+//      assertEquals(DefaultTaskFactory.NAME, options.getFactory());
+//      assertTrue(options.getConfig().isEmpty());
+//    }, vertx);
+//  }
+//
+//  @Test
+//  @DisplayName("Expect configuration Task provider when only configuration defined")
+//  void expectDefaultTaskProviderWhenConfiguration(Vertx vertx) throws Throwable {
+//    verify("task/defaultTaskProviderWithConfig.conf", config -> {
+//      TaskOptions options = new TaskOptions(config);
+//      assertEquals(DefaultTaskFactory.NAME, options.getFactory());
+//      assertFalse(options.getConfig().isEmpty());
+//    }, vertx);
+//  }
+//
+//  @Test
+//  @DisplayName("Expect custom Task provider with configuration when factory and config defined.")
+//  void expectCustomTaskProvider(Vertx vertx) throws Throwable {
+//    verify("task/customTaskProvider.conf", config -> {
+//      TaskOptions options = new TaskOptions(config);
+//      assertEquals("custom", options.getFactory());
+//      assertEquals(new JsonObject().put("anyKey", "anyValue"), options.getConfig());
+//    }, vertx);
+//  }
 
   @Test
   @DisplayName("Expect task with action node when simplified task definition.")

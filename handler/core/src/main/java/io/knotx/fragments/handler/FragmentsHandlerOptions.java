@@ -15,6 +15,7 @@
  */
 package io.knotx.fragments.handler;
 
+import io.knotx.fragments.task.TaskFactoryOptions;
 import io.vertx.codegen.annotations.DataObject;
 import io.vertx.core.json.JsonObject;
 import java.util.List;

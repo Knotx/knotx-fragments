@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.knotx.fragments.handler;
+package io.knotx.fragments.task;
 
 import io.knotx.fragments.handler.exception.TaskFactoryNameNotDefinedException;
 import io.vertx.codegen.annotations.DataObject;
@@ -40,10 +40,21 @@ public class TaskFactoryOptions {
     return json;
   }
 
+  /**
+   * Gets {@link TaskFactory} name
+   *
+   * @return task provider factory name
+   */
   public String getFactory() {
     return factory;
   }
 
+  /**
+   * Sets task provider factory name
+   *
+   * @param factory - task provider factory name
+   * @return reference to this, so the API can be used fluently
+   */
   public TaskFactoryOptions setFactory(String factory) {
     this.factory = factory;
     return this;
@@ -53,6 +64,12 @@ public class TaskFactoryOptions {
     return config;
   }
 
+  /**
+   * Sets task factory configuration.
+   *
+   * @param config task factory configuration
+   * @return reference to this, so the API can be used fluently
+   */
   public TaskFactoryOptions setConfig(JsonObject config) {
     this.config = config;
     return this;
