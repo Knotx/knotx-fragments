@@ -19,6 +19,7 @@ import static io.knotx.fragments.handler.api.domain.FragmentResult.SUCCESS_TRANS
 import static io.knotx.fragments.handler.api.domain.FragmentResult.ERROR_TRANSITION;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 public class CompositeNode implements Node {
@@ -58,6 +59,26 @@ public class CompositeNode implements Node {
 
   public List<Node> getNodes() {
     return nodes;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    CompositeNode that = (CompositeNode) o;
+    return Objects.equals(id, that.id) &&
+        Objects.equals(nodes, that.nodes) &&
+        Objects.equals(onSuccess, that.onSuccess) &&
+        Objects.equals(onError, that.onError);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(id, nodes, onSuccess, onError);
   }
 
   @Override

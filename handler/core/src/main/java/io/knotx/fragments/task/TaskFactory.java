@@ -17,18 +17,14 @@ package io.knotx.fragments.task;
 
 import io.knotx.fragments.engine.FragmentEventContext;
 import io.knotx.fragments.engine.Task;
-import io.knotx.fragments.task.factory.DefaultTaskFactory;
-import io.knotx.fragments.task.options.GraphNodeOptions;
-import io.knotx.fragments.task.options.TaskOptions;
 import io.vertx.core.json.JsonObject;
 import io.vertx.reactivex.core.Vertx;
-import java.util.Map;
 
 public interface TaskFactory {
 
   String getName();
 
-  DefaultTaskFactory configure(JsonObject factoryConfig, Vertx vertx);
+  TaskFactory configure(JsonObject factoryConfig, Vertx vertx);
 
   boolean accept(FragmentEventContext eventContext);
 

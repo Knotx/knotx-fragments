@@ -19,6 +19,7 @@ import io.knotx.fragments.handler.api.domain.FragmentContext;
 import io.knotx.fragments.handler.api.domain.FragmentResult;
 import io.reactivex.Single;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
 
@@ -61,8 +62,27 @@ public class SingleNode implements Node {
   }
 
   @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    SingleNode that = (SingleNode) o;
+    return Objects.equals(id, that.id) &&
+        Objects.equals(action, that.action) &&
+        Objects.equals(transitions, that.transitions);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(id, action, transitions);
+  }
+
+  @Override
   public String toString() {
-    return "ActionNode{" +
+    return "SingleNode{" +
         "id='" + id + '\'' +
         ", action=" + action +
         ", transitions=" + transitions +
