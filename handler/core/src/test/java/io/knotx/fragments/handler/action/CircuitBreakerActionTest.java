@@ -210,13 +210,52 @@ class CircuitBreakerActionTest {
 
                 Assertions.assertEquals(1, doActionsLogs.size());
                 ActionInvocationLog invocationLog = doActionsLogs.get(0);
-
                 Assertions.assertFalse(invocationLog.isSuccess());
+                Assertions.assertNotNull(invocationLog.getDoActionLog());
                 Assertions.assertNotNull(fallback);
                 Assertions.assertTrue(fallback.contains("DoActionExecuteException"));
               });
           testContext.completeNow();
         }));
+
+    //then
+    Assertions.assertTrue(testContext.awaitCompletion(5, TimeUnit.SECONDS));
+    if (testContext.failed()) {
+      throw testContext.causeOfFailure();
+    }
+  }
+
+  @Test
+  @DisplayName("Expect fallback transition when doAction failure and circuit breaker is in fallback mode.")
+  void expectFallbackWhenDoActionFailure(VertxTestContext testContext, Vertx vertx) throws Throwable {
+    // given
+    CircuitBreakerOptions options = new CircuitBreakerOptions().setFallbackOnFailure(true);
+    CircuitBreaker circuitBreaker = new CircuitBreakerImpl("name", vertx, options);
+
+    CircuitBreakerAction tested = new CircuitBreakerAction(circuitBreaker,
+        CircuitBreakerActionTest::applyFailure,"tested", INFO, ERROR_TRANSITION);
+
+    // when
+    tested.apply(new FragmentContext(FRAGMENT, new ClientRequest()),
+        result -> {
+          testContext
+              .verify(() -> {
+                Assertions.assertEquals(FALLBACK_TRANSITION, result.result().getTransition());
+
+                ActionLog actionLog = new ActionLog(result.result().getNodeLog());
+                String fallback = actionLog.getLogs().getString("fallback");
+                List<ActionInvocationLog> doActionsLogs = actionLog.getDoActionLogs();
+
+                Assertions.assertEquals(1, doActionsLogs.size());
+                ActionInvocationLog invocationLog = doActionsLogs.get(0);
+
+                Assertions.assertFalse(invocationLog.isSuccess());
+                Assertions.assertNull(invocationLog.getDoActionLog());
+                Assertions.assertNotNull(fallback);
+                Assertions.assertTrue(fallback.contains("DoActionExecuteException"));
+              });
+          testContext.completeNow();
+        });
 
     //then
     Assertions.assertTrue(testContext.awaitCompletion(5, TimeUnit.SECONDS));
@@ -283,6 +322,13 @@ class CircuitBreakerActionTest {
     Future.succeededFuture(new FragmentResult(fragmentContext.getFragment(), ERROR_TRANSITION,
         actionLogger.toLog().toJson()))
         .setHandler(resultHandler);
+  }
+
+  private static void applyFailure(FragmentContext fragmentContext,
+      Handler<AsyncResult<FragmentResult>> resultHandler) {
+    ActionLogger actionLogger = ActionLogger.create("action", INFO);
+    actionLogger.info("info", "error");
+    Future.<FragmentResult>failedFuture(new IllegalStateException()).setHandler(resultHandler);
   }
 
   private static void applyException(FragmentContext fragmentContext,
