@@ -21,7 +21,6 @@ import io.knotx.fragments.handler.api.Action;
 import io.knotx.fragments.handler.api.ActionFactory;
 import io.knotx.fragments.handler.api.domain.FragmentContext;
 import io.knotx.fragments.handler.api.domain.FragmentResult;
-import io.knotx.fragments.task.exception.NodeGraphException;
 import io.knotx.fragments.task.factory.NodeProvider;
 import io.knotx.fragments.task.factory.node.NodeFactory;
 import io.knotx.fragments.task.options.GraphNodeOptions;

@@ -15,12 +15,15 @@
  */
 package io.knotx.fragments.task.exception;
 
-public class TaskNotFoundException extends TaskConfigurationException {
+import io.knotx.fragments.ConfigurationException;
+
+public class TaskNotFoundException extends ConfigurationException {
 
   private String taskName;
 
   public TaskNotFoundException(String taskName) {
     super("Task [" + taskName + "] not configured!");
+    this.taskName = taskName;
   }
 
   public String getTaskName() {

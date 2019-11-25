@@ -16,13 +16,12 @@
 package io.knotx.fragments.task.factory.node.action;
 
 import io.knotx.fragments.handler.action.ActionOptions;
-import io.knotx.fragments.task.exception.NodeConfigException;
 import io.knotx.fragments.task.factory.config.LogLevelConfig;
 import io.vertx.codegen.annotations.DataObject;
 import io.vertx.core.json.JsonObject;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 
 @DataObject(generateConverter = true)
 public class ActionNodeFactoryConfig {
@@ -34,19 +33,17 @@ public class ActionNodeFactoryConfig {
   }
 
   public ActionNodeFactoryConfig(JsonObject json) {
+    actions = new HashMap<>();
     ActionNodeFactoryConfigConverter.fromJson(json, this);
     initActionLogLevel(json);
   }
 
   private void initActionLogLevel(JsonObject json) {
     LogLevelConfig defaultLogLevel = new LogLevelConfig(json);
-    Optional.ofNullable(actions).map(actions -> {
-      actions.values().forEach(actionOptions -> {
-        JsonObject actionConfig = actionOptions.getConfig();
-        LogLevelConfig.override(actionConfig, defaultLogLevel.getLogLevel());
-      });
-      return actions;
-    }).orElseThrow(() -> new NodeConfigException(json));
+    actions.values().forEach(actionOptions -> {
+      JsonObject actionConfig = actionOptions.getConfig();
+      LogLevelConfig.override(actionConfig, defaultLogLevel.getLogLevel());
+    });
   }
 
   public JsonObject toJson() {
@@ -59,8 +56,7 @@ public class ActionNodeFactoryConfig {
     return actions;
   }
 
-  public ActionNodeFactoryConfig setActions(
-      Map<String, ActionOptions> actions) {
+  public ActionNodeFactoryConfig setActions(Map<String, ActionOptions> actions) {
     this.actions = actions;
     return this;
   }

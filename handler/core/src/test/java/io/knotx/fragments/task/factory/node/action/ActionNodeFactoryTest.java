@@ -22,7 +22,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import io.knotx.fragments.engine.graph.Node;
 import io.knotx.fragments.engine.graph.SingleNode;
 import io.knotx.fragments.handler.action.ActionOptions;
-import io.knotx.fragments.task.exception.NodeConfigException;
 import io.knotx.fragments.task.factory.node.StubNode;
 import io.knotx.fragments.task.options.GraphNodeOptions;
 import io.vertx.core.json.JsonObject;
@@ -45,11 +44,14 @@ class ActionNodeFactoryTest {
   @DisplayName("Expect exception when `config.actions` not defined.")
   void expectExceptionWhenActionsNotConfigured(Vertx vertx) {
     // given
+    String actionAlias = "A";
     JsonObject config = new JsonObject();
+    GraphNodeOptions graph = new GraphNodeOptions(actionAlias, NO_TRANSITIONS);
 
     // when, then
     Assertions.assertThrows(
-        NodeConfigException.class, () -> new ActionNodeFactory().configure(config, vertx));
+        ActionNotFoundException.class, () -> new ActionNodeFactory().configure(config, vertx)
+            .initNode(graph, Collections.emptyMap(), null));
   }
 
   @Test

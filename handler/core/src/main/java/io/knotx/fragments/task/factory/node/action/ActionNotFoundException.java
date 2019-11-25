@@ -15,12 +15,18 @@
  */
 package io.knotx.fragments.task.factory.node.action;
 
-import io.knotx.fragments.task.exception.NodeGraphException;
+import io.knotx.fragments.ConfigurationException;
 
-public class ActionNotFoundException extends NodeGraphException {
+public class ActionNotFoundException extends ConfigurationException {
+
+  private String action;
 
   public ActionNotFoundException(String action) {
     super("Action not configured [" + action + "]");
+    this.action = action;
   }
 
+  public String getAction() {
+    return action;
+  }
 }
