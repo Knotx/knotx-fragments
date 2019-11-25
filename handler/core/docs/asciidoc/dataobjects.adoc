@@ -65,7 +65,6 @@ Sets <code>Action</code> factory name.
 [frame="topbot"]
 |===
 ^|Name | Type ^| Description
-|[[logLevel]]`@logLevel`|`String`|-
 |[[nodeFactories]]`@nodeFactories`|`Array of link:dataobjects.html#NodeFactoryOptions[NodeFactoryOptions]`|-
 |[[taskNameKey]]`@taskNameKey`|`String`|-
 |[[tasks]]`@tasks`|`link:dataobjects.html#TaskOptions[TaskOptions]`|+++

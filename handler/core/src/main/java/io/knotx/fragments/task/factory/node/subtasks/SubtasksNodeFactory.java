@@ -22,7 +22,7 @@ import io.knotx.fragments.engine.graph.CompositeNode;
 import io.knotx.fragments.engine.graph.Node;
 import io.knotx.fragments.task.factory.NodeProvider;
 import io.knotx.fragments.task.factory.node.NodeFactory;
-import io.knotx.fragments.task.options.GraphNodeOptions;
+import io.knotx.fragments.task.factory.GraphNodeOptions;
 import io.vertx.core.json.JsonObject;
 import io.vertx.reactivex.core.Vertx;
 import java.util.List;

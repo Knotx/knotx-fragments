@@ -31,8 +31,6 @@ import io.knotx.fragments.task.factory.node.NodeFactoryOptions;
 import io.knotx.fragments.task.factory.node.action.ActionNodeFactory;
 import io.knotx.fragments.task.factory.node.action.ActionNodeFactoryConfig;
 import io.knotx.fragments.task.factory.node.subtasks.SubtasksNodeFactory;
-import io.knotx.fragments.task.options.GraphNodeOptions;
-import io.knotx.fragments.task.options.TaskOptions;
 import io.knotx.server.api.context.ClientRequest;
 import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.VertxExtension;

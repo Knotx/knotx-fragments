@@ -16,7 +16,7 @@
 package io.knotx.fragments.task.factory.node.action;
 
 import io.knotx.fragments.handler.action.ActionOptions;
-import io.knotx.fragments.task.factory.config.LogLevelConfig;
+import io.knotx.fragments.task.factory.LogLevelConfig;
 import io.vertx.codegen.annotations.DataObject;
 import io.vertx.core.json.JsonObject;
 import java.util.HashMap;
@@ -39,10 +39,10 @@ public class ActionNodeFactoryConfig {
   }
 
   private void initActionLogLevel(JsonObject json) {
-    LogLevelConfig defaultLogLevel = new LogLevelConfig(json);
+    LogLevelConfig globalLogLevel = new LogLevelConfig(json);
     actions.values().forEach(actionOptions -> {
       JsonObject actionConfig = actionOptions.getConfig();
-      LogLevelConfig.override(actionConfig, defaultLogLevel.getLogLevel());
+      LogLevelConfig.override(actionConfig, globalLogLevel.getLogLevel());
     });
   }
 

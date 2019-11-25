@@ -16,7 +16,7 @@
 package io.knotx.fragments.task.factory.node.subtasks;
 
 import io.knotx.fragments.task.factory.node.NodeOptions;
-import io.knotx.fragments.task.options.GraphNodeOptions;
+import io.knotx.fragments.task.factory.GraphNodeOptions;
 import io.vertx.codegen.annotations.DataObject;
 import io.vertx.core.json.JsonObject;
 import java.util.List;

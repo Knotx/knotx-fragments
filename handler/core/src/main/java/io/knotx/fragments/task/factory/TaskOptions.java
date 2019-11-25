@@ -13,10 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.knotx.fragments.task.options;
+package io.knotx.fragments.task.factory;
 
-import io.knotx.fragments.task.factory.DefaultTaskFactory;
-import io.knotx.fragments.task.TaskFactory;
 import io.vertx.codegen.annotations.DataObject;
 import io.vertx.core.json.JsonObject;
 import java.util.Objects;
