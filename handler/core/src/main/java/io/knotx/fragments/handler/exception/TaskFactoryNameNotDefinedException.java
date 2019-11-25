@@ -15,6 +15,7 @@
  */
 package io.knotx.fragments.handler.exception;
 
+import io.knotx.fragments.ConfigurationException;
 import io.vertx.core.json.JsonObject;
 
 public class TaskFactoryNameNotDefinedException extends ConfigurationException {

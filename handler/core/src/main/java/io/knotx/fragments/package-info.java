@@ -13,20 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.knotx.fragments.task.exception;
+@ModuleGen(name = "knotx-fragments-handler-core", groupPackage = "io.knotx")
+package io.knotx.fragments;
 
-import io.vertx.core.json.JsonObject;
-
-public class NodeConfigException extends NodeConfigurationException {
-
-  private JsonObject config;
-
-  public NodeConfigException(JsonObject config) {
-    super("Node configuration is incorrect [" + config + "]");
-    this.config = config;
-  }
-
-  public JsonObject getConfig() {
-    return config;
-  }
-}
+import io.vertx.codegen.annotations.ModuleGen;

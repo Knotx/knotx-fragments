@@ -47,7 +47,11 @@ class TaskProvider {
 
   Optional<Task> newInstance(FragmentEventContext eventContext) {
     return factories.stream()
-        .filter(f -> f.accept(eventContext))
+        .filter(f -> {
+          boolean accept = f.accept(eventContext);
+          LOGGER.debug("Task factory [{}] accepts fragment event [{}]", f.getName(), eventContext);
+          return accept;
+        })
         .findFirst()
         .map(f -> f.newInstance(eventContext));
   }

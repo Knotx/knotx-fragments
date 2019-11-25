@@ -15,9 +15,9 @@
  */
 package io.knotx.fragments.handler.exception;
 
-import io.knotx.fragments.task.exception.TaskConfigurationException;
+import io.knotx.fragments.ConfigurationException;
 
-public class TaskFactoryNotFoundException extends TaskConfigurationException {
+public class TaskFactoryNotFoundException extends ConfigurationException {
 
   private String factory;
 
