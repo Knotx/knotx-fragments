@@ -47,12 +47,13 @@ class TaskProvider {
 
   Optional<Task> newInstance(FragmentEventContext eventContext) {
     return factories.stream()
-        .filter(f -> {
-          boolean accept = f.accept(eventContext);
-          LOGGER.debug("Task factory [{}] accepts fragment event [{}]", f.getName(), eventContext);
-          return accept;
-        })
+        .filter(f -> f.accept(eventContext))
         .findFirst()
+        .map(f -> {
+          LOGGER.debug("Task factory [{}] accepts fragment [{}]", f.getName(),
+              eventContext.getFragmentEvent().getFragment().getId());
+          return f;
+        })
         .map(f -> f.newInstance(eventContext));
   }
 
@@ -60,28 +61,28 @@ class TaskProvider {
     Map<String, TaskFactory> loadedFactories = loadFactories();
 
     List<TaskFactory> result = new ArrayList<>();
-    optionsList.iterator().forEachRemaining(options -> result.add(
+    optionsList.forEach(options -> result.add(
         configureFactory(loadedFactories, options.getFactory(), options.getConfig())));
     return result;
   }
 
   private TaskFactory configureFactory(Map<String, TaskFactory> loadedFactories, String factory,
       JsonObject config) {
-    LOGGER.debug("Initializing task factory [{}] with config [{}]", factory, config);
+    LOGGER.info("Initializing task factory [{}] with config [{}]", factory, config);
     return Optional.ofNullable(loadedFactories.get(factory))
         .map(f -> f.configure(config, vertx))
         .orElseThrow(() -> new TaskFactoryNotFoundException(factory));
   }
 
   private Map<String, TaskFactory> loadFactories() {
-    Map<String, TaskFactory> factories = new HashMap<>();
+    Map<String, TaskFactory> loadedFactories = new HashMap<>();
     ServiceLoader
         .load(TaskFactory.class).iterator()
         .forEachRemaining(f -> {
-          LOGGER.info("Registering task factory [{}]", f.getName());
-          factories.put(f.getName(), f);
+          LOGGER.debug("Registering task factory [{}]", f.getName());
+          loadedFactories.put(f.getName(), f);
         });
 
-    return factories;
+    return loadedFactories;
   }
 }

@@ -59,8 +59,14 @@ public class DefaultTaskFactory implements TaskFactory, NodeProvider {
   @Override
   public boolean accept(FragmentEventContext eventContext) {
     Fragment fragment = eventContext.getFragmentEvent().getFragment();
-    // TODO validate if it is on the list
-    return fragment.getConfiguration().containsKey(taskFactoryConfig.getTaskNameKey());
+    boolean fragmentContainsTask = fragment.getConfiguration()
+        .containsKey(taskFactoryConfig.getTaskNameKey());
+    return fragmentContainsTask && isTaskConfigured(eventContext);
+  }
+
+  private boolean isTaskConfigured(FragmentEventContext eventContext) {
+    // TODO
+    return true;
   }
 
   @Override
@@ -74,15 +80,14 @@ public class DefaultTaskFactory implements TaskFactory, NodeProvider {
         .map(taskOptions -> {
           Node rootNode = initNode(taskOptions.getGraph());
           return new Task(taskName, rootNode);
-        }).orElseThrow(() -> new TaskNotFoundException(taskName));
+        })
+        .orElseThrow(() -> new TaskNotFoundException(taskName));
   }
 
   @Override
   public Node initNode(GraphNodeOptions nodeOptions) {
-    Map<String, Node> transitionToNodeMap = initTransitions(nodeOptions);
-    Optional<NodeFactory> nodeFactory = findNodeFactory(nodeOptions);
-    return nodeFactory
-        .map(f -> f.initNode(nodeOptions, transitionToNodeMap,this))
+    return findNodeFactory(nodeOptions)
+        .map(f -> f.initNode(nodeOptions, initTransitions(nodeOptions), this))
         .orElseThrow(() -> new NodeFactoryNotFoundException(nodeOptions.getNode().getFactory()));
   }
 

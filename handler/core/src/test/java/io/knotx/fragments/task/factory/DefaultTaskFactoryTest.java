@@ -71,7 +71,7 @@ class DefaultTaskFactoryTest {
           new ClientRequest());
 
   @Test
-  @DisplayName("Expect graph when custom task key is defined.")
+  @DisplayName("Expect graph when custom task name key is defined.")
   void expectGraphWhenCustomTaskKey(Vertx vertx) {
     // given
     JsonObject actionNodeConfig = createActionNodeConfig("A", SUCCESS_TRANSITION);

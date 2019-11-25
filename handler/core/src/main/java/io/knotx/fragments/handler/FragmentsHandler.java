@@ -33,6 +33,8 @@ import io.knotx.server.api.handler.RequestEventHandlerResult;
 import io.reactivex.Single;
 import io.vertx.core.Handler;
 import io.vertx.core.json.JsonObject;
+import io.vertx.core.logging.Logger;
+import io.vertx.core.logging.LoggerFactory;
 import io.vertx.reactivex.core.Vertx;
 import io.vertx.reactivex.ext.web.RoutingContext;
 import java.util.List;
@@ -40,6 +42,8 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 public class FragmentsHandler implements Handler<RoutingContext> {
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(TaskProvider.class);
 
   private final RequestContextEngine requestContextEngine;
 
@@ -116,12 +120,19 @@ public class FragmentsHandler implements Handler<RoutingContext> {
 
   private List<FragmentEventContextTaskAware> toEvents(List<Fragment> fragments,
       ClientRequest clientRequest) {
+    LOGGER.debug("Processing fragments [{}]", fragments);
     return fragments.stream()
         .map(
             fragment -> {
               FragmentEventContext fragmentEventContext = new FragmentEventContext(
                   new FragmentEvent(fragment), clientRequest);
+
               return taskProvider.newInstance(fragmentEventContext)
+                  .map(task -> {
+                    LOGGER.info("Created task [{}] for fragment [{}]", task,
+                        fragmentEventContext.getFragmentEvent().getFragment().getId());
+                    return task;
+                  })
                   .map(
                       task -> new FragmentEventContextTaskAware(task, fragmentEventContext))
                   .orElseGet(() -> new FragmentEventContextTaskAware(new Task("_NOT_DEFINED"),

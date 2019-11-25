@@ -30,8 +30,8 @@ public class DefaultTaskFactoryConfig {
 
   public static final String DEFAULT_TASK_NAME_KEY = "data-knotx-task";
 
-  private List<NodeFactoryOptions> nodeFactories;
   private Map<String, TaskOptions> tasks;
+  private List<NodeFactoryOptions> nodeFactories;
   private String taskNameKey;
   private String logLevel;
 
