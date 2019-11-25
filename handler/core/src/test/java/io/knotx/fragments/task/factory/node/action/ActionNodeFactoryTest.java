@@ -23,7 +23,7 @@ import io.knotx.fragments.engine.graph.Node;
 import io.knotx.fragments.engine.graph.SingleNode;
 import io.knotx.fragments.handler.action.ActionOptions;
 import io.knotx.fragments.task.factory.node.StubNode;
-import io.knotx.fragments.task.options.GraphNodeOptions;
+import io.knotx.fragments.task.factory.GraphNodeOptions;
 import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.reactivex.core.Vertx;

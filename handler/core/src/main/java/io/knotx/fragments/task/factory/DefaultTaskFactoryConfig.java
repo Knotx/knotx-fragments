@@ -15,9 +15,7 @@
  */
 package io.knotx.fragments.task.factory;
 
-import io.knotx.fragments.task.factory.config.LogLevelConfig;
 import io.knotx.fragments.task.factory.node.NodeFactoryOptions;
-import io.knotx.fragments.task.options.TaskOptions;
 import io.vertx.codegen.annotations.DataObject;
 import io.vertx.core.json.JsonObject;
 import java.util.List;
@@ -33,7 +31,6 @@ public class DefaultTaskFactoryConfig {
   private Map<String, TaskOptions> tasks;
   private List<NodeFactoryOptions> nodeFactories;
   private String taskNameKey;
-  private String logLevel;
 
   public DefaultTaskFactoryConfig() {
     init();
@@ -42,28 +39,27 @@ public class DefaultTaskFactoryConfig {
   public DefaultTaskFactoryConfig(JsonObject json) {
     this();
     DefaultTaskFactoryConfigConverter.fromJson(json, this);
-//    initNodeLogLevel(json);
+    initNodeLogLevel(json);
   }
 
   private void init() {
     taskNameKey = DEFAULT_TASK_NAME_KEY;
   }
 
-//  private void initNodeLogLevel(JsonObject json) {
-//    nodeFactories.stream().flatMap(nodeFactoryOptions -> {
-//      actions.values().forEach(actionOptions -> {
-//        JsonObject actionConfig = actionOptions.getConfig();
-//        override(actionConfig, defaultLogLevel.getLogLevel());
-//      });
-//      return actions;
-//    }).orElseThrow(() -> new NodeConfigException(json));
-//  }
+  private void initNodeLogLevel(JsonObject json) {
+    LogLevelConfig globalLogLevel = new LogLevelConfig(json);
+    if (StringUtils.isNotBlank(globalLogLevel.getLogLevel())) {
+      nodeFactories.forEach(nodeFactoryOptions ->
+          override(nodeFactoryOptions.getConfig(), globalLogLevel.getLogLevel()));
+    }
+  }
 
-  private void override(JsonObject json, String defaultLogLevel) {
-    if (!StringUtils.isBlank(defaultLogLevel)) {
+  private void override(JsonObject json, String globalLogLevel) {
+
+    if (!StringUtils.isBlank(globalLogLevel)) {
       LogLevelConfig logLevelConfig = new LogLevelConfig(json);
       if (StringUtils.isBlank(logLevelConfig.getLogLevel())) {
-        json.mergeIn(logLevelConfig.setLogLevel(defaultLogLevel).toJson());
+        json.mergeIn(logLevelConfig.setLogLevel(globalLogLevel).toJson());
       }
     }
   }
@@ -109,16 +105,6 @@ public class DefaultTaskFactoryConfig {
     return this;
   }
 
-  public String getLogLevel() {
-    return logLevel;
-  }
-
-  public DefaultTaskFactoryConfig setLogLevel(String logLevel) {
-    this.logLevel = logLevel;
-    return this;
-  }
-
-
   @Override
   public boolean equals(Object o) {
     if (this == o) {
@@ -130,13 +116,12 @@ public class DefaultTaskFactoryConfig {
     DefaultTaskFactoryConfig that = (DefaultTaskFactoryConfig) o;
     return Objects.equals(tasks, that.tasks) &&
         Objects.equals(nodeFactories, that.nodeFactories) &&
-        Objects.equals(taskNameKey, that.taskNameKey) &&
-        Objects.equals(logLevel, that.logLevel);
+        Objects.equals(taskNameKey, that.taskNameKey);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(tasks, nodeFactories, taskNameKey, logLevel);
+    return Objects.hash(tasks, nodeFactories, taskNameKey);
   }
 
   @Override
@@ -145,7 +130,6 @@ public class DefaultTaskFactoryConfig {
         "tasks=" + tasks +
         ", nodeFactories=" + nodeFactories +
         ", taskNameKey='" + taskNameKey + '\'' +
-        ", logLevel='" + logLevel + '\'' +
         '}';
   }
 }

@@ -32,7 +32,7 @@ import io.knotx.fragments.engine.graph.Node;
 import io.knotx.fragments.task.factory.NodeProvider;
 import io.knotx.fragments.task.factory.node.NodeOptions;
 import io.knotx.fragments.task.factory.node.StubNode;
-import io.knotx.fragments.task.options.GraphNodeOptions;
+import io.knotx.fragments.task.factory.GraphNodeOptions;
 import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.reactivex.core.Vertx;

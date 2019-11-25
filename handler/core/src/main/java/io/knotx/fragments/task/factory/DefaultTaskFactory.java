@@ -23,8 +23,6 @@ import io.knotx.fragments.task.TaskFactory;
 import io.knotx.fragments.task.exception.NodeFactoryNotFoundException;
 import io.knotx.fragments.task.exception.TaskNotFoundException;
 import io.knotx.fragments.task.factory.node.NodeFactory;
-import io.knotx.fragments.task.options.GraphNodeOptions;
-import io.knotx.fragments.task.options.TaskOptions;
 import io.vertx.core.json.JsonObject;
 import io.vertx.reactivex.core.Vertx;
 import java.util.HashMap;

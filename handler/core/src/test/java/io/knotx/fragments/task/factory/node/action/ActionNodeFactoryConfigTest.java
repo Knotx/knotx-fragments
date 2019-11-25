@@ -13,10 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.knotx.fragments.task.factory;
+package io.knotx.fragments.task.factory.node.action;
 
 import static io.knotx.fragments.HoconLoader.verify;
 
+import io.knotx.fragments.task.factory.LogLevelConfig;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.VertxExtension;
@@ -27,40 +28,45 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 @ExtendWith(VertxExtension.class)
-class DefaultTaskFactoryConfigTest {
+class ActionNodeFactoryConfigTest {
 
   @Test
-  @DisplayName("Expect all node factories do not contain log level when global is not configured")
+  @DisplayName("Expect all actions do not contain log level when global is not configured")
   void expectNoLogLevel(Vertx vertx) throws Throwable {
-    verify("task/factory/taskFactoryWithNoGlobalLogLevel.conf", validateNoGlobalNodeLog(), vertx);
+    verify("task/factory/node/action/actionNodeFactoryWithNoGlobalLogLevel.conf",
+        validateNoGlobalNodeLog(), vertx);
   }
 
   @Test
-  @DisplayName("Expect all node factories contain log level when global is configured")
+  @DisplayName("Expect all actions contain log level when global is configured")
   void expectLogLevel(Vertx vertx) throws Throwable {
-    verify("task/factory/taskFactoryWithGlobalLogLevel.conf", validateNodeLog("INFO"), vertx);
+    String expectedGlobalLogLevel = "INFO";
+    verify("task/factory/node/action/actionNodeFactoryWithGlobalLogLevel.conf",
+        validateNodeLog(expectedGlobalLogLevel), vertx);
   }
 
   @Test
   @DisplayName("Expect local node log level is not overridden by global one")
   void expectLocalLogLevel(Vertx vertx) throws Throwable {
-    verify("task/factory/taskFactoryWithLocalLogLevel.conf", validateNodeLog("ERROR"), vertx);
+    String expectedLocalLogLevel = "ERROR";
+    verify("task/factory/node/action/actionNodeFactoryWithLocalLogLevel.conf",
+        validateNodeLog(expectedLocalLogLevel), vertx);
   }
 
   private Consumer<JsonObject> validateNoGlobalNodeLog() {
     return config -> {
-      DefaultTaskFactoryConfig factoryConfig = new DefaultTaskFactoryConfig(config);
-      factoryConfig.getNodeFactories().forEach(
-          nodeFactoryOptions -> Assertions
-              .assertNull(new LogLevelConfig(nodeFactoryOptions.getConfig()).getLogLevel())
+      ActionNodeFactoryConfig factoryConfig = new ActionNodeFactoryConfig(config);
+      factoryConfig.getActions().values().forEach(
+          actionOptions -> Assertions
+              .assertNull(new LogLevelConfig(actionOptions.getConfig()).getLogLevel())
       );
     };
   }
 
   private Consumer<JsonObject> validateNodeLog(String logLevel) {
     return config -> {
-      DefaultTaskFactoryConfig factoryConfig = new DefaultTaskFactoryConfig(config);
-      factoryConfig.getNodeFactories().forEach(
+      ActionNodeFactoryConfig factoryConfig = new ActionNodeFactoryConfig(config);
+      factoryConfig.getActions().values().forEach(
           nodeFactoryOptions -> Assertions
               .assertEquals(logLevel, nodeFactoryOptions.getConfig().getString("logLevel"))
       );

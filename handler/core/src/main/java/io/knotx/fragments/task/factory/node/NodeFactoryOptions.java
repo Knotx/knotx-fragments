@@ -26,10 +26,11 @@ public class NodeFactoryOptions {
   private JsonObject config;
 
   public NodeFactoryOptions() {
-    // empty
+    config = new JsonObject();
   }
 
   public NodeFactoryOptions(JsonObject json) {
+    this();
     NodeFactoryOptionsConverter.fromJson(json, this);
   }
 
