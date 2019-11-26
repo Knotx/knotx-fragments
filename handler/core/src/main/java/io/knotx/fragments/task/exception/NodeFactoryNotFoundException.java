@@ -22,7 +22,7 @@ public class NodeFactoryNotFoundException extends ConfigurationException {
   private String factory;
 
   public NodeFactoryNotFoundException(String factory) {
-    super("Factory not registered for [" + factory + "]");
+    super("Node factory not registered for [" + factory + "]");
     this.factory = factory;
   }
 

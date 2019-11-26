@@ -116,6 +116,6 @@ public class DefaultTaskFactory implements TaskFactory, NodeProvider {
         false);
 
     return factoryStream.filter(f -> f.getName().equals(factory)).findFirst()
-        .orElseThrow(() -> new IllegalStateException("Node not decfined"));
+        .orElseThrow(() -> new IllegalStateException("Node not defined"));
   }
 }
