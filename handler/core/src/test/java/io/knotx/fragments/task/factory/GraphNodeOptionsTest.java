@@ -32,13 +32,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 @ExtendWith(VertxExtension.class)
-class TaskOptionsTest {
-
-  @Test
-  @DisplayName("Expect task with action node when simplified task definition.")
-  void expectActionNodeWhenSimplifiedTask(Vertx vertx) throws Throwable {
-    verify("task/factory/taskSimplified.conf", validateActionNode(), vertx);
-  }
+class GraphNodeOptionsTest {
 
   @Test
   @DisplayName("Expect task with action node when action defined directly in the task.")
@@ -80,7 +74,7 @@ class TaskOptionsTest {
   @DisplayName("Expect nodes configured with _success flow")
   void expectTransitionSuccessWithNodeBThenNodeC(Vertx vertx) throws Throwable {
     verify("task/factory/taskWithTransitions.conf", config -> {
-      GraphNodeOptions graphNodeOptions = new TaskOptions(config).getGraph();
+      GraphNodeOptions graphNodeOptions = new GraphNodeOptions(config);
       Optional<GraphNodeOptions> nodeB = graphNodeOptions.get("_success");
       assertTrue(nodeB.isPresent());
       assertEquals("b", getAction(nodeB.get()));
@@ -93,7 +87,7 @@ class TaskOptionsTest {
 
   private Consumer<JsonObject> validateActionNode() {
     return config -> {
-      GraphNodeOptions graphNodeOptions = new TaskOptions(config).getGraph();
+      GraphNodeOptions graphNodeOptions = new GraphNodeOptions(config);
       assertEquals("a", getAction(graphNodeOptions));
       assertEquals(ActionNodeFactory.NAME, graphNodeOptions.getNode().getFactory());
     };
@@ -101,8 +95,7 @@ class TaskOptionsTest {
 
   private Consumer<JsonObject> validateSubtasksNode() {
     return config -> {
-      TaskOptions taskOptions = new TaskOptions(config);
-      GraphNodeOptions graphNodeOptions = taskOptions.getGraph();
+      GraphNodeOptions graphNodeOptions = new GraphNodeOptions(config);
       assertEquals(SubtasksNodeFactory.NAME, graphNodeOptions.getNode().getFactory());
       SubtasksNodeConfig nodeConfig = new SubtasksNodeConfig(
           graphNodeOptions.getNode().getConfig());

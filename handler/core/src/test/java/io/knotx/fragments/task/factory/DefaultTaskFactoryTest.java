@@ -160,7 +160,7 @@ class DefaultTaskFactoryTest {
       JsonObject actionNodeConfig) {
     DefaultTaskFactoryConfig taskFactoryConfig = new DefaultTaskFactoryConfig();
     taskFactoryConfig
-        .setTasks(Collections.singletonMap(TASK_NAME, new TaskOptions().setGraph(graph)));
+        .setTasks(Collections.singletonMap(TASK_NAME, graph));
     List<NodeFactoryOptions> nodeFactories = Arrays.asList(
         new NodeFactoryOptions().setFactory(ActionNodeFactory.NAME).setConfig(actionNodeConfig),
         new NodeFactoryOptions().setFactory(SubtasksNodeFactory.NAME));
