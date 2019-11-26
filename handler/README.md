@@ -7,8 +7,8 @@ a standard [HTTP Server routing handler](https://github.com/Knotx/knotx-server-h
 Fragments handler evaluates all fragments independently in a map-reduce fashion. It delegates fragment 
 processing to the [Fragment Engine](https://github.com/Knotx/knotx-fragments/tree/master/handler/engine).  
 The engine checks if the fragment requires processing and if it does then fragment processing starts.
-modifications. Order and transitions between each of these executions is represented as a directed graph. 
-A single graph is called a `Task`.
+Order and transitions between each of these executions is represented as a directed acyclic graph 
+(DAG). A single graph is called a `Task`.
 
 The diagram below depicts the map-reduce logic using [Marble Diagrams for Reactive Streams](https://medium.com/@jshvarts/read-marble-diagrams-like-a-pro-3d72934d3ef5):
 
@@ -25,82 +25,93 @@ such a case the `collect` diagram represents fragments joining.
 Read more about the benefits [here](http://knotx.io/blog/configurable-integrations/).
 
 ## How to configure
+For all configuration fields and their defaults consult [FragmentsHandlerOptions](https://github.com/Knotx/knotx-fragments/blob/master/handler/core/docs/asciidoc/dataobjects.adoc#fragmentshandleroptions).
 
-> Please note that this documentation explains in details how tasks are instantiated. It focuses on 
-> extendability aspects so, if you prefer to play with some real case scenario, you should start 
-> with the [example](#example) first.
+In general:
+- it gets fragments from a request, collects only those that require processing checking fragment's 
+configuration `taskNameKey` key
+- it finds [task](https://github.com/Knotx/knotx-fragments/tree/master/handler/engine#task) factory 
+from `taskFactories` that can create a task
+- task factory constructs a task (DAG - directed acyclic graph)
+- [Fragment Engine](https://github.com/Knotx/knotx-fragments/tree/master/handler/engine) continues 
+further fragment's processing
 
-A fragments handler configuration contains:
-- [tasks](#tasks) definitions
-- task key that specified fragment's configuration key where a task is defined, it is a global 
-property for all fragments
+Detailed description of each configuration option is described in the next subsection.
+
+### TaskFactoryOptions
+The `taskFactories` is an array of [TaskFactoryOptions](https://github.com/Knotx/knotx-fragments/blob/feature/%2349-node-factories-with-common-configs/handler/core/docs/asciidoc/dataobjects.adoc#taskfactoryoptions) 
+that contains configs for registered [task factories](https://github.com/Knotx/knotx-fragments/blob/master/handler/core/src/main/java/io/knotx/fragments/task/TaskFactory.java) 
+implementations.
+
+All task factory implementations are registered using a simple service-provider loading facility - 
+[Service Loader](https://docs.oracle.com/javase/8/docs/api/java/util/ServiceLoader.html).
+
+# Default task factory
+It is the default task factory containing a list of supported task's names with their definition. A 
+definition represents a directed acyclic graph (DAG).  
+It introduces its custom graph nodes
+- [action](#action-node)
+- [subtasks](#subtasks-node)
+
+## How does it work
+Task factory creates a task based on its configuration. It registers graph node factories, delegates 
+node initialization to them and joins all nodes with transitions. 
+
+The task is an [identifiable graph](https://github.com/Knotx/knotx-fragments/blob/master/handler/engine/src/main/java/io/knotx/fragments/engine/Task.java) 
+that describes the way fragment should be processed. It is a part of Fragment Engine's API.
+
+## How to configure
+For all configuration fields and their defaults consult [DefaultTaskFactoryConfig](https://github.com/Knotx/knotx-fragments/blob/master/handler/core/docs/asciidoc/dataobjects.adoc#defaulttaskfactoryconfig).
+
+In general:
+- it defines supported tasks (by name) containing graph configuration in `tasks`
+- a graph configuration is converted to task with node factories defined in `nodeFactories`
 
 ### Tasks
 [Tasks](https://github.com/Knotx/knotx-fragments/tree/master/handler/engine#task) are configured in 
-the form of a dictionary (`taskName -> definition`):
+the form of a dictionary (`taskName -> graph logic`):
 ```hocon
 tasks {
   # unique task name
   myTask { 
-    # task definition
+    # graph configuration
   }
 }
 ```
 
-A task defines task factory, task options and graph logic.
+A graph configuration starts with a root [node](#nodes) definition. Each node sets a fragment's logic 
+to perform and outgoing edges (called [transitions](#transition)). So there are two sections:
 ```hocon
-factory = factory-name
-config {
-  # task options
+node {
+  # node options (fragment processing logic)
 }
-graph {
-  # graph logic
+onTransitions {
+  # node outgoing edges
 }
 ```
 
-#### Task Factory
-A factory creates a task based on task options and graph configuration. All task factory 
-implementations are registered using a simple service-provider loading facility - 
-[Service Loader](https://docs.oracle.com/javase/8/docs/api/java/util/ServiceLoader.html).
-
-If a task factory is not specified
-```hocon
-tasks {
-  myTask {
-    # factory = default
-  }
-}
-```
-then the [default task factory](#default-task-factory) (`default`) is used.
-
-#### Graph
-Task has a tree structure. A graph logic defines the [root node](#node) of the tree first.
-```hocon
-graph {
-  # rootNodeDefinition
-}
-```
-Each graph node sets fragment logic to perform and outgoing edges (called 
-[transitions](#transition)). So the `rootNodeDefinition` configuration looks like:
-```hocon
-graph {
-  node { # required
-     # node options (fragment processing logic)
-  }
-  onTransitions {
-    # node outgoing edges
-  }
-}
-```
-There are two sections:
-- `node` defines a fragment processing logic
-- `onTransitions` is a map that represents outgoing edges in a graph
-
-##### Node
+#### Node
 Node is described [here](https://github.com/Knotx/knotx-fragments/tree/master/handler/engine#node).
 Each task provider can provided its custom nodes.
 
-##### Transition
+The default task provider allows registering node factories that are used during the graph 
+configuration. So each node defines its custom factory and options:
+```hocon
+node {
+  factory = factory-name
+  config {
+    # node options
+  }
+}
+```
+
+The `factory` parameter specifies a node factory name, `config` contains all configs passed to 
+the factory.
+
+All custom node types that are finally converted to the 
+[generic node types](https://github.com/Knotx/knotx-fragments/tree/master/handler/engine#node-types).
+
+#### Transition
 A directed graph consists of nodes and edges. Edges are called 
 [transitions](https://github.com/Knotx/knotx-fragments/tree/master/handler/engine#transition). 
 
@@ -119,56 +130,25 @@ onTransitions {
 }
 ```
 
-## Default task factory
-Fragments handler provides the default task factory that:
-- defines its custom configurable node types
-- introduces the concept of [actions](#actions) and [behaviours](#behaviours)
-- handles stateful and stateless actions.
+### Node factories
+The `nodeFactories` is an array of [NodeFactoryOptions](https://github.com/Knotx/knotx-fragments/blob/master/handler/core/docs/asciidoc/dataobjects.adoc#nodefactoryoptions) 
+that contains configs for registered [node factories](https://github.com/Knotx/knotx-fragments/blob/master/handler/core/src/main/java/io/knotx/fragments/task/factory/node/NodeFactory.java) 
+implementations.
 
-Its configuration looks like:
-```hocon
-tasks {
-  # unique task name
-  myTask {
-    factory = default
-    config {
-      actions {
-        # actions here
-      }
-      logLevel = INFO      
-    }
-    graph {
-    } 
-  }
-}
-```
+All node factory implementations are registered using a simple service-provider loading facility - 
+[Service Loader](https://docs.oracle.com/javase/8/docs/api/java/util/ServiceLoader.html).
 
-### Nodes
-The default task provider allows registering node factories that are used during the graph 
-configuration. It is the same service-provider loading facility we used for tasks creation. 
+#### Action node factory
+It is implemented by the [ActionNodeFactory](https://github.com/Knotx/knotx-fragments/blob/master/handler/core/src/main/java/io/knotx/fragments/task/factory/node/action/ActionNodeFactory.java) 
+class. Its name is `action`. It is configured with [ActionNodeFactoryConfig](https://github.com/Knotx/knotx-fragments/blob/master/handler/core/docs/asciidoc/dataobjects.adoc#actionnodefactoryconfig).
 
-Each node defines its custom factory and options:
-```hocon
-node {
-  factory = factory-name
-  config {
-    # node options
-  }
-}
-```
+In general:
+- it declares [actions](#actions) that are used in action node declarations
+- global node log level that is passed to actions
 
-The `factory` parameter specifies a node factory name, `config` contains all options passed to 
-the factory.
-
-All custom node types that are finally converted to the 
-[generic node types](https://github.com/Knotx/knotx-fragments/tree/master/handler/engine#node-types).
-
-The provided nodes implementations:
-- **Action node** that represents simple steps in a graph such as integration with a data source
-- **Subtasks node** that is a list of unnamed tasks (subtasks) that are evaluated in parallel
-
-#### Action node
-An *action node* declares an [action](#actions) to execute by its name:
+##### Action node declaration
+An action node factory creates action nodes. An *action node* declares an [action](#actions) to 
+execute by its name:
 ```hocon
 node {
   factory = action
@@ -181,7 +161,7 @@ node {
 The above example specifies the action node that delegates processing to the `reference-to-action` 
 action and has no transitions.
 
-Knot.x allows simplifying action nodes declaration:
+The default task factory allows simplifying action nodes declaration:
 ```hocon
 action = reference-to-action
 # onTransitions { }
@@ -214,7 +194,11 @@ So it supports both [actions](#actions) and [behaviours](#behaviours). Actions d
 [logger](https://github.com/Knotx/knotx-fragments/blob/feature/%2347-action-log-structure/handler/api/src/main/java/io/knotx/fragments/handler/api/actionlog/ActionLogBuilder.java) 
 implementation that hides syntax complexity.
 
-#### Subtasks node
+#### Action node factory
+It is implemented by the [SubtasksNodeFactory](https://github.com/Knotx/knotx-fragments/blob/master/handler/core/src/main/java/io/knotx/fragments/task/factory/node/subtasks/SubtasksNodeFactory.java) 
+class. Its name is `subtasks`. Its configuration is empty. 
+
+##### Subtasks node declaration
 Subtasks node is a node containing a list of subtasks. It evaluates all of them sequentially. 
 However, all the operations are non-blocking, so it doesn't wait for previous subtasks to finish. 
 Because of that, they are effectively executed in parallel
@@ -270,7 +254,7 @@ See the [example section](#the-example) for a more complex scenario. Before we s
 power of graphs, we need to understand how nodes are connected.
 
 ##### Logs
-Subtasks node appends a single [fragment's log](https://github.com/Knotx/knotx-fragments/tree/feature/%2347-action-log-structure/handler/engine#fragments-log) 
+Subtasks node appends a single [fragment's log](https://github.com/Knotx/knotx-fragments/tree/master/handler/engine#fragments-log) 
 entry when all subgraphs are processed:
 
 | Task       | Node identifier | Node status | Transition | Node Log        |
@@ -278,121 +262,6 @@ entry when all subgraphs are processed:
 | `taskName` | `composite`     | SUCCESS     | `_success` |                 |
 
 Please note that the node log is empty.
-
-### Actions
-Actions can integrate with external data sources, do some fragments modifications or even 
-update some database records. 
-They can update a fragment, change all fragment's payload values. However, they should 
-store their data in the payload (JSON object) under the action's name key.
-
-Actions can have some [behaviours](#behaviours). Those behaviours come with some functionality, such as caching,
-however, they are not specific for particular action implementation.
-
-#### HTTP Action
-The HTTP Action fetches JSON data from REST APIs (GET request). See more 
-[here](https://github.com/Knotx/knotx-data-bridge/tree/master/http).
-
-#### Inline Body Action
-Inline Body Action replaces Fragment body with specified one. Its configuration looks like:
-```hocon
-factory = "inline-body"
-config {
-  body = <div>Product not available at the moment</div>
-}
-
-```
-The default `body` value is empty content.
-
-#### Inline Payload Action
-Inline Payload Action puts JSON / JSON Array in Fragment payload with a specified key (alias). Its 
-configuration looks like:
-```hocon
-factory = "inline-payload"
-config {
-  alias = product
-  payload {
-    productId = 1234
-    description = "some description"
-  }
-  # payload = [
-  #   "first product", "second product"
-  # ]
-}
-```
-The default `alias` is action alias.
-
-#### Payload To Body Action
-Payload To Body Action copies to Fragment body specified payload key value. Its configuration looks like:
-```hocon
-factory = payload-to-body
-config {
-  key = "some payload key"
-}
-```
-If no key is specified the whole payload will be copied. A key can direct nested values. For example 
-for the payload:
-```hocon
-someKey {
-  someNestedKey {
-    attr1 = value1
-    attr2 = value2 
-  }
-}
-```
-and key value `someKey.someNestedKey` body value will look like:
-```hocon
-{ 
-  attr1 = value1
-  attr2 = value2 
-}
-```
-
-### Behaviours
-Behaviours wrap other behaviours or [actions](#actions) and delegate a fragment processing to them. 
-They can introduce some stability patterns such as retires, it means that they can call a wrapped 
-action many times.
-
-#### Circuit Breaker Behaviour
-It wraps a simple action with the [Circuit Breaker implementation from Vert.x](https://vertx.io/docs/vertx-circuit-breaker/java/).
-Its configuration looks like:
-```hocon
-factory = "cb"
-config {
-  circuitBreakerName = product-cb-name
-  circuitBreakerOptions {
-    # number of failure before opening the circuit
-    maxFailures = 3
-    # consider a failure if the operation does not succeed in time
-    timeout = 2000
-    # time spent in open state before attempting to re-try
-    resetTimeout = 10000
-  }
-}
-doAction = product
-```
-The `doAction` attribute specifies a wrapped simple action by its name. When `doAction` throws an error 
-or times out then the custom `fallback` transition is returned.
-
-#### In-memory Cache Behaviour
-It wraps a simple action with cache. It caches a payload values added by a `doAction` action and 
-puts cached values in next invocations. It uses in-memory Guava cache implementation. The 
-configuration looks like:
-```hocon
-factory = "in-memory-cache"
-config {
-  cache {
-    maximumSize = 1000
-    # in milliseconds
-    ttl = 5000
-  }
-  cacheKey = "product-{param.id}"
-  payloadKey = product
-}
-doAction = product-cb
-```
-Please note that cacheKey can be parametrized with request data like params, headers etc. Read 
-[Knot.x HTTP Server Common Placeholders](https://github.com/Knotx/knotx-server-http/tree/master/common/placeholders)
-documentation for more details.
 
 ### Example
 The example below collects data about the book and its authors from external APIs. Book and authors 
@@ -474,3 +343,134 @@ We used a similar strategy for the book API invocation. In this declarative way,
 timeouts and errors from APIs.
 Please note that no error strategy has been defined for authors API yet. However, it can be easily 
 configured in the future when business agrees on the fallback logic.
+
+# Actions
+Action is a simple function that converts a fragment to the new one and responds with the
+[transition](#transition). Its contract is the same as the
+[node](https://github.com/Knotx/knotx-fragments/tree/master/handler/engine#node)'s one. So an 
+action defines a fragment's processing logic. Actions implement the 
+[Action](https://github.com/Knotx/knotx-fragments/blob/master/handler/api/src/main/java/io/knotx/fragments/handler/api/Action.java) 
+interface.
+
+Action can integrate with external data sources, do some fragments modifications or even 
+update some database records. 
+They can update a fragment, change all fragment's payload values. However, they should 
+store their data in the payload (JSON object) under the action's name key.
+
+Actions can have some [behaviours](#behaviours). Those behaviours come with some functionality, 
+such as caching, however, they are not specific for particular action implementation.
+
+## Action factory
+All actions provide [factories](https://github.com/Knotx/knotx-fragments/blob/master/handler/api/src/main/java/io/knotx/fragments/handler/api/ActionFactory.java) 
+that are registered using a simple service-provider loading facility - 
+[Service Loader](https://docs.oracle.com/javase/8/docs/api/java/util/ServiceLoader.html).
+
+For all configuration fields and their defaults consult [ActionFactoryOptions](https://github.com/Knotx/knotx-fragments/blob/master/handler/core/docs/asciidoc/dataobjects.adoc#actionfactoryoptions).
+
+## Action's types
+
+### HTTP Action
+The HTTP Action fetches JSON data from REST APIs (GET request). See more 
+[here](https://github.com/Knotx/knotx-data-bridge/tree/master/http).
+
+### Inline Body Action
+Inline Body Action replaces Fragment body with specified one. Its configuration looks like:
+```hocon
+factory = "inline-body"
+config {
+  body = <div>Product not available at the moment</div>
+}
+
+```
+The default `body` value is empty content.
+
+### Inline Payload Action
+Inline Payload Action puts JSON / JSON Array in Fragment payload with a specified key (alias). Its 
+configuration looks like:
+```hocon
+factory = "inline-payload"
+config {
+  alias = product
+  payload {
+    productId = 1234
+    description = "some description"
+  }
+  # payload = [
+  #   "first product", "second product"
+  # ]
+}
+```
+The default `alias` is action alias.
+
+### Payload To Body Action
+Payload To Body Action copies to Fragment body specified payload key value. Its configuration looks like:
+```hocon
+factory = payload-to-body
+config {
+  key = "some payload key"
+}
+```
+If no key is specified the whole payload will be copied. A key can direct nested values. For example 
+for the payload:
+```hocon
+someKey {
+  someNestedKey {
+    attr1 = value1
+    attr2 = value2 
+  }
+}
+```
+and key value `someKey.someNestedKey` body value will look like:
+```hocon
+{ 
+  attr1 = value1
+  attr2 = value2 
+}
+```
+
+## Behaviours
+Behaviours wrap other behaviours or [actions](#actions) and delegate a fragment processing to them. 
+They can introduce some stability patterns such as retires, it means that they can call a wrapped 
+action many times.
+
+### Circuit Breaker Behaviour
+It wraps a simple action with the [Circuit Breaker implementation from Vert.x](https://vertx.io/docs/vertx-circuit-breaker/java/).
+Its configuration looks like:
+```hocon
+factory = "cb"
+config {
+  circuitBreakerName = product-cb-name
+  circuitBreakerOptions {
+    # number of failure before opening the circuit
+    maxFailures = 3
+    # consider a failure if the operation does not succeed in time
+    timeout = 2000
+    # time spent in open state before attempting to re-try
+    resetTimeout = 10000
+  }
+}
+doAction = product
+```
+The `doAction` attribute specifies a wrapped simple action by its name. When `doAction` throws an error 
+or times out then the custom `fallback` transition is returned.
+
+### In-memory Cache Behaviour
+It wraps a simple action with cache. It caches a payload values added by a `doAction` action and 
+puts cached values in next invocations. It uses in-memory Guava cache implementation. The 
+configuration looks like:
+```hocon
+factory = "in-memory-cache"
+config {
+  cache {
+    maximumSize = 1000
+    # in milliseconds
+    ttl = 5000
+  }
+  cacheKey = "product-{param.id}"
+  payloadKey = product
+}
+doAction = product-cb
+```
+Please note that cacheKey can be parametrized with request data like params, headers etc. Read 
+[Knot.x HTTP Server Common Placeholders](https://github.com/Knotx/knotx-server-http/tree/master/common/placeholders)
+documentation for more details.
