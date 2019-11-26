@@ -47,7 +47,7 @@ All task factory implementations are registered using a simple service-provider 
 [Service Loader](https://docs.oracle.com/javase/8/docs/api/java/util/ServiceLoader.html).
 
 # Default task factory
-It is the default task factory containing a list of supported task's names with their definition. A 
+It is the default task factory containing a list of supported tasks' names with their definition. A 
 definition represents a directed acyclic graph (DAG).  
 It introduces its custom graph nodes
 - [action](#action-node)
@@ -79,8 +79,8 @@ tasks {
 }
 ```
 
-A graph configuration starts with a root [node](#nodes) definition. Each node sets a fragment's logic 
-to perform and outgoing edges (called [transitions](#transition)). So there are two sections:
+A graph configuration starts with a root [node](#nodes) definition. Each node sets some logic to perform over a fragment 
+ and outgoing edges (called [transitions](#transition)). So there are two sections:
 ```hocon
 node {
   # node options (fragment processing logic)
@@ -92,7 +92,7 @@ onTransitions {
 
 #### Node
 Node is described [here](https://github.com/Knotx/knotx-fragments/tree/master/handler/engine#node).
-Each task provider can provided its custom nodes.
+Each task provider can provide its custom nodes.
 
 The default task provider allows registering node factories that are used during the graph 
 configuration. So each node defines its custom factory and options:
@@ -161,12 +161,11 @@ node {
 The above example specifies the action node that delegates processing to the `reference-to-action` 
 action and has no transitions.
 
-The default task factory allows simplifying action nodes declaration:
+The default task factory allows simplifying action nodes declaration with the following syntax sugar:
 ```hocon
 action = reference-to-action
 # onTransitions { }
 ```
-A nice syntax sugar!
 
 ##### Logs
 Action node appends a single [fragment's log](https://github.com/Knotx/knotx-fragments/tree/master/handler/engine#fragments-log) 
@@ -194,8 +193,9 @@ So it supports both [actions](#actions) and [behaviours](#behaviours). Actions d
 [logger](https://github.com/Knotx/knotx-fragments/blob/feature/%2347-action-log-structure/handler/api/src/main/java/io/knotx/fragments/handler/api/actionlog/ActionLogBuilder.java) 
 implementation that hides syntax complexity.
 
-#### Action node factory
-It is implemented by the [SubtasksNodeFactory](https://github.com/Knotx/knotx-fragments/blob/master/handler/core/src/main/java/io/knotx/fragments/task/factory/node/subtasks/SubtasksNodeFactory.java) 
+#### Subtasks node factory
+A subtask is nothing else than a subgraph defined inside the task.
+Creating subtasks is implemented in the [SubtasksNodeFactory](https://github.com/Knotx/knotx-fragments/blob/master/handler/core/src/main/java/io/knotx/fragments/task/factory/node/subtasks/SubtasksNodeFactory.java) 
 class. Its name is `subtasks`. Its configuration is empty. 
 
 ##### Subtasks node declaration
