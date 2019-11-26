@@ -28,7 +28,7 @@ public class DefaultTaskFactoryConfig {
 
   public static final String DEFAULT_TASK_NAME_KEY = "data-knotx-task";
 
-  private Map<String, TaskOptions> tasks;
+  private Map<String, GraphNodeOptions> tasks;
   private List<NodeFactoryOptions> nodeFactories;
   private String taskNameKey;
 
@@ -71,7 +71,7 @@ public class DefaultTaskFactoryConfig {
   }
 
 
-  public Map<String, TaskOptions> getTasks() {
+  public Map<String, GraphNodeOptions> getTasks() {
     return tasks;
   }
 
@@ -81,9 +81,9 @@ public class DefaultTaskFactoryConfig {
    * @param tasks list of defined {@code Tasks}.
    * @return reference to this, so the API can be used fluently
    */
-  public DefaultTaskFactoryConfig setTasks(Map<String, TaskOptions> tasks) {
+  public void setTasks(
+      Map<String, GraphNodeOptions> tasks) {
     this.tasks = tasks;
-    return this;
   }
 
   public List<NodeFactoryOptions> getNodeFactories() {

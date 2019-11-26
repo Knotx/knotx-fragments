@@ -67,7 +67,7 @@ Sets <code>Action</code> factory name.
 ^|Name | Type ^| Description
 |[[nodeFactories]]`@nodeFactories`|`Array of link:dataobjects.html#NodeFactoryOptions[NodeFactoryOptions]`|-
 |[[taskNameKey]]`@taskNameKey`|`String`|-
-|[[tasks]]`@tasks`|`link:dataobjects.html#TaskOptions[TaskOptions]`|+++
+|[[tasks]]`@tasks`|`link:dataobjects.html#GraphNodeOptions[GraphNodeOptions]`|+++
 Sets <code>Task</code> list, which are named, directed graphs of <code>Actions</code>.
 +++
 |===
@@ -221,23 +221,6 @@ Sets task factory configuration.
 +++
 |[[factory]]`@factory`|`String`|+++
 Sets task provider factory name
-+++
-|===
-
-[[TaskOptions]]
-== TaskOptions
-
-++++
- Task options.
-++++
-'''
-
-[cols=">25%,25%,50%"]
-[frame="topbot"]
-|===
-^|Name | Type ^| Description
-|[[graph]]`@graph`|`link:dataobjects.html#GraphNodeOptions[GraphNodeOptions]`|+++
-Sets task graph.
 +++
 |===
 

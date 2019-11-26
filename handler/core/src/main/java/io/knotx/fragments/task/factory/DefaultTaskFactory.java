@@ -73,10 +73,10 @@ public class DefaultTaskFactory implements TaskFactory, NodeProvider {
     String taskKey = taskFactoryConfig.getTaskNameKey();
     String taskName = fragment.getConfiguration().getString(taskKey);
 
-    Map<String, TaskOptions> tasks = taskFactoryConfig.getTasks();
+    Map<String, GraphNodeOptions> tasks = taskFactoryConfig.getTasks();
     return Optional.ofNullable(tasks.get(taskName))
-        .map(taskOptions -> {
-          Node rootNode = initNode(taskOptions.getGraph());
+        .map(rootGraphNodeOptions -> {
+          Node rootNode = initNode(rootGraphNodeOptions);
           return new Task(taskName, rootNode);
         })
         .orElseThrow(() -> new TaskNotFoundException(taskName));
