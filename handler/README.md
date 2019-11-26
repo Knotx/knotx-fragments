@@ -454,6 +454,25 @@ doAction = product
 The `doAction` attribute specifies a wrapped simple action by its name. When `doAction` throws an error 
 or times out then the custom `fallback` transition is returned.
 
+##### Circuit Breaker Action Log
+
+Behavior logs the following data
+
+ - `invocationCount` - number of retries
+ - `fallback` - in case fallback defined entry will contain message from exception which causes error
+
+CB log includes logs produces by wrapped action. 
+Please note that not every call can be visible in `doAction` entry.  
+
+
+| Action call ends  | duration  | Wrapped action log  | 
+| :---------: |:---------:|:---------|
+| transition [ `_success`]  |  yes | Available        |
+| transition [ `_error`] |  yes |  Available        |
+| TIMEOUT                 |  no |  Not available        |
+| Failure  |  yes |   Not available        |
+| Exception  |  |  no |  Not available        |
+
 ### In-memory Cache Behaviour
 It wraps a simple action with cache. It caches a payload values added by a `doAction` action and 
 puts cached values in next invocations. It uses in-memory Guava cache implementation. The 
