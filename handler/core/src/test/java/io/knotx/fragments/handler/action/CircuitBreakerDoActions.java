@@ -75,7 +75,7 @@ class CircuitBreakerDoActions {
 
   static Action applyTimeout(Vertx vertx) {
     return (fragmentContext, resultHandler) ->
-        vertx.setTimer(1000,
+        vertx.setTimer(1500,
             l ->
                 Future.succeededFuture(
                     new FragmentResult(fragmentContext.getFragment(), SUCCESS_TRANSITION)
