@@ -40,10 +40,10 @@ public class ActionLog {
   public ActionLog(JsonObject actionLog) {
     this.alias = actionLog.getString("alias");
     this.logs = actionLog.getJsonObject("logs");
-    this.doActionLogs = toDoActionLogs(actionLog);
+    this.doActionLogs = toInvocationLogList(actionLog);
   }
 
-  private List<ActionInvocationLog> toDoActionLogs(JsonObject actionLog) {
+  private List<ActionInvocationLog> toInvocationLogList(JsonObject actionLog) {
     Iterable<Object> iterable = () -> actionLog.getJsonArray("doAction").iterator();
     return StreamSupport.stream(iterable.spliterator(), false)
         .map(JsonObject::mapFrom)

@@ -15,6 +15,7 @@
  */
 package io.knotx.fragments.handler.api.actionlog;
 
+import java.util.Objects;
 import java.util.Optional;
 
 import io.vertx.core.json.JsonObject;
@@ -60,6 +61,34 @@ public class ActionInvocationLog {
     return new JsonObject().put("duration", duration)
         .put("success", success)
         .put("doActionLog", toDoActionLogJson());
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    ActionInvocationLog that = (ActionInvocationLog) o;
+    return success == that.success &&
+        Objects.equals(duration, that.duration) &&
+        Objects.equals(doActionLog, that.doActionLog);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(duration, success, doActionLog);
+  }
+
+  @Override
+  public String toString() {
+    return "ActionInvocationLog{" +
+        "duration=" + duration +
+        ", success=" + success +
+        ", doActionLog=" + doActionLog +
+        '}';
   }
 
   private JsonObject toDoActionLogJson() {
