@@ -21,6 +21,10 @@ import io.vertx.core.json.JsonObject;
 import java.util.Objects;
 import org.apache.commons.lang3.StringUtils;
 
+/**
+ * Task Factory options model. It specifies task factory by its name and provides task factory
+ * config.
+ */
 @DataObject(generateConverter = true)
 public class TaskFactoryOptions {
 
@@ -40,19 +44,14 @@ public class TaskFactoryOptions {
     return json;
   }
 
-  /**
-   * Gets {@link TaskFactory} name
-   *
-   * @return task provider factory name
-   */
   public String getFactory() {
     return factory;
   }
 
   /**
-   * Sets task provider factory name
+   * The task factory name that identifies {@code TaskFactory} implementation.
    *
-   * @param factory - task provider factory name
+   * @param factory - task factory name
    * @return reference to this, so the API can be used fluently
    */
   public TaskFactoryOptions setFactory(String factory) {
@@ -65,9 +64,9 @@ public class TaskFactoryOptions {
   }
 
   /**
-   * Sets task factory configuration.
+   * The JSON object that contains task factory configuration entries.
    *
-   * @param config task factory configuration
+   * @param config task factory config
    * @return reference to this, so the API can be used fluently
    */
   public TaskFactoryOptions setConfig(JsonObject config) {

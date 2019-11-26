@@ -25,6 +25,9 @@ import java.util.Map;
 import java.util.Objects;
 import org.apache.commons.lang3.StringUtils;
 
+/**
+ * Default Task Factory config model.
+ */
 @DataObject(generateConverter = true)
 public class DefaultTaskFactoryConfig {
 
@@ -33,6 +36,7 @@ public class DefaultTaskFactoryConfig {
   private Map<String, GraphNodeOptions> tasks;
   private List<NodeFactoryOptions> nodeFactories;
   private String taskNameKey;
+  private String logLevel;
 
   public DefaultTaskFactoryConfig() {
     tasks = new HashMap<>();
@@ -48,14 +52,13 @@ public class DefaultTaskFactoryConfig {
 
   private void initNodeLogLevel(JsonObject json) {
     LogLevelConfig globalLogLevel = new LogLevelConfig(json);
-    if (StringUtils.isNotBlank(globalLogLevel.getLogLevel())) {
+    if (StringUtils.isNotBlank(logLevel)) {
       nodeFactories.forEach(nodeFactoryOptions ->
           override(nodeFactoryOptions.getConfig(), globalLogLevel.getLogLevel()));
     }
   }
 
   private void override(JsonObject json, String globalLogLevel) {
-
     if (!StringUtils.isBlank(globalLogLevel)) {
       LogLevelConfig logLevelConfig = new LogLevelConfig(json);
       if (StringUtils.isBlank(logLevelConfig.getLogLevel())) {
@@ -76,22 +79,28 @@ public class DefaultTaskFactoryConfig {
   }
 
   /**
-   * Sets {@code Task} list, which are named, directed graphs of {@code Actions}.
+   * The dictionary that maps a task name to a directed acyclic graph (DAG) of nodes.
    *
-   * @param tasks list of defined {@code Tasks}.
+   * @param tasks - map that links task name with its graph logic
    * @return reference to this, so the API can be used fluently
    */
-  public void setTasks(
-      Map<String, GraphNodeOptions> tasks) {
+  public DefaultTaskFactoryConfig setTasks(Map<String, GraphNodeOptions> tasks) {
     this.tasks = tasks;
+    return this;
   }
 
   public List<NodeFactoryOptions> getNodeFactories() {
     return nodeFactories;
   }
 
-  public DefaultTaskFactoryConfig setNodeFactories(
-      List<NodeFactoryOptions> nodeFactories) {
+  /**
+   * The array/list of graph node factory options defines node factories taking part in the creation
+   * of graph.
+   *
+   * @param nodeFactories - list of graph node factory options
+   * @return reference to this, so the API can be used fluently
+   */
+  public DefaultTaskFactoryConfig setNodeFactories(List<NodeFactoryOptions> nodeFactories) {
     this.nodeFactories = nodeFactories;
     return this;
   }
@@ -100,8 +109,30 @@ public class DefaultTaskFactoryConfig {
     return taskNameKey;
   }
 
+  /**
+   * The fragment's configuration key specifies a task assigned to a fragment by the task name.
+   *
+   * @param taskNameKey - fragment's configuration key
+   * @return reference to this, so the API can be used fluently
+   */
   public DefaultTaskFactoryConfig setTaskNameKey(String taskNameKey) {
     this.taskNameKey = taskNameKey;
+    return this;
+  }
+
+
+  public String getLogLevel() {
+    return logLevel;
+  }
+
+  /**
+   * The global node log level.
+   *
+   * @param logLevel - node log level
+   * @return reference to this, so the API can be used fluently
+   */
+  public DefaultTaskFactoryConfig setLogLevel(String logLevel) {
+    this.logLevel = logLevel;
     return this;
   }
 
