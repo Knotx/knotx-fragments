@@ -15,7 +15,7 @@
  */
 package io.knotx.fragments.task.factory.node.action;
 
-import io.knotx.fragments.handler.action.ActionOptions;
+import io.knotx.fragments.handler.action.ActionFactoryOptions;
 import io.knotx.fragments.handler.api.Action;
 import io.knotx.fragments.handler.api.ActionFactory;
 import io.knotx.fragments.handler.api.Cacheable;
@@ -37,10 +37,10 @@ public class ActionProvider {
   private final Map<String, ActionFactory> factories;
   private final Map<String, Action> cache;
 
-  private Map<String, ActionOptions> actionNameToOptions;
+  private Map<String, ActionFactoryOptions> actionNameToOptions;
   private Vertx vertx;
 
-  public ActionProvider(Supplier<Iterator<ActionFactory>> supplier, Map<String, ActionOptions> actionNameToOptions, Vertx vertx) {
+  public ActionProvider(Supplier<Iterator<ActionFactory>> supplier, Map<String, ActionFactoryOptions> actionNameToOptions, Vertx vertx) {
     this.actionNameToOptions = actionNameToOptions;
     this.vertx = vertx;
     this.factories = loadFactories(supplier);
@@ -51,36 +51,36 @@ public class ActionProvider {
     if (StringUtils.isBlank(action)) {
       return Optional.empty();
     }
-    ActionOptions actionOptions = actionNameToOptions.get(action);
-    if (actionOptions == null) {
+    ActionFactoryOptions actionFactoryOptions = actionNameToOptions.get(action);
+    if (actionFactoryOptions == null) {
       LOGGER.warn("Could not create initialize proxy [{}] with missing config.", action);
       return Optional.empty();
     }
-    ActionFactory factory = factories.get(actionOptions.getFactory());
+    ActionFactory factory = factories.get(actionFactoryOptions.getFactory());
     if (factory == null) {
       LOGGER.warn("Could not create initialize proxy [{}] with missing factory [{}].", action,
-          actionOptions.getFactory());
+          actionFactoryOptions.getFactory());
       return Optional.empty();
     }
 
     if (isCacheable(factory)) {
-      return Optional.of(cache.computeIfAbsent(action, toAction(actionOptions, factory)));
+      return Optional.of(cache.computeIfAbsent(action, toAction(actionFactoryOptions, factory)));
     } else {
-      return Optional.of(createAction(action, actionOptions, factory));
+      return Optional.of(createAction(action, actionFactoryOptions, factory));
     }
   }
 
-  private Function<String, Action> toAction(ActionOptions actionOptions, ActionFactory factory) {
-    return action -> createAction(action, actionOptions, factory);
+  private Function<String, Action> toAction(ActionFactoryOptions actionFactoryOptions, ActionFactory factory) {
+    return action -> createAction(action, actionFactoryOptions, factory);
   }
 
-  private Action createAction(String action, ActionOptions actionOptions, ActionFactory factory) {
+  private Action createAction(String action, ActionFactoryOptions actionFactoryOptions, ActionFactory factory) {
     // recurrence here :)
-    Action operation = Optional.ofNullable(actionOptions.getDoAction())
+    Action operation = Optional.ofNullable(actionFactoryOptions.getDoAction())
         .flatMap(this::get)
         .orElse(null);
 
-    return factory.create(action, actionOptions.getConfig(), vertx.getDelegate(), operation);
+    return factory.create(action, actionFactoryOptions.getConfig(), vertx.getDelegate(), operation);
   }
 
   private boolean isCacheable(ActionFactory factory) {
