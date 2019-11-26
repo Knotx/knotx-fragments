@@ -115,7 +115,9 @@ public class DefaultTaskFactory implements TaskFactory, NodeProvider {
         Spliterators.spliteratorUnknownSize(factories.iterator(), Spliterator.ORDERED),
         false);
 
-    return factoryStream.filter(f -> f.getName().equals(factory)).findFirst()
+    return factoryStream
+        .filter(f -> f.getName().equals(factory))
+        .findFirst()
         .orElseThrow(() -> new IllegalStateException("Node not defined"));
   }
 }
