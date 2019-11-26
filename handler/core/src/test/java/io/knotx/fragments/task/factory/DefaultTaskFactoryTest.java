@@ -17,6 +17,7 @@ package io.knotx.fragments.task.factory;
 
 import static io.knotx.fragments.handler.api.domain.FragmentResult.SUCCESS_TRANSITION;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.knotx.fragments.api.Fragment;
@@ -27,6 +28,7 @@ import io.knotx.fragments.engine.graph.CompositeNode;
 import io.knotx.fragments.engine.graph.Node;
 import io.knotx.fragments.engine.graph.SingleNode;
 import io.knotx.fragments.handler.action.ActionFactoryOptions;
+import io.knotx.fragments.task.exception.TaskNotFoundException;
 import io.knotx.fragments.task.factory.node.NodeFactoryOptions;
 import io.knotx.fragments.task.factory.node.action.ActionNodeFactory;
 import io.knotx.fragments.task.factory.node.action.ActionNodeFactoryConfig;
@@ -40,6 +42,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -69,17 +72,137 @@ class DefaultTaskFactoryTest {
           new ClientRequest());
 
   @Test
-  @DisplayName("Expect graph when custom task name key is defined.")
+  @DisplayName("Expect fragment is not accepted when it does not specify a task.")
+  void notAcceptFragmentWithoutTask(Vertx vertx) {
+    // given
+    FragmentEventContext fragmentWithNoTask =
+        new FragmentEventContext(
+            new FragmentEvent(
+                new Fragment("type", new JsonObject(), "body")),
+            new ClientRequest()
+        );
+    DefaultTaskFactory tested = new DefaultTaskFactory()
+        .configure(emptyFactoryConfig().toJson(), vertx);
+
+    // when
+    boolean accepted = tested.accept(fragmentWithNoTask);
+
+    // then
+    Assertions.assertFalse(accepted);
+  }
+
+  @Test
+  @DisplayName("Expect fragment is not accepted when it specifies a task but it is not configured")
+  void noAcceptFragmentWhenTaskNotConfigured(Vertx vertx) {
+    // given
+    DefaultTaskFactory tested = new DefaultTaskFactory()
+        .configure(emptyFactoryConfig().toJson(), vertx);
+
+    // when
+    boolean accepted = tested.accept(SAMPLE_FRAGMENT_EVENT);
+
+    // then
+    Assertions.assertFalse(accepted);
+  }
+
+  @Test
+  @DisplayName("Expect fragment is accepted when it specifies a task and it is configured")
+  void acceptFragment(Vertx vertx) {
+    GraphNodeOptions graph = new GraphNodeOptions("A", NO_TRANSITIONS);
+
+    DefaultTaskFactory tested = new DefaultTaskFactory().configure(
+        createTaskFactoryConfig(graph, new JsonObject()).toJson(), vertx);
+
+    // when
+    boolean accepted = tested.accept(SAMPLE_FRAGMENT_EVENT);
+
+    // then
+    Assertions.assertTrue(accepted);
+  }
+
+  @Test
+  @DisplayName("Expect fragment is accepted when it specifies a custom task name and it is configured")
+  void acceptFragmentWhenCustomTaskName(Vertx vertx) {
+    GraphNodeOptions graph = new GraphNodeOptions("A", NO_TRANSITIONS);
+
+    DefaultTaskFactory tested = new DefaultTaskFactory().configure(
+        createTaskFactoryConfig(graph, new JsonObject()).setTaskNameKey(MY_TASK_KEY).toJson(),
+        vertx);
+
+    // when
+    boolean accepted = tested.accept(SAMPLE_FRAGMENT_EVENT_WITH_CUSTOM_TASK_KEY);
+
+    // then
+    Assertions.assertTrue(accepted);
+  }
+
+  @Test
+  @DisplayName("Expect task not found exception when a fragment does not define a task.")
+  void newInstanceFailedWhenNoTask(Vertx vertx) {
+    // given
+    FragmentEventContext fragmentWithNoTask =
+        new FragmentEventContext(
+            new FragmentEvent(
+                new Fragment("type", new JsonObject(), "body")),
+            new ClientRequest()
+        );
+    JsonObject actionNodeConfig = createActionNodeConfig("A", SUCCESS_TRANSITION);
+    GraphNodeOptions graph = new GraphNodeOptions("A", NO_TRANSITIONS);
+
+    // when
+    Assertions.assertThrows(
+        TaskNotFoundException.class,
+        () -> new DefaultTaskFactory()
+            .configure(createTaskFactoryConfig(graph, actionNodeConfig).toJson(), vertx)
+            .newInstance(fragmentWithNoTask));
+  }
+
+  @Test
+  @DisplayName("Expect new task instance when task name is defined and configured.")
+  void newInstance(Vertx vertx) {
+    // given
+    JsonObject actionNodeConfig = createActionNodeConfig("A", SUCCESS_TRANSITION);
+    GraphNodeOptions graph = new GraphNodeOptions("A", NO_TRANSITIONS);
+
+    // when
+    Task task = new DefaultTaskFactory()
+        .configure(createTaskFactoryConfig(graph, actionNodeConfig).toJson(), vertx)
+        .newInstance(SAMPLE_FRAGMENT_EVENT);
+
+    // then
+    assertEquals(TASK_NAME, task.getName());
+  }
+
+  @Test
+  @DisplayName("Expect always a new task instance.")
+  void newInstanceAlways(Vertx vertx) {
+    // given
+    JsonObject actionNodeConfig = createActionNodeConfig("A", SUCCESS_TRANSITION);
+    GraphNodeOptions graph = new GraphNodeOptions("A", NO_TRANSITIONS);
+
+    // when
+    DefaultTaskFactory taskFactory = new DefaultTaskFactory()
+        .configure(createTaskFactoryConfig(graph, actionNodeConfig).toJson(), vertx);
+
+    // then
+    assertNotSame(
+        taskFactory.newInstance(SAMPLE_FRAGMENT_EVENT),
+        taskFactory.newInstance(SAMPLE_FRAGMENT_EVENT)
+    );
+  }
+
+  @Test
+  @DisplayName("Expect new task instance when custom task name key is defined.")
   void expectGraphWhenCustomTaskKey(Vertx vertx) {
     // given
     JsonObject actionNodeConfig = createActionNodeConfig("A", SUCCESS_TRANSITION);
     GraphNodeOptions graph = new GraphNodeOptions("A", NO_TRANSITIONS);
 
-    DefaultTaskFactoryConfig taskFactoryConfig = getTaskFactoryConfig(graph, actionNodeConfig);
-    taskFactoryConfig.setTaskNameKey(MY_TASK_KEY);
-
     // when
-    Task task = new DefaultTaskFactory().configure(taskFactoryConfig.toJson(), vertx)
+    Task task = new DefaultTaskFactory()
+        .configure(
+            createTaskFactoryConfig(graph, actionNodeConfig).setTaskNameKey(MY_TASK_KEY).toJson(),
+            vertx)
         .newInstance(SAMPLE_FRAGMENT_EVENT_WITH_CUSTOM_TASK_KEY);
 
     // then
@@ -151,20 +274,28 @@ class DefaultTaskFactoryTest {
   }
 
   private Task getTask(GraphNodeOptions graph, JsonObject actionNodeConfig, Vertx vertx) {
-    DefaultTaskFactoryConfig taskFactoryConfig = getTaskFactoryConfig(graph, actionNodeConfig);
+    DefaultTaskFactoryConfig taskFactoryConfig = createTaskFactoryConfig(graph, actionNodeConfig);
     return new DefaultTaskFactory().configure(taskFactoryConfig.toJson(), vertx)
         .newInstance(SAMPLE_FRAGMENT_EVENT);
   }
 
-  private DefaultTaskFactoryConfig getTaskFactoryConfig(GraphNodeOptions graph,
+  private DefaultTaskFactoryConfig emptyFactoryConfig() {
+    return createTaskFactoryConfig(null, null);
+  }
+
+  private DefaultTaskFactoryConfig createTaskFactoryConfig(GraphNodeOptions graph,
       JsonObject actionNodeConfig) {
     DefaultTaskFactoryConfig taskFactoryConfig = new DefaultTaskFactoryConfig();
-    taskFactoryConfig
-        .setTasks(Collections.singletonMap(TASK_NAME, graph));
-    List<NodeFactoryOptions> nodeFactories = Arrays.asList(
-        new NodeFactoryOptions().setFactory(ActionNodeFactory.NAME).setConfig(actionNodeConfig),
-        new NodeFactoryOptions().setFactory(SubtasksNodeFactory.NAME));
-    taskFactoryConfig.setNodeFactories(nodeFactories);
+    if (graph != null) {
+      taskFactoryConfig
+          .setTasks(Collections.singletonMap(TASK_NAME, graph));
+    }
+    if (actionNodeConfig != null) {
+      List<NodeFactoryOptions> nodeFactories = Arrays.asList(
+          new NodeFactoryOptions().setFactory(ActionNodeFactory.NAME).setConfig(actionNodeConfig),
+          new NodeFactoryOptions().setFactory(SubtasksNodeFactory.NAME));
+      taskFactoryConfig.setNodeFactories(nodeFactories);
+    }
     return taskFactoryConfig;
   }
 

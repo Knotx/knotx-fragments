@@ -18,6 +18,8 @@ package io.knotx.fragments.task.factory;
 import io.knotx.fragments.task.factory.node.NodeFactoryOptions;
 import io.vertx.codegen.annotations.DataObject;
 import io.vertx.core.json.JsonObject;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -33,17 +35,15 @@ public class DefaultTaskFactoryConfig {
   private String taskNameKey;
 
   public DefaultTaskFactoryConfig() {
-    init();
+    tasks = new HashMap<>();
+    nodeFactories = new ArrayList<>();
+    taskNameKey = DEFAULT_TASK_NAME_KEY;
   }
 
   public DefaultTaskFactoryConfig(JsonObject json) {
     this();
     DefaultTaskFactoryConfigConverter.fromJson(json, this);
     initNodeLogLevel(json);
-  }
-
-  private void init() {
-    taskNameKey = DEFAULT_TASK_NAME_KEY;
   }
 
   private void initNodeLogLevel(JsonObject json) {

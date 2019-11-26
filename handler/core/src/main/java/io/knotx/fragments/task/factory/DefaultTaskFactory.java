@@ -59,12 +59,12 @@ public class DefaultTaskFactory implements TaskFactory, NodeProvider {
     Fragment fragment = eventContext.getFragmentEvent().getFragment();
     boolean fragmentContainsTask = fragment.getConfiguration()
         .containsKey(taskFactoryConfig.getTaskNameKey());
-    return fragmentContainsTask && isTaskConfigured(eventContext);
+    return fragmentContainsTask && isTaskConfigured(fragment);
   }
 
-  private boolean isTaskConfigured(FragmentEventContext eventContext) {
-    // TODO
-    return true;
+  private boolean isTaskConfigured(Fragment fragment) {
+    String taskName = fragment.getConfiguration().getString(taskFactoryConfig.getTaskNameKey());
+    return taskFactoryConfig.getTasks().containsKey(taskName);
   }
 
   @Override
