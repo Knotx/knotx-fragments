@@ -43,7 +43,7 @@ import java.util.stream.Collectors;
 
 public class FragmentsHandler implements Handler<RoutingContext> {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(TaskProvider.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(FragmentsHandler.class);
 
   private final RequestContextEngine requestContextEngine;
 
@@ -120,7 +120,7 @@ public class FragmentsHandler implements Handler<RoutingContext> {
 
   private List<FragmentEventContextTaskAware> toEvents(List<Fragment> fragments,
       ClientRequest clientRequest) {
-    LOGGER.debug("Processing fragments [{}]", fragments);
+    LOGGER.trace("Processing fragments [{}]", fragments);
     return fragments.stream()
         .map(
             fragment -> {
@@ -129,7 +129,7 @@ public class FragmentsHandler implements Handler<RoutingContext> {
 
               return taskProvider.newInstance(fragmentEventContext)
                   .map(task -> {
-                    LOGGER.info("Created task [{}] for fragment [{}]", task,
+                    LOGGER.trace("Created task [{}] for fragment [{}]", task,
                         fragmentEventContext.getFragmentEvent().getFragment().getId());
                     return task;
                   })
