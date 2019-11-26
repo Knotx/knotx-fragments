@@ -29,33 +29,7 @@ import java.util.Objects;
 import java.util.Optional;
 
 /**
- * It is {@link io.knotx.fragments.engine.Task} processing configuration. Task is graph of nodes (in
- * fact it is tree structure). It defines {@link NodeOptions} and outgoing directed graph edges,
- * called {@code Transitions}.
- *
- * It represents JSON configuration:
- * <pre>
- * {
- *   node = {
- *     factory = action
- *     config {
- *       action = a
- *     }
- *   }
- *   onTransitions {
- *     _success {
- *       node = {
- *         factory = action
- *         config {
- *           action = b
- *         }
- *       }
- *     }
- *   }
- * }
- * </pre>
- *
- * Please note that Transitions define next graph nodes.
+ * Graph node options model.
  */
 @DataObject(generateConverter = true)
 public class GraphNodeOptions {
@@ -99,19 +73,14 @@ public class GraphNodeOptions {
     return result;
   }
 
-  /**
-   * Gets node options.
-   *
-   * @return node options
-   */
   public NodeOptions getNode() {
     return node;
   }
 
   /**
-   * Sets node options defining node factory and its configuration.
+   * Node options define a node factory and its configuration.
    *
-   * @param node node options
+   * @param node - node options
    * @return reference to this, so the API can be used fluently
    */
   public GraphNodeOptions setNode(NodeOptions node) {
@@ -120,30 +89,25 @@ public class GraphNodeOptions {
   }
 
   /**
-   * Gets next graph node for given Transition. If Transition is not configured then {@link
-   * Optional#empty()} is returned.
+   * It specifies the next graph node for the given transition. If no graph edge is defined, then an
+   * empty value is returned.
    *
-   * @param transition transition
-   * @return node options if defined
+   * @param transition - non blank transition
+   * @return the next node options if defined
    */
   public Optional<GraphNodeOptions> get(String transition) {
     return Optional.ofNullable(onTransitions.get(transition));
   }
 
-  /**
-   * Gets Transition to next graph node map.
-   *
-   * @return Transition to graph node map
-   */
   public Map<String, GraphNodeOptions> getOnTransitions() {
     return onTransitions;
   }
 
   /**
-   * Sets outgoing graph node edges, called {@code Transitions}. Transition is String, {@code
-   * onTransitions} map links Transition with next graph node.
+   * The outgoing graph node edges, called transitions. A transition is named graph edge that
+   * defines the next graph node in fragment's processing.
    *
-   * @param onTransitions map of possible transitions.
+   * @param onTransitions - map of possible transitions.
    * @return reference to this, so the API can be used fluently
    */
   public GraphNodeOptions setOnTransitions(Map<String, GraphNodeOptions> onTransitions) {
@@ -152,8 +116,11 @@ public class GraphNodeOptions {
   }
 
   /**
-   * @param action action name / alias
-   * @see ActionNodeConfig#setAction(String)
+   * Sets a node factory name to {@code ActionNodeFactory.NAME} and configures the action.
+   *
+   * @param action - action name for action node config
+   * @return reference to this, so the API can be used fluently
+   * @see ActionNodeFactory#NAME
    */
   public GraphNodeOptions setAction(String action) {
     node.setFactory(ActionNodeFactory.NAME);
@@ -162,9 +129,12 @@ public class GraphNodeOptions {
   }
 
   /**
-   * @param subtasks subtasks node options
-   * @see SubtasksNodeConfig#setSubtasks(List)
-   * @deprecated use subtasks
+   * Sets a node factory name to {@code SubtasksNodeFactory.NAME} and configures subgraphs.
+   *
+   * @param subtasks - list of subtasks (subgraphs) options
+   * @return reference to this, so the API can be used fluently
+   * @see SubtasksNodeFactory#NAME
+   * @deprecated use {@link #setSubtasks(List)}
    */
   @Deprecated
   public GraphNodeOptions setActions(List<GraphNodeOptions> subtasks) {
@@ -173,8 +143,11 @@ public class GraphNodeOptions {
   }
 
   /**
-   * @param subtasks subtasks node options
-   * @see SubtasksNodeConfig#setSubtasks(List)
+   * Sets a node factory name to {@code SubtasksNodeFactory.NAME} and configures subgraphs.
+   *
+   * @param subtasks - list of subtasks (subgraphs) options
+   * @return reference to this, so the API can be used fluently
+   * @see SubtasksNodeFactory#NAME
    */
   public GraphNodeOptions setSubtasks(List<GraphNodeOptions> subtasks) {
     node.setFactory(SubtasksNodeFactory.NAME);

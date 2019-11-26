@@ -66,7 +66,7 @@ public class TaskFactoryOptions {
   /**
    * The JSON object that contains task factory configuration entries.
    *
-   * @param config task factory config
+   * @param config - task factory config
    * @return reference to this, so the API can be used fluently
    */
   public TaskFactoryOptions setConfig(JsonObject config) {

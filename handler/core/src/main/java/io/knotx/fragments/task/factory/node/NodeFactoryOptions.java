@@ -15,10 +15,14 @@
  */
 package io.knotx.fragments.task.factory.node;
 
+import io.knotx.fragments.task.factory.node.action.ActionProvider;
 import io.vertx.codegen.annotations.DataObject;
 import io.vertx.core.json.JsonObject;
 import java.util.Objects;
 
+/**
+ * Node Factory options model.
+ */
 @DataObject(generateConverter = true)
 public class NodeFactoryOptions {
 
@@ -44,6 +48,12 @@ public class NodeFactoryOptions {
     return factory;
   }
 
+  /**
+   * The node factory name that identifies {@code NodeFactory} implementation.
+   *
+   * @param factory - node factory name
+   * @return reference to this, so the API can be used fluently
+   */
   public NodeFactoryOptions setFactory(String factory) {
     this.factory = factory;
     return this;
@@ -53,6 +63,12 @@ public class NodeFactoryOptions {
     return config;
   }
 
+  /**
+   * The JSON object that contains node factory configuration entries.
+   *
+   * @param config - node factory config
+   * @return reference to this, so the API can be used fluently
+   */
   public NodeFactoryOptions setConfig(JsonObject config) {
     this.config = config;
     return this;

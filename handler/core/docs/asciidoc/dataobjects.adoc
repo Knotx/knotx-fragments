@@ -49,12 +49,18 @@ Sets link name. The specified Action is executed
 [[ActionNodeFactoryConfig]]
 == ActionNodeFactoryConfig
 
+++++
+ Action Node factory config model.
+++++
+'''
 
 [cols=">25%,25%,50%"]
 [frame="topbot"]
 |===
 ^|Name | Type ^| Description
-|[[actions]]`@actions`|`link:dataobjects.html#ActionFactoryOptions[ActionFactoryOptions]`|-
+|[[actions]]`@actions`|`link:dataobjects.html#ActionFactoryOptions[ActionFactoryOptions]`|+++
+The dictionary maps action name to action factory options.
++++
 |===
 
 [[DefaultTaskFactoryConfig]]
@@ -106,33 +112,7 @@ The array/list of task factory options defines factories taking part in the crea
 == GraphNodeOptions
 
 ++++
- It is link processing configuration. Task is graph of nodes (in
- fact it is tree structure). It defines  and outgoing directed graph edges,
- called <code>Transitions</code>.
-
- It represents JSON configuration:
- <pre>
- {
-   node = {
-     factory = action
-     config {
-       action = a
-     }
-   }
-   onTransitions {
-     _success {
-       node = {
-         factory = action
-         config {
-           action = b
-         }
-       }
-     }
-   }
- }
- </pre>
-
- Please note that Transitions define next graph nodes.
+ Graph node options model.
 ++++
 '''
 
@@ -141,19 +121,20 @@ The array/list of task factory options defines factories taking part in the crea
 |===
 ^|Name | Type ^| Description
 |[[action]]`@action`|`String`|+++
-
+Sets a node factory name to <code>ActionNodeFactory.NAME</code> and configures the action.
 +++
 |[[actions]]`@actions`|`Array of link:dataobjects.html#GraphNodeOptions[GraphNodeOptions]`|+++
-
+Sets a node factory name to <code>SubtasksNodeFactory.NAME</code> and configures subgraphs.
 +++
 |[[node]]`@node`|`link:dataobjects.html#NodeOptions[NodeOptions]`|+++
-Sets node options defining node factory and its configuration.
+Node options define a node factory and its configuration.
 +++
 |[[onTransitions]]`@onTransitions`|`link:dataobjects.html#GraphNodeOptions[GraphNodeOptions]`|+++
-Sets outgoing graph node edges, called <code>Transitions</code>. Transition is String, <code>onTransitions</code> map links Transition with next graph node.
+The outgoing graph node edges, called transitions. A transition is named graph edge that
+ defines the next graph node in fragment's processing.
 +++
 |[[subtasks]]`@subtasks`|`Array of link:dataobjects.html#GraphNodeOptions[GraphNodeOptions]`|+++
-
+Sets a node factory name to <code>SubtasksNodeFactory.NAME</code> and configures subgraphs.
 +++
 |===
 
@@ -171,13 +152,21 @@ Sets outgoing graph node edges, called <code>Transitions</code>. Transition is S
 [[NodeFactoryOptions]]
 == NodeFactoryOptions
 
+++++
+ Node Factory options model.
+++++
+'''
 
 [cols=">25%,25%,50%"]
 [frame="topbot"]
 |===
 ^|Name | Type ^| Description
-|[[config]]`@config`|`Json object`|-
-|[[factory]]`@factory`|`String`|-
+|[[config]]`@config`|`Json object`|+++
+The JSON object that contains node factory configuration entries.
++++
+|[[factory]]`@factory`|`String`|+++
+The node factory name that identifies <code>NodeFactory</code> implementation.
++++
 |===
 
 [[NodeOptions]]
@@ -204,16 +193,7 @@ Sets node factory name
 == SubtasksNodeConfig
 
 ++++
- Subtask node configuration. It is model for  JSON object.
-
- <pre>
- node {
-   factory = subtasks
-   config { //represented by SubtasksNodeConfigOptions
-     ...
-   }
- }
- </pre>
+ Subtask Node configuration.
 ++++
 '''
 
@@ -222,8 +202,7 @@ Sets node factory name
 |===
 ^|Name | Type ^| Description
 |[[subtasks]]`@subtasks`|`Array of link:dataobjects.html#GraphNodeOptions[GraphNodeOptions]`|+++
-Sets list of  that represents link
- that will be executed in parallel.
+The array/list of subgraphs/subtasks that can be executed in parallel.
 +++
 |===
 

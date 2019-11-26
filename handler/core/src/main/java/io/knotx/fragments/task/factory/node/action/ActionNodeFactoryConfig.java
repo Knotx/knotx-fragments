@@ -23,6 +23,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
+/**
+ * Action Node factory config model.
+ */
 @DataObject(generateConverter = true)
 public class ActionNodeFactoryConfig {
 
@@ -56,6 +59,13 @@ public class ActionNodeFactoryConfig {
     return actions;
   }
 
+  /**
+   * The dictionary maps action name to action factory options.
+   *
+   * @param actions map of actions
+   * @return reference to this, so the API can be used fluently
+   * @see ActionProvider#get(String)
+   */
   public ActionNodeFactoryConfig setActions(Map<String, ActionFactoryOptions> actions) {
     this.actions = actions;
     return this;
