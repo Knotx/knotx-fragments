@@ -38,7 +38,7 @@ public interface TaskFactory {
    * Configures a task factory with config defined in {@link TaskFactoryOptions#getConfig()}. This
    * method is called during factories initialization.
    *
-   * @param config json configuration, see {@link TaskFactoryOptions#getConfig()}
+   * @param config json task factory configuration, see {@link TaskFactoryOptions#getConfig()}
    * @param vertx vertx instance
    * @return a reference to this, so the API can be used fluently
    */

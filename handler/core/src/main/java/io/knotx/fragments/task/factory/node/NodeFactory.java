@@ -16,18 +16,45 @@
 package io.knotx.fragments.task.factory.node;
 
 import io.knotx.fragments.engine.graph.Node;
-import io.knotx.fragments.task.factory.NodeProvider;
 import io.knotx.fragments.task.factory.GraphNodeOptions;
+import io.knotx.fragments.task.factory.NodeProvider;
 import io.vertx.core.json.JsonObject;
 import io.vertx.reactivex.core.Vertx;
 import java.util.Map;
 
+/**
+ * A node factory interface allowing to register a node factory by its name. Implementing class must
+ * be configured in <code>META-INF.services</code>.
+ *
+ * Node factories are configured in {@link io.knotx.fragments.task.factory.DefaultTaskFactory#configure(JsonObject,
+ * Vertx)}.
+ */
 public interface NodeFactory {
 
+  /**
+   * @return node factory name
+   */
   String getName();
 
-  NodeFactory configure(JsonObject nodeConfig, Vertx vertx);
+  /**
+   * Configures a node factory with config defined in {@link NodeFactoryOptions#getConfig()}. This
+   * method is called during factories initialization.
+   *
+   * @param config - json node factory configuration, see {@link NodeFactoryOptions#getConfig()}
+   * @param vertx - vertx instance
+   * @return a reference to this, so the API can be used fluently
+   * @see NodeFactoryOptions#getConfig()
+   */
+  NodeFactory configure(JsonObject config, Vertx vertx);
 
+  /**
+   * Initialize node instance. Nodes are stateless and stateful.
+   *
+   * @param nodeOptions - graph node options
+   * @param edges - prepared node outgoing edges
+   * @param nodeProvider - node provider if the current node contains others
+   * @return node instance
+   */
   Node initNode(GraphNodeOptions nodeOptions, Map<String, Node> edges, NodeProvider nodeProvider);
 
 }

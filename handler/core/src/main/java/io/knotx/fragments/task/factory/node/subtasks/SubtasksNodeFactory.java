@@ -40,7 +40,7 @@ public class SubtasksNodeFactory implements NodeFactory {
   }
 
   @Override
-  public SubtasksNodeFactory configure(JsonObject nodeConfig, Vertx vertx) {
+  public SubtasksNodeFactory configure(JsonObject config, Vertx vertx) {
     // empty
     return this;
   }

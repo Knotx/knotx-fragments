@@ -44,9 +44,9 @@ public class ActionNodeFactory implements NodeFactory {
   }
 
   @Override
-  public ActionNodeFactory configure(JsonObject nodeConfig, Vertx vertx) {
+  public ActionNodeFactory configure(JsonObject config, Vertx vertx) {
     actionProvider = new ActionProvider(supplyFactories(),
-        new ActionNodeFactoryConfig(nodeConfig).getActions(), vertx);
+        new ActionNodeFactoryConfig(config).getActions(), vertx);
     return this;
   }
 
