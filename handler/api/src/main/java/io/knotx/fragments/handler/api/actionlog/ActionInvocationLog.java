@@ -38,6 +38,14 @@ public class ActionInvocationLog {
     this.doActionLog = toDoActionLog(json);
   }
 
+  static ActionInvocationLog success(long duration, ActionLog actionLog) {
+    return new ActionInvocationLog(duration, true, actionLog);
+  }
+
+  static ActionInvocationLog error(long duration,  ActionLog actionLog) {
+    return new ActionInvocationLog(duration, false, actionLog);
+  }
+
   private ActionLog toDoActionLog(JsonObject json) {
     return Optional.ofNullable(json)
         .map(j -> j.getJsonObject("doActionLog"))
@@ -93,13 +101,5 @@ public class ActionInvocationLog {
 
   private JsonObject toDoActionLogJson() {
     return Optional.ofNullable(doActionLog).map(ActionLog::toJson).orElse(null);
-  }
-
-  static ActionInvocationLog success(long duration, ActionLog actionLog) {
-    return new ActionInvocationLog(duration, true, actionLog);
-  }
-
-  static ActionInvocationLog error(long duration,  ActionLog actionLog) {
-    return new ActionInvocationLog(duration, false, actionLog);
   }
 }

@@ -59,7 +59,7 @@ public class ActionLog {
     return logs.copy();
   }
 
-  public List<ActionInvocationLog> getDoActionLogs() {
+  public List<ActionInvocationLog> getInvocationLogs() {
     return unmodifiableList(doActionLogs);
   }
 
@@ -97,7 +97,7 @@ public class ActionLog {
   }
 
   private JsonArray toDoActionArray() {
-    return getDoActionLogs().stream()
+    return getInvocationLogs().stream()
         .map(ActionInvocationLog::toJson)
         .collect(JsonArray::new,
             JsonArray::add,
