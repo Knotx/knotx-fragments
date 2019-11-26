@@ -21,6 +21,9 @@ import io.vertx.core.json.JsonObject;
 import java.util.List;
 import java.util.Objects;
 
+/**
+ * Fragments Handler options model.
+ */
 @DataObject(generateConverter = true)
 public class FragmentsHandlerOptions {
 
@@ -40,6 +43,12 @@ public class FragmentsHandlerOptions {
     return taskFactories;
   }
 
+  /**
+   * The array/list of task factory options defines factories taking part in the creation of tasks. First
+   * items on the list have the highest priority.
+   *
+   * @param taskFactories - a list of task factory options
+   */
   public void setTaskFactories(List<TaskFactoryOptions> taskFactories) {
     this.taskFactories = taskFactories;
   }

@@ -60,27 +60,46 @@ Sets link name. The specified Action is executed
 [[DefaultTaskFactoryConfig]]
 == DefaultTaskFactoryConfig
 
+++++
+ Default Task Factory config model.
+++++
+'''
 
 [cols=">25%,25%,50%"]
 [frame="topbot"]
 |===
 ^|Name | Type ^| Description
-|[[nodeFactories]]`@nodeFactories`|`Array of link:dataobjects.html#NodeFactoryOptions[NodeFactoryOptions]`|-
-|[[taskNameKey]]`@taskNameKey`|`String`|-
+|[[logLevel]]`@logLevel`|`String`|+++
+The global node log level.
++++
+|[[nodeFactories]]`@nodeFactories`|`Array of link:dataobjects.html#NodeFactoryOptions[NodeFactoryOptions]`|+++
+The array/list of graph node factory options defines node factories taking part in the creation
+ of graph.
++++
+|[[taskNameKey]]`@taskNameKey`|`String`|+++
+The fragment's configuration key specifies a task assigned to a fragment by the task name.
++++
 |[[tasks]]`@tasks`|`link:dataobjects.html#GraphNodeOptions[GraphNodeOptions]`|+++
-Sets <code>Task</code> list, which are named, directed graphs of <code>Actions</code>.
+The dictionary that maps a task name to a directed acyclic graph (DAG) of nodes.
 +++
 |===
 
 [[FragmentsHandlerOptions]]
 == FragmentsHandlerOptions
 
+++++
+ Fragments Handler options model.
+++++
+'''
 
 [cols=">25%,25%,50%"]
 [frame="topbot"]
 |===
 ^|Name | Type ^| Description
-|[[taskFactories]]`@taskFactories`|`Array of link:dataobjects.html#TaskFactoryOptions[TaskFactoryOptions]`|-
+|[[taskFactories]]`@taskFactories`|`Array of link:dataobjects.html#TaskFactoryOptions[TaskFactoryOptions]`|+++
+The array/list of task factory options defines factories taking part in the creation of tasks. First
+ items on the list have the highest priority.
++++
 |===
 
 [[GraphNodeOptions]]
@@ -211,16 +230,21 @@ Sets list of  that represents link
 [[TaskFactoryOptions]]
 == TaskFactoryOptions
 
+++++
+ Task Factory options model. It specifies task factory by its name and provides task factory
+ config.
+++++
+'''
 
 [cols=">25%,25%,50%"]
 [frame="topbot"]
 |===
 ^|Name | Type ^| Description
 |[[config]]`@config`|`Json object`|+++
-Sets task factory configuration.
+The JSON object that contains task factory configuration entries.
 +++
 |[[factory]]`@factory`|`String`|+++
-Sets task provider factory name
+The task factory name that identifies <code>TaskFactory</code> implementation.
 +++
 |===
 
