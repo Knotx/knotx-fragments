@@ -101,7 +101,7 @@ class CircuitBreakerActionTest {
               .verify(() -> {
                 //then
                 ActionLog actionLog = new ActionLog(result.getNodeLog());
-                List<ActionInvocationLog> doActionsLogs = actionLog.getDoActionLogs();
+                List<ActionInvocationLog> doActionsLogs = actionLog.getInvocationLogs();
                 String invocationCount = actionLog.getLogs().getString("invocationCount");
 
                 Assertions.assertEquals(1, doActionsLogs.size());
@@ -205,7 +205,7 @@ class CircuitBreakerActionTest {
 
                 ActionLog actionLog = new ActionLog(result.getNodeLog());
                 String fallback = actionLog.getLogs().getString("fallback");
-                List<ActionInvocationLog> doActionsLogs = actionLog.getDoActionLogs();
+                List<ActionInvocationLog> doActionsLogs = actionLog.getInvocationLogs();
 
                 Assertions.assertEquals(1, doActionsLogs.size());
                 ActionInvocationLog invocationLog = doActionsLogs.get(0);
@@ -243,7 +243,7 @@ class CircuitBreakerActionTest {
                 Assertions.assertEquals(FALLBACK_TRANSITION, result.result().getTransition());
 
                 ActionLog actionLog = new ActionLog(result.result().getNodeLog());
-                List<ActionInvocationLog> doActionsLogs = actionLog.getDoActionLogs();
+                List<ActionInvocationLog> doActionsLogs = actionLog.getInvocationLogs();
                 Assertions.assertEquals(1, doActionsLogs.size());
                 ActionInvocationLog invocationLog = doActionsLogs.get(0);
 
@@ -313,7 +313,7 @@ class CircuitBreakerActionTest {
             Assertions.assertEquals(SUCCESS_TRANSITION, fragmentResult.getTransition());
 
             ActionLog actionLog = new ActionLog(fragmentResult.getNodeLog());
-            List<ActionInvocationLog> doActionsLogs = actionLog.getDoActionLogs();
+            List<ActionInvocationLog> doActionsLogs = actionLog.getInvocationLogs();
             String invocationCount = actionLog.getLogs().getString("invocationCount");
 
             Assertions.assertEquals(2, doActionsLogs.size());
@@ -345,7 +345,7 @@ class CircuitBreakerActionTest {
             Assertions.assertEquals(SUCCESS_TRANSITION, fragmentResult.getTransition());
 
             ActionLog actionLog = new ActionLog(fragmentResult.getNodeLog());
-            List<ActionInvocationLog> doActionsLogs = actionLog.getDoActionLogs();
+            List<ActionInvocationLog> doActionsLogs = actionLog.getInvocationLogs();
             String invocationCount = actionLog.getLogs().getString("invocationCount");
 
             Assertions.assertEquals(2, doActionsLogs.size());
@@ -377,7 +377,7 @@ class CircuitBreakerActionTest {
             Assertions.assertEquals(FALLBACK_TRANSITION, fragmentResult.getTransition());
 
             ActionLog actionLog = new ActionLog(fragmentResult.getNodeLog());
-            List<ActionInvocationLog> doActionsLogs = actionLog.getDoActionLogs();
+            List<ActionInvocationLog> doActionsLogs = actionLog.getInvocationLogs();
             String invocationCount = actionLog.getLogs().getString("invocationCount");
 
             Assertions.assertEquals(2, doActionsLogs.size());
@@ -408,7 +408,7 @@ class CircuitBreakerActionTest {
             Assertions.assertEquals(FALLBACK_TRANSITION, fragmentResult.getTransition());
 
             ActionLog actionLog = new ActionLog(fragmentResult.getNodeLog());
-            List<ActionInvocationLog> doActionsLogs = actionLog.getDoActionLogs();
+            List<ActionInvocationLog> doActionsLogs = actionLog.getInvocationLogs();
             String invocationCount = actionLog.getLogs().getString("invocationCount");
 
             Assertions.assertEquals(1, doActionsLogs.size());
@@ -435,7 +435,7 @@ class CircuitBreakerActionTest {
             Assertions.assertEquals(FALLBACK_TRANSITION, fragmentResult.getTransition());
 
             ActionLog actionLog = new ActionLog(fragmentResult.getNodeLog());
-            List<ActionInvocationLog> doActionsLogs = actionLog.getDoActionLogs();
+            List<ActionInvocationLog> doActionsLogs = actionLog.getInvocationLogs();
             String invocationCount = actionLog.getLogs().getString("invocationCount");
 
             Assertions.assertEquals(1, doActionsLogs.size());
@@ -462,7 +462,7 @@ class CircuitBreakerActionTest {
             Assertions.assertEquals(FALLBACK_TRANSITION, fragmentResult.getTransition());
 
             ActionLog actionLog = new ActionLog(fragmentResult.getNodeLog());
-            List<ActionInvocationLog> doActionsLogs = actionLog.getDoActionLogs();
+            List<ActionInvocationLog> doActionsLogs = actionLog.getInvocationLogs();
             String invocationCount = actionLog.getLogs().getString("invocationCount");
 
             Assertions.assertEquals(0, doActionsLogs.size());
@@ -486,7 +486,7 @@ class CircuitBreakerActionTest {
             Assertions.assertEquals(FALLBACK_TRANSITION, fragmentResult.getTransition());
 
             ActionLog actionLog = new ActionLog(fragmentResult.getNodeLog());
-            List<ActionInvocationLog> doActionsLogs = actionLog.getDoActionLogs();
+            List<ActionInvocationLog> doActionsLogs = actionLog.getInvocationLogs();
             String invocationCount = actionLog.getLogs().getString("invocationCount");
 
             Assertions.assertEquals(0, doActionsLogs.size());

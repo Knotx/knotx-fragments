@@ -439,22 +439,27 @@ or times out then the custom `fallback` transition is returned.
 
 ##### Circuit Breaker Action Log
 
-Behavior logs the following data
+Circuit Breaker logs the following data
 
  - `invocationCount` - number of retries
  - `fallback` - in case fallback defined entry will contain message from exception which causes error
 
-CB log includes logs produces by wrapped action. 
-Please note that not every call can be visible in `doAction` entry.  
+Circuit Breaker log includes logs produces by wrapped action. Each  `invocation log` has entries:
+
+ - `duration` - how long takes execution of action - in milisecond
+ - `succuess` - execution ends up with success - ()
+ - `actionLog` - Wrapped action log
+ 
+Please note that not every call can be visible in `invocation log` entry.  
 
 
-| Action call ends  | duration  | Wrapped action log  | 
+| Action call ends  | invocation log  | Wrapped action log  | 
 | :---------: |:---------:|:---------|
-| transition [ `_success`]  |  yes | Available        |
-| transition [ `_error`] |  yes |  Available        |
-| TIMEOUT                 |  no |  Not available        |
-| Failure  |  yes |   Not available        |
-| Exception  |  |  no |  Not available        |
+| transition [ `_success`]  |  Available | Available        |
+| transition [ `_error`] |  Available |  Available        |
+| TIMEOUT                 |  Not available |  Not available        |
+| Failure                 |  Available |   Not available        |
+| Exception  |   Not available |  Not available        |
 
 
 #### In-memory Cache Behaviour
