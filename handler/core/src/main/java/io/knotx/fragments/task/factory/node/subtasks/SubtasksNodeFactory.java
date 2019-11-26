@@ -57,7 +57,7 @@ public class SubtasksNodeFactory implements NodeFactory {
   }
 
   private String getNodeId() {
-    // TODO this value should be calculated based on graph, the behaviour now is not changed
+    // TODO https://github.com/Knotx/knotx-fragments/issues/54
     return COMPOSITE_NODE_ID;
   }
 }
