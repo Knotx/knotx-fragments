@@ -1,5 +1,24 @@
 = Cheatsheets
 
+[[ActionFactoryOptions]]
+== ActionFactoryOptions
+
+
+[cols=">25%,25%,50%"]
+[frame="topbot"]
+|===
+^|Name | Type ^| Description
+|[[config]]`@config`|`Json object`|+++
+Sets <code>Action</code> configuration that is passed to Action.
++++
+|[[doAction]]`@doAction`|`String`|+++
+Sets the name of the base <code>Action</code> that will be triggered while creating current <code>Action</code>. In not set (<code>null</code>), given action will have no base actions.
++++
+|[[factory]]`@factory`|`String`|+++
+Sets <code>Action</code> factory name.
++++
+|===
+
 [[ActionNodeConfig]]
 == ActionNodeConfig
 
@@ -35,26 +54,7 @@ Sets link name. The specified Action is executed
 [frame="topbot"]
 |===
 ^|Name | Type ^| Description
-|[[actions]]`@actions`|`link:dataobjects.html#ActionOptions[ActionOptions]`|-
-|===
-
-[[ActionOptions]]
-== ActionOptions
-
-
-[cols=">25%,25%,50%"]
-[frame="topbot"]
-|===
-^|Name | Type ^| Description
-|[[config]]`@config`|`Json object`|+++
-Sets <code>Action</code> configuration that is passed to Action.
-+++
-|[[doAction]]`@doAction`|`String`|+++
-Sets the name of the base <code>Action</code> that will be triggered while creating current <code>Action</code>. In not set (<code>null</code>), given action will have no base actions.
-+++
-|[[factory]]`@factory`|`String`|+++
-Sets <code>Action</code> factory name.
-+++
+|[[actions]]`@actions`|`link:dataobjects.html#ActionFactoryOptions[ActionFactoryOptions]`|-
 |===
 
 [[DefaultTaskFactoryConfig]]

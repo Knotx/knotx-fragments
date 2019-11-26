@@ -26,7 +26,7 @@ import io.knotx.fragments.engine.Task;
 import io.knotx.fragments.engine.graph.CompositeNode;
 import io.knotx.fragments.engine.graph.Node;
 import io.knotx.fragments.engine.graph.SingleNode;
-import io.knotx.fragments.handler.action.ActionOptions;
+import io.knotx.fragments.handler.action.ActionFactoryOptions;
 import io.knotx.fragments.task.factory.node.NodeFactoryOptions;
 import io.knotx.fragments.task.factory.node.action.ActionNodeFactory;
 import io.knotx.fragments.task.factory.node.action.ActionNodeFactoryConfig;
@@ -170,7 +170,7 @@ class DefaultTaskFactoryTest {
 
   private JsonObject createActionNodeConfig(String actionName, String transition) {
     return new ActionNodeFactoryConfig(Collections.singletonMap(actionName,
-        new ActionOptions(new JsonObject())
+        new ActionFactoryOptions(new JsonObject())
             .setFactory("test-action")
             .setConfig(new JsonObject().put("transition", transition))))
         .toJson();

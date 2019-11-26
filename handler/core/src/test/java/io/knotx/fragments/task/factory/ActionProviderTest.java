@@ -26,7 +26,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.google.common.collect.ImmutableMap;
-import io.knotx.fragments.handler.action.ActionOptions;
+import io.knotx.fragments.handler.action.ActionFactoryOptions;
 import io.knotx.fragments.handler.api.Action;
 import io.knotx.fragments.handler.api.ActionFactory;
 import io.knotx.fragments.handler.api.Cacheable;
@@ -89,8 +89,8 @@ class ActionProviderTest {
   @DisplayName("Expect no action when no factory found.")
   void getWithNoFactory(Vertx vertx) {
     // given
-    Map<String, ActionOptions> proxies = Collections
-        .singletonMap(PROXY_ALIAS, new ActionOptions("eb", new JsonObject(), null));
+    Map<String, ActionFactoryOptions> proxies = Collections
+        .singletonMap(PROXY_ALIAS, new ActionFactoryOptions("eb", new JsonObject(), null));
 
     ActionProvider tested = new ActionProvider(Collections::emptyListIterator,
         proxies, vertx);
@@ -106,9 +106,9 @@ class ActionProviderTest {
   @DisplayName("Expect action when action alias defined and factory found.")
   void getOperation(Vertx vertx) {
     // given
-    Map<String, ActionOptions> proxies = Collections
+    Map<String, ActionFactoryOptions> proxies = Collections
         .singletonMap(PROXY_ALIAS,
-            new ActionOptions(PROXY_FACTORY_NAME, new JsonObject(), null));
+            new ActionFactoryOptions(PROXY_FACTORY_NAME, new JsonObject(), null));
     List<ActionFactory> factories = Collections
         .singletonList(new TestCacheableOperationFactory());
 
@@ -147,9 +147,9 @@ class ActionProviderTest {
   @DisplayName("Expect new action every time we call non cacheable factory.")
   void getNewAction(Vertx vertx) {
     // given
-    Map<String, ActionOptions> proxies = Collections
+    Map<String, ActionFactoryOptions> proxies = Collections
         .singletonMap(PROXY_ALIAS,
-            new ActionOptions(PROXY_FACTORY_NAME, new JsonObject(), null));
+            new ActionFactoryOptions(PROXY_FACTORY_NAME, new JsonObject(), null));
     List<ActionFactory> factories = Collections
         .singletonList(new TestOperationFactory());
 
@@ -169,9 +169,9 @@ class ActionProviderTest {
   @DisplayName("Expect the same action every time we call cacheable factory.")
   void getCachedOperation(Vertx vertx) {
     // given
-    Map<String, ActionOptions> proxies = Collections
+    Map<String, ActionFactoryOptions> proxies = Collections
         .singletonMap(PROXY_ALIAS,
-            new ActionOptions(PROXY_FACTORY_NAME, new JsonObject(), null));
+            new ActionFactoryOptions(PROXY_FACTORY_NAME, new JsonObject(), null));
     List<ActionFactory> factories = Collections
         .singletonList(new TestCacheableOperationFactory());
 
@@ -207,11 +207,11 @@ class ActionProviderTest {
         proxyFactorySecond.create(eq(PROXY_ALIAS_SECOND), any(), eq(vertx.getDelegate()), eq(null)))
         .thenReturn(expectedOperationSecond);
 
-    Map<String, ActionOptions> proxies = ImmutableMap.of(
+    Map<String, ActionFactoryOptions> proxies = ImmutableMap.of(
         PROXY_ALIAS,
-        new ActionOptions(PROXY_FACTORY_NAME, new JsonObject(), PROXY_ALIAS_SECOND),
+        new ActionFactoryOptions(PROXY_FACTORY_NAME, new JsonObject(), PROXY_ALIAS_SECOND),
         PROXY_ALIAS_SECOND,
-        new ActionOptions(PROXY_FACTORY_NAME_SECOND, new JsonObject())
+        new ActionFactoryOptions(PROXY_FACTORY_NAME_SECOND, new JsonObject())
     );
     List<ActionFactory> factories = Arrays.asList(proxyFactory, proxyFactorySecond);
 

@@ -22,29 +22,29 @@ import io.vertx.core.json.JsonObject;
 import java.util.Optional;
 
 @DataObject(generateConverter = true)
-public class ActionOptions {
+public class ActionFactoryOptions {
 
   private String factory;
   private JsonObject config;
   private String doAction;
 
-  public ActionOptions(String factory, JsonObject config) {
+  public ActionFactoryOptions(String factory, JsonObject config) {
     this(factory, config, null);
   }
 
-  public ActionOptions(String factory, JsonObject config, String doAction) {
+  public ActionFactoryOptions(String factory, JsonObject config, String doAction) {
     this.factory = factory;
     this.config = config;
     this.doAction = doAction;
   }
 
-  public ActionOptions(JsonObject json) {
-    ActionOptionsConverter.fromJson(json, this);
+  public ActionFactoryOptions(JsonObject json) {
+    ActionFactoryOptionsConverter.fromJson(json, this);
   }
 
   public JsonObject toJson() {
     JsonObject json = new JsonObject();
-    ActionOptionsConverter.toJson(this, json);
+    ActionFactoryOptionsConverter.toJson(this, json);
     return json;
   }
 
@@ -58,7 +58,7 @@ public class ActionOptions {
    * @param factory action factory name.
    * @return reference to this, so the API can be used fluently
    */
-  public ActionOptions setFactory(String factory) {
+  public ActionFactoryOptions setFactory(String factory) {
     this.factory = factory;
     return this;
   }
@@ -73,7 +73,7 @@ public class ActionOptions {
    * @param config action factory configuration.
    * @return reference to this, so the API can be used fluently
    */
-  public ActionOptions setConfig(JsonObject config) {
+  public ActionFactoryOptions setConfig(JsonObject config) {
     this.config = config;
     return this;
   }
@@ -89,7 +89,7 @@ public class ActionOptions {
    * @param doAction name of the base {@code Action}.
    * @return reference to this, so the API can be used fluently
    */
-  public ActionOptions setDoAction(String doAction) {
+  public ActionFactoryOptions setDoAction(String doAction) {
     this.doAction = doAction;
     return this;
   }
@@ -102,7 +102,7 @@ public class ActionOptions {
     if (o == null || getClass() != o.getClass()) {
       return false;
     }
-    ActionOptions that = (ActionOptions) o;
+    ActionFactoryOptions that = (ActionFactoryOptions) o;
     return Objects.equals(factory, that.factory) &&
         Objects.equals(config, that.config) &&
         Objects.equals(doAction, that.doAction);

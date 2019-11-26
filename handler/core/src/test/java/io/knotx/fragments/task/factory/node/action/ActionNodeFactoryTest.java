@@ -21,7 +21,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.knotx.fragments.engine.graph.Node;
 import io.knotx.fragments.engine.graph.SingleNode;
-import io.knotx.fragments.handler.action.ActionOptions;
+import io.knotx.fragments.handler.action.ActionFactoryOptions;
 import io.knotx.fragments.task.factory.node.StubNode;
 import io.knotx.fragments.task.factory.GraphNodeOptions;
 import io.vertx.core.json.JsonObject;
@@ -107,7 +107,7 @@ class ActionNodeFactoryTest {
 
   private JsonObject createNodeConfig(String actionName, String transition) {
     return new ActionNodeFactoryConfig(Collections.singletonMap(actionName,
-        new ActionOptions(new JsonObject())
+        new ActionFactoryOptions(new JsonObject())
             .setFactory("test-action")
             .setConfig(new JsonObject().put("transition", transition))))
         .toJson();

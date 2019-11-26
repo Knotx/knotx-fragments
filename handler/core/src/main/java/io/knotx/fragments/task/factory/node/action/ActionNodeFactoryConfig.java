@@ -15,7 +15,7 @@
  */
 package io.knotx.fragments.task.factory.node.action;
 
-import io.knotx.fragments.handler.action.ActionOptions;
+import io.knotx.fragments.handler.action.ActionFactoryOptions;
 import io.knotx.fragments.task.factory.LogLevelConfig;
 import io.vertx.codegen.annotations.DataObject;
 import io.vertx.core.json.JsonObject;
@@ -26,9 +26,9 @@ import java.util.Objects;
 @DataObject(generateConverter = true)
 public class ActionNodeFactoryConfig {
 
-  private Map<String, ActionOptions> actions;
+  private Map<String, ActionFactoryOptions> actions;
 
-  public ActionNodeFactoryConfig(Map<String, ActionOptions> actions) {
+  public ActionNodeFactoryConfig(Map<String, ActionFactoryOptions> actions) {
     this.actions = actions;
   }
 
@@ -52,11 +52,11 @@ public class ActionNodeFactoryConfig {
     return jsonObject;
   }
 
-  public Map<String, ActionOptions> getActions() {
+  public Map<String, ActionFactoryOptions> getActions() {
     return actions;
   }
 
-  public ActionNodeFactoryConfig setActions(Map<String, ActionOptions> actions) {
+  public ActionNodeFactoryConfig setActions(Map<String, ActionFactoryOptions> actions) {
     this.actions = actions;
     return this;
   }
