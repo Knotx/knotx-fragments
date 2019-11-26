@@ -15,7 +15,6 @@
  */
 package io.knotx.fragments.task.factory.node.subtasks;
 
-import io.knotx.fragments.task.factory.node.NodeOptions;
 import io.knotx.fragments.task.factory.GraphNodeOptions;
 import io.vertx.codegen.annotations.DataObject;
 import io.vertx.core.json.JsonObject;
@@ -23,16 +22,7 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * Subtask node configuration. It is model for {@link NodeOptions#getConfig()} JSON object.
- *
- * <pre>
- * node {
- *   factory = subtasks
- *   config { //represented by SubtasksNodeConfigOptions
- *     ...
- *   }
- * }
- * </pre>
+ * Subtask Node configuration.
  */
 @DataObject(generateConverter = true)
 public class SubtasksNodeConfig {
@@ -58,10 +48,9 @@ public class SubtasksNodeConfig {
   }
 
   /**
-   * Sets list of {@link GraphNodeOptions} that represents {@link io.knotx.fragments.engine.Task}
-   * that will be executed in parallel.
+   * The array/list of subgraphs/subtasks that can be executed in parallel.
    *
-   * @param subtasks list of {@link GraphNodeOptions}
+   * @param subtasks list of subgraphs
    * @return reference to this, so the API can be used fluently
    */
   public SubtasksNodeConfig setSubtasks(List<GraphNodeOptions> subtasks) {
