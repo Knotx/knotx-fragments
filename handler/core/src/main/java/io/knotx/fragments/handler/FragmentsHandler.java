@@ -36,6 +36,7 @@ import io.knotx.server.api.context.RequestEvent;
 import io.knotx.server.api.handler.DefaultRequestContextEngine;
 import io.knotx.server.api.handler.RequestContextEngine;
 import io.knotx.server.api.handler.RequestEventHandlerResult;
+import io.reactivex.Single;
 import io.vertx.core.Handler;
 import io.vertx.core.json.JsonObject;
 import io.vertx.reactivex.core.Vertx;
@@ -69,7 +70,9 @@ public class FragmentsHandler implements Handler<RoutingContext> {
 
     ClientRequest clientRequest = requestContext.getRequestEvent().getClientRequest();
 
-    engine.execute(toEvents(fragments, clientRequest))
+    Single.just(fragments)
+        .map(f -> toEvents(f, clientRequest))
+        .flatMap(engine::execute)
         .doOnSuccess(events -> putFragments(routingContext, events))
         .map(events -> toHandlerResult(events, requestContext))
         .subscribe(
