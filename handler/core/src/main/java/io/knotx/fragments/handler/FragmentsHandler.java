@@ -76,7 +76,9 @@ public class FragmentsHandler implements Handler<RoutingContext> {
 
   protected Single<List<FragmentEvent>> doHandle(List<Fragment> fragments,
       ClientRequest clientRequest) {
-    return engine.execute(toEvents(fragments, clientRequest));
+    return Single.just(fragments)
+        .map(f -> toEvents(f, clientRequest))
+        .flatMap(engine::execute);
   }
 
   private void putFragments(RoutingContext routingContext, List<FragmentEvent> events) {

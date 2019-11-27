@@ -124,6 +124,26 @@ class ActionProviderTest {
 
 
   @Test
+  @DisplayName("Expect action when action config not defined.")
+  void getOperationWithNoActionConfig(Vertx vertx) {
+    // given
+    Map<String, ActionOptions> proxies = Collections
+        .singletonMap(PROXY_ALIAS,
+            new ActionOptions(PROXY_FACTORY_NAME, null, null));
+    List<ActionFactory> factories = Collections
+        .singletonList(new TestCacheableOperationFactory());
+
+    ActionProvider tested = new ActionProvider(proxies,
+        factories::iterator, "error", vertx);
+
+    // when
+    Optional<Action> operation = tested.get(PROXY_ALIAS);
+
+    // then
+    assertTrue(operation.isPresent());
+  }
+
+  @Test
   @DisplayName("Expect new action every time we call non cacheable factory.")
   void getNewAction(Vertx vertx) {
     // given
