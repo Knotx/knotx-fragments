@@ -26,7 +26,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.google.common.collect.ImmutableMap;
-import io.knotx.fragments.handler.action.ActionFactoryOptions;
 import io.knotx.fragments.handler.api.Action;
 import io.knotx.fragments.handler.api.ActionFactory;
 import io.knotx.fragments.handler.api.Cacheable;
@@ -125,16 +124,13 @@ class ActionProviderTest {
 
   @Test
   @DisplayName("Expect action when action config not defined.")
-  void getOperationWithNoActionConfig(Vertx vertx) {
+  void expectActionWithNoActionConfig(Vertx vertx) {
     // given
-    Map<String, ActionOptions> proxies = Collections
-        .singletonMap(PROXY_ALIAS,
-            new ActionOptions(PROXY_FACTORY_NAME, null, null));
-    List<ActionFactory> factories = Collections
-        .singletonList(new TestCacheableOperationFactory());
+    Map<String, ActionFactoryOptions> proxies = Collections
+        .singletonMap(PROXY_ALIAS, new ActionFactoryOptions(PROXY_FACTORY_NAME));
+    List<ActionFactory> factories = Collections.singletonList(new TestCacheableOperationFactory());
 
-    ActionProvider tested = new ActionProvider(proxies,
-        factories::iterator, "error", vertx);
+    ActionProvider tested = new ActionProvider(factories::iterator, proxies, vertx);
 
     // when
     Optional<Action> operation = tested.get(PROXY_ALIAS);

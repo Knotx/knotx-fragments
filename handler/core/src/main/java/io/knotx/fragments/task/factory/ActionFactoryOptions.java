@@ -13,12 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.knotx.fragments.handler.action;
-
-import java.util.Objects;
+package io.knotx.fragments.task.factory;
 
 import io.vertx.codegen.annotations.DataObject;
 import io.vertx.core.json.JsonObject;
+import java.util.Objects;
 import java.util.Optional;
 
 @DataObject(generateConverter = true)

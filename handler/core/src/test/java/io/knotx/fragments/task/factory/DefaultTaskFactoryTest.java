@@ -27,7 +27,6 @@ import io.knotx.fragments.engine.Task;
 import io.knotx.fragments.engine.graph.CompositeNode;
 import io.knotx.fragments.engine.graph.Node;
 import io.knotx.fragments.engine.graph.SingleNode;
-import io.knotx.fragments.handler.action.ActionFactoryOptions;
 import io.knotx.fragments.task.exception.TaskNotFoundException;
 import io.knotx.fragments.task.factory.node.NodeFactoryOptions;
 import io.knotx.fragments.task.factory.node.action.ActionNodeFactory;
