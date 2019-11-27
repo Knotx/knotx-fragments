@@ -15,7 +15,7 @@
  */
 package io.knotx.fragments.task.factory.node.action;
 
-import io.knotx.fragments.handler.action.ActionFactoryOptions;
+import io.knotx.fragments.task.factory.ActionFactoryOptions;
 import io.knotx.fragments.task.factory.LogLevelConfig;
 import io.vertx.codegen.annotations.DataObject;
 import io.vertx.core.json.JsonObject;

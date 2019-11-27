@@ -15,7 +15,7 @@
  */
 package io.knotx.fragments.task.factory.node.action;
 
-import io.knotx.fragments.handler.action.ActionFactoryOptions;
+import io.knotx.fragments.task.factory.ActionFactoryOptions;
 import io.knotx.fragments.handler.api.Action;
 import io.knotx.fragments.handler.api.ActionFactory;
 import io.knotx.fragments.handler.api.Cacheable;
@@ -40,7 +40,8 @@ public class ActionProvider {
   private Map<String, ActionFactoryOptions> actionNameToOptions;
   private Vertx vertx;
 
-  public ActionProvider(Supplier<Iterator<ActionFactory>> supplier, Map<String, ActionFactoryOptions> actionNameToOptions, Vertx vertx) {
+  public ActionProvider(Supplier<Iterator<ActionFactory>> supplier,
+      Map<String, ActionFactoryOptions> actionNameToOptions, Vertx vertx) {
     this.actionNameToOptions = actionNameToOptions;
     this.vertx = vertx;
     this.factories = loadFactories(supplier);
@@ -70,11 +71,13 @@ public class ActionProvider {
     }
   }
 
-  private Function<String, Action> toAction(ActionFactoryOptions actionFactoryOptions, ActionFactory factory) {
+  private Function<String, Action> toAction(ActionFactoryOptions actionFactoryOptions,
+      ActionFactory factory) {
     return action -> createAction(action, actionFactoryOptions, factory);
   }
 
-  private Action createAction(String action, ActionFactoryOptions actionFactoryOptions, ActionFactory factory) {
+  private Action createAction(String action, ActionFactoryOptions actionFactoryOptions,
+      ActionFactory factory) {
     // recurrence here :)
     Action operation = Optional.ofNullable(actionFactoryOptions.getDoAction())
         .flatMap(this::get)

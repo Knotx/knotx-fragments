@@ -21,7 +21,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.knotx.fragments.engine.graph.Node;
 import io.knotx.fragments.engine.graph.SingleNode;
-import io.knotx.fragments.handler.action.ActionFactoryOptions;
+import io.knotx.fragments.task.factory.ActionFactoryOptions;
 import io.knotx.fragments.task.factory.node.StubNode;
 import io.knotx.fragments.task.factory.GraphNodeOptions;
 import io.vertx.core.json.JsonObject;
