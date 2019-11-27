@@ -19,6 +19,7 @@ import java.util.Objects;
 
 import io.vertx.codegen.annotations.DataObject;
 import io.vertx.core.json.JsonObject;
+import java.util.Optional;
 
 @DataObject(generateConverter = true)
 public class ActionOptions {
@@ -36,7 +37,6 @@ public class ActionOptions {
     this.config = config;
     this.doAction = doAction;
   }
-
 
   public ActionOptions(JsonObject json) {
     ActionOptionsConverter.fromJson(json, this);
@@ -64,7 +64,7 @@ public class ActionOptions {
   }
 
   public JsonObject getConfig() {
-    return config;
+    return Optional.ofNullable(config).orElse(new JsonObject());
   }
 
   /**
