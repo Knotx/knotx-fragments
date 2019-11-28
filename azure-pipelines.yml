@@ -5,18 +5,6 @@ pool:
   vmImage: 'ubuntu-latest'
 
 steps:
-  - task: Gradle@2
-    inputs:
-      workingDirectory: ''
-      gradleWrapperFile: 'gradlew'
-      gradleOptions: '-Xmx3072m'
-      javaHomeOption: 'JDKVersion'
-      jdkVersionOption: '1.8'
-      jdkArchitectureOption: 'x64'
-      publishJUnitResults: true
-      testResultsFiles: '**/TEST-*.xml'
-      tasks: 'build'
-    displayName: "Check the repository"
   - script: |
       git clone https://github.com/Knotx/knotx-aggregator.git
       mkdir knotx-repos
@@ -36,7 +24,19 @@ steps:
       script: |
         cd knotx-aggregator/development
         ./build-stack.sh -r ../../knotx-repos
-    displayName: "Build Stack"
+    displayName: "Build all Knot.x modules & run functional tests"
+  - task: Gradle@2
+    inputs:
+      workingDirectory: ''
+      gradleWrapperFile: 'gradlew'
+      gradleOptions: '-Xmx3072m'
+      javaHomeOption: 'JDKVersion'
+      jdkVersionOption: '1.8'
+      jdkArchitectureOption: 'x64'
+      publishJUnitResults: true
+      testResultsFiles: '**/TEST-*.xml'
+      tasks: 'build'
+    displayName: "Build the repository"
   - script: |
       cd knotx-repos/knotx-docker
       mvn clean package
