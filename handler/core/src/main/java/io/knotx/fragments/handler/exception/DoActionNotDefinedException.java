@@ -17,6 +17,8 @@
  */
 package io.knotx.fragments.handler.exception;
 
+import io.knotx.fragments.ConfigurationException;
+
 public class DoActionNotDefinedException extends ConfigurationException {
 
   public DoActionNotDefinedException(String message) {

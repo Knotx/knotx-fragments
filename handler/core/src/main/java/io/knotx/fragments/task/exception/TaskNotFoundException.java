@@ -12,12 +12,10 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * The code comes from https://github.com/tomaszmichalak/vertx-rx-map-reduce.
  */
 package io.knotx.fragments.task.exception;
 
-import io.knotx.fragments.handler.exception.ConfigurationException;
+import io.knotx.fragments.ConfigurationException;
 
 public class TaskNotFoundException extends ConfigurationException {
 
@@ -25,6 +23,7 @@ public class TaskNotFoundException extends ConfigurationException {
 
   public TaskNotFoundException(String taskName) {
     super("Task [" + taskName + "] not configured!");
+    this.taskName = taskName;
   }
 
   public String getTaskName() {

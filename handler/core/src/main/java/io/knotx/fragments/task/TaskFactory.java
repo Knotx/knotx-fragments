@@ -12,83 +12,53 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * The code comes from https://github.com/tomaszmichalak/vertx-rx-map-reduce.
  */
 package io.knotx.fragments.task;
 
-import io.knotx.fragments.api.Fragment;
 import io.knotx.fragments.engine.FragmentEventContext;
 import io.knotx.fragments.engine.Task;
-import io.knotx.fragments.handler.action.ActionProvider;
-import io.knotx.fragments.task.exception.GraphConfigurationException;
-import io.knotx.fragments.task.exception.TaskNotFoundException;
-import io.knotx.fragments.task.options.TaskOptions;
-import io.vertx.core.logging.Logger;
-import io.vertx.core.logging.LoggerFactory;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
-import java.util.ServiceLoader;
+import io.knotx.fragments.handler.FragmentsHandlerOptions;
+import io.vertx.core.json.JsonObject;
+import io.vertx.reactivex.core.Vertx;
 
-public class TaskFactory {
+/**
+ * A task factory interface allowing to register a task factory by its name. Implementing class must
+ * be configured in <code>META-INF.services</code>.
+ *
+ * Task factories are configured in {@link FragmentsHandlerOptions#getTaskFactories()}.
+ */
+public interface TaskFactory {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(TaskFactory.class);
+  /**
+   * @return task factory name
+   */
+  String getName();
 
-  private String taskKey;
-  private Map<String, TaskProviderFactory> providersFactories;
-  private Map<String, TaskOptions> tasks;
-  private ActionProvider actionProvider;
+  /**
+   * Configures a task factory with config defined in {@link TaskFactoryOptions#getConfig()}. This
+   * method is called during factories initialization.
+   *
+   * @param config json task factory configuration, see {@link TaskFactoryOptions#getConfig()}
+   * @param vertx vertx instance
+   * @return a reference to this, so the API can be used fluently
+   */
+  TaskFactory configure(JsonObject config, Vertx vertx);
 
-  public TaskFactory(String taskKey, Map<String, TaskOptions> tasks,
-      ActionProvider actionProvider) {
-    this.taskKey = taskKey;
-    this.tasks = tasks;
-    this.actionProvider = actionProvider;
-    providersFactories = initProviders();
-  }
+  /**
+   * Determines if a fragment event context can be processed by the factory.
+   *
+   * @param context fragment event context
+   * @return <code>true</code> when accepted
+   */
+  boolean accept(FragmentEventContext context);
 
-  public Optional<Task> newInstance(FragmentEventContext fragmentEventContext) {
-    return Optional.of(fragmentEventContext.getFragmentEvent().getFragment())
-        .filter(this::hasTask)
-        .map(this::getTaskName)
-        .map(taskName -> {
-          TaskProvider factory = getProvider(taskName);
-          Configuration taskConfig = getTaskConfiguration(taskName);
-          return factory.newInstance(taskConfig, fragmentEventContext);
-        });
-  }
-
-  private String getTaskName(Fragment fragment) {
-    return fragment.getConfiguration().getString(taskKey);
-  }
-
-  private boolean hasTask(Fragment fragment) {
-    return fragment.getConfiguration().containsKey(taskKey);
-  }
-
-  private Configuration getTaskConfiguration(String taskName) {
-    return new Configuration(taskName, tasks.get(taskName).getGraph());
-  }
-
-  private TaskProvider getProvider(String taskName) {
-    TaskOptions taskOptions = tasks.get(taskName);
-    if (taskOptions == null) {
-      LOGGER.error("Could not find task [{}] in tasks [{}]", taskName, tasks);
-      throw new TaskNotFoundException(taskName);
-    }
-    String factoryName = taskOptions.getFactory();
-    return Optional.ofNullable(providersFactories.get(factoryName))
-        .map(f -> f.create(taskOptions.getConfig(), actionProvider))
-        .orElseThrow(() -> new GraphConfigurationException("Could not find task builder"));
-  }
-
-  private Map<String, TaskProviderFactory> initProviders() {
-    Map<String, TaskProviderFactory> factories = new HashMap<>();
-    ServiceLoader
-        .load(TaskProviderFactory.class).iterator()
-        .forEachRemaining(f -> factories.put(f.getName(), f));
-    return factories;
-  }
-
+  /**
+   * Creates the new task instance. It is called only if {@link #accept(FragmentEventContext)}
+   * returns <code>true</code>. When called with a fragment that does not provide a task name, then
+   * {@link io.knotx.fragments.task.exception.TaskNotFoundException} is thrown.
+   *
+   * @param context fragment event context
+   * @return new task instance
+   */
+  Task newInstance(FragmentEventContext context);
 }
