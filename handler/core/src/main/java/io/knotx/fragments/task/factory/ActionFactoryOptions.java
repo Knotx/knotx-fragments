@@ -27,14 +27,24 @@ public class ActionFactoryOptions {
   private JsonObject config;
   private String doAction;
 
-  public ActionFactoryOptions(String factory, JsonObject config) {
+  private ActionFactoryOptions() {
+  }
+
+  ActionFactoryOptions(String factory) {
+    this(factory, null, null);
+  }
+
+  ActionFactoryOptions(String factory, JsonObject config) {
     this(factory, config, null);
   }
 
-  public ActionFactoryOptions(String factory, JsonObject config, String doAction) {
-    this.factory = factory;
-    this.config = config;
-    this.doAction = doAction;
+  ActionFactoryOptions(String factory, JsonObject config, String doAction) {
+    ActionFactoryOptions actionFactoryOptions = new ActionFactoryOptions().setFactory(factory).setConfig(config)
+        .setDoAction(doAction);
+
+    JsonObject json = new JsonObject();
+    ActionFactoryOptionsConverter.toJson(actionFactoryOptions, json);
+    ActionFactoryOptionsConverter.fromJson(json, this);
   }
 
   public ActionFactoryOptions(JsonObject json) {
