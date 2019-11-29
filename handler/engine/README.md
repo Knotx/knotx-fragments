@@ -1,25 +1,57 @@
 # Fragments Engine
-Fragments Engine is a reactive asynchronous map-reduce implementation, enjoying the benefits of Reactive Extensions, 
-that evaluates each Fragment independently using a `Task` definition. `Task` specifies a directed graph of Nodes, 
-allowing to transform Fragment into the new one.
+Fragments Engine is a [reactive](https://www.reactivemanifesto.org/) asynchronous 
+[map-reduce](https://en.wikipedia.org/wiki/MapReduce) implementation, enjoying the benefits of 
+[Reactive Extensions](http://reactivex.io/), that evaluates each 
+[Fragment](https://github.com/Knotx/knotx-fragments/tree/master/api) independently using a 
+[Task](#task) definition. Task specifies Nodes through which Fragments will be routed by 
+(a directed graph of [Nodes](#node)), allowing to transform Fragment into the new one.
 
 ## How does it work
-Any *Fragment* can define its processing path - a **Task** (which is a **directed graph** of **Nodes**).
-A **Task** specifies the nodes through which Fragments will be routed by the Task Engine. 
-Each Node may define possible *outgoing edges* - **Transitions**.
+Fragments engine accepts a list of fragments decorated with its [status](#fragments-status), 
+[processing log](#fragments-status) and the incoming HTTP request data. All operations, nodes 
+evaluations and graph executions are asynchronous. So the engine responds with RX handler that 
+enables the user to press the play button (with the `io.reactivex.SingleSource.subscribe` method). 
+This is where map-reduce magic begins.
+
+When the user calls the `subscribe` method, then all fragments are evaluated in parallel. Finally, 
+we get a list of modified fragments that contain also their statuses and processing log.
+
+The engine handles all exceptions launched by nodes with a graph logic. It translates errors to 
+`_error` transitions and tries to manage them.\
+All `io.knotx.fragments.handler.api.exception.NodeFatalException` exceptions break the processing 
+of all fragments and call the `io.reactivex.SingleObserver#onError` method to indicate that all 
+fragments have failed. Then the client can handle this situation.
+
+## How to configure
+The engine is stateless, so no configuration is required. The clients provide their custom 
+configurations and build tasks. Tasks contain all details about graph processing.
+
+# Task
+Task decomposes business logic into lightweight independent parts. Those parts are graph nodes 
+connected by transitions. So a task is a directed graph of nodes. Nodes specify fragment's 
+processing, whereas transitions draw business decisions.
+This graph is acyclic and each of its nodes can be reached only from exactly one path (transition). 
+These properties enable us to treat the Task as a tree structure.
+```
+(A) ───> (B) ───> (C)
+ └─────> (D)
+```
+The above graph contains nodes, represented by `(A)`, and transitions illustrated as arrows. Arrows 
+set a node's contract. 
+
+So, for example, a node can invoke API and store the response in the fragment. Then it 
+responds with the modified fragment and transition.
+
 
 ## Node
 The node responsibility can be described as: 
-> Graph node gets a fragment, processes it, add some processing logs and responds with a transition. 
+> Graph node gets a fragment, processes it, adds some processing logs and responds with a transition. 
 > So a node is the F -> (F', T, L) function where F is a fragment, F' is a modified Fragment, T is a 
 > transition and L is a node log.
 
 The node definition is abstract. It allows to define simple processing nodes but also more complex 
-structures such as a list of subgraphs.
-
-The node definition is abstract. It allows to define simple processing nodes but also more complex 
-structures such as a list of subgraphs. Furthermore, such a definition inspires to provide custom 
-node implementations.
+structures such as a list of subgraphs. Each node may define possible outgoing edges, called 
+transitions.
 
 ### Node types
 There are two **node** types:
@@ -67,6 +99,9 @@ There are two important rules to remember:
 >exception is returned.
 
 > If a node responds with a not configured transition, the "Unsupported Transition" error occurs.
+
+Nodes can declare custom transitions. Custom transitions allow to react to non standard situations 
+such as data sources timeouts, fallbacks etc.
 
 ## Fragment's status
 During fragment's processing, a fragment's status is calculated. Each node responds with a transition. 
@@ -134,7 +169,7 @@ in the fragment's log containing:
 Node status is a simple text value managed by the engine. It resembles a fragment's status but is a 
 bit more accurate (such as a `UNSUPPORTED_TRANSITION` value).
 
-Let's see the example fragment's log. There is a fragment that defines a task named `taskName`. The 
+Let's see an example fragment's log. There is a fragment that defines a task named `taskName`. The 
 task is a graph of two nodes: `A` and `B`.
 
 ![A and B ends correctly](assets/images/a_success_b_success.png)
@@ -145,4 +180,4 @@ with the `_succcess` transition. Finally, the fragment status is `SUCCESS` and t
 | Task       | Node identifier | Node status | Transition | Node Log        |
 |------------|-----------------|-------------|------------|-----------------|
 | `taskName` | `A`             | SUCCESS     | `_success` | { A node log }  |
-| `taskName` | `B`             | SUCCESS     | `_success` | { A node log }  |
+| `taskName` | `B`             | SUCCESS     | `_success` | { B node log }  |

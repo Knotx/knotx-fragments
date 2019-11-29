@@ -17,8 +17,6 @@
  */
 package io.knotx.fragments.handler;
 
-import static com.google.common.base.Predicates.alwaysTrue;
-
 import io.knotx.fragments.api.Fragment;
 import io.knotx.fragments.engine.FragmentEvent;
 import io.knotx.fragments.engine.FragmentEvent.Status;
@@ -26,50 +24,47 @@ import io.knotx.fragments.engine.FragmentEventContext;
 import io.knotx.fragments.engine.FragmentEventContextTaskAware;
 import io.knotx.fragments.engine.FragmentsEngine;
 import io.knotx.fragments.engine.Task;
-import io.knotx.fragments.handler.action.ActionProvider;
-import io.knotx.fragments.handler.api.ActionFactory;
-import io.knotx.fragments.handler.options.FragmentsHandlerOptions;
-import io.knotx.fragments.task.TaskFactory;
 import io.knotx.server.api.context.ClientRequest;
 import io.knotx.server.api.context.RequestContext;
 import io.knotx.server.api.context.RequestEvent;
 import io.knotx.server.api.handler.DefaultRequestContextEngine;
 import io.knotx.server.api.handler.RequestContextEngine;
 import io.knotx.server.api.handler.RequestEventHandlerResult;
+import io.reactivex.Single;
 import io.vertx.core.Handler;
 import io.vertx.core.json.JsonObject;
+import io.vertx.core.logging.Logger;
+import io.vertx.core.logging.LoggerFactory;
 import io.vertx.reactivex.core.Vertx;
 import io.vertx.reactivex.ext.web.RoutingContext;
-import java.util.Iterator;
 import java.util.List;
-import java.util.ServiceLoader;
 import java.util.function.Predicate;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 public class FragmentsHandler implements Handler<RoutingContext> {
 
-  private final FragmentsEngine engine;
-  private final RequestContextEngine requestContextEngine;
-  private final TaskFactory taskFactory;
+  private static final Logger LOGGER = LoggerFactory.getLogger(FragmentsHandler.class);
 
-  FragmentsHandler(Vertx vertx, JsonObject config) {
-    FragmentsHandlerOptions options = new FragmentsHandlerOptions(config);
-    ActionProvider proxyProvider = new ActionProvider(options.getActions(),
-        supplyFactories(), options.getLogLevel(), vertx.getDelegate());
-    taskFactory = new TaskFactory(options.getTaskKey(), options.getTasks(), proxyProvider);
+  private final RequestContextEngine requestContextEngine;
+
+  private final FragmentsEngine engine;
+  private final TaskProvider taskProvider;
+
+  FragmentsHandler(Vertx vertx, JsonObject options) {
+    FragmentsHandlerOptions handlerOptions = new FragmentsHandlerOptions(options);
+    taskProvider = new TaskProvider(handlerOptions.getTaskFactories(), vertx);
     engine = new FragmentsEngine(vertx);
     requestContextEngine = new DefaultRequestContextEngine(getClass().getSimpleName());
   }
 
   @Override
   public void handle(RoutingContext routingContext) {
-    RequestContext requestContext = routingContext.get(RequestContext.KEY);
+    final RequestContext requestContext = routingContext.get(RequestContext.KEY);
     final List<Fragment> fragments = routingContext.get("fragments");
+    final ClientRequest clientRequest = requestContext.getRequestEvent().getClientRequest();
 
-    ClientRequest clientRequest = requestContext.getRequestEvent().getClientRequest();
-
-    engine.execute(toEvents(fragments, clientRequest))
+    Single<List<FragmentEvent>> doHandle = doHandle(fragments, clientRequest);
+    doHandle
         .doOnSuccess(events -> putFragments(routingContext, events))
         .map(events -> toHandlerResult(events, requestContext))
         .subscribe(
@@ -79,22 +74,22 @@ public class FragmentsHandler implements Handler<RoutingContext> {
         );
   }
 
-  private RoutingContext putFragments(RoutingContext routingContext, List<FragmentEvent> events) {
-    return routingContext.put("fragments", retrieveFragments(events, alwaysTrue()));
+  protected Single<List<FragmentEvent>> doHandle(List<Fragment> fragments,
+      ClientRequest clientRequest) {
+    return Single.just(fragments)
+        .map(f -> toEvents(f, clientRequest))
+        .flatMap(engine::execute);
   }
 
-  private Supplier<Iterator<ActionFactory>> supplyFactories() {
-    return () -> {
-      ServiceLoader<ActionFactory> factories = ServiceLoader
-          .load(ActionFactory.class);
-      return factories.iterator();
-    };
+  private void putFragments(RoutingContext routingContext, List<FragmentEvent> events) {
+    routingContext.put("fragments", retrieveFragments(events, fragmentEvent -> true));
   }
 
   private RequestEventHandlerResult toHandlerResult(List<FragmentEvent> events,
       RequestContext requestContext) {
 
-    List<Fragment> failedFragments = retrieveFragments(events, hasStatus(Status.FAILURE));
+    List<Fragment> failedFragments = retrieveFragments(events,
+        e -> e.getStatus() == Status.FAILURE);
 
     if (!failedFragments.isEmpty()) {
       return RequestEventHandlerResult.fail(buildErrorMessage(failedFragments));
@@ -117,10 +112,6 @@ public class FragmentsHandler implements Handler<RoutingContext> {
     return new RequestEvent(requestEvent.getClientRequest(), requestEvent.getPayload());
   }
 
-  private Predicate<FragmentEvent> hasStatus(Status status) {
-    return e -> e.getStatus() == status;
-  }
-
   private List<Fragment> retrieveFragments(List<FragmentEvent> events,
       Predicate<FragmentEvent> predicate) {
     return events.stream()
@@ -131,12 +122,19 @@ public class FragmentsHandler implements Handler<RoutingContext> {
 
   private List<FragmentEventContextTaskAware> toEvents(List<Fragment> fragments,
       ClientRequest clientRequest) {
+    LOGGER.trace("Processing fragments [{}]", fragments);
     return fragments.stream()
         .map(
             fragment -> {
               FragmentEventContext fragmentEventContext = new FragmentEventContext(
                   new FragmentEvent(fragment), clientRequest);
-              return taskFactory.newInstance(fragmentEventContext)
+
+              return taskProvider.newInstance(fragmentEventContext)
+                  .map(task -> {
+                    LOGGER.trace("Created task [{}] for fragment [{}]", task,
+                        fragmentEventContext.getFragmentEvent().getFragment().getId());
+                    return task;
+                  })
                   .map(
                       task -> new FragmentEventContextTaskAware(task, fragmentEventContext))
                   .orElseGet(() -> new FragmentEventContextTaskAware(new Task("_NOT_DEFINED"),

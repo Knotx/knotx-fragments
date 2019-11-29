@@ -1,35 +1,73 @@
+# Copyright (C) 2019 Knot.x Project
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+
 trigger:
   - master
 
 pool:
   vmImage: 'ubuntu-latest'
 
+variables:
+  workspaceDir: knotx-repos
+  targetRepository: knotx-fragments
+
 steps:
   - script: |
       git clone https://github.com/Knotx/knotx-aggregator.git
-      mkdir knotx-repos
+      mkdir $(workspaceDir)
     displayName: "Prepare Aggregator"
   - task: CmdLine@2
     inputs:
       script: |
         cd knotx-aggregator/development
         if [[ -z "$(System.PullRequest.SourceBranch)" ]] ; then
-          ./pull-all.sh -r ../../knotx-repos -b "$(Build.SourceBranchName)" -a
+          ./pull-all.sh -r ../../$(workspaceDir) -b "$(Build.SourceBranchName)" -a
         else
-          ./pull-all.sh -r ../../knotx-repos -b $(System.PullRequest.SourceBranch) -a
+          ./pull-all.sh -r ../../$(workspaceDir) -b $(System.PullRequest.SourceBranch) -a
         fi
     displayName: "Clone all repositories"
-  - task: CmdLine@2
+  - task: Gradle@2
     inputs:
-      script: |
-        cd knotx-aggregator/development
-        ./build-stack.sh -r ../../knotx-repos
+      gradleWrapperFile: '$(workspaceDir)/knotx-stack/gradlew'
+      workingDirectory: '$(workspaceDir)/knotx-stack'
+      tasks: 'publish-local-all'
+    displayName: "Build Stack dependencies"
+  - task: Gradle@2
+    inputs:
+      gradleWrapperFile: '$(workspaceDir)/knotx-stack/gradlew'
+      workingDirectory: '$(workspaceDir)/knotx-stack'
+      tasks: 'build'
     displayName: "Build Stack"
-  - script: |
-      cd knotx-repos/knotx-docker
-      mvn clean package
+  - task: Maven@3
+    inputs:
+      mavenPomFile: '$(workspaceDir)/knotx-docker/pom.xml'
+      goals: 'package'
     displayName: "Build Docker image"
+  - task: Gradle@2
+    inputs:
+      gradleWrapperFile: '$(workspaceDir)/knotx-starter-kit/gradlew'
+      workingDirectory: '$(workspaceDir)/knotx-starter-kit'
+      tasks: 'build-stack'
+    displayName: "Build Starter Kit: ZIP"
+  - task: Gradle@2
+    inputs:
+      gradleWrapperFile: '$(workspaceDir)/knotx-starter-kit/gradlew'
+      workingDirectory: '$(workspaceDir)/knotx-starter-kit'
+      tasks: 'build-docker'
+    displayName: "Build Starter Kit: Docker"
   - script: |
-      cd knotx-repos/knotx-starter-kit
-      ./gradlew build
-    displayName: "Build Starter Kit"
+      $(workspaceDir)/$(targetRepository)/gradlew -p $(workspaceDir)/$(targetRepository) clean test jacocoTestReport
+      bash <(curl -s https://codecov.io/bash) -s $(workspaceDir)/$(targetRepository) -t $(CODECOV_TOKEN)
+    displayName: "Run Codecov inspection"

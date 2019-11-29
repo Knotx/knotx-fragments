@@ -39,7 +39,7 @@ public class TestAction implements ActionFactory {
 
     return (fragmentContext, resultHandler) -> {
       Fragment fragment = fragmentContext.getFragment();
-      fragment.setBody("body");
+      fragment.setBody(config.getString("body", "any"));
 
       Future<FragmentResult> resultFuture = succeededFuture(new FragmentResult(fragment, transition));
       resultFuture.setHandler(resultHandler);

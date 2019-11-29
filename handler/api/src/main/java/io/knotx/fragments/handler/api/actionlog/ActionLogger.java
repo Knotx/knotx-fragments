@@ -15,15 +15,13 @@
  */
 package io.knotx.fragments.handler.api.actionlog;
 
-import static io.knotx.fragments.handler.api.actionlog.ActionLogLevel.CONFIG_KEY_NAME;
 import static io.knotx.fragments.handler.api.actionlog.ActionLogLevel.INFO;
 
+import io.vertx.core.json.JsonObject;
 import java.time.Instant;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
-
-import io.vertx.core.json.JsonObject;
 
 public class ActionLogger {
 
@@ -33,10 +31,6 @@ public class ActionLogger {
   private ActionLogger(String alias, ActionLogLevel actionLogLevel) {
     this.actionLogLevel = actionLogLevel;
     this.builder = new ActionLogBuilder(alias);
-  }
-
-  public static ActionLogger create(String alias, JsonObject config) {
-    return ActionLogger.create(alias, config.getString(CONFIG_KEY_NAME));
   }
 
   public static ActionLogger create(String alias, ActionLogLevel actionLogLevel) {

@@ -24,7 +24,7 @@ import io.vertx.core.json.JsonObject;
 public enum ActionLogLevel {
   INFO("info"), ERROR("error");
 
-  public static final String CONFIG_KEY_NAME = "logLevel";
+
   private final String level;
 
   ActionLogLevel(String level) {
