@@ -22,6 +22,10 @@ import io.vertx.core.json.JsonObject;
 
 public class ActionInvocationLog {
 
+  static final String DURATION = "duration";
+  static final String SUCCESS = "success";
+  static final String DO_ACTION_LOG = "doActionLog";
+
   private final Long duration;
   private final boolean success;
   private final ActionLog doActionLog;
@@ -33,8 +37,8 @@ public class ActionInvocationLog {
   }
 
   ActionInvocationLog(JsonObject json) {
-    this.duration = json.getLong("duration");
-    this.success = json.getBoolean("success");
+    this.duration = json.getLong(DURATION);
+    this.success = json.getBoolean(SUCCESS);
     this.doActionLog = toDoActionLog(json);
   }
 
@@ -44,13 +48,6 @@ public class ActionInvocationLog {
 
   static ActionInvocationLog error(long duration,  ActionLog actionLog) {
     return new ActionInvocationLog(duration, false, actionLog);
-  }
-
-  private ActionLog toDoActionLog(JsonObject json) {
-    return Optional.ofNullable(json)
-        .map(j -> j.getJsonObject("doActionLog"))
-        .map(ActionLog::new)
-        .orElse(null);
   }
 
   public Long getDuration() {
@@ -97,6 +94,13 @@ public class ActionInvocationLog {
         ", success=" + success +
         ", doActionLog=" + doActionLog +
         '}';
+  }
+
+  private ActionLog toDoActionLog(JsonObject json) {
+    return Optional.ofNullable(json)
+        .map(j -> j.getJsonObject(DO_ACTION_LOG))
+        .map(ActionLog::new)
+        .orElse(null);
   }
 
   private JsonObject toDoActionLogJson() {

@@ -34,12 +34,12 @@ class ActionLogBuilder {
     this.doActionLogs = new ArrayList<>();
   }
 
-  ActionLogBuilder addSuccessActionLog(long duration, ActionLog actionLog){
+  ActionLogBuilder appendInvocationLogEntry(long duration, ActionLog actionLog){
     doActionLogs.add(success(duration, actionLog));
     return this;
   }
 
-  ActionLogBuilder addFailedActionLog(long duration, ActionLog actionLog){
+  ActionLogBuilder appendFailureInvocationLogEntry(long duration, ActionLog actionLog){
     doActionLogs.add(error(duration,  actionLog));
     return this;
   }
