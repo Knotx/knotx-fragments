@@ -22,7 +22,6 @@ import static java.lang.String.valueOf;
 import static java.time.Instant.now;
 import static java.util.Objects.isNull;
 
-import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import io.knotx.fragments.api.Fragment;
@@ -140,7 +139,7 @@ public class CircuitBreakerActionFactory implements ActionFactory {
 
     private static void handleFail(Promise<FragmentResult> promise, JsonObject nodeLog,
         long startTime, String error, ActionLogger actionLogger) {
-      actionLogger.failedDoActionLog(executionTime(startTime), nodeLog);
+      actionLogger.failureDoActionLog(executionTime(startTime), nodeLog);
       promise.fail(new DoActionExecuteException(error));
     }
 
