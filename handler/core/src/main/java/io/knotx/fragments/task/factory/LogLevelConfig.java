@@ -15,6 +15,8 @@
  */
 package io.knotx.fragments.task.factory;
 
+import static io.knotx.fragments.handler.api.actionlog.ActionLogLevel.ERROR;
+
 import io.vertx.codegen.annotations.DataObject;
 import io.vertx.core.json.JsonObject;
 import java.util.Objects;
@@ -24,6 +26,10 @@ import org.apache.commons.lang3.StringUtils;
 public class LogLevelConfig {
 
   private String logLevel;
+
+  public LogLevelConfig() {
+    logLevel = ERROR.getLevel();
+  }
 
   public LogLevelConfig(JsonObject json) {
     LogLevelConfigConverter.fromJson(json, this);
