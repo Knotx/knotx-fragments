@@ -134,7 +134,7 @@ public class CircuitBreakerActionFactory implements ActionFactory {
     }
 
     private boolean isErrorTransition(FragmentResult result) {
-      return errorTransition.equals(result.getTransition());
+      return ERROR_TRANSITION.equals(result.getTransition()) || errorTransition.equals(result.getTransition());
     }
 
     private static void handleFail(Promise<FragmentResult> promise, JsonObject nodeLog,
