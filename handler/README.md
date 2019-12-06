@@ -470,7 +470,11 @@ Circuit Breaker log includes logs produces by wrapped action. Each  `invocation 
 Please note that not every call can be visible in `invocation log` entry.  
 
 
-| Action call ends  | invocation log  | Wrapped action log  | 
+| Result                           | Invocation log  |
+| :--------------------: |:-----|
+| transition: `_success` |  Yes |
+| transition: `_error`       |  Yes |
+| TIMEOUT                      |  No  |
 | :---------: |:---------:|:---------|
 | transition [ `_success`]  |  Available | Available        |
 | transition [ `_error`] |  Available |  Available        |
