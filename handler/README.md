@@ -461,7 +461,7 @@ Circuit Breaker logs the following data
  - `invocationCount` - number of retries
  - `fallback` - in case fallback defined entry will contain message from exception which causes error
 
-Circuit Breaker log includes logs produces by wrapped action. Each  `invocation log` has entries:
+Circuit Breaker log includes logs produced by the [`doAction`](#circuit-breaker-behaviour). Each `invocation log` has entries:
 
  - `duration` - how long takes execution of action - in milisecond
  - `succuess` - execution ends up with success - ()
