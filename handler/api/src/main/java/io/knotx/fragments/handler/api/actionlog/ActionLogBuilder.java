@@ -20,13 +20,14 @@ import static io.knotx.fragments.handler.api.actionlog.ActionInvocationLog.succe
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Stream;
 
 import io.vertx.core.json.JsonObject;
 
 class ActionLogBuilder {
   private String alias;
   private JsonObject logs;
-  private List<ActionInvocationLog> doActionLogs;
+  private ArrayList<ActionInvocationLog> doActionLogs;
 
   ActionLogBuilder(String alias){
     this.alias = alias;
@@ -55,6 +56,7 @@ class ActionLogBuilder {
   }
 
   ActionLog build(){
+    Stream.of(doActionLogs.toArray());
     return new ActionLog(alias, logs, doActionLogs);
   }
 }

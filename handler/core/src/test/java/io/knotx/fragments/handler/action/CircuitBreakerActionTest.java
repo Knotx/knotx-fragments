@@ -22,13 +22,18 @@ import static io.knotx.fragments.handler.api.actionlog.ActionLogLevel.INFO;
 import static io.knotx.fragments.handler.api.domain.FragmentResult.ERROR_TRANSITION;
 import static io.knotx.fragments.handler.api.domain.FragmentResult.SUCCESS_TRANSITION;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+
+import com.google.common.collect.Lists;
 
 import io.knotx.fragments.api.Fragment;
 import io.knotx.fragments.handler.action.CircuitBreakerActionFactory.CircuitBreakerAction;
@@ -129,7 +134,7 @@ class CircuitBreakerActionTest {
         .setTimeout(TIMEOUT_IN_MS).setFallbackOnFailure(true).setMaxRetries(2);
     CircuitBreaker circuitBreaker = new CircuitBreakerImpl("name", vertx, options);
     CircuitBreakerAction tested = new CircuitBreakerAction(circuitBreaker,
-        CircuitBreakerDoActions.applyTimeout(vertx),
+        CircuitBreakerDoActions.applySuccessDelay(vertx),
         "tested", INFO, ERROR_TRANSITION);
 
     // when
@@ -165,7 +170,7 @@ class CircuitBreakerActionTest {
     CircuitBreaker circuitBreaker = new CircuitBreakerImpl("name", vertx, options);
 
     CircuitBreakerAction tested = new CircuitBreakerAction(circuitBreaker,
-        CircuitBreakerDoActions.applyTimeout(vertx),
+        CircuitBreakerDoActions.applySuccessDelay(vertx),
         "tested", INFO, ERROR_TRANSITION);
 
     // when
@@ -400,7 +405,7 @@ class CircuitBreakerActionTest {
   void expectFallbackActionLogsWithErrorAndTimeout(VertxTestContext testContext, Vertx vertx)
       throws Throwable {
     oneAfterAnotherTestWithFallbackTemplate(testContext, vertx,
-        CircuitBreakerDoActions::applyFailure,CircuitBreakerDoActions.applyTimeout(vertx),
+        CircuitBreakerDoActions::applyFailure,CircuitBreakerDoActions.applySuccessDelay(vertx),
         result -> {
           //then
           testContext.verify(() -> {
@@ -427,7 +432,7 @@ class CircuitBreakerActionTest {
   void expectFallbackActionLogsWithTimeoutAndError(VertxTestContext testContext, Vertx vertx)
       throws Throwable {
     oneAfterAnotherTestWithFallbackTemplate(testContext, vertx,
-        CircuitBreakerDoActions::applyFailure,CircuitBreakerDoActions.applyTimeout(vertx),
+        CircuitBreakerDoActions::applyFailure,CircuitBreakerDoActions.applySuccessDelay(vertx),
         result -> {
           testContext.verify(() -> {
             //then
@@ -454,7 +459,7 @@ class CircuitBreakerActionTest {
   void expectFallbackActionLogsWithTimeouts(VertxTestContext testContext, Vertx vertx)
       throws Throwable {
     oneAfterAnotherTestWithFallbackTemplate(testContext, vertx,
-        CircuitBreakerDoActions.applyTimeout(vertx),CircuitBreakerDoActions.applyTimeout(vertx),
+        CircuitBreakerDoActions.applySuccessDelay(vertx),CircuitBreakerDoActions.applySuccessDelay(vertx),
         result -> {
           testContext.verify(() -> {
             //then
@@ -466,6 +471,31 @@ class CircuitBreakerActionTest {
             String invocationCount = actionLog.getLogs().getString("invocationCount");
 
             Assertions.assertEquals(0, doActionsLogs.size());
+            Assertions.assertEquals("2", invocationCount);
+
+          });
+          testContext.completeNow();
+        });
+  }
+
+  @Test
+  @DisplayName("Expect fallback when both calls ends up with timeout.")
+  void expectFallbackActionLogsWithTimeouts2(VertxTestContext testContext, Vertx vertx)
+      throws Throwable {
+    oneAfterAnotherTestWithFallbackTemplate(testContext, vertx,
+        CircuitBreakerDoActions.applySuccessDelay(vertx, 800),CircuitBreakerDoActions::applySuccessWithActionLogs,
+        result -> {
+          testContext.verify(() -> {
+            //then
+            FragmentResult fragmentResult = result.result();
+            Assertions.assertEquals(SUCCESS_TRANSITION, fragmentResult.getTransition());
+
+            ActionLog actionLog = new ActionLog(fragmentResult.getNodeLog());
+            System.out.println(actionLog);
+            List<ActionInvocationLog> doActionsLogs = actionLog.getInvocationLogs();
+            String invocationCount = actionLog.getLogs().getString("invocationCount");
+
+            Assertions.assertEquals(1, doActionsLogs.size());
             Assertions.assertEquals("2", invocationCount);
 
           });

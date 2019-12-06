@@ -90,9 +90,12 @@ class CircuitBreakerDoActions {
     }
   }
 
-  static Action applyTimeout(Vertx vertx) {
+  static Action applySuccessDelay(Vertx vertx) {
+    return applySuccessDelay(vertx, 1500);
+  }
+  static Action applySuccessDelay(Vertx vertx, int delay) {
     return (fragmentContext, resultHandler) ->
-        vertx.setTimer(1500,
+        vertx.setTimer(delay,
             l ->
                 Future.succeededFuture(
                     new FragmentResult(fragmentContext.getFragment(), SUCCESS_TRANSITION)

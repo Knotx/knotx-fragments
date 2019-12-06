@@ -105,36 +105,32 @@ public class CircuitBreakerActionFactory implements ActionFactory {
 
     private void executeCommand(Promise<FragmentResult> promise, FragmentContext fragmentContext,
         AtomicInteger counter, ActionLogger actionLogger) {
-      int index = counter.incrementAndGet();
+      counter.incrementAndGet();
       long startTime = now().toEpochMilli();
       doAction.apply(fragmentContext,
-          result -> doActionResultHandler(promise, result, index, startTime, actionLogger));
+          result -> {
+            if (result.succeeded()) {
+              handleResult(promise, result.result(), counter, startTime, actionLogger);
+            } else {
+              handleFail(promise, null, startTime, "Action failed", actionLogger);
+            }
+          });
     }
 
-    private void doActionResultHandler(Promise<FragmentResult> promise,
-        AsyncResult<FragmentResult> result, int invocation, long startTime,
-        ActionLogger actionLogger) {
-
-      if (result.succeeded()) {
-        processResultSuccess(promise, result.result(), invocation, startTime, actionLogger);
-      } else {
-        handleFail(promise, null, startTime, "Action failed", actionLogger);
-      }
-    }
-
-    private void processResultSuccess(Promise<FragmentResult> promise,
-        FragmentResult result, int invocation, long startTime,
+    private void handleResult(Promise<FragmentResult> promise,
+        FragmentResult result, AtomicInteger counter,  long startTime,
         ActionLogger actionLogger) {
       if (isErrorTransition(result)) {
         handleFail(promise, result.getNodeLog(), startTime,
             format("Action end up %s transition", errorTransition), actionLogger);
       } else {
-        handleSuccess(promise, result, invocation, startTime, actionLogger);
+        handleSuccess(promise, result, counter, startTime, actionLogger);
       }
     }
 
     private boolean isErrorTransition(FragmentResult result) {
-      return ERROR_TRANSITION.equals(result.getTransition()) || errorTransition.equals(result.getTransition());
+      return ERROR_TRANSITION.equals(result.getTransition()) || errorTransition
+          .equals(result.getTransition());
     }
 
     private static void handleFail(Promise<FragmentResult> promise, JsonObject nodeLog,
@@ -148,8 +144,8 @@ public class CircuitBreakerActionFactory implements ActionFactory {
     }
 
     private static void handleSuccess(Promise<FragmentResult> f, FragmentResult result,
-        int invocation, long startTime, ActionLogger actionLogger) {
-      actionLogger.info("invocationCount", valueOf(invocation));
+        AtomicInteger counter, long startTime, ActionLogger actionLogger) {
+      actionLogger.info("invocationCount", valueOf(counter.get()));
       actionLogger.doActionLog(executionTime(startTime), result.getNodeLog());
       f.complete(new FragmentResult(result.getFragment(), result.getTransition(),
           actionLogger.toLog().toJson()));
