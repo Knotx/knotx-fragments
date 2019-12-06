@@ -470,17 +470,13 @@ Circuit Breaker log includes logs produces by wrapped action. Each  `invocation 
 Please note that not every call can be visible in `invocation log` entry.  
 
 
-| Result                           | Invocation log  |
+| Result                 | Invocation log  |
 | :--------------------: |:-----|
 | transition: `_success` |  Yes |
-| transition: `_error`       |  Yes |
-| TIMEOUT                      |  No  |
-| :---------: |:---------:|:---------|
-| transition [ `_success`]  |  Available | Available        |
-| transition [ `_error`] |  Available |  Available        |
-| TIMEOUT                 |  Not available |  Not available        |
-| Failure                 |  Available |   Not available        |
-| Exception  |   Not available |  Not available        |
+| transition: `_error`   |  Yes |
+| TIMEOUT                |  No  |
+| Failure                |  No  |
+| Exception              |  No  |
 
 
 ### In-memory Cache Behaviour
