@@ -22,8 +22,6 @@ import static java.lang.String.valueOf;
 import static java.time.Instant.now;
 import static java.util.Objects.isNull;
 
-import java.util.concurrent.atomic.AtomicInteger;
-
 import io.knotx.fragments.api.Fragment;
 import io.knotx.fragments.handler.api.Action;
 import io.knotx.fragments.handler.api.ActionFactory;
@@ -43,6 +41,7 @@ import io.vertx.core.Handler;
 import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * This is a factory class creating action, which provides circuit breaker mechanism. It protects
@@ -64,15 +63,13 @@ public class CircuitBreakerActionFactory implements ActionFactory {
       throw new DoActionNotDefinedException("Circuit Breaker action requires `doAction` defined");
     }
     String circuitBreakerName = config.getString("circuitBreakerName");
-    String errorTransition = config.getString("errorTransition", ERROR_TRANSITION);
     CircuitBreakerOptions circuitBreakerOptions =
         config.getJsonObject("circuitBreakerOptions") == null ? new CircuitBreakerOptions()
             : new CircuitBreakerOptions(config.getJsonObject("circuitBreakerOptions"));
     CircuitBreaker circuitBreaker = new CircuitBreakerImpl(circuitBreakerName, vertx,
         circuitBreakerOptions);
 
-    return new CircuitBreakerAction(circuitBreaker, doAction, alias, fromConfig(config),
-        errorTransition);
+    return new CircuitBreakerAction(circuitBreaker, doAction, alias, fromConfig(config));
   }
 
   public static class CircuitBreakerAction implements Action {
@@ -83,15 +80,12 @@ public class CircuitBreakerActionFactory implements ActionFactory {
     private final Action doAction;
     private final ActionLogLevel actionLogLevel;
     private final String alias;
-    private final String errorTransition;
 
-    CircuitBreakerAction(CircuitBreaker circuitBreaker, Action doAction, String alias,
-        ActionLogLevel actionLogLevel, String errorTransition) {
+    CircuitBreakerAction(CircuitBreaker circuitBreaker, Action doAction, String alias, ActionLogLevel actionLogLevel) {
       this.circuitBreaker = circuitBreaker;
       this.doAction = doAction;
       this.alias = alias;
       this.actionLogLevel = actionLogLevel;
-      this.errorTransition = errorTransition;
     }
 
     @Override
@@ -124,15 +118,14 @@ public class CircuitBreakerActionFactory implements ActionFactory {
         ActionLogger actionLogger) {
       if (isErrorTransition(result)) {
         handleFail(promise, result.getNodeLog(), startTime,
-            format("Action end up %s transition", errorTransition), actionLogger);
+            format("Action end up %s transition", ERROR_TRANSITION), actionLogger);
       } else {
         handleSuccess(promise, result, counter, startTime, actionLogger);
       }
     }
 
     private boolean isErrorTransition(FragmentResult result) {
-      return ERROR_TRANSITION.equals(result.getTransition()) || errorTransition
-          .equals(result.getTransition());
+      return ERROR_TRANSITION.equals(result.getTransition());
     }
 
     private static void handleFail(Promise<FragmentResult> promise, JsonObject nodeLog,
