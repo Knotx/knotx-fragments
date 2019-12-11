@@ -77,6 +77,8 @@ public class CircuitBreakerActionFactory implements ActionFactory {
 
   public static class CircuitBreakerAction implements Action {
 
+    public static final String INVOCATION_COUNT_LOG_KEY = "invocationCount";
+    public static final String ERROR_LOG_KEY = "error";
     private final CircuitBreaker circuitBreaker;
     private final Action doAction;
     private final ActionLogLevel actionLogLevel;
@@ -145,7 +147,7 @@ public class CircuitBreakerActionFactory implements ActionFactory {
 
     private static void handleSuccess(Promise<FragmentResult> f, FragmentResult result,
         AtomicInteger counter, long startTime, ActionLogger actionLogger) {
-      actionLogger.info("invocationCount", valueOf(counter.get()));
+      actionLogger.info(INVOCATION_COUNT_LOG_KEY, valueOf(counter.get()));
       actionLogger.doActionLog(executionTime(startTime), result.getNodeLog());
       f.complete(new FragmentResult(result.getFragment(), result.getTransition(),
           actionLogger.toLog().toJson()));
@@ -163,9 +165,9 @@ public class CircuitBreakerActionFactory implements ActionFactory {
 
     private static void logFallback(Throwable throwable, AtomicInteger counter,
         ActionLogger actionLogger) {
-      actionLogger.info("invocationCount", valueOf(counter.get()));
+      actionLogger.info(INVOCATION_COUNT_LOG_KEY, valueOf(counter.get()));
       actionLogger
-          .error("fallback",
+          .error(ERROR_LOG_KEY,
               format("Exception: %s. %s", throwable.getClass(), throwable.getLocalizedMessage()));
     }
   }

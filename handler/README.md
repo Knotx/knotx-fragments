@@ -459,7 +459,10 @@ or times out then the custom `fallback` transition is returned.
 Circuit Breaker logs the following data
 
  - `invocationCount` - number of retries
- - `fallback` - in case fallback defined entry will contain message from exception which causes error
+ - `error` - contains exception details when: 
+    - `doAction` fails, 
+    - `doAction` ends with `_error` transition,
+    - CB times out `doAction` invocation.
 
 Circuit Breaker log includes logs produced by the [`doAction`](#circuit-breaker-behaviour). Each `invocation log` has entries:
 
