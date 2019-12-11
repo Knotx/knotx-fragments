@@ -21,15 +21,11 @@ import static io.knotx.fragments.handler.action.CircuitBreakerActionFactory.FALL
 import static io.knotx.fragments.handler.api.actionlog.ActionLogLevel.INFO;
 import static io.knotx.fragments.handler.api.domain.FragmentResult.ERROR_TRANSITION;
 import static io.knotx.fragments.handler.api.domain.FragmentResult.SUCCESS_TRANSITION;
-import static org.junit.jupiter.api.Assertions.*;
-
-import java.util.List;
-import java.util.concurrent.TimeUnit;
-
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.knotx.fragments.api.Fragment;
 import io.knotx.fragments.handler.action.CircuitBreakerActionFactory.CircuitBreakerAction;
@@ -49,6 +45,11 @@ import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 @ExtendWith(VertxExtension.class)
 class CircuitBreakerActionTest {
@@ -167,7 +168,7 @@ class CircuitBreakerActionTest {
   }
 
   @Test
-  @DisplayName("Expect fallback transition when fails.")
+  @DisplayName("Expect fallback transition when action fails.")
   void expectFallbackWhenFailure(VertxTestContext testContext, Vertx vertx)
       throws Throwable {
     // given
@@ -214,7 +215,6 @@ class CircuitBreakerActionTest {
     // given
     CircuitBreakerOptions options = new CircuitBreakerOptions()
         .setFallbackOnFailure(true)
-        .setMaxRetries(1)
         .setTimeout(TIMEOUT_IN_MS);
     CircuitBreaker circuitBreaker = new CircuitBreakerImpl("name", vertx, options);
     CircuitBreakerAction tested = new CircuitBreakerAction(circuitBreaker,
@@ -235,7 +235,7 @@ class CircuitBreakerActionTest {
 
                 assertNotNull(errorMessage);
                 assertTrue(errorMessage.contains("TimeoutException"));
-                assertEquals("2", invocationCount);
+                assertEquals("1", invocationCount);
               });
           testContext.completeNow();
         }));
@@ -247,7 +247,7 @@ class CircuitBreakerActionTest {
   }
 
   @Test
-  @DisplayName("Expect fallback transition when throws exception.")
+  @DisplayName("Expect fallback transition when action throws exception.")
   void expectFallbackWhenException(VertxTestContext testContext, Vertx vertx)
       throws Throwable {
     // given
@@ -308,7 +308,6 @@ class CircuitBreakerActionTest {
             ActionInvocationLog invocationLog1 = doActionsLogs.get(0);
             assertFalse(invocationLog1.isSuccess());
             assertNull(invocationLog1.getDoActionLog());
-
 
             ActionInvocationLog invocationLog2 = doActionsLogs.get(1);
             assertTrue(invocationLog2.isSuccess());
@@ -440,8 +439,10 @@ class CircuitBreakerActionTest {
   @DisplayName("Expect fallback transition when both calls time out.")
   void expectFallbackWhenTimeouts(VertxTestContext testContext, Vertx vertx)
       throws Throwable {
-    validateScenario(CircuitBreakerDoActions.applySuccessDelay(vertx),
-        CircuitBreakerDoActions.applySuccessDelay(vertx), result -> {
+    validateScenario(
+        CircuitBreakerDoActions.applySuccessDelay(vertx),
+        CircuitBreakerDoActions.applySuccessDelay(vertx),
+        result -> {
           testContext.verify(() -> {
             //then
             FragmentResult fragmentResult = result.result();
@@ -452,6 +453,10 @@ class CircuitBreakerActionTest {
             String invocationCount = actionLog.getLogs().getString(INVOCATION_COUNT_LOG_KEY);
             assertEquals(0, doActionsLogs.size());
             assertEquals("2", invocationCount);
+
+            String errorMessage = actionLog.getLogs().getString(ERROR_LOG_KEY);
+            assertNotNull(errorMessage);
+            assertTrue(errorMessage.contains("TimeoutException"));
           });
           testContext.completeNow();
         }, testContext, vertx
