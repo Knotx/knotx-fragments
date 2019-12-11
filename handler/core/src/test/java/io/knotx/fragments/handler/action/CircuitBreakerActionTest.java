@@ -67,8 +67,7 @@ class CircuitBreakerActionTest {
     CircuitBreaker circuitBreaker = new CircuitBreakerImpl("name", vertx, options);
 
     CircuitBreakerAction tested = new CircuitBreakerAction(circuitBreaker,
-        CircuitBreakerDoActions.applySuccessDelay(vertx),
-        "tested", INFO, ERROR_TRANSITION);
+        CircuitBreakerDoActions.applySuccessDelay(vertx), "tested", INFO);
 
     // when
     tested.apply(new FragmentContext(FRAGMENT, new ClientRequest()),
@@ -96,8 +95,7 @@ class CircuitBreakerActionTest {
     CircuitBreaker circuitBreaker = new CircuitBreakerImpl("name", vertx, options);
 
     CircuitBreakerAction tested = new CircuitBreakerAction(circuitBreaker,
-        CircuitBreakerDoActions::applySuccessWithActionLogs,
-        "tested", INFO, ERROR_TRANSITION);
+        CircuitBreakerDoActions::applySuccessWithActionLogs, "tested", INFO);
 
     // when
     tested.apply(new FragmentContext(FRAGMENT, new ClientRequest()),
@@ -137,7 +135,7 @@ class CircuitBreakerActionTest {
     CircuitBreaker circuitBreaker = new CircuitBreakerImpl("name", vertx, options);
 
     CircuitBreakerAction tested = new CircuitBreakerAction(circuitBreaker,
-        CircuitBreakerDoActions::applyErrorTransition, "tested", INFO, ERROR_TRANSITION);
+        CircuitBreakerDoActions::applyErrorTransition, "tested", INFO);
 
     // when
     tested.apply(new FragmentContext(FRAGMENT, new ClientRequest()),
@@ -177,7 +175,7 @@ class CircuitBreakerActionTest {
     CircuitBreaker circuitBreaker = new CircuitBreakerImpl("name", vertx, options);
 
     CircuitBreakerAction tested = new CircuitBreakerAction(circuitBreaker,
-        CircuitBreakerDoActions::applyFailure, "tested", INFO, ERROR_TRANSITION);
+        CircuitBreakerDoActions::applyFailure, "tested", INFO);
 
     // when
     tested.apply(new FragmentContext(FRAGMENT, new ClientRequest()),
@@ -218,8 +216,7 @@ class CircuitBreakerActionTest {
         .setTimeout(TIMEOUT_IN_MS);
     CircuitBreaker circuitBreaker = new CircuitBreakerImpl("name", vertx, options);
     CircuitBreakerAction tested = new CircuitBreakerAction(circuitBreaker,
-        CircuitBreakerDoActions.applySuccessDelay(vertx),
-        "tested", INFO, ERROR_TRANSITION);
+        CircuitBreakerDoActions.applySuccessDelay(vertx), "tested", INFO);
 
     // when
     tested.apply(new FragmentContext(FRAGMENT, new ClientRequest()),
@@ -256,8 +253,7 @@ class CircuitBreakerActionTest {
     CircuitBreaker circuitBreaker = new CircuitBreakerImpl("name", vertx, options);
 
     CircuitBreakerAction tested = new CircuitBreakerAction(circuitBreaker,
-        CircuitBreakerDoActions::applyException,
-        "tested", INFO, ERROR_TRANSITION);
+        CircuitBreakerDoActions::applyException, "tested", INFO);
 
     // when
     tested.apply(new FragmentContext(FRAGMENT, new ClientRequest()),
@@ -521,8 +517,8 @@ class CircuitBreakerActionTest {
 
     CircuitBreakerAction tested = new CircuitBreakerAction(circuitBreaker,
         CircuitBreakerDoActions
-            .applyOneAfterAnother(firstInvocationBehaviour, secondInvocationBehaviour),
-        "tested", INFO, ERROR_TRANSITION);
+            .applyOneAfterAnother(firstInvocationBehaviour, secondInvocationBehaviour), "tested",
+        INFO);
 
     // when
     tested.apply(new FragmentContext(FRAGMENT, new ClientRequest()), handler);
