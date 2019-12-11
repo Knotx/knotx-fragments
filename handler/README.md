@@ -451,10 +451,10 @@ config {
 }
 doAction = product
 ```
-The `doAction` attribute specifies a wrapped simple action by its name. When `doAction` throws an error 
-or times out then the custom `fallback` transition is returned.
+The `doAction` attribute specifies a wrapped simple action by its name. When `doAction` throws an 
+error or times out then the custom `fallback` transition is returned.
 
-##### Circuit Breaker Action Log
+#### Circuit Breaker Action Log
 
 Circuit Breaker logs the following data
 
@@ -464,7 +464,8 @@ Circuit Breaker logs the following data
     - `doAction` ends with `_error` transition,
     - CB times out `doAction` invocation.
 
-Circuit Breaker log includes logs produced by the [`doAction`](#circuit-breaker-behaviour). Each `invocation log` has entries:
+Circuit Breaker log includes logs produced by the [`doAction`](#circuit-breaker-behaviour). Each 
+`invocation log` has entries:
 
  - `duration` - how long takes execution of action - in milisecond
  - `succuess` - execution ends up with success - ()
@@ -480,6 +481,12 @@ Please note that not every call can be visible in `invocation log` entry.
 | TIMEOUT                |  No  |
 | Failure                |  No  |
 | Exception              |  No  |
+
+TIMEOUT - `doAction` does not end withing the required time (`circuitBreakerOptions.timeout`), 
+please note that `doAction` is not interrupted by a circuit breaker
+Failure - `doAction` fails, means that `doAction` calls `failed` method on result handler
+Exception - `doAction` throws an exception
+
 
 ### In-memory Cache Behaviour
 It wraps a simple action with cache. It caches a payload values added by a `doAction` action and 
