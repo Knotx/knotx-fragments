@@ -12,15 +12,16 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * The code comes from https://github.com/tomaszmichalak/vertx-rx-map-reduce.
  */
 package io.knotx.fragments.handler.action;
 
+import static io.knotx.fragments.handler.action.CircuitBreakerActionFactory.CircuitBreakerAction.ERROR_LOG_KEY;
+import static io.knotx.fragments.handler.action.CircuitBreakerActionFactory.CircuitBreakerAction.INVOCATION_COUNT_LOG_KEY;
 import static io.knotx.fragments.handler.action.CircuitBreakerActionFactory.FALLBACK_TRANSITION;
 import static io.knotx.fragments.handler.api.actionlog.ActionLogLevel.INFO;
 import static io.knotx.fragments.handler.api.domain.FragmentResult.ERROR_TRANSITION;
 import static io.knotx.fragments.handler.api.domain.FragmentResult.SUCCESS_TRANSITION;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -56,7 +57,7 @@ class CircuitBreakerActionTest {
   private static final int TIMEOUT_IN_MS = 500;
 
   @Test
-  @DisplayName("Expect failure with timeout exception when fallback is not enabled and doAction times out.")
+  @DisplayName("Expect failure with timeout exception when fallback is not enabled and action times out.")
   void expectFailureWhenFallbackDisabledAndDoActionTimesOut(VertxTestContext testContext,
       Vertx vertx) throws Throwable {
     // given
@@ -74,19 +75,19 @@ class CircuitBreakerActionTest {
           testContext
               .verify(() -> {
                 //then
-                Assertions.assertTrue(result instanceof TimeoutException);
+                assertTrue(result instanceof TimeoutException);
               });
           testContext.completeNow();
         }));
 
-    Assertions.assertTrue(testContext.awaitCompletion(5, TimeUnit.SECONDS));
+    assertTrue(testContext.awaitCompletion(5, TimeUnit.SECONDS));
     if (testContext.failed()) {
       throw testContext.causeOfFailure();
     }
   }
 
   @Test
-  @DisplayName("Expect _success transition when doAction ends with _success transition.")
+  @DisplayName("Expect _success transition when action ends with _success transition.")
   void expectSuccessWhenSuccess(VertxTestContext testContext, Vertx vertx) throws Throwable {
     // given
     CircuitBreakerOptions options = new CircuitBreakerOptions()
@@ -103,31 +104,111 @@ class CircuitBreakerActionTest {
           testContext
               .verify(() -> {
                 //then
-                Assertions.assertEquals(SUCCESS_TRANSITION, result.getTransition());
+                assertEquals(SUCCESS_TRANSITION, result.getTransition());
 
                 ActionLog actionLog = new ActionLog(result.getNodeLog());
                 List<ActionInvocationLog> doActionsLogs = actionLog.getInvocationLogs();
-                String invocationCount = actionLog.getLogs().getString("invocationCount");
+                String invocationCount = actionLog.getLogs().getString(INVOCATION_COUNT_LOG_KEY);
 
-                Assertions.assertEquals(1, doActionsLogs.size());
+                assertEquals(1, doActionsLogs.size());
                 ActionInvocationLog invocationLog = doActionsLogs.get(0);
 
-                Assertions.assertTrue(invocationLog.isSuccess());
-                Assertions.assertNotNull(invocationLog.getDuration());
-                Assertions.assertEquals("1", invocationCount);
-                Assertions.assertEquals("action", invocationLog.getDoActionLog().getAlias());
+                assertTrue(invocationLog.isSuccess());
+                assertNotNull(invocationLog.getDuration());
+                assertEquals("1", invocationCount);
+                assertEquals("action", invocationLog.getDoActionLog().getAlias());
               });
           testContext.completeNow();
         }));
 
-    Assertions.assertTrue(testContext.awaitCompletion(5, TimeUnit.SECONDS));
+    assertTrue(testContext.awaitCompletion(5, TimeUnit.SECONDS));
     if (testContext.failed()) {
       throw testContext.causeOfFailure();
     }
   }
 
   @Test
-  @DisplayName("Expect fallback transition when doAction times out.")
+  @DisplayName("Expect fallback transition when action ends with _error transition.")
+  void expectFallbackWhenError(VertxTestContext testContext, Vertx vertx)
+      throws Throwable {
+    // given
+    CircuitBreakerOptions options = new CircuitBreakerOptions().setFallbackOnFailure(true);
+    CircuitBreaker circuitBreaker = new CircuitBreakerImpl("name", vertx, options);
+
+    CircuitBreakerAction tested = new CircuitBreakerAction(circuitBreaker,
+        CircuitBreakerDoActions::applyErrorTransition, "tested", INFO, ERROR_TRANSITION);
+
+    // when
+    tested.apply(new FragmentContext(FRAGMENT, new ClientRequest()),
+        testContext.succeeding(result -> {
+          testContext
+              .verify(() -> {
+                //then
+                assertEquals(FALLBACK_TRANSITION, result.getTransition());
+
+                ActionLog actionLog = new ActionLog(result.getNodeLog());
+                String errorMessage = actionLog.getLogs().getString(ERROR_LOG_KEY);
+                List<ActionInvocationLog> doActionsLogs = actionLog.getInvocationLogs();
+
+                assertEquals(1, doActionsLogs.size());
+                ActionInvocationLog invocationLog = doActionsLogs.get(0);
+                assertFalse(invocationLog.isSuccess());
+                assertNotNull(invocationLog.getDoActionLog());
+                assertNotNull(errorMessage);
+                assertTrue(errorMessage.contains("DoActionExecuteException"));
+              });
+          testContext.completeNow();
+        }));
+
+    assertTrue(testContext.awaitCompletion(5, TimeUnit.SECONDS));
+    if (testContext.failed()) {
+      throw testContext.causeOfFailure();
+    }
+  }
+
+  @Test
+  @DisplayName("Expect fallback transition when fails.")
+  void expectFallbackWhenFailure(VertxTestContext testContext, Vertx vertx)
+      throws Throwable {
+    // given
+    CircuitBreakerOptions options = new CircuitBreakerOptions()
+        .setFallbackOnFailure(true);
+    CircuitBreaker circuitBreaker = new CircuitBreakerImpl("name", vertx, options);
+
+    CircuitBreakerAction tested = new CircuitBreakerAction(circuitBreaker,
+        CircuitBreakerDoActions::applyFailure, "tested", INFO, ERROR_TRANSITION);
+
+    // when
+    tested.apply(new FragmentContext(FRAGMENT, new ClientRequest()),
+        result -> {
+          testContext
+              .verify(() -> {
+                //then
+                assertEquals(FALLBACK_TRANSITION, result.result().getTransition());
+
+                ActionLog actionLog = new ActionLog(result.result().getNodeLog());
+                List<ActionInvocationLog> doActionsLogs = actionLog.getInvocationLogs();
+                assertEquals(1, doActionsLogs.size());
+                ActionInvocationLog invocationLog = doActionsLogs.get(0);
+
+                assertFalse(invocationLog.isSuccess());
+                assertNull(invocationLog.getDoActionLog());
+
+                String errorMessage = actionLog.getLogs().getString(ERROR_LOG_KEY);
+                assertNotNull(errorMessage);
+                assertTrue(errorMessage.contains("DoActionExecuteException"));
+              });
+          testContext.completeNow();
+        });
+
+    assertTrue(testContext.awaitCompletion(5, TimeUnit.SECONDS));
+    if (testContext.failed()) {
+      throw testContext.causeOfFailure();
+    }
+  }
+
+  @Test
+  @DisplayName("Expect fallback transition when action times out.")
   void expectFallbackWhenTimout(VertxTestContext testContext, Vertx vertx)
       throws Throwable {
     // given
@@ -146,107 +227,27 @@ class CircuitBreakerActionTest {
           testContext
               .verify(() -> {
                 //then
-                Assertions.assertEquals(FALLBACK_TRANSITION, result.getTransition());
+                assertEquals(FALLBACK_TRANSITION, result.getTransition());
 
                 ActionLog actionLog = new ActionLog(result.getNodeLog());
-                String fallback = actionLog.getLogs().getString("fallback");
-                String invocationCount = actionLog.getLogs().getString("invocationCount");
+                String errorMessage = actionLog.getLogs().getString(ERROR_LOG_KEY);
+                String invocationCount = actionLog.getLogs().getString(INVOCATION_COUNT_LOG_KEY);
 
-                Assertions.assertNotNull(fallback);
-                Assertions.assertTrue(fallback.contains("TimeoutException"));
-                Assertions.assertEquals("2", invocationCount);
+                assertNotNull(errorMessage);
+                assertTrue(errorMessage.contains("TimeoutException"));
+                assertEquals("2", invocationCount);
               });
           testContext.completeNow();
         }));
 
-    Assertions.assertTrue(testContext.awaitCompletion(5, TimeUnit.SECONDS));
+    assertTrue(testContext.awaitCompletion(5, TimeUnit.SECONDS));
     if (testContext.failed()) {
       throw testContext.causeOfFailure();
     }
   }
 
   @Test
-  @DisplayName("Expect fallback transition when doAction ends with _error transition.")
-  void expectFallbackWhenError(VertxTestContext testContext, Vertx vertx)
-      throws Throwable {
-    // given
-    CircuitBreakerOptions options = new CircuitBreakerOptions().setFallbackOnFailure(true);
-    CircuitBreaker circuitBreaker = new CircuitBreakerImpl("name", vertx, options);
-
-    CircuitBreakerAction tested = new CircuitBreakerAction(circuitBreaker,
-        CircuitBreakerDoActions::applyErrorTransition, "tested", INFO, ERROR_TRANSITION);
-
-    // when
-    tested.apply(new FragmentContext(FRAGMENT, new ClientRequest()),
-        testContext.succeeding(result -> {
-          testContext
-              .verify(() -> {
-                //then
-                Assertions.assertEquals(FALLBACK_TRANSITION, result.getTransition());
-
-                ActionLog actionLog = new ActionLog(result.getNodeLog());
-                String fallback = actionLog.getLogs().getString("fallback");
-                List<ActionInvocationLog> doActionsLogs = actionLog.getInvocationLogs();
-
-                Assertions.assertEquals(1, doActionsLogs.size());
-                ActionInvocationLog invocationLog = doActionsLogs.get(0);
-                Assertions.assertFalse(invocationLog.isSuccess());
-                Assertions.assertNotNull(invocationLog.getDoActionLog());
-                Assertions.assertNotNull(fallback);
-                Assertions.assertTrue(fallback.contains("DoActionExecuteException"));
-              });
-          testContext.completeNow();
-        }));
-
-    Assertions.assertTrue(testContext.awaitCompletion(5, TimeUnit.SECONDS));
-    if (testContext.failed()) {
-      throw testContext.causeOfFailure();
-    }
-  }
-
-  @Test
-  @DisplayName("Expect fallback transition when doAction fails.")
-  void expectFallbackWhenFailure(VertxTestContext testContext, Vertx vertx)
-      throws Throwable {
-    // given
-    CircuitBreakerOptions options = new CircuitBreakerOptions()
-        .setFallbackOnFailure(true);
-    CircuitBreaker circuitBreaker = new CircuitBreakerImpl("name", vertx, options);
-
-    CircuitBreakerAction tested = new CircuitBreakerAction(circuitBreaker,
-        CircuitBreakerDoActions::applyFailure, "tested", INFO, ERROR_TRANSITION);
-
-    // when
-    tested.apply(new FragmentContext(FRAGMENT, new ClientRequest()),
-        result -> {
-          testContext
-              .verify(() -> {
-                //then
-                Assertions.assertEquals(FALLBACK_TRANSITION, result.result().getTransition());
-
-                ActionLog actionLog = new ActionLog(result.result().getNodeLog());
-                List<ActionInvocationLog> doActionsLogs = actionLog.getInvocationLogs();
-                Assertions.assertEquals(1, doActionsLogs.size());
-                ActionInvocationLog invocationLog = doActionsLogs.get(0);
-
-                Assertions.assertFalse(invocationLog.isSuccess());
-                Assertions.assertNull(invocationLog.getDoActionLog());
-
-                String fallback = actionLog.getLogs().getString("fallback");
-                Assertions.assertNotNull(fallback);
-                Assertions.assertTrue(fallback.contains("DoActionExecuteException"));
-              });
-          testContext.completeNow();
-        });
-
-    Assertions.assertTrue(testContext.awaitCompletion(5, TimeUnit.SECONDS));
-    if (testContext.failed()) {
-      throw testContext.causeOfFailure();
-    }
-  }
-
-  @Test
-  @DisplayName("Expect fallback transition when doAction throws exception.")
+  @DisplayName("Expect fallback transition when throws exception.")
   void expectFallbackWhenException(VertxTestContext testContext, Vertx vertx)
       throws Throwable {
     // given
@@ -263,22 +264,22 @@ class CircuitBreakerActionTest {
         testContext.succeeding(result -> {
           testContext
               .verify(() -> {
-                Assertions.assertEquals(FALLBACK_TRANSITION, result.getTransition());
+                assertEquals(FALLBACK_TRANSITION, result.getTransition());
                 ActionLog actionLog = new ActionLog(result.getNodeLog());
 
-                String invocationCount = actionLog.getLogs().getString("invocationCount");
-                Assertions.assertEquals("1", invocationCount);
+                String invocationCount = actionLog.getLogs().getString(INVOCATION_COUNT_LOG_KEY);
+                assertEquals("1", invocationCount);
 
-                String fallback = actionLog.getLogs().getString("fallback");
-                Assertions.assertNotNull(fallback);
-                Assertions.assertTrue(fallback.contains("ReplyException"));
+                String errorMessage = actionLog.getLogs().getString(ERROR_LOG_KEY);
+                assertNotNull(errorMessage);
+                assertTrue(errorMessage.contains("ReplyException"));
 
               });
           testContext.completeNow();
         }));
 
     //then
-    Assertions.assertTrue(testContext.awaitCompletion(5, TimeUnit.SECONDS));
+    assertTrue(testContext.awaitCompletion(5, TimeUnit.SECONDS));
     if (testContext.failed()) {
       throw testContext.causeOfFailure();
     }
@@ -295,23 +296,23 @@ class CircuitBreakerActionTest {
           testContext.verify(() -> {
             //then
             FragmentResult fragmentResult = result.result();
-            Assertions.assertEquals(SUCCESS_TRANSITION, fragmentResult.getTransition());
+            assertEquals(SUCCESS_TRANSITION, fragmentResult.getTransition());
 
             ActionLog actionLog = new ActionLog(fragmentResult.getNodeLog());
             List<ActionInvocationLog> doActionsLogs = actionLog.getInvocationLogs();
-            String invocationCount = actionLog.getLogs().getString("invocationCount");
+            String invocationCount = actionLog.getLogs().getString(INVOCATION_COUNT_LOG_KEY);
 
-            Assertions.assertEquals(2, doActionsLogs.size());
-            Assertions.assertEquals("2", invocationCount);
+            assertEquals(2, doActionsLogs.size());
+            assertEquals("2", invocationCount);
 
             ActionInvocationLog invocationLog1 = doActionsLogs.get(0);
-            Assertions.assertFalse(invocationLog1.isSuccess());
-            Assertions.assertNull(invocationLog1.getDoActionLog());
+            assertFalse(invocationLog1.isSuccess());
+            assertNull(invocationLog1.getDoActionLog());
+
 
             ActionInvocationLog invocationLog2 = doActionsLogs.get(1);
-            Assertions.assertTrue(invocationLog2.isSuccess());
-            Assertions.assertNotNull(invocationLog2.getDoActionLog());
-
+            assertTrue(invocationLog2.isSuccess());
+            assertNotNull(invocationLog2.getDoActionLog());
           });
           testContext.completeNow();
         }, testContext, vertx);
@@ -326,22 +327,22 @@ class CircuitBreakerActionTest {
           //then
           testContext.verify(() -> {
             FragmentResult fragmentResult = result.result();
-            Assertions.assertEquals(SUCCESS_TRANSITION, fragmentResult.getTransition());
+            assertEquals(SUCCESS_TRANSITION, fragmentResult.getTransition());
 
             ActionLog actionLog = new ActionLog(fragmentResult.getNodeLog());
             List<ActionInvocationLog> doActionsLogs = actionLog.getInvocationLogs();
-            String invocationCount = actionLog.getLogs().getString("invocationCount");
+            String invocationCount = actionLog.getLogs().getString(INVOCATION_COUNT_LOG_KEY);
 
-            Assertions.assertEquals(2, doActionsLogs.size());
-            Assertions.assertEquals("2", invocationCount);
+            assertEquals(2, doActionsLogs.size());
+            assertEquals("2", invocationCount);
 
             ActionInvocationLog invocationLog1 = doActionsLogs.get(0);
-            Assertions.assertFalse(invocationLog1.isSuccess());
-            Assertions.assertNotNull(invocationLog1.getDoActionLog());
+            assertFalse(invocationLog1.isSuccess());
+            assertNotNull(invocationLog1.getDoActionLog());
 
             ActionInvocationLog invocationLog2 = doActionsLogs.get(1);
-            Assertions.assertTrue(invocationLog2.isSuccess());
-            Assertions.assertNotNull(invocationLog2.getDoActionLog());
+            assertTrue(invocationLog2.isSuccess());
+            assertNotNull(invocationLog2.getDoActionLog());
 
           });
           testContext.completeNow();
@@ -359,22 +360,22 @@ class CircuitBreakerActionTest {
           //then
           testContext.verify(() -> {
             FragmentResult fragmentResult = result.result();
-            Assertions.assertEquals(FALLBACK_TRANSITION, fragmentResult.getTransition());
+            assertEquals(FALLBACK_TRANSITION, fragmentResult.getTransition());
 
             ActionLog actionLog = new ActionLog(fragmentResult.getNodeLog());
             List<ActionInvocationLog> doActionsLogs = actionLog.getInvocationLogs();
-            String invocationCount = actionLog.getLogs().getString("invocationCount");
+            String invocationCount = actionLog.getLogs().getString(INVOCATION_COUNT_LOG_KEY);
 
-            Assertions.assertEquals(2, doActionsLogs.size());
-            Assertions.assertEquals("2", invocationCount);
+            assertEquals(2, doActionsLogs.size());
+            assertEquals("2", invocationCount);
 
             ActionInvocationLog invocationLog1 = doActionsLogs.get(0);
-            Assertions.assertFalse(invocationLog1.isSuccess());
-            Assertions.assertNull(invocationLog1.getDoActionLog());
+            assertFalse(invocationLog1.isSuccess());
+            assertNull(invocationLog1.getDoActionLog());
 
             ActionInvocationLog invocationLog2 = doActionsLogs.get(1);
-            Assertions.assertFalse(invocationLog2.isSuccess());
-            Assertions.assertNotNull(invocationLog2.getDoActionLog());
+            assertFalse(invocationLog2.isSuccess());
+            assertNotNull(invocationLog2.getDoActionLog());
           });
           testContext.completeNow();
         }, testContext, vertx);
@@ -391,16 +392,16 @@ class CircuitBreakerActionTest {
           //then
           testContext.verify(() -> {
             FragmentResult fragmentResult = result.result();
-            Assertions.assertEquals(FALLBACK_TRANSITION, fragmentResult.getTransition());
+            assertEquals(FALLBACK_TRANSITION, fragmentResult.getTransition());
 
             ActionLog actionLog = new ActionLog(fragmentResult.getNodeLog());
             List<ActionInvocationLog> doActionsLogs = actionLog.getInvocationLogs();
-            String invocationCount = actionLog.getLogs().getString("invocationCount");
-            Assertions.assertEquals(1, doActionsLogs.size());
-            Assertions.assertEquals("2", invocationCount);
+            String invocationCount = actionLog.getLogs().getString(INVOCATION_COUNT_LOG_KEY);
+            assertEquals(1, doActionsLogs.size());
+            assertEquals("2", invocationCount);
             ActionInvocationLog invocationLog1 = doActionsLogs.get(0);
-            Assertions.assertFalse(invocationLog1.isSuccess());
-            Assertions.assertNull(invocationLog1.getDoActionLog());
+            assertFalse(invocationLog1.isSuccess());
+            assertNull(invocationLog1.getDoActionLog());
           });
           testContext.completeNow();
         }, testContext, vertx);
@@ -417,18 +418,18 @@ class CircuitBreakerActionTest {
           testContext.verify(() -> {
             //then
             FragmentResult fragmentResult = result.result();
-            Assertions.assertEquals(FALLBACK_TRANSITION, fragmentResult.getTransition());
+            assertEquals(FALLBACK_TRANSITION, fragmentResult.getTransition());
 
             ActionLog actionLog = new ActionLog(fragmentResult.getNodeLog());
             List<ActionInvocationLog> doActionsLogs = actionLog.getInvocationLogs();
-            String invocationCount = actionLog.getLogs().getString("invocationCount");
+            String invocationCount = actionLog.getLogs().getString(INVOCATION_COUNT_LOG_KEY);
 
-            Assertions.assertEquals(1, doActionsLogs.size());
-            Assertions.assertEquals("2", invocationCount);
+            assertEquals(1, doActionsLogs.size());
+            assertEquals("2", invocationCount);
 
             ActionInvocationLog invocationLog1 = doActionsLogs.get(0);
-            Assertions.assertFalse(invocationLog1.isSuccess());
-            Assertions.assertNull(invocationLog1.getDoActionLog());
+            assertFalse(invocationLog1.isSuccess());
+            assertNull(invocationLog1.getDoActionLog());
           });
           testContext.completeNow();
         }, testContext, vertx
@@ -444,13 +445,13 @@ class CircuitBreakerActionTest {
           testContext.verify(() -> {
             //then
             FragmentResult fragmentResult = result.result();
-            Assertions.assertEquals(FALLBACK_TRANSITION, fragmentResult.getTransition());
+            assertEquals(FALLBACK_TRANSITION, fragmentResult.getTransition());
 
             ActionLog actionLog = new ActionLog(fragmentResult.getNodeLog());
             List<ActionInvocationLog> doActionsLogs = actionLog.getInvocationLogs();
-            String invocationCount = actionLog.getLogs().getString("invocationCount");
-            Assertions.assertEquals(0, doActionsLogs.size());
-            Assertions.assertEquals("2", invocationCount);
+            String invocationCount = actionLog.getLogs().getString(INVOCATION_COUNT_LOG_KEY);
+            assertEquals(0, doActionsLogs.size());
+            assertEquals("2", invocationCount);
           });
           testContext.completeNow();
         }, testContext, vertx
@@ -468,13 +469,13 @@ class CircuitBreakerActionTest {
           testContext.verify(() -> {
             //then
             FragmentResult fragmentResult = result.result();
-            Assertions.assertEquals(SUCCESS_TRANSITION, fragmentResult.getTransition());
+            assertEquals(SUCCESS_TRANSITION, fragmentResult.getTransition());
 
             ActionLog actionLog = new ActionLog(fragmentResult.getNodeLog());
             List<ActionInvocationLog> doActionsLogs = actionLog.getInvocationLogs();
-            String invocationCount = actionLog.getLogs().getString("invocationCount");
-            Assertions.assertEquals(1, doActionsLogs.size());
-            Assertions.assertEquals("2", invocationCount);
+            String invocationCount = actionLog.getLogs().getString(INVOCATION_COUNT_LOG_KEY);
+            assertEquals(1, doActionsLogs.size());
+            assertEquals("2", invocationCount);
           });
           testContext.completeNow();
         }, testContext, vertx);
@@ -491,13 +492,13 @@ class CircuitBreakerActionTest {
           testContext.verify(() -> {
             //then
             FragmentResult fragmentResult = result.result();
-            Assertions.assertEquals(FALLBACK_TRANSITION, fragmentResult.getTransition());
+            assertEquals(FALLBACK_TRANSITION, fragmentResult.getTransition());
 
             ActionLog actionLog = new ActionLog(fragmentResult.getNodeLog());
             List<ActionInvocationLog> doActionsLogs = actionLog.getInvocationLogs();
-            String invocationCount = actionLog.getLogs().getString("invocationCount");
-            Assertions.assertEquals(0, doActionsLogs.size());
-            Assertions.assertEquals("2", invocationCount);
+            String invocationCount = actionLog.getLogs().getString(INVOCATION_COUNT_LOG_KEY);
+            assertEquals(0, doActionsLogs.size());
+            assertEquals("2", invocationCount);
           });
           testContext.completeNow();
         }, testContext, vertx);
@@ -522,7 +523,7 @@ class CircuitBreakerActionTest {
     tested.apply(new FragmentContext(FRAGMENT, new ClientRequest()), handler);
 
     // validate if finished
-    Assertions.assertTrue(testContext.awaitCompletion(5, TimeUnit.SECONDS));
+    assertTrue(testContext.awaitCompletion(5, TimeUnit.SECONDS));
     if (testContext.failed()) {
       throw testContext.causeOfFailure();
     }

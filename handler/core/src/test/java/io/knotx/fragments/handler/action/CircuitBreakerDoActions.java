@@ -63,7 +63,7 @@ class CircuitBreakerDoActions {
   static void applyFailure(FragmentContext fragmentContext,
       Handler<AsyncResult<FragmentResult>> resultHandler) {
     ActionLogger actionLogger = ActionLogger.create("action", INFO);
-    actionLogger.info("info", "error");
+    actionLogger.info("info", "failure");
     Future.<FragmentResult>failedFuture(new IllegalStateException()).setHandler(resultHandler);
   }
 
