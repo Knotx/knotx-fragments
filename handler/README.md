@@ -454,6 +454,22 @@ doAction = product
 The `doAction` attribute specifies a wrapped simple action by its name. When `doAction` throws an 
 error or times out then the custom `fallback` transition is returned.
 
+| Invocation            | Retry                  | Result (Transition, Log) |
+| :-------------------: |:----------------------:|:-------------------------|
+| transition: `_success`| -                      |  `_success`, [s]         |
+| transition: `_error`  | transition: `_success` | `_success`, [e,s]        |
+| Failure               | transition: `_success` | `_success`, [e,s]        |
+| Failure               | transition: `_error`   | `_fallback`, [e,e]       |
+| Failure               | TIMEOUT                |  `_fallback`, [e,t]      |
+| TIMEOUT               | Failure                |  `_fallback`, [t,e]      |
+| TIMEOUT               | TIMEOUT                | `_fallback`, [t,t]       |
+
+Labels:
+- TIMEOUT - `doAction` does not end withing the required time (`circuitBreakerOptions.timeout`), 
+- please note that `doAction` is not interrupted by a circuit breaker
+- Failure - `doAction` fails, means that `doAction` calls `failed` method on result handler
+- Exception - `doAction` throws an exception
+
 #### Circuit Breaker Action Log
 
 Circuit Breaker logs the following data
@@ -481,12 +497,6 @@ Please note that not every call can be visible in `invocation log` entry.
 | TIMEOUT                |  No  |
 | Failure                |  No  |
 | Exception              |  No  |
-
-TIMEOUT - `doAction` does not end withing the required time (`circuitBreakerOptions.timeout`), 
-please note that `doAction` is not interrupted by a circuit breaker
-Failure - `doAction` fails, means that `doAction` calls `failed` method on result handler
-Exception - `doAction` throws an exception
-
 
 ### In-memory Cache Behaviour
 It wraps a simple action with cache. It caches a payload values added by a `doAction` action and 
