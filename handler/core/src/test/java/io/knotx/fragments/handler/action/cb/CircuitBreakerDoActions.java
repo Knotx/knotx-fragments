@@ -15,12 +15,13 @@
  *
  * The code comes from https://github.com/tomaszmichalak/vertx-rx-map-reduce.
  */
-package io.knotx.fragments.handler.action;
+package io.knotx.fragments.handler.action.cb;
 
 import static io.knotx.fragments.handler.api.actionlog.ActionLogLevel.INFO;
 import static io.knotx.fragments.handler.api.domain.FragmentResult.ERROR_TRANSITION;
 import static io.knotx.fragments.handler.api.domain.FragmentResult.SUCCESS_TRANSITION;
 
+import java.io.IOException;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import io.knotx.fragments.handler.api.Action;
@@ -37,12 +38,6 @@ import io.vertx.rxjava.core.Future;
 class CircuitBreakerDoActions {
 
   static void applySuccess(FragmentContext fragmentContext,
-      Handler<AsyncResult<FragmentResult>> resultHandler) {
-    Future.succeededFuture(new FragmentResult(fragmentContext.getFragment(), SUCCESS_TRANSITION))
-        .setHandler(resultHandler);
-  }
-
-  static void applySuccessWithActionLogs(FragmentContext fragmentContext,
       Handler<AsyncResult<FragmentResult>> resultHandler) {
     ActionLogger actionLogger = ActionLogger.create("action", INFO);
     actionLogger.info("info", "success");
@@ -64,12 +59,22 @@ class CircuitBreakerDoActions {
       Handler<AsyncResult<FragmentResult>> resultHandler) {
     ActionLogger actionLogger = ActionLogger.create("action", INFO);
     actionLogger.info("info", "failure");
-    Future.<FragmentResult>failedFuture(new IllegalStateException()).setHandler(resultHandler);
+    Future.<FragmentResult>failedFuture(new IllegalStateException("Application failed!")).setHandler(resultHandler);
   }
 
   static void applyException(FragmentContext fragmentContext,
       Handler<AsyncResult<FragmentResult>> resultHandler) {
-    throw new ReplyException(ReplyFailure.RECIPIENT_FAILURE, "Error from action");
+    throw new IllegalStateException("Action throws runtime exception!");
+  }
+
+  static void applySuccessDelay(FragmentContext fragmentContext,
+      Handler<AsyncResult<FragmentResult>> resultHandler) {
+    Vertx vertx = Vertx.vertx();
+    vertx.setTimer(1500,
+        l ->
+            Future.succeededFuture(
+                new FragmentResult(fragmentContext.getFragment(), SUCCESS_TRANSITION)
+            ).setHandler(resultHandler));
   }
 
   static Action applyOneAfterAnother(Action first, Action second) {
@@ -88,17 +93,5 @@ class CircuitBreakerDoActions {
     } else {
       second.apply(fragmentContext, resultHandler);
     }
-  }
-
-  static Action applySuccessDelay(Vertx vertx) {
-    return applySuccessDelay(vertx, 1500);
-  }
-  static Action applySuccessDelay(Vertx vertx, int delay) {
-    return (fragmentContext, resultHandler) ->
-        vertx.setTimer(delay,
-            l ->
-                Future.succeededFuture(
-                    new FragmentResult(fragmentContext.getFragment(), SUCCESS_TRANSITION)
-                ).setHandler(resultHandler));
   }
 }

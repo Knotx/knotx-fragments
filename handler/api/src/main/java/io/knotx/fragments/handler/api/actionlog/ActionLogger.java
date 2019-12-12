@@ -70,7 +70,9 @@ public class ActionLogger {
   }
 
   public void doActionLog(long duration, JsonObject actionLog) {
-    this.builder.appendInvocationLogEntry(duration, toActionLog(actionLog));
+    if (actionLogLevel == INFO) {
+      this.builder.appendInvocationLogEntry(duration, toActionLog(actionLog));
+    }
   }
 
   private ActionLog toActionLog(JsonObject jsonObject){

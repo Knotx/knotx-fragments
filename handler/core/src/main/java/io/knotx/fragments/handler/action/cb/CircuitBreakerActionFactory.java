@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.knotx.fragments.handler.action;
+package io.knotx.fragments.handler.action.cb;
 
 import static io.knotx.fragments.handler.api.actionlog.ActionLogLevel.fromConfig;
 import static io.knotx.fragments.handler.api.domain.FragmentResult.ERROR_TRANSITION;
@@ -34,7 +34,6 @@ import io.knotx.fragments.handler.api.domain.FragmentResult;
 import io.knotx.fragments.handler.exception.DoActionExecuteException;
 import io.knotx.fragments.handler.exception.DoActionNotDefinedException;
 import io.vertx.circuitbreaker.CircuitBreaker;
-import io.vertx.circuitbreaker.CircuitBreakerOptions;
 import io.vertx.circuitbreaker.impl.CircuitBreakerImpl;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
@@ -62,14 +61,12 @@ public class CircuitBreakerActionFactory implements ActionFactory {
     if (isNull(doAction)) {
       throw new DoActionNotDefinedException("Circuit Breaker action requires `doAction` defined");
     }
-    String circuitBreakerName = config.getString("circuitBreakerName");
-    CircuitBreakerOptions circuitBreakerOptions =
-        config.getJsonObject("circuitBreakerOptions") == null ? new CircuitBreakerOptions()
-            : new CircuitBreakerOptions(config.getJsonObject("circuitBreakerOptions"));
-    CircuitBreaker circuitBreaker = new CircuitBreakerImpl(circuitBreakerName, vertx,
-        circuitBreakerOptions);
+    CircuitBreakerActionFactoryOptions options = new CircuitBreakerActionFactoryOptions(config);
+    CircuitBreaker circuitBreaker = new CircuitBreakerImpl(options.getCircuitBreakerName(), vertx,
+        options.getCircuitBreakerOptions());
 
-    return new CircuitBreakerAction(circuitBreaker, doAction, alias, fromConfig(config));
+    return new CircuitBreakerAction(circuitBreaker, doAction, alias,
+        fromConfig(options.getLogLevel()));
   }
 
   public static class CircuitBreakerAction implements Action {
@@ -81,7 +78,8 @@ public class CircuitBreakerActionFactory implements ActionFactory {
     private final ActionLogLevel actionLogLevel;
     private final String alias;
 
-    CircuitBreakerAction(CircuitBreaker circuitBreaker, Action doAction, String alias, ActionLogLevel actionLogLevel) {
+    CircuitBreakerAction(CircuitBreaker circuitBreaker, Action doAction, String alias,
+        ActionLogLevel actionLogLevel) {
       this.circuitBreaker = circuitBreaker;
       this.doAction = doAction;
       this.alias = alias;
@@ -103,22 +101,28 @@ public class CircuitBreakerActionFactory implements ActionFactory {
         AtomicInteger counter, ActionLogger actionLogger) {
       counter.incrementAndGet();
       long startTime = now().toEpochMilli();
-      doAction.apply(fragmentContext,
-          result -> {
-            if (result.succeeded()) {
-              handleResult(promise, result.result(), counter, startTime, actionLogger);
-            } else {
-              handleFail(promise, null, startTime, "Action failed", actionLogger);
-            }
-          });
+      try {
+        doAction.apply(fragmentContext,
+            result -> {
+              if (result.succeeded()) {
+                handleResult(promise, result.result(), counter, startTime, actionLogger);
+              } else {
+                handleFail(promise, null, startTime, result.cause(), actionLogger);
+              }
+            });
+      } catch (Exception e) {
+        handleFail(promise, null, startTime, e, actionLogger);
+        throw e;
+      }
     }
 
     private void handleResult(Promise<FragmentResult> promise,
-        FragmentResult result, AtomicInteger counter,  long startTime,
+        FragmentResult result, AtomicInteger counter, long startTime,
         ActionLogger actionLogger) {
       if (isErrorTransition(result)) {
         handleFail(promise, result.getNodeLog(), startTime,
-            format("Action end up %s transition", ERROR_TRANSITION), actionLogger);
+            new DoActionExecuteException(format("Action end up %s transition", ERROR_TRANSITION)),
+            actionLogger);
       } else {
         handleSuccess(promise, result, counter, startTime, actionLogger);
       }
@@ -129,9 +133,9 @@ public class CircuitBreakerActionFactory implements ActionFactory {
     }
 
     private static void handleFail(Promise<FragmentResult> promise, JsonObject nodeLog,
-        long startTime, String error, ActionLogger actionLogger) {
+        long startTime, Throwable error, ActionLogger actionLogger) {
       actionLogger.failureDoActionLog(executionTime(startTime), nodeLog);
-      promise.fail(new DoActionExecuteException(error));
+      promise.fail(error);
     }
 
     private static long executionTime(long startTime) {
@@ -158,7 +162,7 @@ public class CircuitBreakerActionFactory implements ActionFactory {
 
     private static void logFallback(Throwable throwable, AtomicInteger counter,
         ActionLogger actionLogger) {
-      actionLogger.info(INVOCATION_COUNT_LOG_KEY, valueOf(counter.get()));
+      actionLogger.error(INVOCATION_COUNT_LOG_KEY, valueOf(counter.get()));
       actionLogger
           .error(ERROR_LOG_KEY,
               format("Exception: %s. %s", throwable.getClass(), throwable.getLocalizedMessage()));

@@ -44,6 +44,7 @@ dependencies {
     testImplementation(group = "io.vertx", name = "vertx-web-client")
     testImplementation(group = "io.vertx", name = "vertx-rx-java2")
     testImplementation(group = "io.vertx", name = "vertx-config-hocon")
+    testImplementation("org.junit.jupiter:junit-jupiter-params")
 }
 
 tasks {
