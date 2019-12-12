@@ -60,6 +60,13 @@ class CircuitBreakerActionFactoryTest {
   private static final Fragment FRAGMENT = new Fragment("type", new JsonObject(), "expectedBody");
   private static final int TIMEOUT_IN_MS = 500;
 
+  @Test
+  @DisplayName("Expect factory name is 'cb'.")
+  void checkFactoryName() {
+    // given
+    assertEquals(CircuitBreakerActionFactory.FACTORY_NAME, new CircuitBreakerActionFactory().getName());
+  }
+
   @ParameterizedTest
   @MethodSource("provideSuccessActions")
   @DisplayName("Expect _success transition when action ends with success.")
