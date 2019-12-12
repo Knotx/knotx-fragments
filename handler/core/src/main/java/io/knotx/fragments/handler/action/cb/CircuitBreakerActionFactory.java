@@ -50,10 +50,11 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class CircuitBreakerActionFactory implements ActionFactory {
 
   static final String FALLBACK_TRANSITION = "fallback";
+  static final String FACTORY_NAME = "cb";
 
   @Override
   public String getName() {
-    return "cb";
+    return FACTORY_NAME;
   }
 
   @Override
