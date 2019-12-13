@@ -18,11 +18,10 @@ package io.knotx.fragments.handler.api.actionlog;
 import static io.knotx.fragments.handler.api.actionlog.ActionInvocationLog.error;
 import static io.knotx.fragments.handler.api.actionlog.ActionInvocationLog.success;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Stream;
-
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
+import java.util.ArrayList;
+import java.util.stream.Stream;
 
 class ActionLogBuilder {
   private String alias;
@@ -51,6 +50,11 @@ class ActionLogBuilder {
   }
 
   ActionLogBuilder addLog(String key, JsonObject value){
+    logs.put(key, value);
+    return this;
+  }
+
+  ActionLogBuilder addLog(String key, JsonArray value) {
     logs.put(key, value);
     return this;
   }
