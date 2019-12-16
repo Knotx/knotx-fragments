@@ -71,8 +71,8 @@ steps:
       tasks: 'build-docker'
     displayName: "Build Starter Kit: Docker"
   - script: |
-      if [[ -f "$(workspaceDir)/$project/gradlew" ]]; then
-        REPO=$(cut -d'/' -f2 <<<$(Build.Repository.Name))
+      REPO=$(cut -d'/' -f2 <<<$(Build.Repository.Name))
+      if [[ -f "$(workspaceDir)/$REPO/gradlew" ]]; then
         $(workspaceDir)/$REPO/gradlew -p $(workspaceDir)/$REPO clean test jacocoTestReport
         bash <(curl -s https://codecov.io/bash) -s $(workspaceDir)/$REPO -t $(CODECOV_TOKEN)
       fi
