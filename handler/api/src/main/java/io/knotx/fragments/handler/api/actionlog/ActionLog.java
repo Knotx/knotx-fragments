@@ -22,18 +22,16 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.StreamSupport;
 
-import io.vertx.codegen.annotations.DataObject;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
-@DataObject
 public class ActionLog {
 
   private final String alias;
   private final JsonObject logs;
-  private final List<ActionLog> doActionLogs;
+  private final List<ActionInvocationLog> doActionLogs;
 
-  ActionLog(String alias, JsonObject logs, List<ActionLog> doActionLogs) {
+  ActionLog(String alias, JsonObject logs, List<ActionInvocationLog> doActionLogs) {
     this.alias = alias;
     this.logs = logs;
     this.doActionLogs = doActionLogs;
@@ -42,14 +40,14 @@ public class ActionLog {
   public ActionLog(JsonObject actionLog) {
     this.alias = actionLog.getString("alias");
     this.logs = actionLog.getJsonObject("logs");
-    this.doActionLogs = toDoActionLogs(actionLog);
+    this.doActionLogs = toInvocationLogList(actionLog);
   }
 
-  private List<ActionLog> toDoActionLogs(JsonObject actionLog) {
+  private List<ActionInvocationLog> toInvocationLogList(JsonObject actionLog) {
     Iterable<Object> iterable = () -> actionLog.getJsonArray("doAction").iterator();
     return StreamSupport.stream(iterable.spliterator(), false)
         .map(JsonObject::mapFrom)
-        .map(ActionLog::new)
+        .map(ActionInvocationLog::new)
         .collect(toList());
   }
 
@@ -61,7 +59,7 @@ public class ActionLog {
     return logs.copy();
   }
 
-  public List<ActionLog> getDoActionLogs() {
+  public List<ActionInvocationLog> getInvocationLogs() {
     return unmodifiableList(doActionLogs);
   }
 
@@ -99,8 +97,8 @@ public class ActionLog {
   }
 
   private JsonArray toDoActionArray() {
-    return getDoActionLogs().stream()
-        .map(ActionLog::toJson)
+    return getInvocationLogs().stream()
+        .map(ActionInvocationLog::toJson)
         .collect(JsonArray::new,
             JsonArray::add,
             JsonArray::addAll);

@@ -15,15 +15,17 @@
  */
 package io.knotx.fragments.task.factory;
 
-import io.knotx.fragments.task.factory.node.NodeFactoryOptions;
-import io.vertx.codegen.annotations.DataObject;
-import io.vertx.core.json.JsonObject;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+
 import org.apache.commons.lang3.StringUtils;
+
+import io.knotx.fragments.task.factory.node.NodeFactoryOptions;
+import io.vertx.codegen.annotations.DataObject;
+import io.vertx.core.json.JsonObject;
 
 /**
  * Default Task Factory config model.
@@ -51,19 +53,17 @@ public class DefaultTaskFactoryConfig {
   }
 
   private void initNodeLogLevel(JsonObject json) {
-    LogLevelConfig globalLogLevel = new LogLevelConfig(json);
-    if (StringUtils.isNotBlank(logLevel)) {
-      nodeFactories.forEach(nodeFactoryOptions ->
-          override(nodeFactoryOptions.getConfig(), globalLogLevel.getLogLevel()));
-    }
+    LogLevelConfig globalLogLevel =
+        StringUtils.isBlank(logLevel) ? new LogLevelConfig() : new LogLevelConfig(json);
+    nodeFactories.forEach(nodeFactoryOptions ->
+        override(nodeFactoryOptions.getConfig(), globalLogLevel.getLogLevel()));
+
   }
 
   private void override(JsonObject json, String globalLogLevel) {
-    if (!StringUtils.isBlank(globalLogLevel)) {
-      LogLevelConfig logLevelConfig = new LogLevelConfig(json);
-      if (StringUtils.isBlank(logLevelConfig.getLogLevel())) {
-        json.mergeIn(logLevelConfig.setLogLevel(globalLogLevel).toJson());
-      }
+    LogLevelConfig logLevelConfig = new LogLevelConfig(json);
+    if (StringUtils.isBlank(logLevelConfig.getLogLevel())) {
+      json.mergeIn(logLevelConfig.setLogLevel(globalLogLevel).toJson());
     }
   }
 

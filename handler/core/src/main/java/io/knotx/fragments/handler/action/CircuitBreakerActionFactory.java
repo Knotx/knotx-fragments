@@ -15,20 +15,33 @@
  */
 package io.knotx.fragments.handler.action;
 
+import static io.knotx.fragments.handler.api.actionlog.ActionLogLevel.fromConfig;
+import static io.knotx.fragments.handler.api.domain.FragmentResult.ERROR_TRANSITION;
+import static java.lang.String.format;
+import static java.lang.String.valueOf;
+import static java.time.Instant.now;
+import static java.util.Objects.isNull;
+
 import io.knotx.fragments.api.Fragment;
 import io.knotx.fragments.handler.api.Action;
 import io.knotx.fragments.handler.api.ActionFactory;
 import io.knotx.fragments.handler.api.Cacheable;
+import io.knotx.fragments.handler.api.actionlog.ActionLog;
+import io.knotx.fragments.handler.api.actionlog.ActionLogLevel;
+import io.knotx.fragments.handler.api.actionlog.ActionLogger;
 import io.knotx.fragments.handler.api.domain.FragmentContext;
 import io.knotx.fragments.handler.api.domain.FragmentResult;
+import io.knotx.fragments.handler.exception.DoActionExecuteException;
 import io.knotx.fragments.handler.exception.DoActionNotDefinedException;
 import io.vertx.circuitbreaker.CircuitBreaker;
 import io.vertx.circuitbreaker.CircuitBreakerOptions;
 import io.vertx.circuitbreaker.impl.CircuitBreakerImpl;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
+import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * This is a factory class creating action, which provides circuit breaker mechanism. It protects
@@ -46,7 +59,7 @@ public class CircuitBreakerActionFactory implements ActionFactory {
 
   @Override
   public Action create(String alias, JsonObject config, Vertx vertx, Action doAction) {
-    if (doAction == null) {
+    if (isNull(doAction)) {
       throw new DoActionNotDefinedException("Circuit Breaker action requires `doAction` defined");
     }
     String circuitBreakerName = config.getString("circuitBreakerName");
@@ -56,36 +69,99 @@ public class CircuitBreakerActionFactory implements ActionFactory {
     CircuitBreaker circuitBreaker = new CircuitBreakerImpl(circuitBreakerName, vertx,
         circuitBreakerOptions);
 
-    return new CircuitBreakerAction(circuitBreaker, doAction);
+    return new CircuitBreakerAction(circuitBreaker, doAction, alias, fromConfig(config));
   }
 
   public static class CircuitBreakerAction implements Action {
 
-    private CircuitBreaker circuitBreaker;
-    private Action doAction;
+    public static final String INVOCATION_COUNT_LOG_KEY = "invocationCount";
+    public static final String ERROR_LOG_KEY = "error";
+    private final CircuitBreaker circuitBreaker;
+    private final Action doAction;
+    private final ActionLogLevel actionLogLevel;
+    private final String alias;
 
-    CircuitBreakerAction(CircuitBreaker circuitBreaker, Action doAction) {
+    CircuitBreakerAction(CircuitBreaker circuitBreaker, Action doAction, String alias, ActionLogLevel actionLogLevel) {
       this.circuitBreaker = circuitBreaker;
       this.doAction = doAction;
+      this.alias = alias;
+      this.actionLogLevel = actionLogLevel;
     }
 
     @Override
     public void apply(FragmentContext fragmentContext,
         Handler<AsyncResult<FragmentResult>> resultHandler) {
+      AtomicInteger counter = new AtomicInteger();
+      ActionLogger actionLogger = ActionLogger.create(alias, actionLogLevel);
       circuitBreaker.executeWithFallback(
-          f -> doAction.apply(fragmentContext,
-              result -> {
-                if (result.succeeded()) {
-                  f.complete(result.result());
-                } else {
-                  f.fail(result.cause());
-                }
-              }),
-          v -> {
-            Fragment fragment = fragmentContext.getFragment();
-            return new FragmentResult(fragment, FALLBACK_TRANSITION);
-          }
+          promise -> executeCommand(promise, fragmentContext, counter, actionLogger),
+          throwable -> handleFallback(fragmentContext, throwable, counter, actionLogger)
       ).setHandler(resultHandler);
+    }
+
+    private void executeCommand(Promise<FragmentResult> promise, FragmentContext fragmentContext,
+        AtomicInteger counter, ActionLogger actionLogger) {
+      counter.incrementAndGet();
+      long startTime = now().toEpochMilli();
+      doAction.apply(fragmentContext,
+          result -> {
+            if (result.succeeded()) {
+              handleResult(promise, result.result(), counter, startTime, actionLogger);
+            } else {
+              handleFail(promise, null, startTime, "Action failed", actionLogger);
+            }
+          });
+    }
+
+    private void handleResult(Promise<FragmentResult> promise,
+        FragmentResult result, AtomicInteger counter,  long startTime,
+        ActionLogger actionLogger) {
+      if (isErrorTransition(result)) {
+        handleFail(promise, result.getNodeLog(), startTime,
+            format("Action end up %s transition", ERROR_TRANSITION), actionLogger);
+      } else {
+        handleSuccess(promise, result, counter, startTime, actionLogger);
+      }
+    }
+
+    private boolean isErrorTransition(FragmentResult result) {
+      return ERROR_TRANSITION.equals(result.getTransition());
+    }
+
+    private static void handleFail(Promise<FragmentResult> promise, JsonObject nodeLog,
+        long startTime, String error, ActionLogger actionLogger) {
+      actionLogger.failureDoActionLog(executionTime(startTime), nodeLog);
+      promise.fail(new DoActionExecuteException(error));
+    }
+
+    private static long executionTime(long startTime) {
+      return now().toEpochMilli() - startTime;
+    }
+
+    private static void handleSuccess(Promise<FragmentResult> f, FragmentResult result,
+        AtomicInteger counter, long startTime, ActionLogger actionLogger) {
+      actionLogger.info(INVOCATION_COUNT_LOG_KEY, valueOf(counter.get()));
+      actionLogger.doActionLog(executionTime(startTime), result.getNodeLog());
+      f.complete(new FragmentResult(result.getFragment(), result.getTransition(),
+          actionLogger.toLog().toJson()));
+    }
+
+    private static FragmentResult handleFallback(FragmentContext fragmentContext,
+        Throwable throwable,
+        AtomicInteger counter, ActionLogger actionLogger) {
+      logFallback(throwable, counter, actionLogger);
+      Fragment fragment = fragmentContext.getFragment();
+      ActionLog actionLog = actionLogger.toLog();
+      return new FragmentResult(fragment, FALLBACK_TRANSITION, actionLog.toJson());
+    }
+
+
+    private static void logFallback(Throwable throwable, AtomicInteger counter,
+        ActionLogger actionLogger) {
+      actionLogger.info(INVOCATION_COUNT_LOG_KEY, valueOf(counter.get()));
+      actionLogger
+          .error(ERROR_LOG_KEY,
+              format("Exception: %s. %s", throwable.getClass(), throwable.getLocalizedMessage()));
     }
   }
 }

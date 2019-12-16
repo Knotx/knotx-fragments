@@ -30,31 +30,21 @@ import org.junit.jupiter.api.extension.ExtendWith;
 class DefaultTaskFactoryConfigTest {
 
   @Test
-  @DisplayName("Expect all node factories do not contain log level when global is not configured")
+  @DisplayName("Expect all node factories contain log level ERROR when global is not configured")
   void expectNoLogLevel(Vertx vertx) throws Throwable {
-    verify("task/factory/taskFactoryWithNoGlobalLogLevel.conf", validateNoGlobalNodeLog(), vertx);
+    verify("task/factory/taskFactoryWithNoGlobalLogLevel.conf", validateNodeLog("error"), vertx);
   }
 
   @Test
   @DisplayName("Expect all node factories contain log level when global is configured")
   void expectLogLevel(Vertx vertx) throws Throwable {
-    verify("task/factory/taskFactoryWithGlobalLogLevel.conf", validateNodeLog("INFO"), vertx);
+    verify("task/factory/taskFactoryWithGlobalLogLevel.conf", validateNodeLog("info"), vertx);
   }
 
   @Test
   @DisplayName("Expect local node log level is not overridden by global one")
   void expectLocalLogLevel(Vertx vertx) throws Throwable {
-    verify("task/factory/taskFactoryWithLocalLogLevel.conf", validateNodeLog("ERROR"), vertx);
-  }
-
-  private Consumer<JsonObject> validateNoGlobalNodeLog() {
-    return config -> {
-      DefaultTaskFactoryConfig factoryConfig = new DefaultTaskFactoryConfig(config);
-      factoryConfig.getNodeFactories().forEach(
-          nodeFactoryOptions -> Assertions
-              .assertNull(new LogLevelConfig(nodeFactoryOptions.getConfig()).getLogLevel())
-      );
-    };
+    verify("task/factory/taskFactoryWithLocalLogLevel.conf", validateNodeLog("error"), vertx);
   }
 
   private Consumer<JsonObject> validateNodeLog(String logLevel) {
