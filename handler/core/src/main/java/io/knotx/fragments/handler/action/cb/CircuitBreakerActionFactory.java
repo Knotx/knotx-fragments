@@ -49,7 +49,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 @Cacheable
 public class CircuitBreakerActionFactory implements ActionFactory {
 
-  static final String FALLBACK_TRANSITION = "fallback";
+  static final String FALLBACK_TRANSITION = "_fallback";
   static final String FACTORY_NAME = "cb";
 
   @Override
