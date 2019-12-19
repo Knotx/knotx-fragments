@@ -46,7 +46,7 @@ public class ActionInvocationLog {
     return new ActionInvocationLog(duration, true, actionLog);
   }
 
-  static ActionInvocationLog error(long duration,  ActionLog actionLog) {
+  static ActionInvocationLog error(long duration, ActionLog actionLog) {
     return new ActionInvocationLog(duration, false, actionLog);
   }
 
@@ -65,7 +65,7 @@ public class ActionInvocationLog {
   public JsonObject toJson() {
     return new JsonObject().put("duration", duration)
         .put("success", success)
-        .put("doActionLog", toDoActionLogJson());
+        .put("doActionLog", doActionLog != null ? doActionLog.toJson() : null);
   }
 
   @Override
@@ -101,9 +101,5 @@ public class ActionInvocationLog {
         .map(j -> j.getJsonObject(DO_ACTION_LOG))
         .map(ActionLog::new)
         .orElse(null);
-  }
-
-  private JsonObject toDoActionLogJson() {
-    return Optional.ofNullable(doActionLog).map(ActionLog::toJson).orElse(null);
   }
 }
