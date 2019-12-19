@@ -21,6 +21,7 @@ plugins {
     id("io.knotx.codegen")
     id("io.knotx.maven-publish")
     id("io.knotx.jacoco")
+    id("io.knotx.unit-test")
     id("org.nosphere.apache.rat") version "0.4.0"
 }
 

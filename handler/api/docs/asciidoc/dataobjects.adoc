@@ -1,18 +1,5 @@
 = Cheatsheets
 
-[[ActionLog]]
-== ActionLog
-
-
-[cols=">25%,25%,50%"]
-[frame="topbot"]
-|===
-^|Name | Type ^| Description
-|[[alias]]`@alias`|`String`|-
-|[[doActionLogs]]`@doActionLogs`|`Array of link:dataobjects.html#ActionLog[ActionLog]`|-
-|[[logs]]`@logs`|`Json object`|-
-|===
-
 [[ActionPayload]]
 == ActionPayload
 

@@ -18,22 +18,18 @@ package io.knotx.fragments.handler.api.actionlog;
 import static java.util.Collections.unmodifiableList;
 import static java.util.stream.Collectors.toList;
 
-import java.util.List;
-import java.util.Objects;
-import java.util.stream.StreamSupport;
-
-import io.vertx.codegen.annotations.DataObject;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
+import java.util.List;
+import java.util.stream.StreamSupport;
 
-@DataObject
 public class ActionLog {
 
   private final String alias;
   private final JsonObject logs;
-  private final List<ActionLog> doActionLogs;
+  private final List<ActionInvocationLog> doActionLogs;
 
-  ActionLog(String alias, JsonObject logs, List<ActionLog> doActionLogs) {
+  public ActionLog(String alias, JsonObject logs, List<ActionInvocationLog> doActionLogs) {
     this.alias = alias;
     this.logs = logs;
     this.doActionLogs = doActionLogs;
@@ -42,14 +38,14 @@ public class ActionLog {
   public ActionLog(JsonObject actionLog) {
     this.alias = actionLog.getString("alias");
     this.logs = actionLog.getJsonObject("logs");
-    this.doActionLogs = toDoActionLogs(actionLog);
+    this.doActionLogs = toInvocationLogList(actionLog);
   }
 
-  private List<ActionLog> toDoActionLogs(JsonObject actionLog) {
-    Iterable<Object> iterable = () -> actionLog.getJsonArray("doAction").iterator();
+  private List<ActionInvocationLog> toInvocationLogList(JsonObject actionLog) {
+    Iterable<Object> iterable = () -> actionLog.getJsonArray("doActionLogs").iterator();
     return StreamSupport.stream(iterable.spliterator(), false)
         .map(JsonObject::mapFrom)
-        .map(ActionLog::new)
+        .map(ActionInvocationLog::new)
         .collect(toList());
   }
 
@@ -61,32 +57,13 @@ public class ActionLog {
     return logs.copy();
   }
 
-  public List<ActionLog> getDoActionLogs() {
+  public List<ActionInvocationLog> getInvocationLogs() {
     return unmodifiableList(doActionLogs);
   }
 
   public JsonObject toJson() {
     return new JsonObject().put("alias", alias).put("logs", getLogs())
-        .put("doAction", toDoActionArray());
-  }
-
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (o == null || getClass() != o.getClass()) {
-      return false;
-    }
-    ActionLog actionLog = (ActionLog) o;
-    return alias.equals(actionLog.alias) &&
-        logs.equals(actionLog.logs) &&
-        Objects.equals(doActionLogs, actionLog.doActionLogs);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(alias, logs, doActionLogs);
+        .put("doActionLogs", toDoActionArray());
   }
 
   @Override
@@ -99,8 +76,8 @@ public class ActionLog {
   }
 
   private JsonArray toDoActionArray() {
-    return getDoActionLogs().stream()
-        .map(ActionLog::toJson)
+    return getInvocationLogs().stream()
+        .map(ActionInvocationLog::toJson)
         .collect(JsonArray::new,
             JsonArray::add,
             JsonArray::addAll);
