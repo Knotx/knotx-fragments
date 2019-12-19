@@ -15,8 +15,8 @@
  */
 package io.knotx.fragments.handler.action.cb;
 
-import static io.knotx.fragments.handler.action.cb.CircuitBreakerActionFactory.CircuitBreakerAction.ERROR_LOG_KEY;
-import static io.knotx.fragments.handler.action.cb.CircuitBreakerActionFactory.CircuitBreakerAction.INVOCATION_COUNT_LOG_KEY;
+import static io.knotx.fragments.handler.action.cb.CircuitBreakerAction.ERROR_LOG_KEY;
+import static io.knotx.fragments.handler.action.cb.CircuitBreakerAction.INVOCATION_COUNT_LOG_KEY;
 import static io.knotx.fragments.handler.action.cb.CircuitBreakerActionFactory.FALLBACK_TRANSITION;
 import static io.knotx.fragments.handler.api.actionlog.ActionLogLevel.INFO;
 import static io.knotx.fragments.handler.api.domain.FragmentResult.SUCCESS_TRANSITION;
@@ -27,7 +27,6 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.knotx.fragments.api.Fragment;
-import io.knotx.fragments.handler.action.cb.CircuitBreakerActionFactory.CircuitBreakerAction;
 import io.knotx.fragments.handler.api.Action;
 import io.knotx.fragments.handler.api.actionlog.ActionInvocationLog;
 import io.knotx.fragments.handler.api.actionlog.ActionLog;
@@ -64,7 +63,8 @@ class CircuitBreakerActionFactoryTest {
   @DisplayName("Expect factory name is 'cb'.")
   void checkFactoryName() {
     // given
-    assertEquals(CircuitBreakerActionFactory.FACTORY_NAME, new CircuitBreakerActionFactory().getName());
+    assertEquals(CircuitBreakerActionFactory.FACTORY_NAME,
+        new CircuitBreakerActionFactory().getName());
   }
 
   @ParameterizedTest
