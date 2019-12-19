@@ -119,7 +119,7 @@ class CircuitBreakerActionFactoryTest {
 
   @ParameterizedTest
   @MethodSource("provideSuccessActions")
-  @DisplayName("Expect empty node log when action ends with success.")
+  @DisplayName("Expect empty node log when action ends with success and default log level.")
   void expectEmptyNodeLogWhenSuccess(Action action, VertxTestContext testContext, Vertx vertx)
       throws Throwable {
     // given
@@ -228,7 +228,7 @@ class CircuitBreakerActionFactoryTest {
 
   @ParameterizedTest
   @MethodSource("provideErrorActions")
-  @DisplayName("Expect two invocation logs are added when action and with error error and retry is 1.")
+  @DisplayName("Expect two invocation logs are added when action ends always with error and retry is 1.")
   void expectTwoInvocationLogsWhenErrorAndRetry(Action action, VertxTestContext testContext,
       Vertx vertx)
       throws Throwable {
@@ -489,7 +489,7 @@ class CircuitBreakerActionFactoryTest {
   }
 
   @Test
-  @DisplayName("Expect fallback transition when both calls time out.")
+  @DisplayName("Expect fallback transition when all calls time out.")
   void expectFallbackWhenTimeouts(VertxTestContext testContext, Vertx vertx)
       throws Throwable {
     validateScenario(

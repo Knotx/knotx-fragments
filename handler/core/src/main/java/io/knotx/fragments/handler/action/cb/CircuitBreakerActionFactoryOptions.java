@@ -38,7 +38,7 @@ public class CircuitBreakerActionFactoryOptions {
 
   private CircuitBreakerOptions circuitBreakerOptions = DEFAULT_CIRCUIT_BREAKER_OPTIONS;
 
-  private String logLevel = DEFAULT_NODE_LOG_LEVEL;
+  private String logLevel = ERROR.getLevel();
 
   /**
    * Creates a new instance of {@link CircuitBreakerActionFactoryOptions} using the default values.
@@ -78,7 +78,7 @@ public class CircuitBreakerActionFactoryOptions {
    */
   public String getCircuitBreakerName() {
     return StringUtils.isNoneBlank(circuitBreakerName) ? circuitBreakerName
-        : RandomStringUtils.random(10, true, false);
+        : UUID.randomUUID().toString();
   }
 
   /**
