@@ -13,13 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.knotx.fragments.handler.action;
+package io.knotx.fragments.handler.action.cb;
 
-import static io.knotx.fragments.handler.action.CircuitBreakerActionFactory.CircuitBreakerAction.ERROR_LOG_KEY;
-import static io.knotx.fragments.handler.action.CircuitBreakerActionFactory.CircuitBreakerAction.INVOCATION_COUNT_LOG_KEY;
-import static io.knotx.fragments.handler.action.CircuitBreakerActionFactory.FALLBACK_TRANSITION;
+import static io.knotx.fragments.handler.action.cb.CircuitBreakerAction.ERROR_LOG_KEY;
+import static io.knotx.fragments.handler.action.cb.CircuitBreakerAction.INVOCATION_COUNT_LOG_KEY;
+import static io.knotx.fragments.handler.action.cb.CircuitBreakerActionFactory.FALLBACK_TRANSITION;
 import static io.knotx.fragments.handler.api.actionlog.ActionLogLevel.INFO;
-import static io.knotx.fragments.handler.api.domain.FragmentResult.ERROR_TRANSITION;
 import static io.knotx.fragments.handler.api.domain.FragmentResult.SUCCESS_TRANSITION;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -28,12 +27,12 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.knotx.fragments.api.Fragment;
-import io.knotx.fragments.handler.action.CircuitBreakerActionFactory.CircuitBreakerAction;
 import io.knotx.fragments.handler.api.Action;
 import io.knotx.fragments.handler.api.actionlog.ActionInvocationLog;
 import io.knotx.fragments.handler.api.actionlog.ActionLog;
 import io.knotx.fragments.handler.api.domain.FragmentContext;
 import io.knotx.fragments.handler.api.domain.FragmentResult;
+import io.knotx.fragments.handler.exception.DoActionExecuteException;
 import io.knotx.server.api.context.ClientRequest;
 import io.vertx.circuitbreaker.CircuitBreaker;
 import io.vertx.circuitbreaker.CircuitBreakerOptions;
@@ -47,55 +46,34 @@ import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 @ExtendWith(VertxExtension.class)
-class CircuitBreakerActionTest {
+class CircuitBreakerActionFactoryTest {
 
   private static final Fragment FRAGMENT = new Fragment("type", new JsonObject(), "expectedBody");
   private static final int TIMEOUT_IN_MS = 500;
 
   @Test
-  @DisplayName("Expect failure with timeout exception when fallback is not enabled and action times out.")
-  void expectFailureWhenFallbackDisabledAndDoActionTimesOut(VertxTestContext testContext,
-      Vertx vertx) throws Throwable {
+  @DisplayName("Expect factory name is 'cb'.")
+  void checkFactoryName() {
     // given
-    CircuitBreakerOptions options = new CircuitBreakerOptions()
-        .setTimeout(TIMEOUT_IN_MS);
-    CircuitBreaker circuitBreaker = new CircuitBreakerImpl("name", vertx, options);
-
-    CircuitBreakerAction tested = new CircuitBreakerAction(circuitBreaker,
-        CircuitBreakerDoActions.applySuccessDelay(vertx), "tested", INFO);
-
-    // when
-    tested.apply(new FragmentContext(FRAGMENT, new ClientRequest()),
-        testContext.failing(result -> {
-          testContext
-              .verify(() -> {
-                //then
-                assertTrue(result instanceof TimeoutException);
-              });
-          testContext.completeNow();
-        }));
-
-    assertTrue(testContext.awaitCompletion(5, TimeUnit.SECONDS));
-    if (testContext.failed()) {
-      throw testContext.causeOfFailure();
-    }
+    assertEquals(CircuitBreakerActionFactory.FACTORY_NAME,
+        new CircuitBreakerActionFactory().getName());
   }
 
-  @Test
-  @DisplayName("Expect _success transition when action ends with _success transition.")
-  void expectSuccessWhenSuccess(VertxTestContext testContext, Vertx vertx) throws Throwable {
+  @ParameterizedTest
+  @MethodSource("provideSuccessActions")
+  @DisplayName("Expect _success transition when action ends with success.")
+  void expectSuccessWhenSuccess(Action action, VertxTestContext testContext, Vertx vertx)
+      throws Throwable {
     // given
-    CircuitBreakerOptions options = new CircuitBreakerOptions()
-        .setFallbackOnFailure(true);
-    CircuitBreaker circuitBreaker = new CircuitBreakerImpl("name", vertx, options);
-
-    CircuitBreakerAction tested = new CircuitBreakerAction(circuitBreaker,
-        CircuitBreakerDoActions::applySuccessWithActionLogs, "tested", INFO);
+    Action tested = newActionInstance(action, vertx);
 
     // when
     tested.apply(new FragmentContext(FRAGMENT, new ClientRequest()),
@@ -104,18 +82,6 @@ class CircuitBreakerActionTest {
               .verify(() -> {
                 //then
                 assertEquals(SUCCESS_TRANSITION, result.getTransition());
-
-                ActionLog actionLog = new ActionLog(result.getNodeLog());
-                List<ActionInvocationLog> doActionsLogs = actionLog.getInvocationLogs();
-                String invocationCount = actionLog.getLogs().getString(INVOCATION_COUNT_LOG_KEY);
-
-                assertEquals(1, doActionsLogs.size());
-                ActionInvocationLog invocationLog = doActionsLogs.get(0);
-
-                assertTrue(invocationLog.isSuccess());
-                assertNotNull(invocationLog.getDuration());
-                assertEquals("1", invocationCount);
-                assertEquals("action", invocationLog.getDoActionLog().getAlias());
               });
           testContext.completeNow();
         }));
@@ -126,16 +92,13 @@ class CircuitBreakerActionTest {
     }
   }
 
-  @Test
-  @DisplayName("Expect fallback transition when action ends with _error transition.")
-  void expectFallbackWhenError(VertxTestContext testContext, Vertx vertx)
+  @ParameterizedTest
+  @MethodSource("provideErrorActionsAndTimeout")
+  @DisplayName("Expect fallback transition when action ends with error.")
+  void expectFallbackWhenError(Action action, VertxTestContext testContext, Vertx vertx)
       throws Throwable {
     // given
-    CircuitBreakerOptions options = new CircuitBreakerOptions().setFallbackOnFailure(true);
-    CircuitBreaker circuitBreaker = new CircuitBreakerImpl("name", vertx, options);
-
-    CircuitBreakerAction tested = new CircuitBreakerAction(circuitBreaker,
-        CircuitBreakerDoActions::applyErrorTransition, "tested", INFO);
+    Action tested = newActionInstance(action, vertx);
 
     // when
     tested.apply(new FragmentContext(FRAGMENT, new ClientRequest()),
@@ -144,17 +107,143 @@ class CircuitBreakerActionTest {
               .verify(() -> {
                 //then
                 assertEquals(FALLBACK_TRANSITION, result.getTransition());
+              });
+          testContext.completeNow();
+        }));
 
+    assertTrue(testContext.awaitCompletion(5, TimeUnit.SECONDS));
+    if (testContext.failed()) {
+      throw testContext.causeOfFailure();
+    }
+  }
+
+  @ParameterizedTest
+  @MethodSource("provideSuccessActions")
+  @DisplayName("Expect empty node log when action ends with success and default log level.")
+  void expectEmptyNodeLogWhenSuccess(Action action, VertxTestContext testContext, Vertx vertx)
+      throws Throwable {
+    // given
+    Action tested = newActionInstance(action, vertx);
+
+    // when
+    tested.apply(new FragmentContext(FRAGMENT, new ClientRequest()),
+        testContext.succeeding(result -> {
+          testContext
+              .verify(() -> {
+                //then
                 ActionLog actionLog = new ActionLog(result.getNodeLog());
-                String errorMessage = actionLog.getLogs().getString(ERROR_LOG_KEY);
-                List<ActionInvocationLog> doActionsLogs = actionLog.getInvocationLogs();
+                assertTrue(actionLog.getLogs().isEmpty());
+                assertTrue(actionLog.getInvocationLogs().isEmpty());
+              });
+          testContext.completeNow();
+        }));
 
-                assertEquals(1, doActionsLogs.size());
-                ActionInvocationLog invocationLog = doActionsLogs.get(0);
-                assertFalse(invocationLog.isSuccess());
-                assertNotNull(invocationLog.getDoActionLog());
-                assertNotNull(errorMessage);
-                assertTrue(errorMessage.contains("DoActionExecuteException"));
+    assertTrue(testContext.awaitCompletion(5, TimeUnit.SECONDS));
+    if (testContext.failed()) {
+      throw testContext.causeOfFailure();
+    }
+  }
+
+  @ParameterizedTest
+  @MethodSource("provideAllActions")
+  @DisplayName("Expect invocation count when log level is info.")
+  void expectInvocationCountWhenInfo(Action action, VertxTestContext testContext, Vertx vertx)
+      throws Throwable {
+    // given
+    Action tested = newInstanceWithInfo(action, vertx);
+
+    // when
+    tested.apply(new FragmentContext(FRAGMENT, new ClientRequest()),
+        testContext.succeeding(result -> {
+          testContext
+              .verify(() -> {
+                //then
+                ActionLog actionLog = new ActionLog(result.getNodeLog());
+                assertEquals("1", actionLog.getLogs().getString(INVOCATION_COUNT_LOG_KEY));
+              });
+          testContext.completeNow();
+        }));
+
+    assertTrue(testContext.awaitCompletion(5, TimeUnit.SECONDS));
+    if (testContext.failed()) {
+      throw testContext.causeOfFailure();
+    }
+  }
+
+  @ParameterizedTest
+  @MethodSource("provideSuccessActions")
+  @DisplayName("Expect success invocation log is added when action ends with success and log level is info.")
+  void expectSuccessInvocationLogWhenSuccessAndInfo(Action action, VertxTestContext testContext,
+      Vertx vertx)
+      throws Throwable {
+    // given
+    Action tested = newInstanceWithInfo(action, vertx);
+
+    // when
+    tested.apply(new FragmentContext(FRAGMENT, new ClientRequest()),
+        testContext.succeeding(result -> {
+          testContext
+              .verify(() -> {
+                //then
+                ActionLog actionLog = new ActionLog(result.getNodeLog());
+                assertEquals(1, actionLog.getInvocationLogs().size());
+                assertTrue(actionLog.getInvocationLogs().iterator().next().isSuccess());
+              });
+          testContext.completeNow();
+        }));
+
+    assertTrue(testContext.awaitCompletion(5, TimeUnit.SECONDS));
+    if (testContext.failed()) {
+      throw testContext.causeOfFailure();
+    }
+  }
+
+  @ParameterizedTest
+  @MethodSource("provideErrorActions")
+  @DisplayName("Expect error invocation log is added when action ends with error.")
+  void expectErrorInvocationLogWhenErrorAndInfo(Action action, VertxTestContext testContext,
+      Vertx vertx)
+      throws Throwable {
+    // given
+    Action tested = newActionInstance(action, vertx);
+
+    // when
+    tested.apply(new FragmentContext(FRAGMENT, new ClientRequest()),
+        testContext.succeeding(result -> {
+          testContext
+              .verify(() -> {
+                //then
+                ActionLog actionLog = new ActionLog(result.getNodeLog());
+                assertEquals(1, actionLog.getInvocationLogs().size());
+                assertFalse(actionLog.getInvocationLogs().iterator().next().isSuccess());
+              });
+          testContext.completeNow();
+        }));
+
+    assertTrue(testContext.awaitCompletion(5, TimeUnit.SECONDS));
+    if (testContext.failed()) {
+      throw testContext.causeOfFailure();
+    }
+  }
+
+  @ParameterizedTest
+  @MethodSource("provideErrorActions")
+  @DisplayName("Expect two invocation logs are added when action ends always with error and retry is 1.")
+  void expectTwoInvocationLogsWhenErrorAndRetry(Action action, VertxTestContext testContext,
+      Vertx vertx)
+      throws Throwable {
+    // given
+    Action tested = newInstanceWithRetry(action, vertx);
+
+    // when
+    tested.apply(new FragmentContext(FRAGMENT, new ClientRequest()),
+        testContext.succeeding(result -> {
+          testContext
+              .verify(() -> {
+                //then
+                ActionLog actionLog = new ActionLog(result.getNodeLog());
+                assertEquals("2", actionLog.getLogs().getString(INVOCATION_COUNT_LOG_KEY));
+                assertEquals(2, actionLog.getInvocationLogs().size());
               });
           testContext.completeNow();
         }));
@@ -166,39 +255,55 @@ class CircuitBreakerActionTest {
   }
 
   @Test
-  @DisplayName("Expect fallback transition when action fails.")
-  void expectFallbackWhenFailure(VertxTestContext testContext, Vertx vertx)
+  @DisplayName("Expect DoActionExecuteException in error message when action ends with _error transition.")
+  void expectDoActionExecuteException(VertxTestContext testContext, Vertx vertx)
       throws Throwable {
     // given
-    CircuitBreakerOptions options = new CircuitBreakerOptions()
-        .setFallbackOnFailure(true);
-    CircuitBreaker circuitBreaker = new CircuitBreakerImpl("name", vertx, options);
-
-    CircuitBreakerAction tested = new CircuitBreakerAction(circuitBreaker,
-        CircuitBreakerDoActions::applyFailure, "tested", INFO);
+    Action tested = newActionInstance(CircuitBreakerDoActions::applyErrorTransition, vertx);
 
     // when
     tested.apply(new FragmentContext(FRAGMENT, new ClientRequest()),
-        result -> {
+        testContext.succeeding(result -> {
           testContext
               .verify(() -> {
                 //then
-                assertEquals(FALLBACK_TRANSITION, result.result().getTransition());
-
-                ActionLog actionLog = new ActionLog(result.result().getNodeLog());
-                List<ActionInvocationLog> doActionsLogs = actionLog.getInvocationLogs();
-                assertEquals(1, doActionsLogs.size());
-                ActionInvocationLog invocationLog = doActionsLogs.get(0);
-
-                assertFalse(invocationLog.isSuccess());
-                assertNull(invocationLog.getDoActionLog());
-
+                ActionLog actionLog = new ActionLog(result.getNodeLog());
                 String errorMessage = actionLog.getLogs().getString(ERROR_LOG_KEY);
                 assertNotNull(errorMessage);
-                assertTrue(errorMessage.contains("DoActionExecuteException"));
+                assertTrue(errorMessage.contains(DoActionExecuteException.class.getName()));
               });
           testContext.completeNow();
-        });
+        }));
+
+    assertTrue(testContext.awaitCompletion(5, TimeUnit.SECONDS));
+    if (testContext.failed()) {
+      throw testContext.causeOfFailure();
+    }
+  }
+
+
+  @ParameterizedTest
+  @MethodSource("provideFailureAndExceptionActions")
+  @DisplayName("Expect original exception in error message when action throws an exception or fails.")
+  void expectIllegalStateExceptionWhenThrowsException(Action action, VertxTestContext testContext,
+      Vertx vertx)
+      throws Throwable {
+    // given
+    Action tested = newActionInstance(action, vertx);
+
+    // when
+    tested.apply(new FragmentContext(FRAGMENT, new ClientRequest()),
+        testContext.succeeding(result -> {
+          testContext
+              .verify(() -> {
+                //then
+                ActionLog actionLog = new ActionLog(result.getNodeLog());
+                String errorMessage = actionLog.getLogs().getString(ERROR_LOG_KEY);
+                assertNotNull(errorMessage);
+                assertTrue(errorMessage.contains(IllegalStateException.class.getName()));
+              });
+          testContext.completeNow();
+        }));
 
     assertTrue(testContext.awaitCompletion(5, TimeUnit.SECONDS));
     if (testContext.failed()) {
@@ -207,16 +312,11 @@ class CircuitBreakerActionTest {
   }
 
   @Test
-  @DisplayName("Expect fallback transition when action times out.")
+  @DisplayName("Expect Timeout exception in error message when action times out.")
   void expectFallbackWhenTimout(VertxTestContext testContext, Vertx vertx)
       throws Throwable {
     // given
-    CircuitBreakerOptions options = new CircuitBreakerOptions()
-        .setFallbackOnFailure(true)
-        .setTimeout(TIMEOUT_IN_MS);
-    CircuitBreaker circuitBreaker = new CircuitBreakerImpl("name", vertx, options);
-    CircuitBreakerAction tested = new CircuitBreakerAction(circuitBreaker,
-        CircuitBreakerDoActions.applySuccessDelay(vertx), "tested", INFO);
+    Action tested = newActionInstance(CircuitBreakerDoActions::applySuccessDelay, vertx);
 
     // when
     tested.apply(new FragmentContext(FRAGMENT, new ClientRequest()),
@@ -224,57 +324,14 @@ class CircuitBreakerActionTest {
           testContext
               .verify(() -> {
                 //then
-                assertEquals(FALLBACK_TRANSITION, result.getTransition());
-
                 ActionLog actionLog = new ActionLog(result.getNodeLog());
                 String errorMessage = actionLog.getLogs().getString(ERROR_LOG_KEY);
-                String invocationCount = actionLog.getLogs().getString(INVOCATION_COUNT_LOG_KEY);
-
                 assertNotNull(errorMessage);
-                assertTrue(errorMessage.contains("TimeoutException"));
-                assertEquals("1", invocationCount);
+                assertTrue(errorMessage.contains(TimeoutException.class.getName()));
               });
           testContext.completeNow();
         }));
 
-    assertTrue(testContext.awaitCompletion(5, TimeUnit.SECONDS));
-    if (testContext.failed()) {
-      throw testContext.causeOfFailure();
-    }
-  }
-
-  @Test
-  @DisplayName("Expect fallback transition when action throws exception.")
-  void expectFallbackWhenException(VertxTestContext testContext, Vertx vertx)
-      throws Throwable {
-    // given
-    CircuitBreakerOptions options = new CircuitBreakerOptions()
-        .setFallbackOnFailure(true);
-    CircuitBreaker circuitBreaker = new CircuitBreakerImpl("name", vertx, options);
-
-    CircuitBreakerAction tested = new CircuitBreakerAction(circuitBreaker,
-        CircuitBreakerDoActions::applyException, "tested", INFO);
-
-    // when
-    tested.apply(new FragmentContext(FRAGMENT, new ClientRequest()),
-        testContext.succeeding(result -> {
-          testContext
-              .verify(() -> {
-                assertEquals(FALLBACK_TRANSITION, result.getTransition());
-                ActionLog actionLog = new ActionLog(result.getNodeLog());
-
-                String invocationCount = actionLog.getLogs().getString(INVOCATION_COUNT_LOG_KEY);
-                assertEquals("1", invocationCount);
-
-                String errorMessage = actionLog.getLogs().getString(ERROR_LOG_KEY);
-                assertNotNull(errorMessage);
-                assertTrue(errorMessage.contains("ReplyException"));
-
-              });
-          testContext.completeNow();
-        }));
-
-    //then
     assertTrue(testContext.awaitCompletion(5, TimeUnit.SECONDS));
     if (testContext.failed()) {
       throw testContext.causeOfFailure();
@@ -287,7 +344,7 @@ class CircuitBreakerActionTest {
       throws Throwable {
     validateScenario(
         CircuitBreakerDoActions::applyFailure,
-        CircuitBreakerDoActions::applySuccessWithActionLogs,
+        CircuitBreakerDoActions::applySuccess,
         result -> {
           testContext.verify(() -> {
             //then
@@ -318,7 +375,7 @@ class CircuitBreakerActionTest {
   void expectSuccessWhenErrorThenSuccess(VertxTestContext testContext, Vertx vertx)
       throws Throwable {
     validateScenario(CircuitBreakerDoActions::applyErrorTransition,
-        CircuitBreakerDoActions::applySuccessWithActionLogs, result -> {
+        CircuitBreakerDoActions::applySuccess, result -> {
           //then
           testContext.verify(() -> {
             FragmentResult fragmentResult = result.result();
@@ -382,7 +439,7 @@ class CircuitBreakerActionTest {
       throws Throwable {
     validateScenario(
         CircuitBreakerDoActions::applyFailure,
-        CircuitBreakerDoActions.applySuccessDelay(vertx),
+        CircuitBreakerDoActions::applySuccessDelay,
         result -> {
           //then
           testContext.verify(() -> {
@@ -407,7 +464,7 @@ class CircuitBreakerActionTest {
   void expectFallbackWhenTimeoutThenFailure(VertxTestContext testContext, Vertx vertx)
       throws Throwable {
     validateScenario(
-        CircuitBreakerDoActions.applySuccessDelay(vertx),
+        CircuitBreakerDoActions::applySuccessDelay,
         CircuitBreakerDoActions::applyFailure,
         result -> {
           testContext.verify(() -> {
@@ -432,12 +489,12 @@ class CircuitBreakerActionTest {
   }
 
   @Test
-  @DisplayName("Expect fallback transition when both calls time out.")
+  @DisplayName("Expect fallback transition when all calls time out.")
   void expectFallbackWhenTimeouts(VertxTestContext testContext, Vertx vertx)
       throws Throwable {
     validateScenario(
-        CircuitBreakerDoActions.applySuccessDelay(vertx),
-        CircuitBreakerDoActions.applySuccessDelay(vertx),
+        CircuitBreakerDoActions::applySuccessDelay,
+        CircuitBreakerDoActions::applySuccessDelay,
         result -> {
           testContext.verify(() -> {
             //then
@@ -464,8 +521,8 @@ class CircuitBreakerActionTest {
   void expectSuccessWhenTimeoutThenSuccess(VertxTestContext testContext, Vertx vertx)
       throws Throwable {
     validateScenario(
-        CircuitBreakerDoActions.applySuccessDelay(vertx, 800),
-        CircuitBreakerDoActions::applySuccessWithActionLogs,
+        CircuitBreakerDoActions::applySuccessDelay,
+        CircuitBreakerDoActions::applySuccess,
         result -> {
           testContext.verify(() -> {
             //then
@@ -498,11 +555,36 @@ class CircuitBreakerActionTest {
             ActionLog actionLog = new ActionLog(fragmentResult.getNodeLog());
             List<ActionInvocationLog> doActionsLogs = actionLog.getInvocationLogs();
             String invocationCount = actionLog.getLogs().getString(INVOCATION_COUNT_LOG_KEY);
-            assertEquals(0, doActionsLogs.size());
+            assertEquals(2, doActionsLogs.size());
             assertEquals("2", invocationCount);
           });
           testContext.completeNow();
         }, testContext, vertx);
+  }
+
+  private Action newActionInstance(Action action, Vertx vertx) {
+    return new CircuitBreakerActionFactory().create("alias",
+        new CircuitBreakerActionFactoryOptions()
+            .setCircuitBreakerOptions(new CircuitBreakerOptions().setTimeout(TIMEOUT_IN_MS))
+            .toJson(), vertx, action);
+  }
+
+  private Action newInstanceWithRetry(Action action, Vertx vertx) {
+    return new CircuitBreakerActionFactory().create("alias",
+        new CircuitBreakerActionFactoryOptions()
+            .setCircuitBreakerOptions(
+                new CircuitBreakerOptions().setTimeout(TIMEOUT_IN_MS).setMaxRetries(1)).toJson(),
+        vertx,
+        action);
+  }
+
+  private Action newInstanceWithInfo(Action action, Vertx vertx) {
+    return new CircuitBreakerActionFactory().create("alias",
+        new CircuitBreakerActionFactoryOptions()
+            .setCircuitBreakerOptions(new CircuitBreakerOptions().setTimeout(TIMEOUT_IN_MS))
+            .setLogLevel(INFO.getLevel()).toJson(),
+        vertx,
+        action);
   }
 
   private void validateScenario(Action firstInvocationBehaviour, Action secondInvocationBehaviour,
@@ -528,5 +610,37 @@ class CircuitBreakerActionTest {
     if (testContext.failed()) {
       throw testContext.causeOfFailure();
     }
+  }
+
+  private static Stream<Action> provideAllActions() {
+    return Stream.concat(provideSuccessActions(), provideErrorActionsAndTimeout());
+  }
+
+  private static Stream<Action> provideSuccessActions() {
+    return Stream.of(
+        CircuitBreakerDoActions::applySuccess
+    );
+  }
+
+  private static Stream<Action> provideErrorActionsAndTimeout() {
+    return Stream.concat(
+        provideErrorActions(),
+        Stream.of(CircuitBreakerDoActions::applySuccessDelay)
+    );
+  }
+
+  private static Stream<Action> provideErrorActions() {
+    return Stream.concat(
+        provideFailureAndExceptionActions(),
+        Stream
+            .of(CircuitBreakerDoActions::applyException)
+    );
+  }
+
+  private static Stream<Action> provideFailureAndExceptionActions() {
+    return Stream.of(
+        CircuitBreakerDoActions::applyFailure,
+        CircuitBreakerDoActions::applyException
+    );
   }
 }

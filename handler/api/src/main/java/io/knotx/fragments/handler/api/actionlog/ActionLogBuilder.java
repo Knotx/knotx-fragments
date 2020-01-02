@@ -24,32 +24,33 @@ import java.util.ArrayList;
 import java.util.stream.Stream;
 
 class ActionLogBuilder {
+
   private String alias;
   private JsonObject logs;
   private ArrayList<ActionInvocationLog> doActionLogs;
 
-  ActionLogBuilder(String alias){
+  ActionLogBuilder(String alias) {
     this.alias = alias;
     this.logs = new JsonObject();
     this.doActionLogs = new ArrayList<>();
   }
 
-  ActionLogBuilder appendInvocationLogEntry(long duration, ActionLog actionLog){
+  ActionLogBuilder appendInvocationLogEntry(long duration, ActionLog actionLog) {
     doActionLogs.add(success(duration, actionLog));
     return this;
   }
 
-  ActionLogBuilder appendFailureInvocationLogEntry(long duration, ActionLog actionLog){
-    doActionLogs.add(error(duration,  actionLog));
+  ActionLogBuilder appendFailureInvocationLogEntry(long duration, ActionLog actionLog) {
+    doActionLogs.add(error(duration, actionLog));
     return this;
   }
 
-  ActionLogBuilder addLog(String key, String value){
+  ActionLogBuilder addLog(String key, String value) {
     logs.put(key, value);
     return this;
   }
 
-  ActionLogBuilder addLog(String key, JsonObject value){
+  ActionLogBuilder addLog(String key, JsonObject value) {
     logs.put(key, value);
     return this;
   }
@@ -59,7 +60,7 @@ class ActionLogBuilder {
     return this;
   }
 
-  ActionLog build(){
+  ActionLog build() {
     Stream.of(doActionLogs.toArray());
     return new ActionLog(alias, logs, doActionLogs);
   }

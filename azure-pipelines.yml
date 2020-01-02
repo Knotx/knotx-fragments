@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
 trigger:
   - master
 
@@ -21,7 +20,6 @@ pool:
 
 variables:
   workspaceDir: knotx-repos
-  targetRepository: knotx-fragments
 
 steps:
   - script: |
@@ -38,6 +36,11 @@ steps:
           ./pull-all.sh -r ../../$(workspaceDir) -b $(System.PullRequest.SourceBranch) -a
         fi
     displayName: "Clone all repositories"
+  - task: Maven@3
+    inputs:
+      mavenPomFile: '$(workspaceDir)/knotx-dependencies/pom.xml'
+      goals: 'install'
+    displayName: "Build Dependencies"
   - task: Gradle@2
     inputs:
       gradleWrapperFile: '$(workspaceDir)/knotx-stack/gradlew'
@@ -68,6 +71,9 @@ steps:
       tasks: 'build-docker'
     displayName: "Build Starter Kit: Docker"
   - script: |
-      $(workspaceDir)/$(targetRepository)/gradlew -p $(workspaceDir)/$(targetRepository) clean test jacocoTestReport
-      bash <(curl -s https://codecov.io/bash) -s $(workspaceDir)/$(targetRepository) -t $(CODECOV_TOKEN)
+      REPO=$(cut -d'/' -f2 <<<$(Build.Repository.Name))
+      if [[ -f "$(workspaceDir)/$REPO/gradlew" ]]; then
+        $(workspaceDir)/$REPO/gradlew -p $(workspaceDir)/$REPO clean test jacocoTestReport
+        bash <(curl -s https://codecov.io/bash) -s $(workspaceDir)/$REPO -t $(CODECOV_TOKEN)
+      fi
     displayName: "Run Codecov inspection"

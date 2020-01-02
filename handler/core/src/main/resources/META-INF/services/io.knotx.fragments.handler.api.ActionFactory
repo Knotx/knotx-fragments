@@ -13,7 +13,7 @@
 #  limitations under the License.
 
 # behaviours
-io.knotx.fragments.handler.action.CircuitBreakerActionFactory
+io.knotx.fragments.handler.action.cb.CircuitBreakerActionFactory
 io.knotx.fragments.handler.action.InMemoryCacheActionFactory
 
 # pre-defined actions

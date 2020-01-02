@@ -20,7 +20,6 @@ import static io.knotx.fragments.handler.api.actionlog.ActionLogLevel.INFO;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import java.time.Instant;
-import java.util.Optional;
 import java.util.function.Function;
 
 public class ActionLogger {
@@ -74,15 +73,17 @@ public class ActionLogger {
   }
 
   public void doActionLog(long duration, JsonObject actionLog) {
-    this.builder.appendInvocationLogEntry(duration, toActionLog(actionLog));
+    if (actionLogLevel == INFO) {
+      this.builder.appendInvocationLogEntry(duration, toActionLogOrNull(actionLog));
+    }
   }
 
-  private ActionLog toActionLog(JsonObject jsonObject) {
-    return Optional.ofNullable(jsonObject).map(ActionLog::new).orElse(null);
+  private ActionLog toActionLogOrNull(JsonObject jsonObject) {
+    return jsonObject != null ? new ActionLog(jsonObject) : null;
   }
 
   public void failureDoActionLog(long duration, JsonObject actionLog) {
-    this.builder.appendFailureInvocationLogEntry(duration, toActionLog(actionLog));
+    this.builder.appendFailureInvocationLogEntry(duration, toActionLogOrNull(actionLog));
   }
 
   public void error(String key, JsonObject data) {

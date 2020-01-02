@@ -452,9 +452,9 @@ config {
 doAction = product
 ```
 The `doAction` attribute specifies a wrapped simple action by its name. When `doAction` throws an 
-error or times out then the custom `fallback` transition is returned.
+error or times out then the custom `_fallback` transition is returned.
 
-| Invocation            | Retry                  | Result (Transition, Log) |
+| #1 `doAction` result  | Retry `doAction` result | CB result (Transition, Log)  |
 | :-------------------: |:----------------------:|:-------------------------|
 | transition: `_success`| -                      |  `_success`, [s]         |
 | transition: `_error`  | transition: `_success` | `_success`, [e,s]        |
@@ -469,6 +469,7 @@ Labels:
 - please note that `doAction` is not interrupted by a circuit breaker
 - Failure - `doAction` fails, means that `doAction` calls `failed` method on result handler
 - Exception - `doAction` throws an exception
+- `s` - success, `e` - error, `t` - timeout
 
 #### Circuit Breaker Action Log
 
