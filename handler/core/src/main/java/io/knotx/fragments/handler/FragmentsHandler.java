@@ -24,6 +24,8 @@ import io.knotx.fragments.engine.FragmentEventContext;
 import io.knotx.fragments.engine.FragmentEventContextTaskAware;
 import io.knotx.fragments.engine.FragmentsEngine;
 import io.knotx.fragments.engine.Task;
+import io.knotx.fragments.handler.consumer.FragmentEventsConsumer;
+import io.knotx.fragments.handler.consumer.FragmentEventsConsumerProvider;
 import io.knotx.server.api.context.ClientRequest;
 import io.knotx.server.api.context.RequestContext;
 import io.knotx.server.api.context.RequestEvent;
@@ -49,12 +51,14 @@ public class FragmentsHandler implements Handler<RoutingContext> {
 
   private final FragmentsEngine engine;
   private final TaskProvider taskProvider;
+  private final FragmentEventsConsumerProvider fragmentEventsConsumerProvider;
 
   FragmentsHandler(Vertx vertx, JsonObject options) {
     FragmentsHandlerOptions handlerOptions = new FragmentsHandlerOptions(options);
     taskProvider = new TaskProvider(handlerOptions.getTaskFactories(), vertx);
     engine = new FragmentsEngine(vertx);
     requestContextEngine = new DefaultRequestContextEngine(getClass().getSimpleName());
+    fragmentEventsConsumerProvider = new FragmentEventsConsumerProvider();
   }
 
   @Override
@@ -66,6 +70,7 @@ public class FragmentsHandler implements Handler<RoutingContext> {
     Single<List<FragmentEvent>> doHandle = doHandle(fragments, clientRequest);
     doHandle
         .doOnSuccess(events -> putFragments(routingContext, events))
+        .doOnSuccess(events -> addAdditionalDataToFragments(clientRequest, events))
         .map(events -> toHandlerResult(events, requestContext))
         .subscribe(
             result -> requestContextEngine
@@ -79,6 +84,15 @@ public class FragmentsHandler implements Handler<RoutingContext> {
     return Single.just(fragments)
         .map(f -> toEvents(f, clientRequest))
         .flatMap(engine::execute);
+  }
+
+  private void addAdditionalDataToFragments(ClientRequest clientRequest, List<FragmentEvent> fragmentEvents){
+    List<FragmentEventsConsumer> consumers = fragmentEventsConsumerProvider.provide(getConsumers(clientRequest));
+    consumers.forEach(consumer -> consumer.accept(fragmentEvents));
+  }
+
+  private List<String> getConsumers(ClientRequest clientRequest) {
+    return clientRequest.getParams().getAll("consumers");
   }
 
   private void putFragments(RoutingContext routingContext, List<FragmentEvent> events) {

@@ -1,0 +1,20 @@
+
+#knotx-debug-template {
+  position: absolute;
+  width: 100%;
+  bottom: 0;
+  background: #eee;
+  border-top: 1px dotted black;
+  height: 25%;
+  padding: 20px;
+  overflow: auto;
+}
+
+#knotx-debug-template h3, h5 {
+  text-align: center;
+}
+
+#knotx-debug-template #knotx-fragment-body, #knotx-debug-template #knotx-fragment-payload, #knotx-debug-template #knotx-fragment-logs {
+  width: 33%;
+  float: left;
+}

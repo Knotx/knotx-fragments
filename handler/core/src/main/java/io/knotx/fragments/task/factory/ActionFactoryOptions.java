@@ -39,7 +39,8 @@ public class ActionFactoryOptions {
   }
 
   ActionFactoryOptions(String factory, JsonObject config, String doAction) {
-    ActionFactoryOptions actionFactoryOptions = new ActionFactoryOptions().setFactory(factory).setConfig(config)
+    ActionFactoryOptions actionFactoryOptions = new ActionFactoryOptions().setFactory(factory)
+        .setConfig(config)
         .setDoAction(doAction);
 
     JsonObject json = new JsonObject();
