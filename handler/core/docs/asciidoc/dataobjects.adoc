@@ -110,6 +110,22 @@ The dictionary that maps a task name to a directed acyclic graph (DAG) of nodes.
 +++
 |===
 
+[[FactoryOptions]]
+== FactoryOptions
+
+
+[cols=">25%,25%,50%"]
+[frame="topbot"]
+|===
+^|Name | Type ^| Description
+|[[config]]`@config`|`Json object`|+++
+The JSON object that contains factory configuration entries.
++++
+|[[factory]]`@factory`|`String`|+++
+The factory name.
++++
+|===
+
 [[FragmentsHandlerOptions]]
 == FragmentsHandlerOptions
 
@@ -122,9 +138,12 @@ The dictionary that maps a task name to a directed acyclic graph (DAG) of nodes.
 [frame="topbot"]
 |===
 ^|Name | Type ^| Description
-|[[taskFactories]]`@taskFactories`|`Array of link:dataobjects.html#TaskFactoryOptions[TaskFactoryOptions]`|+++
-The array/list of task factory options defines factories taking part in the creation of tasks. First
- items on the list have the highest priority.
+|[[consumerFactories]]`@consumerFactories`|`Array of link:dataobjects.html#FactoryOptions[FactoryOptions]`|+++
+The array/list of consumer factory options.
++++
+|[[taskFactories]]`@taskFactories`|`Array of link:dataobjects.html#FactoryOptions[FactoryOptions]`|+++
+The array/list of task factory options defines factories taking part in the creation of tasks.
+ First items on the list have the highest priority.
 +++
 |===
 

@@ -12,16 +12,14 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * The code comes from https://github.com/tomaszmichalak/vertx-rx-map-reduce.
  */
 package io.knotx.fragments.handler;
 
 import io.knotx.fragments.engine.FragmentEventContext;
 import io.knotx.fragments.engine.Task;
 import io.knotx.fragments.handler.exception.TaskFactoryNotFoundException;
+import io.knotx.fragments.spi.FactoryOptions;
 import io.knotx.fragments.task.TaskFactory;
-import io.knotx.fragments.task.TaskFactoryOptions;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
@@ -40,7 +38,7 @@ class TaskProvider {
   private List<TaskFactory> factories;
   private final Vertx vertx;
 
-  TaskProvider(List<TaskFactoryOptions> factoryOptions, Vertx vertx) {
+  TaskProvider(List<FactoryOptions> factoryOptions, Vertx vertx) {
     this.vertx = vertx;
     factories = initFactories(factoryOptions);
   }
@@ -57,7 +55,7 @@ class TaskProvider {
         .map(f -> f.newInstance(eventContext));
   }
 
-  private List<TaskFactory> initFactories(List<TaskFactoryOptions> optionsList) {
+  private List<TaskFactory> initFactories(List<FactoryOptions> optionsList) {
     Map<String, TaskFactory> loadedFactories = loadFactories();
 
     List<TaskFactory> result = new ArrayList<>();

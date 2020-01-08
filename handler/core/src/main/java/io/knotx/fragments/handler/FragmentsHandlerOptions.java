@@ -15,11 +15,11 @@
  */
 package io.knotx.fragments.handler;
 
-import io.knotx.fragments.task.TaskFactoryOptions;
+import io.knotx.fragments.spi.FactoryOptions;
 import io.vertx.codegen.annotations.DataObject;
 import io.vertx.core.json.JsonObject;
+import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 
 /**
  * Fragments Handler options model.
@@ -27,7 +27,9 @@ import java.util.Objects;
 @DataObject(generateConverter = true)
 public class FragmentsHandlerOptions {
 
-  private List<TaskFactoryOptions> taskFactories;
+  private List<FactoryOptions> taskFactories = Collections.emptyList();
+
+  private List<FactoryOptions> consumerFactories = Collections.emptyList();
 
   public FragmentsHandlerOptions(JsonObject json) {
     FragmentsHandlerOptionsConverter.fromJson(json, this);
@@ -39,41 +41,39 @@ public class FragmentsHandlerOptions {
     return jsonObject;
   }
 
-  public List<TaskFactoryOptions> getTaskFactories() {
+  public List<FactoryOptions> getTaskFactories() {
     return taskFactories;
   }
 
   /**
-   * The array/list of task factory options defines factories taking part in the creation of tasks. First
-   * items on the list have the highest priority.
+   * The array/list of task factory options defines factories taking part in the creation of tasks.
+   * First items on the list have the highest priority.
    *
    * @param taskFactories - a list of task factory options
+   * @return reference to this, so the API can be used fluently
    */
-  public void setTaskFactories(List<TaskFactoryOptions> taskFactories) {
+  public FragmentsHandlerOptions setTaskFactories(List<FactoryOptions> taskFactories) {
     this.taskFactories = taskFactories;
+    return this;
   }
 
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (o == null || getClass() != o.getClass()) {
-      return false;
-    }
-    FragmentsHandlerOptions that = (FragmentsHandlerOptions) o;
-    return Objects.equals(taskFactories, that.taskFactories);
+  public List<FactoryOptions> getConsumerFactories() {
+    return consumerFactories;
   }
 
-  @Override
-  public int hashCode() {
-    return Objects.hash(taskFactories);
+  /**
+   * The array/list of consumer factory options.
+   *
+   * @param consumerFactories - a list of factory options
+   * @return reference to this, so the API can be used fluently
+   */
+  public FragmentsHandlerOptions setConsumerFactories(List<FactoryOptions> consumerFactories) {
+    this.consumerFactories = consumerFactories;
+    return this;
   }
 
   @Override
   public String toString() {
-    return "FragmentsHandlerOptions{" +
-        "taskFactories=" + taskFactories +
-        '}';
+    return "FragmentsHandlerOptions [" + toJson() + ']';
   }
 }

@@ -15,7 +15,25 @@
  */
 package io.knotx.fragments.handler.consumer;
 
+import io.vertx.core.json.JsonObject;
+
+/**
+ * The {@link FragmentEventsConsumer} factory interface that enables dynamic implementation binding
+ * using SPI. {@link FragmentEventsConsumerProvider} loads all factory implementations.
+ */
 public interface FragmentEventsConsumerFactory {
+
+  /**
+   * @return factory name
+   */
   String getName();
-  FragmentEventsConsumer create();
+
+  /**
+   * Creates a {@link FragmentEventsConsumer} instance.
+   *
+   * @param config - factory JSON configuration
+   * @return a fragment event consumer
+   */
+  FragmentEventsConsumer create(JsonObject config);
+
 }
