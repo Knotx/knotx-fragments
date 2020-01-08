@@ -17,33 +17,37 @@ package io.knotx.fragments.handler.consumer;
 
 import static java.util.stream.Collectors.toList;
 
+import io.knotx.fragments.ConfigurationException;
+import io.knotx.fragments.spi.FactoryOptions;
+import io.vertx.core.logging.Logger;
+import io.vertx.core.logging.LoggerFactory;
 import java.util.List;
 import java.util.ServiceLoader;
 import java.util.stream.StreamSupport;
 
 public class FragmentEventsConsumerProvider {
 
-  private final List<FragmentEventsConsumerFactory> factories;
+  private static final Logger LOGGER = LoggerFactory
+      .getLogger(FragmentEventsConsumerProvider.class);
 
-  public FragmentEventsConsumerProvider() {
-    this.factories = StreamSupport.stream(loadFactories().spliterator(), false)
+  private final List<FragmentEventsConsumer> consumers;
+
+  public FragmentEventsConsumerProvider(List<FactoryOptions> options) {
+    ServiceLoader<FragmentEventsConsumerFactory> loader = ServiceLoader
+        .load(FragmentEventsConsumerFactory.class);
+    this.consumers = options.stream()
+        .map(o -> StreamSupport.stream(loader.spliterator(), false)
+            .filter(f -> f.getName().equals(o.getFactory()))
+            .peek(f -> LOGGER.info("Registering fragment event consumer [{}]", f.getName()))
+            .map(f -> f.create(o.getConfig()))
+            .findFirst()
+            .orElseThrow(() -> new ConfigurationException(
+                "Consumer factory [" + o.getFactory() + "] not configured!")))
         .collect(toList());
   }
 
-  public List<FragmentEventsConsumer> provide(List<String> names){
-    return factories.stream()
-        .filter(factory -> hasName(factory, names))
-        .map(FragmentEventsConsumerFactory::create)
-        .collect(toList());
-  }
-
-  private Iterable<FragmentEventsConsumerFactory> loadFactories() {
-    return () -> ServiceLoader.load(FragmentEventsConsumerFactory.class).iterator();
-  }
-
-
-  private boolean hasName(FragmentEventsConsumerFactory factory, List<String> names){
-    return names.stream().anyMatch((name -> name.equals(factory.getName())));
+  public List<FragmentEventsConsumer> provide() {
+    return consumers;
   }
 
 }

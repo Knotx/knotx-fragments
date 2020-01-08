@@ -20,6 +20,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import io.knotx.fragments.ConfigurationException;
 import io.knotx.fragments.api.Fragment;
 import io.knotx.fragments.engine.FragmentEvent;
 import io.knotx.fragments.engine.FragmentEventContext;
@@ -27,7 +28,6 @@ import io.knotx.fragments.engine.Task;
 import io.knotx.fragments.engine.graph.CompositeNode;
 import io.knotx.fragments.engine.graph.Node;
 import io.knotx.fragments.engine.graph.SingleNode;
-import io.knotx.fragments.task.exception.TaskNotFoundException;
 import io.knotx.fragments.task.factory.node.NodeFactoryOptions;
 import io.knotx.fragments.task.factory.node.action.ActionNodeFactory;
 import io.knotx.fragments.task.factory.node.action.ActionNodeFactoryConfig;
@@ -150,7 +150,7 @@ class DefaultTaskFactoryTest {
 
     // when
     Assertions.assertThrows(
-        TaskNotFoundException.class,
+        ConfigurationException.class,
         () -> new DefaultTaskFactory()
             .configure(createTaskFactoryConfig(graph, actionNodeConfig).toJson(), vertx)
             .newInstance(fragmentWithNoTask));

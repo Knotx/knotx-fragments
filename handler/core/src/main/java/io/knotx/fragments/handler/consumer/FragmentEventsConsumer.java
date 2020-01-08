@@ -15,10 +15,23 @@
  */
 package io.knotx.fragments.handler.consumer;
 
+import io.knotx.server.api.context.ClientRequest;
 import java.util.List;
-import java.util.function.Consumer;
 
 import io.knotx.fragments.engine.FragmentEvent;
 
-public interface FragmentEventsConsumer extends Consumer<List<FragmentEvent>> {
+/**
+ * Fragment event consumer receives {@link FragmentEvent} when {@link io.knotx.fragments.engine.Task}
+ * evaluation ends. It can share this information with some external tools or even modify fragment.
+ */
+public interface FragmentEventsConsumer {
+
+  /**
+   * Gets a list of processed and unprocessed fragments.
+   *
+   * @param clientRequest - client request
+   * @param fragmentEvents - all fragment events
+   */
+  void accept(ClientRequest clientRequest, List<FragmentEvent> fragmentEvents);
+
 }
