@@ -76,6 +76,12 @@ public class ActionLogger {
     this.builder.addLog(key, value);
   }
 
+  public void error(Throwable throwable) {
+    this.builder.addLog("_error",
+        new JsonObject().put("className", throwable.getClass().getCanonicalName())
+            .put("message", throwable.getMessage()));
+  }
+
   public void error(String data) {
     this.builder.addLog(String.valueOf(Instant.now().toEpochMilli()), data);
   }
