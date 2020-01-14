@@ -30,7 +30,7 @@ class InMemoryCacheActionFactoryLoggingTest {
   private static final String LOGS_KEY = "logs";
 
   private static final JsonObject ACTION_CONFIG = new JsonObject().put("payloadKey", PAYLOAD_KEY)
-      .put("cacheKey", EXAMPLE_CACHE_KEY);
+      .put("cacheKey", EXAMPLE_CACHE_KEY).put("logLevel", "info");
 
   private Fragment firstFragment;
   private Fragment secondFragment;
