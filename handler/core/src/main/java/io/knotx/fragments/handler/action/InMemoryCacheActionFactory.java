@@ -30,6 +30,8 @@ import io.knotx.fragments.handler.helper.TimeCalculator;
 import io.knotx.server.api.context.ClientRequest;
 import io.knotx.server.common.placeholders.PlaceholdersResolver;
 import io.knotx.server.common.placeholders.SourceDefinitions;
+import io.reactivex.Maybe;
+import io.reactivex.Single;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
@@ -51,6 +53,7 @@ import org.apache.commons.lang3.StringUtils;
  *       }
  *       cacheKey = product-{param.id}
  *       payloadKey = product
+ *       logLevel = info
  *     }
  *   }
  * </pre>
@@ -63,6 +66,8 @@ public class InMemoryCacheActionFactory implements ActionFactory {
   public static final String CACHE_HIT = "CACHE_HIT";
   public static final String CACHE_PASS = "CACHE_PASS";
   public static final String TRANSITION = "TRANSITION";
+
+  private static final String LOG_LEVEL_KEY = "logLevel";
 
   private static final long DEFAULT_MAXIMUM_SIZE = 1000;
   private static final long DEFAULT_TTL = 5000;
@@ -79,58 +84,85 @@ public class InMemoryCacheActionFactory implements ActionFactory {
     return new Action() {
       private Cache<String, Object> cache = createCache(config);
       private String payloadKey = getPayloadKey(config);
+      private String logLevel = getActionLogLevel(config);
 
       @Override
       public void apply(FragmentContext fragmentContext,
           Handler<AsyncResult<FragmentResult>> resultHandler) {
-
+        ActionLogger actionLogger = ActionLogger.create(alias, logLevel);
         String cacheKey = getCacheKey(config, fragmentContext.getClientRequest());
 
-        ActionLogger actionLogger = ActionLogger.create(alias, ActionLogLevel.INFO);
-        logCacheLookup(actionLogger, cacheKey);
+        getFromCache(fragmentContext, cacheKey, actionLogger)
+            .switchIfEmpty(callDoActionAndCache(fragmentContext, cacheKey, actionLogger))
+            .map(Future::succeededFuture)
+            .onErrorReturn(Future::failedFuture)
+            .doOnSuccess(future -> future.setHandler(resultHandler))
+            .subscribe();
+      }
 
-        Object cachedValue = cache.getIfPresent(cacheKey);
+      private Maybe<FragmentResult> getFromCache(FragmentContext fragmentContext, String cacheKey,
+          ActionLogger actionLogger) {
+        return Maybe.just(cacheKey)
+            .doOnSuccess(key -> logCacheLookup(actionLogger, key))
+            .flatMap(this::findInCache)
+            .doOnSuccess(cachedValue -> logCacheHit(actionLogger, cachedValue))
+            .map(cachedValue -> fragmentContext.getFragment()
+                .appendPayload(payloadKey, cachedValue))
+            .map(fragment -> toResultWithLog(actionLogger, fragment));
+      }
+
+      private Maybe<Object> findInCache(String key) {
+        Object cachedValue = cache.getIfPresent(key);
         if (cachedValue == null) {
-          callDoActionAndCache(fragmentContext, resultHandler, cacheKey, actionLogger);
+          return Maybe.empty();
         } else {
-          logCacheHit(actionLogger, cachedValue);
-          Fragment fragment = fragmentContext.getFragment();
-          fragment.appendPayload(payloadKey, cachedValue);
-          FragmentResult result = new FragmentResult(fragment, FragmentResult.SUCCESS_TRANSITION,
-              actionLogger.toLog().toJson());
-          Future.succeededFuture(result)
-              .setHandler(resultHandler);
+          return Maybe.just(cachedValue);
         }
       }
 
-      private void callDoActionAndCache(FragmentContext fragmentContext,
-          Handler<AsyncResult<FragmentResult>> resultHandler, String cacheKey,
+      private Single<FragmentResult> callDoActionAndCache(FragmentContext fragmentContext,
+          String cacheKey,
           ActionLogger actionLogger) {
         long startTime = Instant.now().toEpochMilli();
-        doAction.apply(fragmentContext, asyncResult -> {
-          if (asyncResult.succeeded()) {
-            FragmentResult fragmentResult = asyncResult.result();
-            actionLogger
-                .doActionLog(TimeCalculator.executionTime(startTime), fragmentResult.getNodeLog());
-            if (FragmentResult.SUCCESS_TRANSITION.equals(fragmentResult.getTransition())
-                && fragmentResult.getFragment()
-                .getPayload()
-                .containsKey(payloadKey)) {
-              Object resultPayload = fragmentResult.getFragment()
-                  .getPayload().getMap().get(payloadKey);
-              logCacheMiss(actionLogger, resultPayload);
-              cache.put(cacheKey, resultPayload);
-            } else {
-              logCachePass(actionLogger, fragmentResult);
-            }
-            Future.succeededFuture(
-                new FragmentResult(fragmentResult.getFragment(), fragmentResult.getTransition(),
-                    actionLogger.toLog().toJson()))
-                .setHandler(resultHandler);
-          } else {
-            Future.<FragmentResult>failedFuture(asyncResult.cause()).setHandler(resultHandler);
-          }
-        });
+        return io.knotx.fragments.handler.reactivex.api.Action.newInstance(doAction)
+            .rxApply(fragmentContext)
+            .doOnSuccess(fr -> logDoAction(actionLogger, startTime, fr))
+            .doOnSuccess(fr -> savePayloadToCache(actionLogger, cacheKey, fr))
+            .map(fr -> toResultWithLog(actionLogger, fr));
+      }
+
+      private void savePayloadToCache(ActionLogger actionLogger, String cacheKey,
+          FragmentResult fragmentResult) {
+        if (isCacheable(fragmentResult)) {
+          Object resultPayload = getAppendedPayload(fragmentResult);
+          cache.put(cacheKey, resultPayload);
+          logCacheMiss(actionLogger, resultPayload);
+        } else {
+          logCachePass(actionLogger, fragmentResult);
+        }
+      }
+
+      private boolean isCacheable(FragmentResult fragmentResult) {
+        return FragmentResult.SUCCESS_TRANSITION.equals(fragmentResult.getTransition())
+            && fragmentResult.getFragment()
+            .getPayload()
+            .containsKey(payloadKey);
+      }
+
+      private Object getAppendedPayload(FragmentResult fragmentResult) {
+        return fragmentResult.getFragment()
+            .getPayload().getMap().get(payloadKey);
+      }
+
+      private FragmentResult toResultWithLog(ActionLogger actionLogger, Fragment fragment) {
+        return new FragmentResult(fragment, FragmentResult.SUCCESS_TRANSITION,
+            actionLogger.toLog().toJson());
+      }
+
+      private FragmentResult toResultWithLog(ActionLogger actionLogger,
+          FragmentResult fragmentResult) {
+        return new FragmentResult(fragmentResult.getFragment(), fragmentResult.getTransition(),
+            actionLogger.toLog().toJson());
       }
     };
   }
@@ -167,6 +199,16 @@ public class InMemoryCacheActionFactory implements ActionFactory {
         .maximumSize(maxSize)
         .expireAfterWrite(ttl, TimeUnit.MILLISECONDS)
         .build();
+  }
+
+  private static String getActionLogLevel(JsonObject config) {
+    return config.containsKey(LOG_LEVEL_KEY) ? config.getString(LOG_LEVEL_KEY)
+        : ActionLogLevel.ERROR.getLevel();
+  }
+
+  private static void logDoAction(ActionLogger actionLogger, long startTime,
+      FragmentResult fragmentResult) {
+    actionLogger.doActionLog(TimeCalculator.executionTime(startTime), fragmentResult.getNodeLog());
   }
 
   private static void logCacheLookup(ActionLogger actionLogger, String cacheKey) {
