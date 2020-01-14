@@ -18,9 +18,14 @@ package io.knotx.fragments.handler.action;
 import io.knotx.fragments.handler.api.Action;
 import io.knotx.fragments.handler.api.ActionFactory;
 import io.knotx.fragments.handler.api.Cacheable;
+import io.knotx.fragments.handler.api.actionlog.ActionLogLevel;
+import io.knotx.fragments.handler.api.actionlog.ActionLogger;
+import io.knotx.fragments.handler.api.domain.FragmentContext;
 import io.knotx.fragments.handler.api.domain.FragmentResult;
 import io.knotx.fragments.task.factory.node.subtasks.SubtasksNodeFactory;
+import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
+import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
 
@@ -34,12 +39,17 @@ import io.vertx.core.json.JsonObject;
  *     }
  *   }
  * </pre>
- * WARNING: This action modifies Fragment body so it should not be used in subtasks nodes
- * {@link SubtasksNodeFactory}.
+ * WARNING: This action modifies Fragment body so it should not be used in subtasks nodes {@link
+ * SubtasksNodeFactory}.
  */
 @Cacheable
 public class InlineBodyActionFactory implements ActionFactory {
 
+  public static final String SUBSTITUTION_KEY = "substitution";
+  public static final String ORIGINAL_BODY_KEY = "originalBody";
+  public static final String BODY_KEY = "body";
+
+  private static final String LOG_LEVEL_KEY = "logLevel";
   private static final String DEFAULT_EMPTY_BODY = "";
 
   @Override
@@ -61,12 +71,40 @@ public class InlineBodyActionFactory implements ActionFactory {
       throw new IllegalArgumentException("Inline body action does not support doAction");
     }
     return (fragmentContext, resultHandler) -> {
-      fragmentContext.getFragment()
-          .setBody(config.getString("body", DEFAULT_EMPTY_BODY));
-      Future<FragmentResult> resultFuture = Future.succeededFuture(
-          new FragmentResult(fragmentContext.getFragment(), FragmentResult.SUCCESS_TRANSITION));
-      resultFuture.setHandler(resultHandler);
+      ActionLogger actionLogger = createLogger(alias, config);
+      substituteBodyInFragment(fragmentContext, config, actionLogger);
+      successTransition(fragmentContext, actionLogger, resultHandler);
     };
+  }
+
+  private ActionLogger createLogger(String alias, JsonObject config) {
+    String logLevel = config.containsKey(LOG_LEVEL_KEY) ? config.getString(LOG_LEVEL_KEY)
+        : ActionLogLevel.ERROR.getLevel();
+    return ActionLogger.create(alias, logLevel);
+  }
+
+  private void substituteBodyInFragment(FragmentContext fragmentContext, JsonObject config,
+      ActionLogger actionLogger) {
+    String originalBody = fragmentContext.getFragment().getBody();
+    String newBody = config.getString("body", DEFAULT_EMPTY_BODY);
+    fragmentContext.getFragment()
+        .setBody(newBody);
+    logSubstitution(actionLogger, originalBody, newBody);
+  }
+
+  private void logSubstitution(ActionLogger actionLogger, String originalBody, String newBody) {
+    actionLogger.info(SUBSTITUTION_KEY, new JsonObject()
+        .put(ORIGINAL_BODY_KEY, originalBody)
+        .put(BODY_KEY, newBody)
+    );
+  }
+
+  private void successTransition(FragmentContext fragmentContext, ActionLogger actionLogger,
+      Handler<AsyncResult<FragmentResult>> resultHandler) {
+    Future<FragmentResult> resultFuture = Future.succeededFuture(
+        new FragmentResult(fragmentContext.getFragment(), FragmentResult.SUCCESS_TRANSITION,
+            actionLogger.toLog().toJson()));
+    resultFuture.setHandler(resultHandler);
   }
 
 }
