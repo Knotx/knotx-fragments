@@ -513,9 +513,39 @@ config {
   }
   cacheKey = "product-{param.id}"
   payloadKey = product
+  logLevel = error
 }
 doAction = product-cb
 ```
 Please note that cacheKey can be parametrized with request data like params, headers etc. Read 
 [Knot.x HTTP Server Common Placeholders](https://github.com/Knotx/knotx-server-http/tree/master/common/placeholders)
 documentation for more details.
+
+#### In-Memory Cache Action Log
+
+In-Memory Cache logs activities when `logLevel` option is set to `info`.
+
+In-Memory Cache logs the following fields:
+
+ - `cache_lookup` - the computed key that was looked up in the cache
+ - `cache_hit` - the cached value if the key was present in cache
+ - `cache_miss` - the value computed by doAction if the key was not present in the cache and the doAction ended with successful transition and desired payload
+ - `cache_pass` - the JsonObject with field `transition` returned by `doAction` if the key was not present in the cache, but `doAction` did not end with a cacheable result or returned transition different than `SUCCESS`
+
+In-Memory Cache log includes logs produced by the `doAction`. Each 
+`invocation log` has entries:
+
+ - `duration` - how long takes execution of action - in milisecond
+ - `succuess` - execution ends up with success - ()
+ - `actionLog` - Wrapped action log
+ 
+Please note that not every call can be visible in `invocation log` entry.  
+
+
+| Result                 | Invocation log  |
+| :--------------------: |:-----|
+| transition: `_success` |  Yes |
+| transition: `_error`   |  Yes |
+| TIMEOUT                |  No  |
+| Failure                |  No  |
+| Exception              |  No  |
