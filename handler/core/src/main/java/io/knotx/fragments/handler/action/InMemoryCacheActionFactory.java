@@ -53,7 +53,7 @@ import org.apache.commons.lang3.StringUtils;
  *       }
  *       cacheKey = product-{param.id}
  *       payloadKey = product
- *       logLevel = info
+ *       logLevel = error
  *     }
  *   }
  * </pre>
@@ -61,12 +61,11 @@ import org.apache.commons.lang3.StringUtils;
 @Cacheable
 public class InMemoryCacheActionFactory implements ActionFactory {
 
-  public static final String CACHE_LOOKUP = "CACHE_LOOKUP";
-  public static final String CACHE_MISS = "CACHE_MISS";
-  public static final String CACHE_HIT = "CACHE_HIT";
-  public static final String CACHE_PASS = "CACHE_PASS";
-  public static final String TRANSITION = "TRANSITION";
-
+  private static final String CACHE_LOOKUP_KEY = "cache_lookup";
+  private static final String CACHE_MISS_KEY = "cache_miss";
+  private static final String CACHE_HIT_KEY = "cache_hit";
+  private static final String CACHE_PASS_KEY = "cache_pass";
+  private static final String TRANSITION_KEY = "transition";
   private static final String LOG_LEVEL_KEY = "logLevel";
 
   private static final long DEFAULT_MAXIMUM_SIZE = 1000;
@@ -212,19 +211,19 @@ public class InMemoryCacheActionFactory implements ActionFactory {
   }
 
   private static void logCacheLookup(ActionLogger actionLogger, String cacheKey) {
-    actionLogger.info(CACHE_LOOKUP, cacheKey);
+    actionLogger.info(CACHE_LOOKUP_KEY, cacheKey);
   }
 
   private static void logCacheHit(ActionLogger actionLogger, Object cachedValue) {
-    actionLogger.info(CACHE_HIT, cachedValue);
+    actionLogger.info(CACHE_HIT_KEY, cachedValue);
   }
 
   private static void logCacheMiss(ActionLogger actionLogger, Object computedValue) {
-    actionLogger.info(CACHE_MISS, computedValue);
+    actionLogger.info(CACHE_MISS_KEY, computedValue);
   }
 
   private static void logCachePass(ActionLogger actionLogger, FragmentResult failedResult) {
-    actionLogger.info(CACHE_PASS,
-        new JsonObject().put(TRANSITION, failedResult.getTransition()));
+    actionLogger.info(CACHE_PASS_KEY,
+        new JsonObject().put(TRANSITION_KEY, failedResult.getTransition()));
   }
 }
