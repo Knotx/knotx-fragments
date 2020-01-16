@@ -23,20 +23,20 @@ import io.knotx.fragments.handler.api.actionlog.ActionLogLevel;
 import io.knotx.fragments.handler.api.actionlog.ActionLogger;
 import io.knotx.fragments.handler.api.domain.FragmentContext;
 import io.knotx.fragments.handler.api.domain.FragmentResult;
+import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
+import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
 
 @Cacheable
 public class InlinePayloadActionFactory implements ActionFactory {
 
-  private static final String LOG_LEVEL_KEY = "logLevel";
   private static final String ALIAS_KEY = "alias";
   private static final String PAYLOAD_KEY = "payload";
 
-  public static final String INLINE_LOG_KEY = "inline";
-  public static final String KEY_LOG_KEY = "key";
-  public static final String PAYLOAD_LOG_KEY = "payload";
+  private static final String KEY_LOG_KEY = "key";
+  private static final String VALUE_LOG_KEY = "value";
 
   @Override
   public String getName() {
@@ -61,34 +61,34 @@ public class InlinePayloadActionFactory implements ActionFactory {
       throw new IllegalArgumentException("Inline Payload Action requires payload parameter");
     }
     return (fragmentContext, resultHandler) -> {
-      ActionLogger actionLogger = createLogger(alias, config);
+      ActionLogLevel logLevel = ActionLogLevel.fromConfig(config, ActionLogLevel.ERROR);
+      ActionLogger actionLogger = ActionLogger.create(alias, logLevel);
       String key = config.getString(ALIAS_KEY, alias);
-      Object payload = config.getMap().get(PAYLOAD_KEY);
+      Object value = config.getMap().get(PAYLOAD_KEY);
+      Fragment fragment = fragmentContext.getFragment();
 
-      Future<FragmentResult> resultFuture = Future
-          .succeededFuture(toResult(fragmentContext, key, payload, actionLogger));
-      resultFuture.setHandler(resultHandler);
+      updatePayload(fragment, key, value, actionLogger);
+      successTransition(fragmentContext, actionLogger, resultHandler);
     };
   }
 
-  private FragmentResult toResult(FragmentContext fragmentContext, String key, Object payload,
+  private void updatePayload(Fragment fragment, String key, Object value,
       ActionLogger actionLogger) {
-    Fragment fragment = fragmentContext.getFragment();
-    fragment.appendPayload(key, payload);
-    logSubstitution(actionLogger, key, payload);
-    return new FragmentResult(fragment, FragmentResult.SUCCESS_TRANSITION,
-        actionLogger.toLog().toJson());
+    fragment.appendPayload(key, value);
+    logSubstitution(actionLogger, key, value);
   }
 
-  private ActionLogger createLogger(String alias, JsonObject config) {
-    String logLevel = config.containsKey(LOG_LEVEL_KEY) ? config.getString(LOG_LEVEL_KEY) :
-        ActionLogLevel.ERROR.getLevel();
-    return ActionLogger.create(alias, logLevel);
+  private void logSubstitution(ActionLogger actionLogger, String key, Object value) {
+    actionLogger.info(KEY_LOG_KEY, key);
+    actionLogger.info(VALUE_LOG_KEY, value);
   }
 
-  private void logSubstitution(ActionLogger actionLogger, String key, Object payload) {
-    actionLogger.info(
-        INLINE_LOG_KEY, new JsonObject().put(KEY_LOG_KEY, key).put(PAYLOAD_LOG_KEY, payload));
+  private void successTransition(FragmentContext fragmentContext, ActionLogger actionLogger,
+      Handler<AsyncResult<FragmentResult>> resultHandler) {
+    Future<FragmentResult> resultFuture = Future.succeededFuture(
+        new FragmentResult(fragmentContext.getFragment(), FragmentResult.SUCCESS_TRANSITION,
+            actionLogger.toLog().toJson()));
+    resultFuture.setHandler(resultHandler);
   }
 
 }

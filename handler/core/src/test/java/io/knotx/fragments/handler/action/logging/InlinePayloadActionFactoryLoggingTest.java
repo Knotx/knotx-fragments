@@ -16,6 +16,7 @@
 package io.knotx.fragments.handler.action.logging;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.knotx.fragments.api.Fragment;
@@ -39,10 +40,13 @@ class InlinePayloadActionFactoryLoggingTest {
   private static final String ACTION_ALIAS = "action";
   private static final String KEY_ALIAS = "some key";
   private static final Fragment FRAGMENT = new Fragment("type", new JsonObject(), "body");
+  private static final String LOGS_KEY = "logs";
+  private static final String KEY_LOG_KEY = "key";
+  private static final String VALUE_LOG_KEY = "value";
 
   @Test
   @DisplayName("Key and payload get logged when INFO log level set")
-  void applyActionWhenJSON(VertxTestContext testContext) throws Throwable {
+  void applyActionWhenJSONWithInfoLogLevel(VertxTestContext testContext) throws Throwable {
     // given
     Action action = new InlinePayloadActionFactory()
         .create(ACTION_ALIAS,
@@ -56,14 +60,38 @@ class InlinePayloadActionFactoryLoggingTest {
           // then
           testContext.verify(
               () -> {
-                JsonObject log = result.result().getNodeLog().getJsonObject("logs");
-                assertTrue(log.containsKey(InlinePayloadActionFactory.INLINE_LOG_KEY));
-                assertEquals(KEY_ALIAS,
-                    log.getJsonObject(InlinePayloadActionFactory.INLINE_LOG_KEY)
-                        .getString(InlinePayloadActionFactory.KEY_LOG_KEY));
-                assertEquals(EXPECTED_JSON_OBJECT,
-                    log.getJsonObject(InlinePayloadActionFactory.INLINE_LOG_KEY)
-                        .getJsonObject(InlinePayloadActionFactory.PAYLOAD_LOG_KEY));
+                JsonObject log = result.result().getNodeLog().getJsonObject(LOGS_KEY);
+                assertEquals(KEY_ALIAS, log.getString(KEY_LOG_KEY));
+                assertEquals(EXPECTED_JSON_OBJECT, log.getJsonObject(VALUE_LOG_KEY));
+              });
+          testContext.completeNow();
+        });
+
+    assertTrue(testContext.awaitCompletion(5, TimeUnit.SECONDS));
+    if (testContext.failed()) {
+      throw testContext.causeOfFailure();
+    }
+  }
+
+  @Test
+  @DisplayName("Empty node log when error log level set")
+  void applyActionWhenJSONWithErrorLogLevel(VertxTestContext testContext) throws Throwable {
+    // given
+    Action action = new InlinePayloadActionFactory()
+        .create(ACTION_ALIAS,
+            new JsonObject().put("payload", EXPECTED_JSON_OBJECT).put("logLevel", "error")
+                .put("alias", KEY_ALIAS), null,
+            null);
+
+    // when
+    action.apply(new FragmentContext(FRAGMENT, new ClientRequest()),
+        result -> {
+          // then
+          testContext.verify(
+              () -> {
+                JsonObject log = result.result().getNodeLog().getJsonObject(LOGS_KEY);
+                assertFalse(log.containsKey(KEY_LOG_KEY));
+                assertFalse(log.containsKey(VALUE_LOG_KEY));
               });
           testContext.completeNow();
         });
