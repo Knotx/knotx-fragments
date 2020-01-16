@@ -525,12 +525,17 @@ documentation for more details.
 
 In-Memory Cache logs activities when `logLevel` option is set to `info`.
 
-In-Memory Cache logs the following fields:
+In-Memory Cache can :
 
- - `cache_lookup` - the computed key that was looked up in the cache
- - `cache_hit` - the cached value if the key was present in cache
+ - `cache_hit`:
+    - `cache_key`
+    - `cached_value` was stored in the cache
  - `cache_miss` - the value computed by doAction if the key was not present in the cache and the doAction ended with successful transition and desired payload
+    - `cache_key`
+    - `cached_value` was stored in the cache
  - `cache_pass` - the JsonObject with field `transition` returned by `doAction` if the key was not present in the cache, but `doAction` did not end with a cacheable result or returned transition different than `SUCCESS`
+    - `cache_key`
+    - `cached_value` was stored in the cache
 
 In-Memory Cache log includes logs produced by the `doAction`. Each 
 `invocation log` has entries:
