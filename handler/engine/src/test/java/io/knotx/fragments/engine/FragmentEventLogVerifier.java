@@ -95,6 +95,12 @@ class FragmentEventLogVerifier {
           null);
     }
 
+    static Operation range(String task, String node, String status, int minPosition,
+        int maxPosition, JsonObject nodeLog) {
+      return new Operation(task, node, status, new RangePosition(minPosition, maxPosition),
+          nodeLog);
+    }
+
     public Position getPosition() {
       return position;
     }

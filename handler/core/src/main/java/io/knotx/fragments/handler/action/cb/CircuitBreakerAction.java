@@ -22,6 +22,7 @@ import static java.lang.String.valueOf;
 import static java.time.Instant.now;
 
 import io.knotx.fragments.api.Fragment;
+import io.knotx.fragments.handler.helper.TimeCalculator;
 import io.knotx.fragments.handler.api.Action;
 import io.knotx.fragments.handler.api.actionlog.ActionLog;
 import io.knotx.fragments.handler.api.actionlog.ActionLogLevel;
@@ -101,18 +102,14 @@ class CircuitBreakerAction implements Action {
 
   private static void handleFail(Promise<FragmentResult> promise, JsonObject nodeLog,
       long startTime, Throwable error, ActionLogger actionLogger) {
-    actionLogger.failureDoActionLog(executionTime(startTime), nodeLog);
+    actionLogger.failureDoActionLog(TimeCalculator.executionTime(startTime), nodeLog);
     promise.fail(error);
-  }
-
-  private static long executionTime(long startTime) {
-    return now().toEpochMilli() - startTime;
   }
 
   private static void handleSuccess(Promise<FragmentResult> f, FragmentResult result,
       AtomicInteger counter, long startTime, ActionLogger actionLogger) {
     actionLogger.info(INVOCATION_COUNT_LOG_KEY, valueOf(counter.get()));
-    actionLogger.doActionLog(executionTime(startTime), result.getNodeLog());
+    actionLogger.doActionLog(TimeCalculator.executionTime(startTime), result.getNodeLog());
     f.complete(new FragmentResult(result.getFragment(), result.getTransition(),
         actionLogger.toLog().toJson()));
   }
