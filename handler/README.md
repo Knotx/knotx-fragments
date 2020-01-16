@@ -404,9 +404,9 @@ The default `alias` is action alias.
 
 ### Inline Payload Action Log
 
-When `loglevel` is set to `info`, the action is getting logged :
-- `key` - payload
-- `payload` - the substituted body of the processed Fragment
+When `loglevel` is set to `info`, the action is getting logged:
+- `key` - payload key
+- `value` - payload value
 
 ### Payload To Body Action
 Payload To Body Action copies to Fragment body specified payload key value. Its configuration looks like:
