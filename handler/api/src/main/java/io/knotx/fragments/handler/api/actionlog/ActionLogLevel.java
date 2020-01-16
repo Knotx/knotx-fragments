@@ -46,7 +46,7 @@ public enum ActionLogLevel {
   }
 
   public static ActionLogLevel fromConfig(JsonObject config) {
-    return fromConfig(config.getString(CONFIG_KEY_NAME));
+    return fromConfig(config.getString(CONFIG_KEY_NAME, ERROR.level));
   }
 
   public static ActionLogLevel fromConfig(String level) {
