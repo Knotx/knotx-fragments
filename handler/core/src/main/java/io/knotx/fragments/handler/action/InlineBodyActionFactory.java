@@ -46,11 +46,9 @@ import io.vertx.core.json.JsonObject;
 @Cacheable
 public class InlineBodyActionFactory implements ActionFactory {
 
-  private static final String SUBSTITUTION_KEY = "substitution";
   private static final String ORIGINAL_BODY_KEY = "originalBody";
   private static final String BODY_KEY = "body";
 
-  private static final String LOG_LEVEL_KEY = "logLevel";
   private static final String DEFAULT_EMPTY_BODY = "";
 
   @Override
@@ -72,15 +70,11 @@ public class InlineBodyActionFactory implements ActionFactory {
       throw new IllegalArgumentException("Inline body action does not support doAction");
     }
     return (fragmentContext, resultHandler) -> {
-      ActionLogger actionLogger = ActionLogger.create(alias, determineLogLevel(config));
+      ActionLogLevel logLevel = ActionLogLevel.fromConfig(config, ActionLogLevel.ERROR);
+      ActionLogger actionLogger = ActionLogger.create(alias, logLevel);
       substituteBodyInFragment(fragmentContext, config, actionLogger);
       successTransition(fragmentContext, actionLogger, resultHandler);
     };
-  }
-
-  private ActionLogLevel determineLogLevel(JsonObject config) {
-    return config.containsKey(LOG_LEVEL_KEY) ? ActionLogLevel.fromConfig(config)
-        : ActionLogLevel.ERROR;
   }
 
   private void substituteBodyInFragment(FragmentContext fragmentContext, JsonObject config,
@@ -93,10 +87,8 @@ public class InlineBodyActionFactory implements ActionFactory {
   }
 
   private void logSubstitution(ActionLogger actionLogger, String originalBody, String newBody) {
-    actionLogger.info(SUBSTITUTION_KEY, new JsonObject()
-        .put(ORIGINAL_BODY_KEY, originalBody)
-        .put(BODY_KEY, newBody)
-    );
+    actionLogger.info(ORIGINAL_BODY_KEY, originalBody);
+    actionLogger.info(BODY_KEY, newBody);
   }
 
   private void successTransition(FragmentContext fragmentContext, ActionLogger actionLogger,

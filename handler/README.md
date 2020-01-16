@@ -386,10 +386,9 @@ The default `body` value is empty content.
 
 #### Inline Body Action Log
 
-When `loglevel` is set to `info`, each substitution is getting logged:
-- `substitution`
-    - `originalBody` - the original body of the processed Fragment
-    - `body` - the substituted body of the processed Fragment
+When `loglevel` is set to `info`, action is getting logged:
+- `originalBody` - the incoming Fragment's body
+- `body` - new Fragment body
 
 ### Inline Payload Action
 Inline Payload Action puts JSON / JSON Array in Fragment payload with a specified key (alias). Its 

@@ -26,7 +26,6 @@ class InlineBodyActionFactoryLoggingTest {
   private static final String BODY_TO_INLINE = "body to inline";
   private static final String INITIAL_BODY = "initial body";
 
-  private static final String SUBSTITUTION_KEY = "substitution";
   private static final String ORIGINAL_BODY_KEY = "originalBody";
   private static final String BODY_KEY = "body";
 
@@ -44,13 +43,8 @@ class InlineBodyActionFactoryLoggingTest {
           // then
           testContext.verify(() -> {
             JsonObject logs = result.result().getNodeLog().getJsonObject(LOGS_KEY);
-            assertTrue(logs.containsKey(SUBSTITUTION_KEY));
-            assertEquals(INITIAL_BODY,
-                logs.getJsonObject(SUBSTITUTION_KEY)
-                    .getString(ORIGINAL_BODY_KEY));
-            assertEquals(BODY_TO_INLINE,
-                logs.getJsonObject(SUBSTITUTION_KEY)
-                    .getString(BODY_KEY));
+            assertEquals(INITIAL_BODY, logs.getString(ORIGINAL_BODY_KEY));
+            assertEquals(BODY_TO_INLINE, logs.getString(BODY_KEY));
           });
           testContext.completeNow();
         });
