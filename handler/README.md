@@ -523,19 +523,18 @@ documentation for more details.
 
 #### In-Memory Cache Action Log
 
-In-Memory Cache logs activities when `logLevel` option is set to `info`.
+In-Memory Cache logs most activities when `logLevel` option is set to `info`.
 
-In-Memory Cache can :
+In-Memory Cache logs the following events:
 
- - `cache_hit`:
+ - `cache_hit` - occurs when there is an associated value in the cache
     - `cache_key`
-    - `cached_value` was stored in the cache
- - `cache_miss` - the value computed by doAction if the key was not present in the cache and the doAction ended with successful transition and desired payload
+    - `cached_value`
+ - `cache_miss` - occurs when there is no associated value in the cache, `doAction` returns with successful transition and a payload that can be cached
     - `cache_key`
-    - `cached_value` was stored in the cache
- - `cache_pass` - the JsonObject with field `transition` returned by `doAction` if the key was not present in the cache, but `doAction` did not end with a cacheable result or returned transition different than `SUCCESS`
+    - `computed_value`
+ - `cache_pass` - occurs when there is no associated value in the cache and `doAction` returns with no cacheable data or an error transition. In either case, this event gets logged on `error` log level. 
     - `cache_key`
-    - `cached_value` was stored in the cache
 
 In-Memory Cache log includes logs produced by the `doAction`. Each 
 `invocation log` has entries:
@@ -549,8 +548,9 @@ Please note that not every call can be visible in `invocation log` entry.
 
 | Result                 | Invocation log  |
 | :--------------------: |:-----|
-| transition: `_success` |  Yes |
-| transition: `_error`   |  Yes |
+| transition: `_success` |  Yes (info level) |
+| transition: `_error`   |  Yes (error level) |
 | TIMEOUT                |  No  |
 | Failure                |  No  |
 | Exception              |  No  |
+
