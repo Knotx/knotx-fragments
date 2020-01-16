@@ -61,12 +61,12 @@ import org.apache.commons.lang3.StringUtils;
 @Cacheable
 public class InMemoryCacheActionFactory implements ActionFactory {
 
-  private static final String CACHE_LOOKUP_KEY = "cache_lookup";
-  private static final String CACHE_MISS_KEY = "cache_miss";
-  private static final String CACHE_HIT_KEY = "cache_hit";
-  private static final String CACHE_PASS_KEY = "cache_pass";
-  private static final String TRANSITION_KEY = "transition";
-  private static final String LOG_LEVEL_KEY = "logLevel";
+  private static final String CACHE_KEY = "cache_key";
+  private static final String CACHED_VALUE = "cached_value";
+  private static final String COMPUTED_VALUE = "computed_value";
+  private static final String CACHE_MISS = "cache_miss";
+  private static final String CACHE_HIT = "cache_hit";
+  private static final String CACHE_PASS = "cache_pass";
 
   private static final long DEFAULT_MAXIMUM_SIZE = 1000;
   private static final long DEFAULT_TTL = 5000;
@@ -83,7 +83,7 @@ public class InMemoryCacheActionFactory implements ActionFactory {
     return new Action() {
       private Cache<String, Object> cache = createCache(config);
       private String payloadKey = getPayloadKey(config);
-      private String logLevel = getActionLogLevel(config);
+      private ActionLogLevel logLevel = ActionLogLevel.fromConfig(config, ActionLogLevel.ERROR);
 
       @Override
       public void apply(FragmentContext fragmentContext,
@@ -102,9 +102,8 @@ public class InMemoryCacheActionFactory implements ActionFactory {
       private Maybe<FragmentResult> getFromCache(FragmentContext fragmentContext, String cacheKey,
           ActionLogger actionLogger) {
         return Maybe.just(cacheKey)
-            .doOnSuccess(key -> logCacheLookup(actionLogger, key))
             .flatMap(this::findInCache)
-            .doOnSuccess(cachedValue -> logCacheHit(actionLogger, cachedValue))
+            .doOnSuccess(cachedValue -> logCacheHit(actionLogger, cacheKey, cachedValue))
             .map(cachedValue -> fragmentContext.getFragment()
                 .appendPayload(payloadKey, cachedValue))
             .map(fragment -> toResultWithLog(actionLogger, fragment));
@@ -135,14 +134,14 @@ public class InMemoryCacheActionFactory implements ActionFactory {
         if (isCacheable(fragmentResult)) {
           Object resultPayload = getAppendedPayload(fragmentResult);
           cache.put(cacheKey, resultPayload);
-          logCacheMiss(actionLogger, resultPayload);
+          logCacheMiss(actionLogger, cacheKey, resultPayload);
         } else {
-          logCachePass(actionLogger, fragmentResult);
+          logCachePass(actionLogger, cacheKey);
         }
       }
 
       private boolean isCacheable(FragmentResult fragmentResult) {
-        return FragmentResult.SUCCESS_TRANSITION.equals(fragmentResult.getTransition())
+        return isSuccessTransition(fragmentResult)
             && fragmentResult.getFragment()
             .getPayload()
             .containsKey(payloadKey);
@@ -200,30 +199,32 @@ public class InMemoryCacheActionFactory implements ActionFactory {
         .build();
   }
 
-  private static String getActionLogLevel(JsonObject config) {
-    return config.containsKey(LOG_LEVEL_KEY) ? config.getString(LOG_LEVEL_KEY)
-        : ActionLogLevel.ERROR.getLevel();
+  private static boolean isSuccessTransition(FragmentResult fragmentResult) {
+    return FragmentResult.SUCCESS_TRANSITION.equals(fragmentResult.getTransition());
   }
 
   private static void logDoAction(ActionLogger actionLogger, long startTime,
       FragmentResult fragmentResult) {
-    actionLogger.doActionLog(TimeCalculator.executionTime(startTime), fragmentResult.getNodeLog());
+    long executionTime = TimeCalculator.executionTime(startTime);
+    if (isSuccessTransition(fragmentResult)) {
+      actionLogger.doActionLog(executionTime, fragmentResult.getNodeLog());
+    } else {
+      actionLogger.failureDoActionLog(executionTime, fragmentResult.getNodeLog());
+    }
   }
 
-  private static void logCacheLookup(ActionLogger actionLogger, String cacheKey) {
-    actionLogger.info(CACHE_LOOKUP_KEY, cacheKey);
+  private static void logCacheHit(ActionLogger actionLogger, String cacheKey, Object cachedValue) {
+    actionLogger.info(CACHE_HIT,
+        new JsonObject().put(CACHE_KEY, cacheKey).put(CACHED_VALUE, cachedValue));
   }
 
-  private static void logCacheHit(ActionLogger actionLogger, Object cachedValue) {
-    actionLogger.info(CACHE_HIT_KEY, cachedValue);
+  private static void logCacheMiss(ActionLogger actionLogger, String cacheKey,
+      Object computedValue) {
+    actionLogger.info(CACHE_MISS,
+        new JsonObject().put(CACHE_KEY, cacheKey).put(COMPUTED_VALUE, computedValue));
   }
 
-  private static void logCacheMiss(ActionLogger actionLogger, Object computedValue) {
-    actionLogger.info(CACHE_MISS_KEY, computedValue);
-  }
-
-  private static void logCachePass(ActionLogger actionLogger, FragmentResult failedResult) {
-    actionLogger.info(CACHE_PASS_KEY,
-        new JsonObject().put(TRANSITION_KEY, failedResult.getTransition()));
+  private static void logCachePass(ActionLogger actionLogger, String cacheKey) {
+    actionLogger.error(CACHE_PASS, new JsonObject().put(CACHE_KEY, cacheKey));
   }
 }

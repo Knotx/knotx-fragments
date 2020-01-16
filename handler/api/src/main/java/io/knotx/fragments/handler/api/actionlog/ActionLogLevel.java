@@ -17,9 +17,10 @@ package io.knotx.fragments.handler.api.actionlog;
 
 import static java.lang.String.format;
 
-import java.util.Arrays;
-
 import io.vertx.core.json.JsonObject;
+import java.util.Arrays;
+import java.util.Objects;
+import org.apache.commons.lang3.StringUtils;
 
 public enum ActionLogLevel {
   INFO("info"), ERROR("error");
@@ -35,14 +36,22 @@ public enum ActionLogLevel {
     return level;
   }
 
+  public static ActionLogLevel fromConfig(JsonObject config, ActionLogLevel defaultLevel) {
+    String level = config.getString(CONFIG_KEY_NAME);
+    if (StringUtils.isBlank(level)) {
+      return defaultLevel;
+    } else {
+      return fromConfig(level);
+    }
+  }
+
   public static ActionLogLevel fromConfig(JsonObject config) {
     return fromConfig(config.getString(CONFIG_KEY_NAME));
   }
 
   public static ActionLogLevel fromConfig(String level) {
-    return Arrays.asList(ActionLogLevel.values())
-        .stream()
-        .filter(al -> level.equals(al.getLevel()))
+    return Arrays.stream(ActionLogLevel.values())
+        .filter(al -> Objects.equals(level, al.getLevel()))
         .findAny()
         .orElseThrow(() -> new IllegalArgumentException(
             format("Incorrect action log level: %s", level)));
