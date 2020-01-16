@@ -379,10 +379,16 @@ Inline Body Action replaces Fragment body with specified one. Its configuration 
 factory = "inline-body"
 config {
   body = <div>Product not available at the moment</div>
+  logLevel = error
 }
-
 ```
 The default `body` value is empty content.
+
+#### Inline Body Action Log
+
+When `loglevel` is set to `info`, action is getting logged:
+- `originalBody` - the incoming Fragment's body
+- `body` - new Fragment body
 
 ### Inline Payload Action
 Inline Payload Action puts JSON / JSON Array in Fragment payload with a specified key (alias). Its 
