@@ -17,6 +17,7 @@ package io.knotx.fragments.handler.api.actionlog;
 
 import static io.knotx.fragments.handler.api.actionlog.ActionLogLevel.INFO;
 
+import io.reactivex.exceptions.CompositeException;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import java.time.Instant;
@@ -43,7 +44,7 @@ public class ActionLogger {
 
   public void info(String key, Object data) {
     if (actionLogLevel == INFO) {
-      if(data instanceof String){
+      if (data instanceof String) {
         builder.addLog(key, String.valueOf(data));
         return;
       }
@@ -88,9 +89,17 @@ public class ActionLogger {
   }
 
   public void error(Throwable throwable) {
-    this.builder.addLog("error",
-        new JsonObject().put("className", throwable.getClass().getCanonicalName())
-            .put("message", throwable.getMessage()));
+    JsonArray exceptions = new JsonArray();
+    if (throwable instanceof CompositeException) {
+      ((CompositeException) throwable).getExceptions().forEach(e -> {
+        exceptions.add(new JsonObject().put("className", e.getClass().getCanonicalName())
+            .put("message", e.getMessage()));
+      });
+    } else {
+      exceptions.add(new JsonObject().put("className", throwable.getClass().getCanonicalName())
+          .put("message", throwable.getMessage()));
+    }
+    this.builder.addLog("errors", exceptions);
   }
 
   public void error(String data) {
