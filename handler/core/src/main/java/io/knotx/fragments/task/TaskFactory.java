@@ -55,7 +55,7 @@ public interface TaskFactory {
   /**
    * Creates the new task instance. It is called only if {@link #accept(FragmentEventContext)}
    * returns <code>true</code>. When called with a fragment that does not provide a task name, then
-   * {@link io.knotx.fragments.task.exception.TaskNotFoundException} is thrown.
+   * {@link io.knotx.fragments.ConfigurationException} is thrown.
    *
    * @param context fragment event context
    * @return new task instance

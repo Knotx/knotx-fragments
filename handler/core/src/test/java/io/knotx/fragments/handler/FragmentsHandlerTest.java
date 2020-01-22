@@ -17,16 +17,16 @@ package io.knotx.fragments.handler;
 
 import static com.google.common.collect.Lists.newArrayList;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.when;
 
+import io.knotx.fragments.ConfigurationException;
 import io.knotx.fragments.HoconLoader;
 import io.knotx.fragments.api.Fragment;
 import io.knotx.fragments.engine.FragmentEvent;
 import io.knotx.fragments.engine.FragmentEvent.Status;
-import io.knotx.fragments.handler.exception.TaskFactoryNameNotDefinedException;
-import io.knotx.fragments.handler.exception.TaskFactoryNotFoundException;
 import io.knotx.fragments.task.factory.DefaultTaskFactoryConfig;
 import io.knotx.server.api.context.ClientRequest;
 import io.knotx.server.api.context.RequestContext;
@@ -39,6 +39,7 @@ import io.vertx.reactivex.core.Vertx;
 import io.vertx.reactivex.ext.web.RoutingContext;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -100,14 +101,43 @@ class FragmentsHandlerTest {
   }
 
   @Test
-  @DisplayName("Expect processed fragment when factory accepts fragment.")
-  void singleFactory(Vertx vertx, VertxTestContext testContext)
+  @DisplayName("Expect marked fragment when HTML fragment body writer configured.")
+  void snippetFragmentWithHtmlConsumer(Vertx vertx, VertxTestContext testContext)
       throws Throwable {
-    HoconLoader.verify("handler/singleTaskFactoryWithSuccessTask.conf", config -> {
+    HoconLoader.verify("handler/fragmentWithHtmlConsumer.conf", config -> {
+      //given
+      Fragment fragment = new Fragment("snippet",
+          new JsonObject().put(DefaultTaskFactoryConfig.DEFAULT_TASK_NAME_KEY, "success-task"),
+          EMPTY_BODY);
+
+      // when
+      Single<List<FragmentEvent>> rxDoHandle = new FragmentsHandler(vertx, config)
+          .doHandle(Collections.singletonList(fragment), new ClientRequest());
+
+      rxDoHandle.subscribe(
+          result -> testContext.verify(() -> {
+            // then
+            Optional<FragmentEvent> event = result.stream().findFirst();
+            assertTrue(event.isPresent());
+            String body = event.get().getFragment().getBody();
+            assertTrue(body.contains("<!-- data-knotx-id="));
+            testContext.completeNow();
+          }),
+          testContext::failNow
+      );
+    }, testContext, vertx);
+  }
+
+  @Test
+  @DisplayName("Expect processed fragment when factory accepts fragment.")
+  void taskFactoryWithTaskEndingWithSuccess(Vertx vertx, VertxTestContext testContext)
+      throws Throwable {
+    HoconLoader.verify("handler/fragmentWithSuccessTask.conf", config -> {
       //given
       FragmentsHandler underTest = new FragmentsHandler(vertx, config);
       Fragment fragment = new Fragment("type",
-          new JsonObject().put(DefaultTaskFactoryConfig.DEFAULT_TASK_NAME_KEY, "success-task"), EMPTY_BODY);
+          new JsonObject().put(DefaultTaskFactoryConfig.DEFAULT_TASK_NAME_KEY, "success-task"),
+          EMPTY_BODY);
       String expectedBody = "success";
 
       //when
@@ -177,6 +207,18 @@ class FragmentsHandlerTest {
   }
 
   @Test
+  @DisplayName("Expect empty task factory and consumer factory when not configured.")
+  void tasksAndConsumersNotDefined(Vertx vertx, VertxTestContext testContext)
+      throws Throwable {
+    HoconLoader.verify("handler/factoriesNotDefined.conf", config -> {
+      //given
+      new FragmentsHandler(vertx, config);
+      // no exception
+      testContext.completed();
+    }, testContext, vertx);
+  }
+
+  @Test
   @DisplayName("Expect exception when task factory name is not defined")
   void taskFactoryNameNotDefined(Vertx vertx, VertxTestContext testContext)
       throws Throwable {
@@ -184,7 +226,21 @@ class FragmentsHandlerTest {
       //given
       try {
         new FragmentsHandler(vertx, config);
-      } catch (TaskFactoryNameNotDefinedException e) {
+      } catch (ConfigurationException e) {
+        testContext.completed();
+      }
+    }, testContext, vertx);
+  }
+
+  @Test
+  @DisplayName("Expect exception when consumer factory name is not defined")
+  void consumerFactoryNameNotDefined(Vertx vertx, VertxTestContext testContext)
+      throws Throwable {
+    HoconLoader.verify("handler/consumerFactoryNameNotDefined.conf", config -> {
+      //given
+      try {
+        new FragmentsHandler(vertx, config);
+      } catch (ConfigurationException e) {
         testContext.completed();
       }
     }, testContext, vertx);
@@ -198,7 +254,23 @@ class FragmentsHandlerTest {
       //given
       try {
         new FragmentsHandler(vertx, config);
-      } catch (TaskFactoryNotFoundException e) {
+      } catch (ConfigurationException e) {
+        assertTrue(e.getMessage().contains("Task factory"));
+        testContext.completed();
+      }
+    }, testContext, vertx);
+  }
+
+  @Test
+  @DisplayName("Expect exception when consumer factory name is not found")
+  void consumerFactoryNotFound(Vertx vertx, VertxTestContext testContext)
+      throws Throwable {
+    HoconLoader.verify("handler/consumerFactoryNotFound.conf", config -> {
+      //given
+      try {
+        new FragmentsHandler(vertx, config);
+      } catch (ConfigurationException e) {
+        assertTrue(e.getMessage().contains("Consumer factory"));
         testContext.completed();
       }
     }, testContext, vertx);

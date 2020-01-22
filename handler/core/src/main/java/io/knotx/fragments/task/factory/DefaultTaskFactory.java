@@ -15,13 +15,13 @@
  */
 package io.knotx.fragments.task.factory;
 
+import io.knotx.fragments.ConfigurationException;
 import io.knotx.fragments.api.Fragment;
 import io.knotx.fragments.engine.FragmentEventContext;
 import io.knotx.fragments.engine.Task;
 import io.knotx.fragments.engine.graph.Node;
 import io.knotx.fragments.task.TaskFactory;
 import io.knotx.fragments.task.exception.NodeFactoryNotFoundException;
-import io.knotx.fragments.task.exception.TaskNotFoundException;
 import io.knotx.fragments.task.factory.node.NodeFactory;
 import io.vertx.core.json.JsonObject;
 import io.vertx.reactivex.core.Vertx;
@@ -79,7 +79,7 @@ public class DefaultTaskFactory implements TaskFactory, NodeProvider {
           Node rootNode = initNode(rootGraphNodeOptions);
           return new Task(taskName, rootNode);
         })
-        .orElseThrow(() -> new TaskNotFoundException(taskName));
+        .orElseThrow(() -> new ConfigurationException("Task [" + taskName + "] not configured!"));
   }
 
   @Override

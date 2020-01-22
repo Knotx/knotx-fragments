@@ -13,20 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.knotx.fragments.task.exception;
+package io.knotx.fragments.handler.consumer;
 
-import io.knotx.fragments.ConfigurationException;
+import io.vertx.core.json.JsonObject;
 
-public class TaskNotFoundException extends ConfigurationException {
+/**
+ * The {@link FragmentEventsConsumer} factory interface that enables dynamic implementation binding
+ * using SPI. {@link FragmentEventsConsumerProvider} loads all factory implementations.
+ */
+public interface FragmentEventsConsumerFactory {
 
-  private String taskName;
+  /**
+   * @return factory name
+   */
+  String getName();
 
-  public TaskNotFoundException(String taskName) {
-    super("Task [" + taskName + "] not configured!");
-    this.taskName = taskName;
-  }
+  /**
+   * Creates a {@link FragmentEventsConsumer} instance.
+   *
+   * @param config - factory JSON configuration
+   * @return a fragment event consumer
+   */
+  FragmentEventsConsumer create(JsonObject config);
 
-  public String getTaskName() {
-    return taskName;
-  }
 }

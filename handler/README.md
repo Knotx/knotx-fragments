@@ -35,6 +35,9 @@ from `taskFactories` that can create a task
 - task factory constructs a task (DAG - directed acyclic graph)
 - [Fragment Engine](https://github.com/Knotx/knotx-fragments/tree/master/handler/engine) continues 
 further fragment's processing
+- when fragments processing ends it notifies all [consumers](#fragment-event-consumer) about 
+processed fragments, consumers are registered with factories defined in `consumerFactories`
+
 
 Detailed description of each configuration option is described in the next subsection.
 
@@ -343,6 +346,60 @@ We used a similar strategy for the book API invocation. In this declarative way,
 timeouts and errors from APIs.
 Please note that no error strategy has been defined for authors API yet. However, it can be easily 
 configured in the future when business agrees on the fallback logic.
+
+## Fragment Event
+Fragments Handler takes fragments from the request context and wraps them into fragment events. 
+Fragment event contains a fragment, task status and task log.
+
+### Fragment Event Consumer
+Fragment event consumer receives fragment event when task evaluation ends. It can share this 
+information with some external tools or add fragment event to the response.
+
+#### Fragment Event Consumer Factory
+All consumers provide [factories](https://github.com/Knotx/knotx-fragments/blob/master/handler/core/src/main/java/io/knotx/fragments/handler/consumer/FragmentEventsConsumerFactory.java) 
+that are registered using a simple service-provider loading facility - 
+[Service Loader](https://docs.oracle.com/javase/8/docs/api/java/util/ServiceLoader.html).
+
+### Fragment HTML Body Writer
+It is a Fragment Event Consumer that marks the beginning and the end of a fragment with HTML comments:
+```
+<!-- data-knotx-id="FRAGMENT_IDENTIFIER" -->
+  FRAGMENT_BODY
+<!-- data-knotx-id="FRAGMENT_IDENTIFIER" -->
+```
+
+Fragment event is serialized to JSON and stored in `<script>` tag:
+```
+<!-- data-knotx-id="FRAGMENT_IDENTIFIER" -->
+  <script data-knotx-id="FRAGMENT_IDENTIFIER" type="application/json">
+    FRAGMENT_DEBUG_DATA
+  </script>
+  FRAGMENT_BODY
+<!-- data-knotx-id="FRAGMENT_IDENTIFIER" -->
+```
+
+It must be configured in `consumerFactories`
+```hocon
+consumerFactories = [
+  {
+    factory = fragmentHtmlBodyWriter
+    config { CONSUMER_CONFIG }
+  }
+]
+```
+where `CONSUMER_CONFIG` consists of:
+```hocon
+condition {
+  param = debug
+  # header = x-knotx-debug
+}
+fragmentTypes = [ "snippet" ]
+```
+It is triggered when conditions pass. Currently, 2 checks are supported:
+ - `param` - Knot.x expects that the original request contains this request parameter (e.g. by configuring `param=debug`, requesting `{address}?debug=true` will make the condition pass),
+ - `header` condition is analogous, but the value comes from the request header.
+ 
+At least one condition has to be configured, otherwise the consumer will be not triggered.
 
 # Actions
 Action is a simple function that converts a fragment to the new one and responds with the
