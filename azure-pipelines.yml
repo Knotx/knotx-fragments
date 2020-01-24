@@ -36,11 +36,6 @@ steps:
           ./pull-all.sh -r ../../$(workspaceDir) -b $(System.PullRequest.SourceBranch) -a
         fi
     displayName: "Clone all repositories"
-  - task: Maven@3
-    inputs:
-      mavenPomFile: '$(workspaceDir)/knotx-dependencies/pom.xml'
-      goals: 'install'
-    displayName: "Build Dependencies"
   - task: Gradle@2
     inputs:
       gradleWrapperFile: '$(workspaceDir)/knotx-stack/gradlew'
