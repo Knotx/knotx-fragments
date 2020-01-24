@@ -517,6 +517,9 @@ config {
     # time spent in open state before attempting to re-try
     resetTimeout = 10000
   }
+  # transitions from doAction that mean error
+  errorTransitions = [ _error, custom ]
+  logLevel = INFO
 }
 doAction = product
 ```
@@ -532,6 +535,8 @@ error or times out then the custom `_fallback` transition is returned.
 | Failure               | TIMEOUT                |  `_fallback`, [e,t]      |
 | TIMEOUT               | Failure                |  `_fallback`, [t,e]      |
 | TIMEOUT               | TIMEOUT                | `_fallback`, [t,t]       |
+| custom transition     | -                      |  `_success`, [s]         |
+| custom transition that means error  | custom transition that means error | `_error`, [e,e]        |
 
 Labels:
 - TIMEOUT - `doAction` does not end withing the required time (`circuitBreakerOptions.timeout`), 

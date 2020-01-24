@@ -16,13 +16,11 @@
 package io.knotx.fragments.handler.action.cb;
 
 import static io.knotx.fragments.handler.action.cb.CircuitBreakerActionFactory.FALLBACK_TRANSITION;
-import static io.knotx.fragments.handler.api.domain.FragmentResult.ERROR_TRANSITION;
 import static java.lang.String.format;
 import static java.lang.String.valueOf;
 import static java.time.Instant.now;
 
 import io.knotx.fragments.api.Fragment;
-import io.knotx.fragments.handler.helper.TimeCalculator;
 import io.knotx.fragments.handler.api.Action;
 import io.knotx.fragments.handler.api.actionlog.ActionLog;
 import io.knotx.fragments.handler.api.actionlog.ActionLogLevel;
@@ -30,27 +28,33 @@ import io.knotx.fragments.handler.api.actionlog.ActionLogger;
 import io.knotx.fragments.handler.api.domain.FragmentContext;
 import io.knotx.fragments.handler.api.domain.FragmentResult;
 import io.knotx.fragments.handler.exception.DoActionExecuteException;
+import io.knotx.fragments.handler.helper.TimeCalculator;
 import io.vertx.circuitbreaker.CircuitBreaker;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.core.Promise;
 import io.vertx.core.json.JsonObject;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
 class CircuitBreakerAction implements Action {
 
   static final String INVOCATION_COUNT_LOG_KEY = "invocationCount";
   static final String ERROR_LOG_KEY = "error";
+
+  private final String alias;
   private final CircuitBreaker circuitBreaker;
   private final Action doAction;
+  private final Set<String> errorTransitions;
   private final ActionLogLevel actionLogLevel;
-  private final String alias;
+
 
   CircuitBreakerAction(CircuitBreaker circuitBreaker, Action doAction, String alias,
-      ActionLogLevel actionLogLevel) {
+      ActionLogLevel actionLogLevel, Set<String> errorTransitions) {
+    this.alias = alias;
     this.circuitBreaker = circuitBreaker;
     this.doAction = doAction;
-    this.alias = alias;
+    this.errorTransitions = errorTransitions;
     this.actionLogLevel = actionLogLevel;
   }
 
@@ -89,7 +93,8 @@ class CircuitBreakerAction implements Action {
       ActionLogger actionLogger) {
     if (isErrorTransition(result)) {
       handleFail(promise, result.getNodeLog(), startTime,
-          new DoActionExecuteException(format("Action end up %s transition", ERROR_TRANSITION)),
+          new DoActionExecuteException(
+              format("Action end up %s transition", result.getTransition())),
           actionLogger);
     } else {
       handleSuccess(promise, result, counter, startTime, actionLogger);
@@ -97,7 +102,7 @@ class CircuitBreakerAction implements Action {
   }
 
   private boolean isErrorTransition(FragmentResult result) {
-    return ERROR_TRANSITION.equals(result.getTransition());
+    return errorTransitions.contains(result.getTransition());
   }
 
   private static void handleFail(Promise<FragmentResult> promise, JsonObject nodeLog,

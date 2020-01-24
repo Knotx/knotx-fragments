@@ -20,6 +20,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.vertx.circuitbreaker.CircuitBreakerOptions;
 import io.vertx.core.json.JsonObject;
+import java.util.HashSet;
+import java.util.Set;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.platform.commons.util.StringUtils;
@@ -54,5 +56,20 @@ class CircuitBreakerActionFactoryOptionsTest {
     // then
     assertNotNull(tested.getCircuitBreakerName());
     assertTrue(StringUtils.isNotBlank(tested.getCircuitBreakerName()));
+  }
+
+  @DisplayName("Expect _error transition is added to error transition set.")
+  @Test
+  void expectErrorTransitionConfigured() {
+    //given
+    Set<String> errorTransitions = new HashSet<>();
+    JsonObject json = new CircuitBreakerActionFactoryOptions()
+        .setErrorTransitions(errorTransitions).toJson();
+
+    // when
+    CircuitBreakerActionFactoryOptions tested = new CircuitBreakerActionFactoryOptions(json);
+
+    // then
+    assertTrue(tested.getErrorTransitions().contains("_error"));
   }
 }
