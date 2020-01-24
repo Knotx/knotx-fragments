@@ -18,6 +18,7 @@ package io.knotx.fragments.handler.action.cb;
 import static io.knotx.fragments.handler.action.cb.CircuitBreakerAction.ERROR_LOG_KEY;
 import static io.knotx.fragments.handler.action.cb.CircuitBreakerAction.INVOCATION_COUNT_LOG_KEY;
 import static io.knotx.fragments.handler.action.cb.CircuitBreakerActionFactory.FALLBACK_TRANSITION;
+import static io.knotx.fragments.handler.action.cb.CircuitBreakerDoActions.CUSTOM_TRANSITION;
 import static io.knotx.fragments.handler.api.actionlog.ActionLogLevel.INFO;
 import static io.knotx.fragments.handler.api.domain.FragmentResult.SUCCESS_TRANSITION;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -44,7 +45,10 @@ import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.DisplayName;
@@ -58,6 +62,7 @@ class CircuitBreakerActionFactoryTest {
 
   private static final Fragment FRAGMENT = new Fragment("type", new JsonObject(), "expectedBody");
   private static final int TIMEOUT_IN_MS = 500;
+  public static final int NO_RETRY = 0;
 
   @Test
   @DisplayName("Expect factory name is 'cb'.")
@@ -94,7 +99,7 @@ class CircuitBreakerActionFactoryTest {
 
   @ParameterizedTest
   @MethodSource("provideErrorActionsAndTimeout")
-  @DisplayName("Expect fallback transition when action ends with error.")
+  @DisplayName("Expect _fallback transition when action ends with error.")
   void expectFallbackWhenError(Action action, VertxTestContext testContext, Vertx vertx)
       throws Throwable {
     // given
@@ -402,7 +407,7 @@ class CircuitBreakerActionFactoryTest {
   }
 
   @Test
-  @DisplayName("Expect fallback transition when first call fails and second ends with _error.")
+  @DisplayName("Expect _fallback transition when first call fails and second ends with _error.")
   void expectFallbackWhenFailureThenError(VertxTestContext testContext, Vertx vertx)
       throws Throwable {
     validateScenario(
@@ -434,7 +439,7 @@ class CircuitBreakerActionFactoryTest {
   }
 
   @Test
-  @DisplayName("Expect fallback transition when first call fails and second times out.")
+  @DisplayName("Expect _fallback transition when first call fails and second times out.")
   void expectFallbackWhenFailureThenTimeout(VertxTestContext testContext, Vertx vertx)
       throws Throwable {
     validateScenario(
@@ -460,7 +465,7 @@ class CircuitBreakerActionFactoryTest {
   }
 
   @Test
-  @DisplayName("Expect fallback transition when first call times out and second fails.")
+  @DisplayName("Expect _fallback transition when first call times out and second fails.")
   void expectFallbackWhenTimeoutThenFailure(VertxTestContext testContext, Vertx vertx)
       throws Throwable {
     validateScenario(
@@ -489,7 +494,7 @@ class CircuitBreakerActionFactoryTest {
   }
 
   @Test
-  @DisplayName("Expect fallback transition when all calls time out.")
+  @DisplayName("Expect _fallback transition when all calls time out.")
   void expectFallbackWhenTimeouts(VertxTestContext testContext, Vertx vertx)
       throws Throwable {
     validateScenario(
@@ -540,7 +545,7 @@ class CircuitBreakerActionFactoryTest {
   }
 
   @Test
-  @DisplayName("Expect fallback transitions when both calls end with exception.")
+  @DisplayName("Expect _fallback transitions when both calls end with exception.")
   void expectFallbackWhenExceptions(VertxTestContext testContext, Vertx vertx)
       throws Throwable {
     validateScenario(
@@ -562,10 +567,84 @@ class CircuitBreakerActionFactoryTest {
         }, testContext, vertx);
   }
 
+  @Test
+  @DisplayName("Expect _fallback transition when action ends with custom transition that means error")
+  void shouldEndWithFallbackTransitionWhenCustomErrorTransitionsProvided(
+      VertxTestContext testContext,
+      Vertx vertx) throws Throwable {
+    //given
+    Set<String> errorTransitions = Collections.singleton(CUSTOM_TRANSITION);
+    Action tested = newInstanceWithErrorTransitions(CircuitBreakerDoActions::applyCustomTransition,
+        vertx, errorTransitions, NO_RETRY);
+
+    //when
+    tested.apply(new FragmentContext(FRAGMENT, new ClientRequest()),
+        testContext.succeeding(result -> {
+          testContext.verify(() -> assertEquals(FALLBACK_TRANSITION, result.getTransition()));
+          testContext.completeNow();
+        }));
+    assertTrue(testContext.awaitCompletion(5, TimeUnit.SECONDS));
+    if (testContext.failed()) {
+      throw testContext.causeOfFailure();
+    }
+  }
+
+  @Test
+  @DisplayName("Expect custom transition when action ends with custom transition.")
+  void shouldEndWithSuccessAfterCustom(VertxTestContext testContext,
+      Vertx vertx) throws Throwable {
+    //given
+    Action tested = newInstanceWithErrorTransitions(CircuitBreakerDoActions::applyCustomTransition,
+        vertx, Collections.emptySet(), NO_RETRY);
+
+    //when
+    tested.apply(new FragmentContext(FRAGMENT, new ClientRequest()),
+        testContext.succeeding(result -> {
+          assertEquals(CUSTOM_TRANSITION, result.getTransition());
+          testContext.completeNow();
+        }));
+    assertTrue(testContext.awaitCompletion(5, TimeUnit.SECONDS));
+    if (testContext.failed()) {
+      throw testContext.causeOfFailure();
+    }
+  }
+
+  @Test
+  @DisplayName("Expect _fallback transition when all invocations end with custom transitions that mean errors.")
+  void shouldEndWithFallbackWhenRetryEndsWithCustom(VertxTestContext testContext, Vertx vertx)
+      throws Throwable {
+    //given
+    Set<String> errorTransitions = new HashSet<>();
+    errorTransitions.add(CUSTOM_TRANSITION);
+    Action tested = newInstanceWithErrorTransitions(CircuitBreakerDoActions
+        .applyOneAfterAnother(CircuitBreakerDoActions::applyCustomTransition,
+            CircuitBreakerDoActions::applyCustomTransition), vertx, errorTransitions, 1);
+    //when
+    tested.apply(new FragmentContext(FRAGMENT, new ClientRequest()),
+        testContext.succeeding(result -> {
+          testContext.verify(() -> assertEquals(FALLBACK_TRANSITION, result.getTransition()));
+          testContext.completeNow();
+        }));
+    assertTrue(testContext.awaitCompletion(5, TimeUnit.SECONDS));
+    if (testContext.failed()) {
+      throw testContext.causeOfFailure();
+    }
+  }
+
   private Action newActionInstance(Action action, Vertx vertx) {
     return new CircuitBreakerActionFactory().create("alias",
         new CircuitBreakerActionFactoryOptions()
             .setCircuitBreakerOptions(new CircuitBreakerOptions().setTimeout(TIMEOUT_IN_MS))
+            .toJson(), vertx, action);
+  }
+
+  private Action newInstanceWithErrorTransitions(Action action, Vertx vertx,
+      Set<String> errorTransitions, int maxRetries) {
+    return new CircuitBreakerActionFactory().create("alias",
+        new CircuitBreakerActionFactoryOptions()
+            .setCircuitBreakerOptions(
+                new CircuitBreakerOptions().setTimeout(TIMEOUT_IN_MS).setMaxRetries(maxRetries))
+            .setErrorTransitions(errorTransitions)
             .toJson(), vertx, action);
   }
 
@@ -600,7 +679,7 @@ class CircuitBreakerActionFactoryTest {
     CircuitBreakerAction tested = new CircuitBreakerAction(circuitBreaker,
         CircuitBreakerDoActions
             .applyOneAfterAnother(firstInvocationBehaviour, secondInvocationBehaviour), "tested",
-        INFO);
+        INFO, Collections.singleton("_error"));
 
     // when
     tested.apply(new FragmentContext(FRAGMENT, new ClientRequest()), handler);

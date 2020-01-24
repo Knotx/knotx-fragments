@@ -19,9 +19,6 @@ import static io.knotx.fragments.handler.api.actionlog.ActionLogLevel.INFO;
 import static io.knotx.fragments.handler.api.domain.FragmentResult.ERROR_TRANSITION;
 import static io.knotx.fragments.handler.api.domain.FragmentResult.SUCCESS_TRANSITION;
 
-import java.io.IOException;
-import java.util.concurrent.atomic.AtomicInteger;
-
 import io.knotx.fragments.handler.api.Action;
 import io.knotx.fragments.handler.api.actionlog.ActionLogger;
 import io.knotx.fragments.handler.api.domain.FragmentContext;
@@ -29,17 +26,27 @@ import io.knotx.fragments.handler.api.domain.FragmentResult;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
-import io.vertx.core.eventbus.ReplyException;
-import io.vertx.core.eventbus.ReplyFailure;
 import io.vertx.rxjava.core.Future;
+import java.util.concurrent.atomic.AtomicInteger;
 
 class CircuitBreakerDoActions {
+
+  public static final String CUSTOM_TRANSITION = "_custom";
 
   static void applySuccess(FragmentContext fragmentContext,
       Handler<AsyncResult<FragmentResult>> resultHandler) {
     ActionLogger actionLogger = ActionLogger.create("action", INFO);
     actionLogger.info("info", "success");
     Future.succeededFuture(new FragmentResult(fragmentContext.getFragment(), SUCCESS_TRANSITION,
+        actionLogger.toLog().toJson()))
+        .setHandler(resultHandler);
+  }
+
+  static void applyCustomTransition(FragmentContext fragmentContext,
+      Handler<AsyncResult<FragmentResult>> resultHandler) {
+    ActionLogger actionLogger = ActionLogger.create("action", INFO);
+    actionLogger.info("info", "custom");
+    Future.succeededFuture(new FragmentResult(fragmentContext.getFragment(), CUSTOM_TRANSITION,
         actionLogger.toLog().toJson()))
         .setHandler(resultHandler);
   }
@@ -57,7 +64,8 @@ class CircuitBreakerDoActions {
       Handler<AsyncResult<FragmentResult>> resultHandler) {
     ActionLogger actionLogger = ActionLogger.create("action", INFO);
     actionLogger.info("info", "failure");
-    Future.<FragmentResult>failedFuture(new IllegalStateException("Application failed!")).setHandler(resultHandler);
+    Future.<FragmentResult>failedFuture(new IllegalStateException("Application failed!"))
+        .setHandler(resultHandler);
   }
 
   static void applyException(FragmentContext fragmentContext,
@@ -77,10 +85,8 @@ class CircuitBreakerDoActions {
 
   static Action applyOneAfterAnother(Action first, Action second) {
     AtomicInteger counter = new AtomicInteger(0);
-    return (fragmentContext, resultHandler) -> {
-      applySecondAfterFirst(fragmentContext, resultHandler, first, second,
-          counter.incrementAndGet());
-    };
+    return (ctx, handler) ->
+        applySecondAfterFirst(ctx, handler, first, second, counter.incrementAndGet());
   }
 
   static void applySecondAfterFirst(FragmentContext fragmentContext,

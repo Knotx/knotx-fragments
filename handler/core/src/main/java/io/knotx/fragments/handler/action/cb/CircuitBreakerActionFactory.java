@@ -52,6 +52,6 @@ public class CircuitBreakerActionFactory implements ActionFactory {
         options.getCircuitBreakerOptions());
 
     return new CircuitBreakerAction(circuitBreaker, doAction, alias,
-        fromConfig(options.getLogLevel()));
+        fromConfig(options.getLogLevel()), options.getErrorTransitions());
   }
 }

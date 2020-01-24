@@ -3,6 +3,7 @@ All notable changes to `knotx-fragments` will be documented in this file.
 
 ## Unreleased
 List of changes that are finished but not yet released in any final version.
+- [PR-80](https://github.com/Knotx/knotx-fragments/pull/80) - Circuit breaker understands which custom transition mean error.
 - [PR-84](https://github.com/Knotx/knotx-fragments/pull/84) - Adding node log to inline payload action.
 - [PR-83](https://github.com/Knotx/knotx-fragments/pull/83) - Adding node log to inline body action.
 - [PR-82](https://github.com/Knotx/knotx-fragments/pull/82) - Adding logging to in-memory cache action.
