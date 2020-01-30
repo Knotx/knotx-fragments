@@ -27,7 +27,9 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.reactivex.core.Vertx;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
+import org.apache.commons.lang3.StringUtils;
 
 public class SubtasksNodeFactory implements NodeFactory {
 
@@ -52,8 +54,27 @@ public class SubtasksNodeFactory implements NodeFactory {
     List<Node> nodes = config.getSubtasks().stream()
         .map(nodeProvider::initNode)
         .collect(Collectors.toList());
-    return new CompositeNode(getNodeId(), nodes, edges.get(SUCCESS_TRANSITION),
-        edges.get(ERROR_TRANSITION));
+    return new CompositeNode() {
+      @Override
+      public String getId() {
+        return getNodeId();
+      }
+
+      @Override
+      public Optional<Node> next(String transition) {
+        return filter(transition).map(edges::get);
+      }
+
+      @Override
+      public List<Node> getNodes() {
+        return nodes;
+      }
+
+      private Optional<String> filter(String transition) {
+        return Optional.of(transition)
+            .filter(tr -> StringUtils.equalsAny(tr, ERROR_TRANSITION, SUCCESS_TRANSITION));
+      }
+    };
   }
 
   private String getNodeId() {

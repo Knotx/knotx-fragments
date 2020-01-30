@@ -15,6 +15,7 @@
  */
 package io.knotx.fragments.engine;
 
+import static io.knotx.fragments.engine.Nodes.single;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.knotx.fragments.api.Fragment;
@@ -29,7 +30,6 @@ import io.vertx.core.logging.LoggerFactory;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
 import io.vertx.reactivex.core.Vertx;
-import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
@@ -86,8 +86,7 @@ class FragmentsEngineConcurrencyTest {
   }
 
   private FragmentEventContextTaskAware initFragmentEventContextTaskAware() {
-    SingleNode graphNode = new SingleNode("id", BLOCKING_OPERATION,
-        Collections.emptyMap());
+    SingleNode graphNode = single("id", BLOCKING_OPERATION);
     Fragment fragment = new Fragment("snippet", new JsonObject(), "some body");
 
     return new FragmentEventContextTaskAware(new Task("task", graphNode),

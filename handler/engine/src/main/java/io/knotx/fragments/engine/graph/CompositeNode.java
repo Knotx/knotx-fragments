@@ -15,79 +15,15 @@
  */
 package io.knotx.fragments.engine.graph;
 
-import static io.knotx.fragments.handler.api.domain.FragmentResult.SUCCESS_TRANSITION;
-import static io.knotx.fragments.handler.api.domain.FragmentResult.ERROR_TRANSITION;
-
 import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
 
-public class CompositeNode implements Node {
+public interface CompositeNode extends Node {
 
-  private final String id;
-  private final List<Node> nodes;
-  private final Node onSuccess;
-  private final Node onError;
-
-  public CompositeNode(String id, List<Node> nodes, Node onSuccess, Node onError) {
-    this.id = id;
-    this.nodes = nodes;
-    this.onSuccess = onSuccess;
-    this.onError = onError;
-  }
+  List<Node> getNodes();
 
   @Override
-  public String getId() {
-    return id;
-  }
-
-  @Override
-  public Optional<Node> next(String transition) {
-    Node nextNode = null;
-    if (ERROR_TRANSITION.equals(transition)) {
-      nextNode = onError;
-    } else if (SUCCESS_TRANSITION.equals(transition)) {
-      nextNode = onSuccess;
-    }
-    return Optional.ofNullable(nextNode);
-  }
-
-  @Override
-  public NodeType getType() {
+  default NodeType getType() {
     return NodeType.COMPOSITE;
   }
 
-  public List<Node> getNodes() {
-    return nodes;
-  }
-
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (o == null || getClass() != o.getClass()) {
-      return false;
-    }
-    CompositeNode that = (CompositeNode) o;
-    return Objects.equals(id, that.id) &&
-        Objects.equals(nodes, that.nodes) &&
-        Objects.equals(onSuccess, that.onSuccess) &&
-        Objects.equals(onError, that.onError);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(id, nodes, onSuccess, onError);
-  }
-
-  @Override
-  public String toString() {
-    return "CompositeNode{" +
-        "id='" + id + '\'' +
-        ", nodes=" + nodes +
-        ", onSuccess=" + onSuccess +
-        ", onError=" + onError +
-        '}';
-  }
 }
