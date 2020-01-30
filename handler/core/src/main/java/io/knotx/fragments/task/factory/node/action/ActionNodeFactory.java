@@ -29,6 +29,7 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.reactivex.core.Vertx;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Optional;
 import java.util.ServiceLoader;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -56,7 +57,22 @@ public class ActionNodeFactory implements NodeFactory {
     ActionNodeConfig config = new ActionNodeConfig(nodeOptions.getNode().getConfig());
     Action action = actionProvider.get(config.getAction()).orElseThrow(
         () -> new ActionNotFoundException(config.getAction()));
-    return new SingleNode(config.getAction(), toRxFunction(action), edges);
+    return new SingleNode() {
+      @Override
+      public String getId() {
+        return config.getAction();
+      }
+
+      @Override
+      public Optional<Node> next(String transition) {
+        return Optional.ofNullable(edges.get(transition));
+      }
+
+      @Override
+      public Single<FragmentResult> execute(FragmentContext fragmentContext) {
+        return toRxFunction(action).apply(fragmentContext);
+      }
+    };
   }
 
   private Function<FragmentContext, Single<FragmentResult>> toRxFunction(

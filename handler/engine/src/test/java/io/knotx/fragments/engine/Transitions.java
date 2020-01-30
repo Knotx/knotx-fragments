@@ -13,19 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.knotx.fragments.engine.graph;
+package io.knotx.fragments.engine;
 
-import io.knotx.fragments.handler.api.domain.FragmentContext;
-import io.knotx.fragments.handler.api.domain.FragmentResult;
-import io.reactivex.Single;
+import static io.knotx.fragments.handler.api.domain.FragmentResult.ERROR_TRANSITION;
+import static io.knotx.fragments.handler.api.domain.FragmentResult.SUCCESS_TRANSITION;
 
-public interface SingleNode extends Node {
+import io.knotx.fragments.engine.graph.Node;
+import java.util.Collections;
+import java.util.Map;
 
-  Single<FragmentResult> execute(FragmentContext fragmentContext);
+public interface Transitions {
 
-  @Override
-  default NodeType getType() {
-    return NodeType.SINGLE;
+  static Map<String, Node> onSuccess(Node node) {
+    return Collections.singletonMap(SUCCESS_TRANSITION, node);
+  }
+
+  static Map<String, Node> onError(Node node) {
+    return Collections.singletonMap(ERROR_TRANSITION, node);
   }
 
 }

@@ -15,11 +15,11 @@
  */
 package io.knotx.fragments.engine;
 
+import static io.knotx.fragments.engine.Nodes.single;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.knotx.fragments.api.Fragment;
-import io.knotx.fragments.engine.graph.SingleNode;
 import io.knotx.fragments.engine.graph.Node;
 import io.knotx.fragments.handler.api.domain.FragmentContext;
 import io.knotx.fragments.handler.api.domain.FragmentResult;
@@ -30,7 +30,6 @@ import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
 import io.vertx.reactivex.core.Vertx;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
@@ -80,7 +79,7 @@ class FragmentsEngineOrderTest {
   private FragmentEventContextTaskAware initFragmentEventContextTaskAware(
       String fragmentBody,
       Function<FragmentContext, Single<FragmentResult>> operation) {
-    Node graphNode = new SingleNode("id", operation, Collections.emptyMap());
+    Node graphNode = single("id", operation);
     Fragment fragment = new Fragment("snippet", new JsonObject(), fragmentBody);
 
     return new FragmentEventContextTaskAware(new Task("task", graphNode),
