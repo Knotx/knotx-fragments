@@ -18,6 +18,7 @@ package io.knotx.fragments.task;
 import io.knotx.fragments.engine.FragmentEventContext;
 import io.knotx.fragments.engine.Task;
 import io.knotx.fragments.handler.FragmentsHandlerOptions;
+import io.knotx.fragments.handler.api.exception.ConfigurationException;
 import io.vertx.core.json.JsonObject;
 import io.vertx.reactivex.core.Vertx;
 
@@ -55,7 +56,7 @@ public interface TaskFactory {
   /**
    * Creates the new task instance. It is called only if {@link #accept(FragmentEventContext)}
    * returns <code>true</code>. When called with a fragment that does not provide a task name, then
-   * {@link io.knotx.fragments.ConfigurationException} is thrown.
+   * {@link ConfigurationException} is thrown.
    *
    * @param context fragment event context
    * @return new task instance

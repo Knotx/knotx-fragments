@@ -18,10 +18,10 @@ package io.knotx.fragments.handler.action.cb;
 import static io.knotx.fragments.handler.api.actionlog.ActionLogLevel.fromConfig;
 import static java.util.Objects.isNull;
 
+import io.knotx.fragments.handler.action.exception.DoActionNotDefinedException;
 import io.knotx.fragments.handler.api.Action;
 import io.knotx.fragments.handler.api.ActionFactory;
 import io.knotx.fragments.handler.api.Cacheable;
-import io.knotx.fragments.handler.exception.DoActionNotDefinedException;
 import io.vertx.circuitbreaker.CircuitBreaker;
 import io.vertx.circuitbreaker.impl.CircuitBreakerImpl;
 import io.vertx.core.Vertx;

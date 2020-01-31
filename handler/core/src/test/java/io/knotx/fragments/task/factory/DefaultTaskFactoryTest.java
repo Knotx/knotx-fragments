@@ -20,7 +20,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import io.knotx.fragments.ConfigurationException;
+import io.knotx.fragments.handler.api.exception.ConfigurationException;
 import io.knotx.fragments.api.Fragment;
 import io.knotx.fragments.engine.FragmentEvent;
 import io.knotx.fragments.engine.FragmentEventContext;

@@ -12,22 +12,14 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
+ * The code comes from https://github.com/tomaszmichalak/vertx-rx-map-reduce.
  */
-package io.knotx.fragments.handler.exception;
+package io.knotx.fragments.handler.action.exception;
 
-import io.knotx.fragments.handler.api.exception.ConfigurationException;
-import io.vertx.core.json.JsonObject;
+public class DoActionExecuteException extends RuntimeException {
 
-public class TaskFactoryNameNotDefinedException extends ConfigurationException {
-
-  private JsonObject configuration;
-
-  public TaskFactoryNameNotDefinedException(JsonObject configuration) {
-    super("Task factory name not defined [" + configuration + "]");
-    this.configuration = configuration;
-  }
-
-  public JsonObject getConfiguration() {
-    return configuration;
+  public DoActionExecuteException(String message) {
+    super(message);
   }
 }

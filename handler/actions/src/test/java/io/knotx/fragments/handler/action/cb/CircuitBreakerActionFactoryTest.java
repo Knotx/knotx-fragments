@@ -28,12 +28,12 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.knotx.fragments.api.Fragment;
+import io.knotx.fragments.handler.action.exception.DoActionExecuteException;
 import io.knotx.fragments.handler.api.Action;
 import io.knotx.fragments.handler.api.actionlog.ActionInvocationLog;
 import io.knotx.fragments.handler.api.actionlog.ActionLog;
 import io.knotx.fragments.handler.api.domain.FragmentContext;
 import io.knotx.fragments.handler.api.domain.FragmentResult;
-import io.knotx.fragments.handler.exception.DoActionExecuteException;
 import io.knotx.server.api.context.ClientRequest;
 import io.vertx.circuitbreaker.CircuitBreaker;
 import io.vertx.circuitbreaker.CircuitBreakerOptions;

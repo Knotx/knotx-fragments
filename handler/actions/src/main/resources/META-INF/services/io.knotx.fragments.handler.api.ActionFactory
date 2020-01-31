@@ -17,7 +17,8 @@ io.knotx.fragments.handler.action.cb.CircuitBreakerActionFactory
 io.knotx.fragments.handler.action.InMemoryCacheActionFactory
 
 # pre-defined actions
+io.knotx.fragments.handler.action.KnotFactory
 io.knotx.fragments.handler.action.InlineBodyActionFactory
 io.knotx.fragments.handler.action.InlinePayloadActionFactory
 io.knotx.fragments.handler.action.PayloadToBodyActionFactory
-io.knotx.fragments.handler.action.KnotFactory
+io.knotx.fragments.handler.action.http.HttpActionFactory

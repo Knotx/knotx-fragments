@@ -15,7 +15,7 @@
  */
 package io.knotx.fragments.handler.exception;
 
-import io.knotx.fragments.ConfigurationException;
+import io.knotx.fragments.handler.api.exception.ConfigurationException;
 
 public class TaskFactoryNotFoundException extends ConfigurationException {
 

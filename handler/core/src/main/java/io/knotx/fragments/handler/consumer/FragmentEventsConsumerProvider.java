@@ -17,7 +17,7 @@ package io.knotx.fragments.handler.consumer;
 
 import static java.util.stream.Collectors.toList;
 
-import io.knotx.fragments.ConfigurationException;
+import io.knotx.fragments.handler.api.exception.ConfigurationException;
 import io.knotx.fragments.spi.FactoryOptions;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
