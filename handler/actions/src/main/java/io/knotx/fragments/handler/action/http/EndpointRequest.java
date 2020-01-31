@@ -12,21 +12,27 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * The code comes from https://github.com/tomaszmichalak/vertx-rx-map-reduce.
  */
-package io.knotx.fragments.handler.helper;
+package io.knotx.fragments.handler.action.http;
 
-import static java.time.Instant.now;
+import io.vertx.reactivex.core.MultiMap;
 
-public final class TimeCalculator {
+class EndpointRequest {
 
-  private TimeCalculator() {
-    // Utility class
+  private final String path;
+  private final MultiMap headers;
+
+  public EndpointRequest(String path, MultiMap headers) {
+    this.path = path;
+    this.headers = headers;
   }
 
-  public static long executionTime(long startTime) {
-    return now().toEpochMilli() - startTime;
+  public String getPath() {
+    return path;
+  }
+
+  public MultiMap getHeaders() {
+    return headers;
   }
 
 }

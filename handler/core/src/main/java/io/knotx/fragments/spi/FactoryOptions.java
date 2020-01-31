@@ -15,7 +15,7 @@
  */
 package io.knotx.fragments.spi;
 
-import io.knotx.fragments.ConfigurationException;
+import io.knotx.fragments.handler.api.exception.ConfigurationException;
 import io.vertx.codegen.annotations.DataObject;
 import io.vertx.core.json.JsonObject;
 import java.util.Objects;

@@ -63,29 +63,6 @@ The dictionary maps action name to action factory options.
 +++
 |===
 
-[[CircuitBreakerActionFactoryOptions]]
-== CircuitBreakerActionFactoryOptions
-
-
-[cols=">25%,25%,50%"]
-[frame="topbot"]
-|===
-^|Name | Type ^| Description
-|[[circuitBreakerName]]`@circuitBreakerName`|`String`|+++
-Sets the circuit breaker name.
-+++
-|[[circuitBreakerOptions]]`@circuitBreakerOptions`|`link:dataobjects.html#CircuitBreakerOptions[CircuitBreakerOptions]`|+++
-Sets the circuit breaker configuration options. Note that Knot.x enforce the fallback on error
- strategy.
-+++
-|[[errorTransitions]]`@errorTransitions`|`Array of String`|+++
-Sets error transitions.
-+++
-|[[logLevel]]`@logLevel`|`String`|+++
-Sets the action node log level.
-+++
-|===
-
 [[DefaultTaskFactoryConfig]]
 == DefaultTaskFactoryConfig
 

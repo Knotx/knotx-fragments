@@ -13,11 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.knotx.fragments;
+@ModuleGen(name = "knotx-fragments-handler-actions", groupPackage = "io.knotx")
+package io.knotx.fragments.handler.action;
 
-public class ConfigurationException extends RuntimeException {
-
-  public ConfigurationException(String message) {
-    super(message);
-  }
-}
+import io.vertx.codegen.annotations.ModuleGen;

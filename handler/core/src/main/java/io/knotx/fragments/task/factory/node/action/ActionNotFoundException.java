@@ -15,7 +15,7 @@
  */
 package io.knotx.fragments.task.factory.node.action;
 
-import io.knotx.fragments.ConfigurationException;
+import io.knotx.fragments.handler.api.exception.ConfigurationException;
 
 public class ActionNotFoundException extends ConfigurationException {
 

@@ -22,7 +22,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.when;
 
-import io.knotx.fragments.ConfigurationException;
+import io.knotx.fragments.handler.api.exception.ConfigurationException;
 import io.knotx.fragments.HoconLoader;
 import io.knotx.fragments.api.Fragment;
 import io.knotx.fragments.engine.FragmentEvent;

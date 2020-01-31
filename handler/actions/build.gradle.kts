@@ -13,29 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 import org.nosphere.apache.rat.RatTask
 
 plugins {
     id("io.knotx.java-library")
     id("io.knotx.codegen")
-    id("io.knotx.unit-test")
     id("io.knotx.maven-publish")
     id("io.knotx.jacoco")
+    id("io.knotx.unit-test")
     id("org.nosphere.apache.rat") version "0.4.0"
 }
 
 dependencies {
     implementation(platform("io.knotx:knotx-dependencies:${project.version}"))
-
-    api(project(":knotx-fragments-handler-api"))
-    implementation(project(":knotx-fragments-engine"))
-
     implementation("io.knotx:knotx-server-http-common-placeholders:${project.version}")
     implementation("io.knotx:knotx-commons:${project.version}")
-    implementation(group = "io.vertx", name = "vertx-circuit-breaker")
+
+    api(project(":knotx-fragments-handler-api"))
+    api("io.knotx:knotx-server-http-api:${project.version}")
+
     implementation(group = "io.vertx", name = "vertx-core")
     implementation(group = "io.vertx", name = "vertx-service-proxy")
     implementation(group = "io.vertx", name = "vertx-rx-java2")
+    implementation(group = "io.vertx", name = "vertx-circuit-breaker")
     implementation(group = "io.vertx", name = "vertx-web-client")
     implementation(group = "org.apache.commons", name = "commons-lang3")
     implementation(group = "com.google.guava", name = "guava")
@@ -51,7 +52,7 @@ dependencies {
 
 tasks {
     named<RatTask>("rat") {
-        excludes.addAll("*.yml", "*.md", "**/*.md", "**/build/*", "**/out/*", "**/generated/*", "**/*.adoc", "**/*.json", "**/*.conf")
+        excludes.addAll("*.yml", "*.md", "**/*.md", "**/build/*", "**/out/*", "**/generated/*", "**/*.adoc")
     }
     getByName("build").dependsOn("rat")
 }

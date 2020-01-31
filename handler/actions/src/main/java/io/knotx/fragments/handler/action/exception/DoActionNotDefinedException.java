@@ -15,9 +15,9 @@
  *
  * The code comes from https://github.com/tomaszmichalak/vertx-rx-map-reduce.
  */
-package io.knotx.fragments.handler.exception;
+package io.knotx.fragments.handler.action.exception;
 
-import io.knotx.fragments.ConfigurationException;
+import io.knotx.fragments.handler.api.exception.ConfigurationException;
 
 public class DoActionNotDefinedException extends ConfigurationException {
 

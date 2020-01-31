@@ -26,7 +26,7 @@ import io.knotx.fragments.handler.api.actionlog.ActionLogLevel;
 import io.knotx.fragments.handler.api.actionlog.ActionLogger;
 import io.knotx.fragments.handler.api.domain.FragmentContext;
 import io.knotx.fragments.handler.api.domain.FragmentResult;
-import io.knotx.fragments.handler.helper.TimeCalculator;
+import io.knotx.fragments.handler.action.helper.TimeCalculator;
 import io.knotx.server.api.context.ClientRequest;
 import io.knotx.server.common.placeholders.PlaceholdersResolver;
 import io.knotx.server.common.placeholders.SourceDefinitions;

@@ -15,7 +15,7 @@
  */
 package io.knotx.fragments.task.exception;
 
-import io.knotx.fragments.ConfigurationException;
+import io.knotx.fragments.handler.api.exception.ConfigurationException;
 
 public class NodeFactoryNotFoundException extends ConfigurationException {
 

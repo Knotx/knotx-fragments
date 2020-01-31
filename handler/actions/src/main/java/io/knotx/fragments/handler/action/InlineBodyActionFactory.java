@@ -22,7 +22,6 @@ import io.knotx.fragments.handler.api.actionlog.ActionLogLevel;
 import io.knotx.fragments.handler.api.actionlog.ActionLogger;
 import io.knotx.fragments.handler.api.domain.FragmentContext;
 import io.knotx.fragments.handler.api.domain.FragmentResult;
-import io.knotx.fragments.task.factory.node.subtasks.SubtasksNodeFactory;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
@@ -40,8 +39,7 @@ import io.vertx.core.json.JsonObject;
  *     }
  *   }
  * </pre>
- * WARNING: This action modifies Fragment body so it should not be used in subtasks nodes {@link
- * SubtasksNodeFactory}.
+ * WARNING: This action modifies Fragment body so it should not be used in subtasks nodes.
  */
 @Cacheable
 public class InlineBodyActionFactory implements ActionFactory {
