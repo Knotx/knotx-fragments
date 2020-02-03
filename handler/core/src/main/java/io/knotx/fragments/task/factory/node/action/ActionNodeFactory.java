@@ -24,6 +24,7 @@ import io.knotx.fragments.handler.api.domain.FragmentResult;
 import io.knotx.fragments.task.factory.NodeProvider;
 import io.knotx.fragments.task.factory.node.NodeFactory;
 import io.knotx.fragments.task.factory.GraphNodeOptions;
+import io.knotx.fragments.task.factory.node.NodeWithMetadata;
 import io.reactivex.Single;
 import io.vertx.core.json.JsonObject;
 import io.vertx.reactivex.core.Vertx;
@@ -52,34 +53,12 @@ public class ActionNodeFactory implements NodeFactory {
   }
 
   @Override
-  public Node initNode(GraphNodeOptions nodeOptions, Map<String, Node> edges,
+  public NodeWithMetadata initNode(GraphNodeOptions nodeOptions, Map<String, NodeWithMetadata> edges,
       NodeProvider nodeProvider) {
     ActionNodeConfig config = new ActionNodeConfig(nodeOptions.getNode().getConfig());
     Action action = actionProvider.get(config.getAction()).orElseThrow(
         () -> new ActionNotFoundException(config.getAction()));
-    return new SingleNode() {
-      @Override
-      public String getId() {
-        return config.getAction();
-      }
-
-      @Override
-      public Optional<Node> next(String transition) {
-        return Optional.ofNullable(edges.get(transition));
-      }
-
-      @Override
-      public Single<FragmentResult> execute(FragmentContext fragmentContext) {
-        return toRxFunction(action).apply(fragmentContext);
-      }
-    };
-  }
-
-  private Function<FragmentContext, Single<FragmentResult>> toRxFunction(
-      Action action) {
-    io.knotx.fragments.handler.reactivex.api.Action rxAction = io.knotx.fragments.handler.reactivex.api.Action
-        .newInstance(action);
-    return rxAction::rxApply;
+    return new SingleNodeWithMetadata(config.getAction(), action, edges);
   }
 
   private Supplier<Iterator<ActionFactory>> supplyFactories() {
@@ -88,5 +67,46 @@ public class ActionNodeFactory implements NodeFactory {
           .load(ActionFactory.class);
       return factories.iterator();
     };
+  }
+
+  class SingleNodeWithMetadata implements SingleNode, NodeWithMetadata {
+
+    private final String id;
+    private final Action action;
+    private final Map<String, NodeWithMetadata> edges;
+
+    public SingleNodeWithMetadata(String id, Action action,
+        Map<String, NodeWithMetadata> edges) {
+      this.id = id;
+      this.action = action;
+      this.edges = edges;
+    }
+
+    @Override
+    public Single<FragmentResult> execute(FragmentContext fragmentContext) {
+      return toRxFunction(action).apply(fragmentContext);
+    }
+
+    @Override
+    public String getId() {
+      return id;
+    }
+
+    @Override
+    public Optional<NodeWithMetadata> next(String transition) {
+      return Optional.ofNullable(edges.get(transition));
+    }
+
+    @Override
+    public JsonObject getData() {
+      return new JsonObject().put("afadfsdf","fdsfsdfsd");
+    }
+
+    private Function<FragmentContext, Single<FragmentResult>> toRxFunction(
+        Action action) {
+      io.knotx.fragments.handler.reactivex.api.Action rxAction = io.knotx.fragments.handler.reactivex.api.Action
+          .newInstance(action);
+      return rxAction::rxApply;
+    }
   }
 }

@@ -23,6 +23,7 @@ import io.knotx.fragments.engine.graph.Node;
 import io.knotx.fragments.task.TaskFactory;
 import io.knotx.fragments.task.exception.NodeFactoryNotFoundException;
 import io.knotx.fragments.task.factory.node.NodeFactory;
+import io.knotx.fragments.task.factory.node.NodeWithMetadata;
 import io.vertx.core.json.JsonObject;
 import io.vertx.reactivex.core.Vertx;
 import java.util.HashMap;
@@ -83,7 +84,7 @@ public class DefaultTaskFactory implements TaskFactory, NodeProvider {
   }
 
   @Override
-  public Node initNode(GraphNodeOptions nodeOptions) {
+  public NodeWithMetadata initNode(GraphNodeOptions nodeOptions) {
     return findNodeFactory(nodeOptions)
         .map(f -> f.initNode(nodeOptions, initTransitions(nodeOptions), this))
         .orElseThrow(() -> new NodeFactoryNotFoundException(nodeOptions.getNode().getFactory()));
@@ -93,9 +94,9 @@ public class DefaultTaskFactory implements TaskFactory, NodeProvider {
     return Optional.ofNullable(nodeFactories.get(nodeOptions.getNode().getFactory()));
   }
 
-  private Map<String, Node> initTransitions(GraphNodeOptions nodeOptions) {
+  private Map<String, NodeWithMetadata> initTransitions(GraphNodeOptions nodeOptions) {
     Map<String, GraphNodeOptions> transitions = nodeOptions.getOnTransitions();
-    Map<String, Node> edges = new HashMap<>();
+    Map<String, NodeWithMetadata> edges = new HashMap<>();
     transitions.forEach((transition, childGraphOptions) -> edges
         .put(transition, initNode(childGraphOptions)));
     return edges;

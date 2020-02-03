@@ -21,7 +21,7 @@ public interface Node {
 
   String getId();
 
-  Optional<Node> next(String transition);
+  <T extends Node> Optional<T> next(String transition);
 
   NodeType getType();
 

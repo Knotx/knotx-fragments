@@ -55,6 +55,6 @@ public interface NodeFactory {
    * @param nodeProvider - node provider if the current node contains others
    * @return node instance
    */
-  Node initNode(GraphNodeOptions nodeOptions, Map<String, Node> edges, NodeProvider nodeProvider);
+  NodeWithMetadata initNode(GraphNodeOptions nodeOptions, Map<String, NodeWithMetadata> edges, NodeProvider nodeProvider);
 
 }
