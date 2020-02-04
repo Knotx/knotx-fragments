@@ -75,7 +75,7 @@ Table below shows the behaviour of HttpAction depending on provided `responseOpt
 
 #### Node log
 HTTP Action adds details about the request, response and occurred errors to [node log](https://github.com/Knotx/knotx-fragments/tree/master/handler/engine#node-log). 
-If the log level is `ERROR`, then only failing situations are logged: exception occurs during processing, response predicate is not valid, or status code is not between 200 and 300. 
+If the log level is `ERROR`, then only failing situations are logged: exception occurs during processing, response predicate is not valid, or status code is between 400 and 600. 
 For the `INFO` log level all items are logged.
 
 Node log is presented as `JSON` and has the following structure:

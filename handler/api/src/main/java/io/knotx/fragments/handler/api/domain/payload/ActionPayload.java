@@ -21,13 +21,13 @@ import io.vertx.core.json.JsonObject;
 @DataObject
 public class ActionPayload {
 
-  static final String RESULT_KEY = "_result";
+  private static final String RESULT_KEY = "_result";
 
   private final ActionRequest request;
   private final ActionResponse response;
   private final Object result;
 
-  ActionPayload(ActionRequest request, ActionResponse response, Object result) {
+  private ActionPayload(ActionRequest request, ActionResponse response, Object result) {
     this.request = request;
     this.response = response;
     this.result = result;
@@ -39,12 +39,20 @@ public class ActionPayload {
     this.result = jsonObject.getValue(RESULT_KEY);
   }
 
+  public static ActionPayload create(ActionRequest request, ActionResponse response, Object result) {
+    return new ActionPayload(request, response, result);
+  }
+
   public static ActionPayload success(ActionRequest request, Object result) {
     return new ActionPayload(request, ActionResponse.success(), result);
   }
 
   public static ActionPayload error(ActionRequest request, String errorCode, String errorMessage) {
     return new ActionPayload(request, ActionResponse.error(errorCode, errorMessage), null);
+  }
+
+  public static ActionPayload noResult(ActionRequest request, ActionResponse response) {
+    return new ActionPayload(request, response, null);
   }
 
   public JsonObject toJson() {

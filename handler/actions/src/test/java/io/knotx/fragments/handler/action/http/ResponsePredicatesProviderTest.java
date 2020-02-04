@@ -18,6 +18,7 @@ package io.knotx.fragments.handler.action.http;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import io.knotx.fragments.handler.action.http.request.ResponsePredicatesProvider;
 import io.vertx.reactivex.ext.web.client.predicate.ResponsePredicate;
 import java.util.stream.Stream;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -55,16 +56,13 @@ class ResponsePredicatesProviderTest {
 
   @ParameterizedTest(name = "Expect valid response predicate")
   @MethodSource("dataResponsePredicates")
-  void shouldReturnValidResponsePredicate(String name, ResponsePredicate expectedPredicate)
-      throws Throwable {
+  void shouldReturnValidResponsePredicate(String name, ResponsePredicate expectedPredicate) {
     assertEquals(expectedPredicate, predicatesProvider.fromName(name));
   }
 
   @ParameterizedTest(name = "Should throw exception when nonexisting predicate requested")
   @MethodSource("dataNonExistingPredicates")
   void shouldThrowExceptionWhenNonExistingPredicateRequested(String predicate) {
-    assertThrows(IllegalArgumentException.class, () -> {
-      predicatesProvider.fromName(predicate);
-    });
+    assertThrows(IllegalArgumentException.class, () -> predicatesProvider.fromName(predicate));
   }
 }

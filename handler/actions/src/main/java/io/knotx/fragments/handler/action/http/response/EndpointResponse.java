@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.knotx.fragments.handler.action.http;
+package io.knotx.fragments.handler.action.http.response;
 
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.vertx.core.http.HttpVersion;
@@ -21,7 +21,7 @@ import io.vertx.reactivex.core.MultiMap;
 import io.vertx.reactivex.core.buffer.Buffer;
 import io.vertx.reactivex.ext.web.client.HttpResponse;
 
-class EndpointResponse {
+public class EndpointResponse {
 
   private final HttpResponseStatus statusCode;
   private String statusMessage;
@@ -30,11 +30,11 @@ class EndpointResponse {
   private MultiMap trailers = MultiMap.caseInsensitiveMultiMap();
   private Buffer body;
 
-  EndpointResponse(HttpResponseStatus statusCode) {
+  public EndpointResponse(HttpResponseStatus statusCode) {
     this.statusCode = statusCode;
   }
 
-  static EndpointResponse fromHttpResponse(HttpResponse<Buffer> response) {
+  public static EndpointResponse fromHttpResponse(HttpResponse<Buffer> response) {
     EndpointResponse endpointResponse = new EndpointResponse(
         HttpResponseStatus.valueOf(response.statusCode()));
     endpointResponse.body = getResponseBody(response);
@@ -46,7 +46,7 @@ class EndpointResponse {
   }
 
 
-  public HttpResponseStatus getStatusCode() {
+  HttpResponseStatus getStatusCode() {
     return statusCode;
   }
 
@@ -62,7 +62,7 @@ class EndpointResponse {
     return body;
   }
 
-  public String getStatusMessage() {
+  String getStatusMessage() {
     return statusMessage;
   }
 

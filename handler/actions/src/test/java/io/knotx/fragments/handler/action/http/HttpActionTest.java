@@ -20,7 +20,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.matching;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
-import static io.knotx.fragments.handler.action.http.HttpAction.TIMEOUT_TRANSITION;
+import static io.knotx.fragments.handler.action.http.response.EndpointResponseProcessor.TIMEOUT_TRANSITION;
 import static io.knotx.fragments.handler.api.domain.FragmentResult.ERROR_TRANSITION;
 import static io.knotx.fragments.handler.api.domain.FragmentResult.SUCCESS_TRANSITION;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -30,6 +30,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
 import io.knotx.fragments.api.Fragment;
+import io.knotx.fragments.handler.action.http.options.EndpointOptions;
+import io.knotx.fragments.handler.action.http.options.HttpActionOptions;
+import io.knotx.fragments.handler.action.http.options.ResponseOptions;
 import io.knotx.fragments.handler.api.actionlog.ActionLogLevel;
 import io.knotx.fragments.handler.api.domain.FragmentContext;
 import io.knotx.fragments.handler.api.domain.FragmentResult;
@@ -44,9 +47,11 @@ import io.vertx.core.eventbus.ReplyException;
 import io.vertx.core.json.DecodeException;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
+import io.vertx.ext.web.client.WebClientOptions;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
 import io.vertx.reactivex.core.MultiMap;
+import io.vertx.reactivex.ext.web.client.WebClient;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Optional;
@@ -507,10 +512,12 @@ class HttpActionTest {
         .setDomain("localhost")
         .setPort(wireMockServer.port());
 
-    HttpAction tested = new HttpAction(vertx,
+    HttpAction tested = new HttpAction(createDefaultWebClient(vertx),
         new HttpActionOptions()
             .setEndpointOptions(endpointOptions)
-            .setRequestTimeoutMs(requestTimeoutMs), ACTION_ALIAS, actionLogLevel);
+            .setRequestTimeoutMs(requestTimeoutMs)
+            .setLogLevel(actionLogLevel.getLevel()),
+        ACTION_ALIAS);
 
     // then
     verifyExecution(tested, clientRequest, createFragment(),
@@ -533,8 +540,9 @@ class HttpActionTest {
         .setPort(wireMockServer.port())
         .setAllowedRequestHeaderPatterns(Collections.singletonList(Pattern.compile(".*")));
 
-    HttpAction tested = new HttpAction(vertx,
-        new HttpActionOptions().setEndpointOptions(endpointOptions), ACTION_ALIAS, actionLogLevel);
+    HttpAction tested = new HttpAction(createDefaultWebClient(vertx),
+        new HttpActionOptions().setEndpointOptions(endpointOptions)
+            .setLogLevel(actionLogLevel.getLevel()), ACTION_ALIAS);
 
     // then
     verifyExecution(tested, clientRequest, createFragment(),
@@ -623,8 +631,9 @@ class HttpActionTest {
         .setPort(wireMockServer.port())
         .setAllowedRequestHeaderPatterns(Collections.singletonList(Pattern.compile(".*")));
 
-    HttpAction tested = new HttpAction(vertx,
-        new HttpActionOptions().setEndpointOptions(endpointOptions), ACTION_ALIAS, actionLogLevel);
+    HttpAction tested = new HttpAction(createDefaultWebClient(vertx),
+        new HttpActionOptions().setEndpointOptions(endpointOptions)
+            .setLogLevel(actionLogLevel.getLevel()), ACTION_ALIAS);
 
     // then
     verifyExecution(tested, clientRequest, createFragment(),
@@ -655,8 +664,9 @@ class HttpActionTest {
         .setPort(wireMockServer.port())
         .setAllowedRequestHeaderPatterns(Collections.singletonList(Pattern.compile(".*")));
 
-    HttpAction tested = new HttpAction(vertx,
-        new HttpActionOptions().setEndpointOptions(endpointOptions), ACTION_ALIAS, actionLogLevel);
+    HttpAction tested = new HttpAction(createDefaultWebClient(vertx),
+        new HttpActionOptions().setEndpointOptions(endpointOptions)
+            .setLogLevel(actionLogLevel.getLevel()), ACTION_ALIAS);
 
     // then
     verifyExecution(tested, clientRequest, createFragment(),
@@ -685,8 +695,9 @@ class HttpActionTest {
         .setPort(wireMockServer.port())
         .setAllowedRequestHeaderPatterns(Collections.singletonList(Pattern.compile(".*")));
 
-    HttpAction tested = new HttpAction(vertx,
-        new HttpActionOptions().setEndpointOptions(endpointOptions), ACTION_ALIAS, actionLogLevel);
+    HttpAction tested = new HttpAction(createDefaultWebClient(vertx),
+        new HttpActionOptions().setEndpointOptions(endpointOptions)
+            .setLogLevel(actionLogLevel.getLevel()), ACTION_ALIAS);
 
     // then
     verifyExecution(tested, clientRequest, createFragment(),
@@ -715,8 +726,9 @@ class HttpActionTest {
         .setPort(wireMockServer.port())
         .setAllowedRequestHeaderPatterns(Collections.singletonList(Pattern.compile(".*")));
 
-    HttpAction tested = new HttpAction(vertx,
-        new HttpActionOptions().setEndpointOptions(endpointOptions), ACTION_ALIAS, actionLogLevel);
+    HttpAction tested = new HttpAction(createDefaultWebClient(vertx),
+        new HttpActionOptions().setEndpointOptions(endpointOptions)
+            .setLogLevel(actionLogLevel.getLevel()), ACTION_ALIAS);
 
     // then
     verifyExecution(tested, clientRequest,
@@ -749,8 +761,9 @@ class HttpActionTest {
         .setPort(wireMockServer.port())
         .setAllowedRequestHeaders(Collections.singleton("requestHeader"));
 
-    return new HttpAction(vertx,
-        new HttpActionOptions().setEndpointOptions(endpointOptions), ACTION_ALIAS, actionLogLevel);
+    return new HttpAction(createDefaultWebClient(vertx),
+        new HttpActionOptions().setEndpointOptions(endpointOptions)
+            .setLogLevel(actionLogLevel.getLevel()), ACTION_ALIAS);
   }
 
   private HttpAction getHttpActionWithAdditionalHeaders(Vertx vertx,
@@ -767,8 +780,9 @@ class HttpActionTest {
         .setAllowedRequestHeaderPatterns(Collections.singletonList(Pattern.compile(".*")))
         .setAdditionalHeaders(additionalHeaders);
 
-    return new HttpAction(vertx,
-        new HttpActionOptions().setEndpointOptions(endpointOptions), ACTION_ALIAS, actionLogLevel);
+    return new HttpAction(createDefaultWebClient(vertx),
+        new HttpActionOptions().setEndpointOptions(endpointOptions)
+            .setLogLevel(actionLogLevel.getLevel()), ACTION_ALIAS);
   }
 
   private HttpAction setupTestingInstances(Vertx vertx, String endpointPath, String body,
@@ -789,11 +803,12 @@ class HttpActionTest {
         .setPredicates(predicates)
         .setForceJson(forceJson);
 
-    return new HttpAction(vertx,
+    return new HttpAction(createDefaultWebClient(vertx),
         new HttpActionOptions()
             .setEndpointOptions(endpointOptions)
-            .setResponseOptions(responseOptions),
-        ACTION_ALIAS, logLevel);
+            .setResponseOptions(responseOptions)
+            .setLogLevel(logLevel.getLevel()),
+        ACTION_ALIAS);
   }
 
   private void verifyExecution(HttpAction tested, ClientRequest clientRequest, Fragment fragment,
@@ -822,5 +837,9 @@ class HttpActionTest {
 
   private Fragment createFragment() {
     return new Fragment("type", EMPTY_JSON, "expectedBody");
+  }
+
+  private WebClient createDefaultWebClient(Vertx vertx) {
+    return WebClient.create(io.vertx.reactivex.core.Vertx.newInstance(vertx), new WebClientOptions());
   }
 }

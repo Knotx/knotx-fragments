@@ -36,17 +36,21 @@ public enum ActionLogLevel {
     return level;
   }
 
+  public static ActionLogLevel fromConfig(JsonObject config) {
+    return fromConfig(config.getString(CONFIG_KEY_NAME, ERROR.level));
+  }
+
   public static ActionLogLevel fromConfig(JsonObject config, ActionLogLevel defaultLevel) {
     String level = config.getString(CONFIG_KEY_NAME);
+    return fromConfig(level, defaultLevel);
+  }
+
+  public static ActionLogLevel fromConfig(String level, ActionLogLevel defaultLevel) {
     if (StringUtils.isBlank(level)) {
       return defaultLevel;
     } else {
       return fromConfig(level);
     }
-  }
-
-  public static ActionLogLevel fromConfig(JsonObject config) {
-    return fromConfig(config.getString(CONFIG_KEY_NAME, ERROR.level));
   }
 
   public static ActionLogLevel fromConfig(String level) {

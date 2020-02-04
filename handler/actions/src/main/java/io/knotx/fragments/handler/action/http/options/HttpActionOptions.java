@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.knotx.fragments.handler.action.http;
+package io.knotx.fragments.handler.action.http.options;
 
+import io.netty.handler.codec.http.HttpMethod;
 import io.vertx.codegen.annotations.DataObject;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.client.WebClientOptions;
@@ -27,6 +28,7 @@ public class HttpActionOptions {
 
   private static final long DEFAULT_REQUEST_TIMEOUT = 0L;
 
+  private String httpMethod = HttpMethod.GET.name();
   private WebClientOptions webClientOptions = new WebClientOptions();
   private EndpointOptions endpointOptions = new EndpointOptions();
   private ResponseOptions responseOptions = new ResponseOptions();
@@ -38,6 +40,22 @@ public class HttpActionOptions {
 
   public HttpActionOptions(JsonObject json) {
     HttpActionOptionsConverter.fromJson(json, this);
+  }
+
+  public String getHttpMethod() {
+    return httpMethod;
+  }
+
+  /**
+   * Set the {@code HttpMethod} used for performing the request.
+   * At the moment only HTTP GET method is supported.
+   *
+   * @param httpMethod HTTP method
+   * @return a reference to this, so the API can be used fluently
+   */
+  HttpActionOptions setHttpMethod(String httpMethod) {
+    this.httpMethod = httpMethod;
+    return this;
   }
 
   public WebClientOptions getWebClientOptions() {
@@ -52,7 +70,7 @@ public class HttpActionOptions {
    * @param webClientOptions {@link WebClientOptions} object
    * @return a reference to this, so the API can be used fluently
    */
-  public HttpActionOptions setWebClientOptions(WebClientOptions webClientOptions) {
+  HttpActionOptions setWebClientOptions(WebClientOptions webClientOptions) {
     this.webClientOptions = webClientOptions;
     return this;
   }
