@@ -13,26 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.knotx.fragments.handler.action.http;
+package io.knotx.fragments.handler.action.exception;
 
-import io.vertx.reactivex.core.MultiMap;
+import io.knotx.fragments.handler.api.exception.ConfigurationException;
 
-class EndpointRequest {
+public class ActionConfigurationException extends ConfigurationException {
 
-  private final String path;
-  private final MultiMap headers;
-
-  public EndpointRequest(String path, MultiMap headers) {
-    this.path = path;
-    this.headers = headers;
-  }
-
-  public String getPath() {
-    return path;
-  }
-
-  public MultiMap getHeaders() {
-    return headers;
+  public ActionConfigurationException(String actionAlias, String message) {
+    super(actionAlias + ": " + message);
   }
 
 }

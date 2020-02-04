@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.knotx.fragments.handler.action.http;
+package io.knotx.fragments.handler.action.http.options;
 
 import io.vertx.codegen.annotations.DataObject;
 import io.vertx.codegen.annotations.GenIgnore;
@@ -57,7 +57,7 @@ public class EndpointOptions {
     EndpointOptionsConverter.fromJson(json, this);
     if (allowedRequestHeaders != null) {
       allowedRequestHeadersPatterns = allowedRequestHeaders.stream()
-          .map(expr -> Pattern.compile(expr)).collect(Collectors.toList());
+          .map(Pattern::compile).collect(Collectors.toList());
     }
   }
 
