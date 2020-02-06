@@ -20,7 +20,7 @@ plugins {
     id("io.knotx.unit-test")
     id("io.knotx.maven-publish")
     id("io.knotx.jacoco")
-    id("org.nosphere.apache.rat") version "0.4.0"
+    id("org.nosphere.apache.rat") version "0.6.0"
 }
 
 dependencies {
@@ -38,7 +38,7 @@ dependencies {
 
 tasks {
     named<RatTask>("rat") {
-        excludes.addAll("*.yml", "*.md", "**/*.md", "**/build/*", "**/out/*", "**/generated/*", "**/*.adoc")
+        excludes.addAll(listOf("*.yml", "*.md", "**/*.md", "**/build/*", "**/out/*", "**/generated/*", "**/*.adoc"))
     }
     getByName("build").dependsOn("rat")
 }
