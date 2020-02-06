@@ -15,18 +15,20 @@
  */
 package io.knotx.fragments.engine;
 
-public class FragmentEventContextTaskAware {
+import io.knotx.fragments.engine.graph.Node;
 
-  private final Task task;
+public class FragmentEventContextTaskAware <T extends Node> {
+
+  private final Task<T> task;
   private final FragmentEventContext fragmentEventContext;
 
-  public FragmentEventContextTaskAware(Task task,
+  public FragmentEventContextTaskAware(Task<T> task,
       FragmentEventContext fragmentEventContext) {
     this.task = task;
     this.fragmentEventContext = fragmentEventContext;
   }
 
-  public Task getTask() {
+  public Task<T> getTask() {
     return task;
   }
 

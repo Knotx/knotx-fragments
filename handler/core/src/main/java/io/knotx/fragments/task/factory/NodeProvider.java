@@ -15,13 +15,13 @@
  */
 package io.knotx.fragments.task.factory;
 
-import io.knotx.fragments.engine.graph.Node;
+import io.knotx.fragments.task.factory.node.NodeWithMetadata;
 
 /**
  * Inits node based on node options.
  */
 public interface NodeProvider {
 
-  Node initNode(GraphNodeOptions nodeOptions);
+  NodeWithMetadata initNode(GraphNodeOptions nodeOptions);
 
 }

@@ -19,7 +19,6 @@ import io.knotx.fragments.handler.api.exception.ConfigurationException;
 import io.knotx.fragments.api.Fragment;
 import io.knotx.fragments.engine.FragmentEventContext;
 import io.knotx.fragments.engine.Task;
-import io.knotx.fragments.engine.graph.Node;
 import io.knotx.fragments.task.TaskFactory;
 import io.knotx.fragments.task.exception.NodeFactoryNotFoundException;
 import io.knotx.fragments.task.factory.node.NodeFactory;
@@ -36,7 +35,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
-public class DefaultTaskFactory implements TaskFactory, NodeProvider {
+public class DefaultTaskFactory implements TaskFactory<NodeWithMetadata>, NodeProvider {
 
   public static final String NAME = "default";
 
@@ -69,7 +68,7 @@ public class DefaultTaskFactory implements TaskFactory, NodeProvider {
   }
 
   @Override
-  public Task newInstance(FragmentEventContext eventContext) {
+  public Task<NodeWithMetadata> newInstance(FragmentEventContext eventContext) {
     Fragment fragment = eventContext.getFragmentEvent().getFragment();
     String taskKey = taskFactoryConfig.getTaskNameKey();
     String taskName = fragment.getConfiguration().getString(taskKey);
@@ -77,8 +76,8 @@ public class DefaultTaskFactory implements TaskFactory, NodeProvider {
     Map<String, GraphNodeOptions> tasks = taskFactoryConfig.getTasks();
     return Optional.ofNullable(tasks.get(taskName))
         .map(rootGraphNodeOptions -> {
-          Node rootNode = initNode(rootGraphNodeOptions);
-          return new Task(taskName, rootNode);
+          NodeWithMetadata rootNode = initNode(rootGraphNodeOptions);
+          return new Task<>(taskName, rootNode);
         })
         .orElseThrow(() -> new ConfigurationException("Task [" + taskName + "] not configured!"));
   }

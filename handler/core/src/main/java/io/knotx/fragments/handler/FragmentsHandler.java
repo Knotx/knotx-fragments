@@ -25,6 +25,8 @@ import io.knotx.fragments.engine.FragmentEventContextTaskAware;
 import io.knotx.fragments.engine.FragmentsEngine;
 import io.knotx.fragments.engine.Task;
 import io.knotx.fragments.handler.consumer.FragmentEventsConsumerProvider;
+import io.knotx.fragments.task.TasksEventsWrapper;
+import io.knotx.fragments.task.factory.node.NodeWithMetadata;
 import io.knotx.server.api.context.ClientRequest;
 import io.knotx.server.api.context.RequestContext;
 import io.knotx.server.api.context.RequestEvent;
@@ -48,14 +50,16 @@ public class FragmentsHandler implements Handler<RoutingContext> {
 
   private final RequestContextEngine requestContextEngine;
 
-  private final FragmentsEngine engine;
+  private final FragmentsEngine<NodeWithMetadata> engine;
+
   private final TaskProvider taskProvider;
+
   private final FragmentEventsConsumerProvider fragmentEventsConsumerProvider;
 
   FragmentsHandler(Vertx vertx, JsonObject options) {
     FragmentsHandlerOptions handlerOptions = new FragmentsHandlerOptions(options);
     taskProvider = new TaskProvider(handlerOptions.getTaskFactories(), vertx);
-    engine = new FragmentsEngine(vertx);
+    engine = new FragmentsEngine<>(vertx);
     requestContextEngine = new DefaultRequestContextEngine(getClass().getSimpleName());
     fragmentEventsConsumerProvider = new FragmentEventsConsumerProvider(
         handlerOptions.getConsumerFactories());
@@ -67,11 +71,10 @@ public class FragmentsHandler implements Handler<RoutingContext> {
     final List<Fragment> fragments = routingContext.get("fragments");
     final ClientRequest clientRequest = requestContext.getRequestEvent().getClientRequest();
 
-    Single<List<FragmentEvent>> doHandle = doHandle(fragments, clientRequest);
-    doHandle
-        .doOnSuccess(events -> putFragments(routingContext, events))
+    doHandle(fragments, clientRequest)
+        .doOnSuccess(tasksEventsWrapper -> putFragments(routingContext, tasksEventsWrapper.getFragmentEvents()))
         .doOnSuccess(events -> enrichWithEventConsumers(clientRequest, events))
-        .map(events -> toHandlerResult(events, requestContext))
+        .map(events -> toHandlerResult(events.getFragmentEvents(), requestContext))
         .subscribe(
             result -> requestContextEngine
                 .processAndSaveResult(result, routingContext, requestContext),
@@ -79,17 +82,20 @@ public class FragmentsHandler implements Handler<RoutingContext> {
         );
   }
 
-  protected Single<List<FragmentEvent>> doHandle(List<Fragment> fragments,
+  protected Single<TasksEventsWrapper> doHandle(List<Fragment> fragments,
       ClientRequest clientRequest) {
     return Single.just(fragments)
         .map(f -> toEvents(f, clientRequest))
-        .flatMap(engine::execute);
+        .flatMap(events -> engine.execute(events)
+            .map(fragmentEvents -> new TasksEventsWrapper(events.stream()
+                .map(FragmentEventContextTaskAware::getTask)
+                .collect(Collectors.toList()), fragmentEvents)));
   }
 
   private void enrichWithEventConsumers(ClientRequest clientRequest,
-      List<FragmentEvent> fragmentEvents) {
+      TasksEventsWrapper tasksEventsWrapper) {
     fragmentEventsConsumerProvider.provide()
-        .forEach(consumer -> consumer.accept(clientRequest, fragmentEvents));
+        .forEach(consumer -> consumer.accept(clientRequest, tasksEventsWrapper));
   }
 
   private void putFragments(RoutingContext routingContext, List<FragmentEvent> events) {
@@ -131,7 +137,7 @@ public class FragmentsHandler implements Handler<RoutingContext> {
         .collect(Collectors.toList());
   }
 
-  private List<FragmentEventContextTaskAware> toEvents(List<Fragment> fragments,
+  private List<FragmentEventContextTaskAware<NodeWithMetadata>> toEvents(List<Fragment> fragments,
       ClientRequest clientRequest) {
     LOGGER.trace("Processing fragments [{}]", fragments);
     return fragments.stream()
@@ -147,12 +153,11 @@ public class FragmentsHandler implements Handler<RoutingContext> {
                     return task;
                   })
                   .map(
-                      task -> new FragmentEventContextTaskAware(task, fragmentEventContext))
-                  .orElseGet(() -> new FragmentEventContextTaskAware(new Task("_NOT_DEFINED"),
+                      task -> new FragmentEventContextTaskAware<>(task, fragmentEventContext))
+                  .orElseGet(() -> new FragmentEventContextTaskAware<>(new Task<>("_NOT_DEFINED"),
                       fragmentEventContext));
             })
-        .collect(
-            Collectors.toList());
+        .collect(Collectors.toList());
   }
 
 }

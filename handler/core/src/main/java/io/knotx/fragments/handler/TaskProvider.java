@@ -20,6 +20,7 @@ import io.knotx.fragments.engine.Task;
 import io.knotx.fragments.handler.exception.TaskFactoryNotFoundException;
 import io.knotx.fragments.spi.FactoryOptions;
 import io.knotx.fragments.task.TaskFactory;
+import io.knotx.fragments.task.factory.node.NodeWithMetadata;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
@@ -35,7 +36,7 @@ class TaskProvider {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(TaskProvider.class);
 
-  private List<TaskFactory> factories;
+  private List<TaskFactory<NodeWithMetadata>> factories;
   private final Vertx vertx;
 
   TaskProvider(List<FactoryOptions> factoryOptions, Vertx vertx) {
@@ -43,7 +44,7 @@ class TaskProvider {
     factories = initFactories(factoryOptions);
   }
 
-  Optional<Task> newInstance(FragmentEventContext eventContext) {
+  Optional<Task<NodeWithMetadata>> newInstance(FragmentEventContext eventContext) {
     return factories.stream()
         .filter(f -> f.accept(eventContext))
         .findFirst()
@@ -55,16 +56,16 @@ class TaskProvider {
         .map(f -> f.newInstance(eventContext));
   }
 
-  private List<TaskFactory> initFactories(List<FactoryOptions> optionsList) {
-    Map<String, TaskFactory> loadedFactories = loadFactories();
+  private List<TaskFactory<NodeWithMetadata>> initFactories(List<FactoryOptions> optionsList) {
+    Map<String, TaskFactory<NodeWithMetadata>> loadedFactories = loadFactories();
 
-    List<TaskFactory> result = new ArrayList<>();
+    List<TaskFactory<NodeWithMetadata>> result = new ArrayList<>();
     optionsList.forEach(options -> result.add(
         configureFactory(loadedFactories, options.getFactory(), options.getConfig())));
     return result;
   }
 
-  private TaskFactory configureFactory(Map<String, TaskFactory> loadedFactories, String factory,
+  private TaskFactory<NodeWithMetadata> configureFactory(Map<String, TaskFactory<NodeWithMetadata>> loadedFactories, String factory,
       JsonObject config) {
     LOGGER.info("Initializing task factory [{}] with config [{}]", factory, config);
     return Optional.ofNullable(loadedFactories.get(factory))
@@ -72,8 +73,8 @@ class TaskProvider {
         .orElseThrow(() -> new TaskFactoryNotFoundException(factory));
   }
 
-  private Map<String, TaskFactory> loadFactories() {
-    Map<String, TaskFactory> loadedFactories = new HashMap<>();
+  private Map<String, TaskFactory<NodeWithMetadata>> loadFactories() {
+    Map<String, TaskFactory<NodeWithMetadata>> loadedFactories = new HashMap<>();
     ServiceLoader
         .load(TaskFactory.class).iterator()
         .forEachRemaining(f -> {

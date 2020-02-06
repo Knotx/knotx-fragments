@@ -17,6 +17,7 @@ package io.knotx.fragments.task;
 
 import io.knotx.fragments.engine.FragmentEventContext;
 import io.knotx.fragments.engine.Task;
+import io.knotx.fragments.engine.graph.Node;
 import io.knotx.fragments.handler.FragmentsHandlerOptions;
 import io.knotx.fragments.handler.api.exception.ConfigurationException;
 import io.vertx.core.json.JsonObject;
@@ -28,7 +29,7 @@ import io.vertx.reactivex.core.Vertx;
  *
  * Task factories are configured in {@link FragmentsHandlerOptions#getTaskFactories()}.
  */
-public interface TaskFactory {
+public interface TaskFactory <T extends Node> {
 
   /**
    * @return task factory name
@@ -43,7 +44,7 @@ public interface TaskFactory {
    * @param vertx vertx instance
    * @return a reference to this, so the API can be used fluently
    */
-  TaskFactory configure(JsonObject config, Vertx vertx);
+  TaskFactory<T> configure(JsonObject config, Vertx vertx);
 
   /**
    * Determines if a fragment event context can be processed by the factory.
@@ -61,5 +62,5 @@ public interface TaskFactory {
    * @param context fragment event context
    * @return new task instance
    */
-  Task newInstance(FragmentEventContext context);
+  Task<T> newInstance(FragmentEventContext context);
 }

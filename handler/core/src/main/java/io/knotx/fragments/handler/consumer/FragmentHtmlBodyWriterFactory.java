@@ -17,21 +17,27 @@ package io.knotx.fragments.handler.consumer;
 
 import io.knotx.fragments.api.Fragment;
 import io.knotx.fragments.engine.FragmentEvent;
+import io.knotx.fragments.task.TaskEventWrapper;
+import io.knotx.fragments.task.TasksEventsWrapper;
+import io.knotx.fragments.task.factory.node.NodeWithMetadata;
 import io.knotx.server.api.context.ClientRequest;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import java.util.Collections;
-import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
+import org.apache.commons.lang3.StringUtils;
 
 public class FragmentHtmlBodyWriterFactory implements FragmentEventsConsumerFactory {
 
   static final String FRAGMENT_TYPES_OPTIONS = "fragmentTypes";
+
   static final String CONDITION_OPTION = "condition";
+
   static final String HEADER_OPTION = "header";
+
   static final String PARAM_OPTION = "param";
 
   @Override
@@ -43,31 +49,42 @@ public class FragmentHtmlBodyWriterFactory implements FragmentEventsConsumerFact
   public FragmentEventsConsumer create(JsonObject config) {
     return new FragmentEventsConsumer() {
       private Set<String> supportedTypes = getSupportedTypes(config);
+
       private String requestHeader = getConditionHeader(config);
+
       private String requestParam = getConditionParam(config);
 
       @Override
-      public void accept(ClientRequest request, List<FragmentEvent> events) {
+      public void accept(ClientRequest request, TasksEventsWrapper tasksEvents) {
         if (containsHeader(request) || containsParam(request)) {
-          events.stream()
-              .filter(this::isSupported)
+          tasksEvents.stream()
+              .filter(taskEventWrapper -> isSupported(taskEventWrapper.getFragmentEvent()))
               .forEach(this::wrapFragmentBody);
         }
       }
 
-      private void wrapFragmentBody(FragmentEvent fragmentEvent) {
-        Fragment fragment = fragmentEvent.getFragment();
+      private void wrapFragmentBody(TaskEventWrapper taskEventWrapper) {
+        Fragment fragment = taskEventWrapper.getFragmentEvent().getFragment();
         fragment.setBody("<!-- data-knotx-id=\"" + fragment.getId() + "\" -->"
-            + addAsScript(fragmentEvent)
+            + addAsScript(taskEventWrapper)
             + fragment.getBody()
             + "<!-- data-knotx-id=\"" + fragment.getId() + "\" -->");
       }
 
-      private String addAsScript(FragmentEvent event) {
-        return "<script data-knotx-id=\"" + event.getFragment().getId()
+      private String addAsScript(TaskEventWrapper taskEventWrapper) {
+        return "<script data-knotx-debug=\"log\" data-knotx-id=\"" + taskEventWrapper.getFragmentEvent().getFragment().getId()
             + "\" type=\"application/json\">"
-            + event.toJson() +
-            "</script>";
+            + taskEventWrapper.getFragmentEvent().toJson()
+            + "</script>"
+            + taskEventWrapper.getTask().getRootNode()
+            .map(NodeWithMetadata::getData)
+            .map(JsonObject::toString)
+            .map(graphData ->
+                "<script data-knotx-debug=\"graph\" data-knotx-id=\"" + taskEventWrapper.getFragmentEvent().getFragment().getId()
+                    + "\" type=\"application/json\">"
+                    + graphData
+                    + "</script>")
+            .orElse(StringUtils.EMPTY);
       }
 
       private boolean containsHeader(ClientRequest request) {

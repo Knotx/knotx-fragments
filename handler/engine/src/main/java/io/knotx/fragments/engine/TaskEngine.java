@@ -76,7 +76,7 @@ class TaskEngine {
 
   private Single<FragmentResult> mapReduce(TaskExecutionContext context) {
     CompositeNode node = (CompositeNode) context.getCurrentNode();
-    return Observable.fromIterable(node.getNodes())
+    return Observable.fromIterable(node.<Node>getNodes())
         .flatMap(graphNode -> processTask(context, graphNode).toObservable())
         .reduce(context, TaskExecutionContext::merge)
         .map(TaskExecutionContext::toFragmentResult);

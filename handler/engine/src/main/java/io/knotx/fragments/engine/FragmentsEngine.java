@@ -33,7 +33,7 @@ import java.util.stream.Collectors;
  * events (fragments) is transformed to single items and processed independently. The inspiration
  * comes from https://github.com/tomaszmichalak/vertx-rx-map-reduce.
  */
-public class FragmentsEngine {
+public class FragmentsEngine <T extends Node> {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(FragmentsEngine.class);
 
@@ -50,7 +50,7 @@ public class FragmentsEngine {
    * @return asynchronous response containing processed list of fragment events returned in the same
    * order as the original list
    */
-  public Single<List<FragmentEvent>> execute(List<FragmentEventContextTaskAware> fragments) {
+  public Single<List<FragmentEvent>> execute(List<FragmentEventContextTaskAware<T>> fragments) {
 
     return Flowable.just(fragments)
         .concatMap(Flowable::fromIterable)
@@ -69,12 +69,12 @@ public class FragmentsEngine {
         .map(this::traceEngineResults);
   }
 
-  private Single<FragmentEvent> startTaskEngine(FragmentEventContextTaskAware fragment, Node rootNode) {
+  private Single<FragmentEvent> startTaskEngine(FragmentEventContextTaskAware<T> fragment, Node rootNode) {
       return taskEngine.start(fragment.getTask().getName(), rootNode, fragment.getFragmentEventContext());
   }
 
   private List<FragmentEvent> incomingOrder(
-      List<FragmentEvent> list, List<FragmentEventContextTaskAware> sourceEvents) {
+      List<FragmentEvent> list, List<FragmentEventContextTaskAware<T>> sourceEvents) {
 
     return sourceEvents.stream()
         .map(event -> event.getFragmentEventContext().getFragmentEvent().getFragment().getId())

@@ -15,8 +15,8 @@
  */
 package io.knotx.fragments.handler.consumer;
 
+import io.knotx.fragments.task.TasksEventsWrapper;
 import io.knotx.server.api.context.ClientRequest;
-import java.util.List;
 
 import io.knotx.fragments.engine.FragmentEvent;
 
@@ -28,10 +28,9 @@ public interface FragmentEventsConsumer {
 
   /**
    * Gets a list of processed and unprocessed fragments.
-   *
-   * @param clientRequest - client request
-   * @param fragmentEvents - all fragment events
+   *  @param clientRequest - client request
+   * @param tasksEvents - all fragment events
    */
-  void accept(ClientRequest clientRequest, List<FragmentEvent> fragmentEvents);
+  void accept(ClientRequest clientRequest, TasksEventsWrapper tasksEvents);
 
 }

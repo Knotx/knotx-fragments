@@ -19,7 +19,7 @@ import java.util.List;
 
 public interface CompositeNode extends Node {
 
-  List<Node> getNodes();
+  <T extends Node> List<T> getNodes();
 
   @Override
   default NodeType getType() {

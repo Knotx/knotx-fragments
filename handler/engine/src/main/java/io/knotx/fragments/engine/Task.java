@@ -18,21 +18,21 @@ package io.knotx.fragments.engine;
 import io.knotx.fragments.engine.graph.Node;
 import java.util.Optional;
 
-public class Task {
+public class Task <T extends Node> {
 
   private final String name;
-  private final Node rootNode;
+  private final T rootNode;
 
   public Task(String name) {
     this(name, null);
   }
 
-  public Task(String name, Node rootNode) {
+  public Task(String name, T rootNode) {
     this.name = name;
     this.rootNode = rootNode;
   }
 
-  public Optional<Node> getRootNode() {
+  public Optional<T> getRootNode() {
     return Optional.ofNullable(rootNode);
   }
 
