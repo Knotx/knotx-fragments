@@ -1,6 +1,7 @@
 [![Build Status](https://dev.azure.com/knotx/Knotx/_apis/build/status/Knotx.knotx-fragments?branchName=master)](https://dev.azure.com/knotx/Knotx/_build/latest?definitionId=10&branchName=master)
 [![CodeFactor](https://www.codefactor.io/repository/github/knotx/knotx-fragments/badge)](https://www.codefactor.io/repository/github/knotx/knotx-fragments)
 [![codecov](https://codecov.io/gh/Knotx/knotx-fragments/branch/master/graph/badge.svg)](https://codecov.io/gh/Knotx/knotx-fragments)
+[![Gradle Status](https://gradleupdate.appspot.com/Knotx/knotx-fragments/status.svg)](https://gradleupdate.appspot.com/Knotx/knotx-fragments/status)
 
 # Knot.x Fragments
 

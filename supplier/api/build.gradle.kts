@@ -19,7 +19,7 @@ import org.nosphere.apache.rat.RatTask
 plugins {
     id("io.knotx.java-library")
     id("io.knotx.maven-publish")
-    id("org.nosphere.apache.rat") version "0.4.0"
+    id("org.nosphere.apache.rat") version "0.6.0"
 }
 
 dependencies {
@@ -35,7 +35,7 @@ dependencies {
 
 tasks {
     named<RatTask>("rat") {
-        excludes.addAll("*.md", "**/*.md", "**/build/*", "**/out/*", "**/generated/*", "/src/test/resources/*")
+        excludes.addAll(listOf("*.md", "**/*.md", "**/build/*", "**/out/*", "**/generated/*", "/src/test/resources/*"))
     }
     getByName("build").dependsOn("rat")
 }
