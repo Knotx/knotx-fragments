@@ -27,7 +27,7 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-public class SingleNodeWithMetadata implements SingleNode, NodeWithMetadata {
+public class SingleNodeWithMetadata extends NodeWithMetadata implements SingleNode {
 
   private final String id;
 
@@ -36,8 +36,6 @@ public class SingleNodeWithMetadata implements SingleNode, NodeWithMetadata {
   private final Map<String, NodeWithMetadata> edges;
 
   private final String factory;
-
-  private final JsonObject metadata = new JsonObject();
 
   public SingleNodeWithMetadata(String id, Action action,
       Map<String, NodeWithMetadata> edges, String factory) {
@@ -67,7 +65,8 @@ public class SingleNodeWithMetadata implements SingleNode, NodeWithMetadata {
   }
 
   @Override
-  public JsonObject getData() {
+  public JsonObject generateMetadata() {
+    determineMissingChildren(edges);
     metadata
         .put("id", id)
         .put("type", "single")
@@ -76,30 +75,9 @@ public class SingleNodeWithMetadata implements SingleNode, NodeWithMetadata {
             .put("factory", factory))
         .put("label", "some label")
         .put("on", JsonObject.mapFrom(edges.entrySet().stream()
-            .collect(Collectors.toMap(Entry::getKey, entry -> entry.getValue().getData()))));
+            .collect(Collectors.toMap(Entry::getKey, entry -> entry.getValue().generateMetadata()))));
     determineStatus();
     return metadata;
-  }
-
-  private void determineStatus() {
-    if (!metadata.containsKey("status")) {
-      String status;
-      if (!metadata.containsKey("response")) {
-        status = "unprocessed";
-      } else {
-        switch (metadata.getJsonObject("response").getString("transition")) {
-          case FragmentResult.SUCCESS_TRANSITION:
-            status = "success";
-            break;
-          case FragmentResult.ERROR_TRANSITION:
-            status = "error";
-            break;
-          default:
-            status = "other";
-        }
-      }
-      metadata.put("status", status);
-    }
   }
 
   private Function<FragmentContext, Single<FragmentResult>> toRxFunction(

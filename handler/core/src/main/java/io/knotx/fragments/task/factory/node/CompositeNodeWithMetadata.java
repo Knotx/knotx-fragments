@@ -26,15 +26,13 @@ import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-public class CompositeNodeWithMetadata implements CompositeNode, NodeWithMetadata {
+public class CompositeNodeWithMetadata extends NodeWithMetadata implements CompositeNode {
 
   private final String id;
 
   private final List<NodeWithMetadata> nodes;
 
   private final Map<String, NodeWithMetadata> edges;
-
-  private final JsonObject metadata = new JsonObject();
 
   public CompositeNodeWithMetadata(String id, List<NodeWithMetadata> nodes,
       Map<String, NodeWithMetadata> edges) {
@@ -50,6 +48,8 @@ public class CompositeNodeWithMetadata implements CompositeNode, NodeWithMetadat
 
   @Override
   public Optional<NodeWithMetadata> next(String transition) {
+    metadata.put("response", new JsonObject()
+        .put("transition", transition));
     return filter(transition).map(edges::get);
   }
 
@@ -59,19 +59,21 @@ public class CompositeNodeWithMetadata implements CompositeNode, NodeWithMetadat
   }
 
   @Override
-  public JsonObject getData() {
+  public JsonObject generateMetadata() {
+    determineMissingChildren(edges);
     metadata
         .put("id", id)
         .put("type", "composite")
-        .put("subtasks", nodes.stream().map(NodeWithMetadata::getData).collect(Collectors.toList()))
+        .put("subtasks", nodes.stream().map(NodeWithMetadata::generateMetadata).collect(Collectors.toList()))
         .put("label", "some label")
         .put("on", JsonObject.mapFrom(edges.entrySet().stream()
-            .collect(Collectors.toMap(Entry::getKey, entry -> entry.getValue().getData()))));
+            .collect(Collectors.toMap(Entry::getKey, entry -> entry.getValue().generateMetadata()))));
+    determineStatus();
     return metadata;
   }
 
   private Optional<String> filter(String transition) {
     return ERROR_TRANSITION.equals(transition) || SUCCESS_TRANSITION.equals(transition)
-          ? Optional.of(transition) : Optional.empty();
+        ? Optional.of(transition) : Optional.empty();
   }
 }

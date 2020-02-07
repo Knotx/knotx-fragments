@@ -17,9 +17,10 @@ package io.knotx.fragments.task.factory.node;
 
 import io.knotx.fragments.engine.graph.Node;
 import io.knotx.fragments.engine.graph.NodeType;
+import io.vertx.core.json.JsonObject;
 import java.util.Optional;
 
-public class StubNode implements Node {
+public class StubNode extends NodeWithMetadata {
 
   private String id;
 
@@ -40,5 +41,10 @@ public class StubNode implements Node {
   @Override
   public NodeType getType() {
     return NodeType.SINGLE;
+  }
+
+  @Override
+  public JsonObject generateMetadata() {
+    return new JsonObject();
   }
 }

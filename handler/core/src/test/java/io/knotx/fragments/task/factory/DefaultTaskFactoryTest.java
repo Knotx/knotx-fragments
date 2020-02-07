@@ -29,6 +29,7 @@ import io.knotx.fragments.engine.graph.CompositeNode;
 import io.knotx.fragments.engine.graph.Node;
 import io.knotx.fragments.engine.graph.SingleNode;
 import io.knotx.fragments.task.factory.node.NodeFactoryOptions;
+import io.knotx.fragments.task.factory.node.NodeWithMetadata;
 import io.knotx.fragments.task.factory.node.action.ActionNodeFactory;
 import io.knotx.fragments.task.factory.node.action.ActionNodeFactoryConfig;
 import io.knotx.fragments.task.factory.node.subtasks.SubtasksNodeFactory;
@@ -220,7 +221,7 @@ class DefaultTaskFactoryTest {
             new GraphNodeOptions("B", NO_TRANSITIONS)));
 
     // when
-    Task task = getTask(graph, options, vertx);
+    Task<NodeWithMetadata> task = getTask(graph, options, vertx);
 
     // then
     assertEquals(TASK_NAME, task.getName());
@@ -250,7 +251,7 @@ class DefaultTaskFactoryTest {
     );
 
     // when
-    Task task = getTask(graph, options, vertx);
+    Task<NodeWithMetadata> task = getTask(graph, options, vertx);
 
     // then
     assertEquals(TASK_NAME, task.getName());
@@ -272,7 +273,7 @@ class DefaultTaskFactoryTest {
     assertEquals("A", node.getId());
   }
 
-  private Task getTask(GraphNodeOptions graph, JsonObject actionNodeConfig, Vertx vertx) {
+  private Task<NodeWithMetadata> getTask(GraphNodeOptions graph, JsonObject actionNodeConfig, Vertx vertx) {
     DefaultTaskFactoryConfig taskFactoryConfig = createTaskFactoryConfig(graph, actionNodeConfig);
     return new DefaultTaskFactory().configure(taskFactoryConfig.toJson(), vertx)
         .newInstance(SAMPLE_FRAGMENT_EVENT);

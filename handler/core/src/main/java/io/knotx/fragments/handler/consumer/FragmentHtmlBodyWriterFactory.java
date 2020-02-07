@@ -17,8 +17,8 @@ package io.knotx.fragments.handler.consumer;
 
 import io.knotx.fragments.api.Fragment;
 import io.knotx.fragments.engine.FragmentEvent;
-import io.knotx.fragments.task.TaskEventWrapper;
-import io.knotx.fragments.task.TasksEventsWrapper;
+import io.knotx.fragments.task.TaskWithFragmentEvent;
+import io.knotx.fragments.task.TasksWithFragmentEvents;
 import io.knotx.fragments.task.factory.node.NodeWithMetadata;
 import io.knotx.server.api.context.ClientRequest;
 import io.vertx.core.json.JsonArray;
@@ -55,32 +55,32 @@ public class FragmentHtmlBodyWriterFactory implements FragmentEventsConsumerFact
       private String requestParam = getConditionParam(config);
 
       @Override
-      public void accept(ClientRequest request, TasksEventsWrapper tasksEvents) {
+      public void accept(ClientRequest request, TasksWithFragmentEvents tasksEvents) {
         if (containsHeader(request) || containsParam(request)) {
           tasksEvents.stream()
-              .filter(taskEventWrapper -> isSupported(taskEventWrapper.getFragmentEvent()))
+              .filter(taskWithFragmentEvent -> isSupported(taskWithFragmentEvent.getFragmentEvent()))
               .forEach(this::wrapFragmentBody);
         }
       }
 
-      private void wrapFragmentBody(TaskEventWrapper taskEventWrapper) {
-        Fragment fragment = taskEventWrapper.getFragmentEvent().getFragment();
+      private void wrapFragmentBody(TaskWithFragmentEvent taskWithFragmentEvent) {
+        Fragment fragment = taskWithFragmentEvent.getFragmentEvent().getFragment();
         fragment.setBody("<!-- data-knotx-id=\"" + fragment.getId() + "\" -->"
-            + addAsScript(taskEventWrapper)
+            + addAsScript(taskWithFragmentEvent)
             + fragment.getBody()
             + "<!-- data-knotx-id=\"" + fragment.getId() + "\" -->");
       }
 
-      private String addAsScript(TaskEventWrapper taskEventWrapper) {
-        return "<script data-knotx-debug=\"log\" data-knotx-id=\"" + taskEventWrapper.getFragmentEvent().getFragment().getId()
+      private String addAsScript(TaskWithFragmentEvent taskWithFragmentEvent) {
+        return "<script data-knotx-debug=\"log\" data-knotx-id=\"" + taskWithFragmentEvent.getFragmentEvent().getFragment().getId()
             + "\" type=\"application/json\">"
-            + taskEventWrapper.getFragmentEvent().toJson()
+            + taskWithFragmentEvent.getFragmentEvent().toJson()
             + "</script>"
-            + taskEventWrapper.getTask().getRootNode()
-            .map(NodeWithMetadata::getData)
+            + taskWithFragmentEvent.getTask().getRootNode()
+            .map(NodeWithMetadata::generateMetadata)
             .map(JsonObject::toString)
             .map(graphData ->
-                "<script data-knotx-debug=\"graph\" data-knotx-id=\"" + taskEventWrapper.getFragmentEvent().getFragment().getId()
+                "<script data-knotx-debug=\"graph\" data-knotx-id=\"" + taskWithFragmentEvent.getFragmentEvent().getFragment().getId()
                     + "\" type=\"application/json\">"
                     + graphData
                     + "</script>")

@@ -31,6 +31,7 @@ import io.knotx.fragments.engine.graph.CompositeNode;
 import io.knotx.fragments.engine.graph.Node;
 import io.knotx.fragments.task.factory.NodeProvider;
 import io.knotx.fragments.task.factory.node.NodeOptions;
+import io.knotx.fragments.task.factory.node.NodeWithMetadata;
 import io.knotx.fragments.task.factory.node.StubNode;
 import io.knotx.fragments.task.factory.GraphNodeOptions;
 import io.vertx.core.json.JsonObject;
@@ -97,7 +98,7 @@ class SubtasksNodeFactoryTest {
     NodeProvider nodeProvider = mock(NodeProvider.class);
     when(nodeProvider.initNode(any())).thenReturn(new StubNode("A"));
 
-    Map<String, Node> transitionsToNodes = new HashMap<>();
+    Map<String, NodeWithMetadata> transitionsToNodes = new HashMap<>();
     transitionsToNodes.put(SUCCESS_TRANSITION, new StubNode("B"));
     transitionsToNodes.put(ERROR_TRANSITION, new StubNode("C"));
     transitionsToNodes.put("otherTransition", new StubNode("D"));

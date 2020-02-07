@@ -23,19 +23,19 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Stream;
 
-public class TasksEventsWrapper {
+public class TasksWithFragmentEvents {
 
   private List<Task<NodeWithMetadata>> tasks;
 
   private List<FragmentEvent> fragmentEvents;
 
-  public TasksEventsWrapper(List<Task<NodeWithMetadata>> tasks, List<FragmentEvent> fragmentEvents) {
+  public TasksWithFragmentEvents(List<Task<NodeWithMetadata>> tasks, List<FragmentEvent> fragmentEvents) {
     this.tasks = tasks;
     this.fragmentEvents = fragmentEvents;
   }
 
-  public Stream<TaskEventWrapper> stream() {
-    return Streams.zip(tasks.stream(), fragmentEvents.stream(), TaskEventWrapper::new);
+  public Stream<TaskWithFragmentEvent> stream() {
+    return Streams.zip(tasks.stream(), fragmentEvents.stream(), TaskWithFragmentEvent::new);
   }
 
   public List<Task<NodeWithMetadata>> getTasks() {
@@ -54,9 +54,9 @@ public class TasksEventsWrapper {
     if (o == null || getClass() != o.getClass()) {
       return false;
     }
-    TasksEventsWrapper tasksEventsWrapper = (TasksEventsWrapper) o;
-    return Objects.equals(tasks, tasksEventsWrapper.tasks) &&
-        Objects.equals(fragmentEvents, tasksEventsWrapper.fragmentEvents);
+    TasksWithFragmentEvents tasksWithFragmentEvents = (TasksWithFragmentEvents) o;
+    return Objects.equals(tasks, tasksWithFragmentEvents.tasks) &&
+        Objects.equals(fragmentEvents, tasksWithFragmentEvents.fragmentEvents);
   }
 
   @Override

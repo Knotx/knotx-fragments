@@ -27,6 +27,7 @@ import io.knotx.fragments.HoconLoader;
 import io.knotx.fragments.api.Fragment;
 import io.knotx.fragments.engine.FragmentEvent;
 import io.knotx.fragments.engine.FragmentEvent.Status;
+import io.knotx.fragments.task.TasksWithFragmentEvents;
 import io.knotx.fragments.task.factory.DefaultTaskFactoryConfig;
 import io.knotx.server.api.context.ClientRequest;
 import io.knotx.server.api.context.RequestContext;
@@ -38,7 +39,6 @@ import io.vertx.junit5.VertxTestContext;
 import io.vertx.reactivex.core.Vertx;
 import io.vertx.reactivex.ext.web.RoutingContext;
 import java.util.Collections;
-import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -111,13 +111,13 @@ class FragmentsHandlerTest {
           EMPTY_BODY);
 
       // when
-      Single<List<FragmentEvent>> rxDoHandle = new FragmentsHandler(vertx, config)
+      Single<TasksWithFragmentEvents> rxDoHandle = new FragmentsHandler(vertx, config)
           .doHandle(Collections.singletonList(fragment), new ClientRequest());
 
       rxDoHandle.subscribe(
           result -> testContext.verify(() -> {
             // then
-            Optional<FragmentEvent> event = result.stream().findFirst();
+            Optional<FragmentEvent> event = result.getFragmentEvents().stream().findFirst();
             assertTrue(event.isPresent());
             String body = event.get().getFragment().getBody();
             assertTrue(body.contains("<!-- data-knotx-id="));
@@ -141,13 +141,13 @@ class FragmentsHandlerTest {
       String expectedBody = "success";
 
       //when
-      Single<List<FragmentEvent>> rxDoHandle = underTest
+      Single<TasksWithFragmentEvents> rxDoHandle = underTest
           .doHandle(Collections.singletonList(fragment), new ClientRequest());
 
       rxDoHandle.subscribe(
           result -> testContext.verify(() -> {
             // then
-            FragmentEvent fragmentEvent = result.get(0);
+            FragmentEvent fragmentEvent = result.getFragmentEvents().get(0);
             assertEquals(Status.SUCCESS, fragmentEvent.getStatus());
             assertEquals(expectedBody, fragmentEvent.getFragment().getBody());
             testContext.completeNow();
@@ -167,13 +167,13 @@ class FragmentsHandlerTest {
       Fragment fragment = new Fragment("type", new JsonObject(), EMPTY_BODY);
 
       //when
-      Single<List<FragmentEvent>> rxDoHandle = underTest
+      Single<TasksWithFragmentEvents> rxDoHandle = underTest
           .doHandle(Collections.singletonList(fragment), new ClientRequest());
 
       rxDoHandle.subscribe(
           result -> testContext.verify(() -> {
             // then
-            assertEquals(Status.UNPROCESSED, result.get(0).getStatus());
+            assertEquals(Status.UNPROCESSED, result.getFragmentEvents().get(0).getStatus());
             testContext.completeNow();
           }),
           testContext::failNow
@@ -193,12 +193,12 @@ class FragmentsHandlerTest {
       String expectedBody = "custom";
 
       //when
-      Single<List<FragmentEvent>> rxDoHandle = underTest
+      Single<TasksWithFragmentEvents> rxDoHandle = underTest
           .doHandle(Collections.singletonList(fragment), new ClientRequest());
 
       rxDoHandle.subscribe(
           result -> testContext.verify(() -> {
-            assertEquals(expectedBody, result.get(0).getFragment().getBody());
+            assertEquals(expectedBody, result.getFragmentEvents().get(0).getFragment().getBody());
             testContext.completeNow();
           }),
           testContext::failNow

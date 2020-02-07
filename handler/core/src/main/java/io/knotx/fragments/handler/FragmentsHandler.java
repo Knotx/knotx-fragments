@@ -25,7 +25,7 @@ import io.knotx.fragments.engine.FragmentEventContextTaskAware;
 import io.knotx.fragments.engine.FragmentsEngine;
 import io.knotx.fragments.engine.Task;
 import io.knotx.fragments.handler.consumer.FragmentEventsConsumerProvider;
-import io.knotx.fragments.task.TasksEventsWrapper;
+import io.knotx.fragments.task.TasksWithFragmentEvents;
 import io.knotx.fragments.task.factory.node.NodeWithMetadata;
 import io.knotx.server.api.context.ClientRequest;
 import io.knotx.server.api.context.RequestContext;
@@ -82,20 +82,20 @@ public class FragmentsHandler implements Handler<RoutingContext> {
         );
   }
 
-  protected Single<TasksEventsWrapper> doHandle(List<Fragment> fragments,
+  protected Single<TasksWithFragmentEvents> doHandle(List<Fragment> fragments,
       ClientRequest clientRequest) {
     return Single.just(fragments)
         .map(f -> toEvents(f, clientRequest))
         .flatMap(events -> engine.execute(events)
-            .map(fragmentEvents -> new TasksEventsWrapper(events.stream()
+            .map(fragmentEvents -> new TasksWithFragmentEvents(events.stream()
                 .map(FragmentEventContextTaskAware::getTask)
                 .collect(Collectors.toList()), fragmentEvents)));
   }
 
   private void enrichWithEventConsumers(ClientRequest clientRequest,
-      TasksEventsWrapper tasksEventsWrapper) {
+      TasksWithFragmentEvents tasksWithFragmentEvents) {
     fragmentEventsConsumerProvider.provide()
-        .forEach(consumer -> consumer.accept(clientRequest, tasksEventsWrapper));
+        .forEach(consumer -> consumer.accept(clientRequest, tasksWithFragmentEvents));
   }
 
   private void putFragments(RoutingContext routingContext, List<FragmentEvent> events) {

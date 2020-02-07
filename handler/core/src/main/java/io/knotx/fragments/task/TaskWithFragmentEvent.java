@@ -20,13 +20,13 @@ import io.knotx.fragments.engine.Task;
 import io.knotx.fragments.task.factory.node.NodeWithMetadata;
 import java.util.Objects;
 
-public class TaskEventWrapper {
+public class TaskWithFragmentEvent {
 
   private Task<NodeWithMetadata> task;
 
   private FragmentEvent fragmentEvent;
 
-  public TaskEventWrapper(Task<NodeWithMetadata> task, FragmentEvent fragmentEvent) {
+  public TaskWithFragmentEvent(Task<NodeWithMetadata> task, FragmentEvent fragmentEvent) {
     this.task = task;
     this.fragmentEvent = fragmentEvent;
   }
@@ -47,7 +47,7 @@ public class TaskEventWrapper {
     if (o == null || getClass() != o.getClass()) {
       return false;
     }
-    TaskEventWrapper that = (TaskEventWrapper) o;
+    TaskWithFragmentEvent that = (TaskWithFragmentEvent) o;
     return Objects.equals(task, that.task) &&
         Objects.equals(fragmentEvent, that.fragmentEvent);
   }

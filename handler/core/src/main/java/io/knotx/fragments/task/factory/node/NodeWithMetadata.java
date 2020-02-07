@@ -16,10 +16,45 @@
 package io.knotx.fragments.task.factory.node;
 
 import io.knotx.fragments.engine.graph.Node;
+import io.knotx.fragments.handler.api.domain.FragmentResult;
 import io.vertx.core.json.JsonObject;
+import java.util.Map;
 
-public interface NodeWithMetadata extends Node {
+public abstract class NodeWithMetadata implements Node {
 
-  JsonObject getData();
+  protected final JsonObject metadata = new JsonObject();
+
+  public abstract JsonObject generateMetadata();
+
+  protected void determineStatus() {
+    if (!metadata.containsKey("status")) {
+      String status;
+      if (!metadata.containsKey("response")) {
+        status = "unprocessed";
+      } else {
+        switch (metadata.getJsonObject("response").getString("transition")) {
+          case FragmentResult.SUCCESS_TRANSITION:
+            status = "success";
+            break;
+          case FragmentResult.ERROR_TRANSITION:
+            status = "error";
+            break;
+          default:
+            status = "other";
+        }
+      }
+      metadata.put("status", status);
+    }
+  }
+
+  protected void determineMissingChildren(
+      Map<String, NodeWithMetadata> edges) {
+    if(metadata.containsKey("response")) {
+      String transition = metadata.getJsonObject("response").getString("transition");
+      if (!edges.containsKey(transition)) {
+        edges.put(transition, new MissingNode());
+      }
+    }
+  }
 
 }

@@ -15,7 +15,7 @@
  */
 package io.knotx.fragments.handler.consumer;
 
-import io.knotx.fragments.task.TasksEventsWrapper;
+import io.knotx.fragments.task.TasksWithFragmentEvents;
 import io.knotx.server.api.context.ClientRequest;
 
 import io.knotx.fragments.engine.FragmentEvent;
@@ -31,6 +31,6 @@ public interface FragmentEventsConsumer {
    *  @param clientRequest - client request
    * @param tasksEvents - all fragment events
    */
-  void accept(ClientRequest clientRequest, TasksEventsWrapper tasksEvents);
+  void accept(ClientRequest clientRequest, TasksWithFragmentEvents tasksEvents);
 
 }

@@ -1,0 +1,37 @@
+{
+  "response": {
+    "transition": "_success",
+    "invocations": {
+      "sample": "node Log"
+    }
+  },
+  "id": "someNode",
+  "type": "single",
+  "operation": {
+    "type": "action",
+    "factory": "someOtherFactory"
+  },
+  "label": "some label",
+  "on": {
+    "_success": {
+      "response": {
+        "transition": "_success",
+        "invocations": {}
+      },
+      "id": "childNode",
+      "type": "single",
+      "operation": {
+        "type": "action",
+        "factory": "someFactory"
+      },
+      "label": "some label",
+      "on": {
+        "_success": {
+          "status": "missing"
+        }
+      },
+      "status": "success"
+    }
+  },
+  "status": "success"
+}
