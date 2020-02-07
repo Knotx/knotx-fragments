@@ -1,0 +1,64 @@
+{
+  "response": {
+    "transition": "_success",
+    "invocations": {
+      "sample": "node Log"
+    }
+  },
+  "id": "someNode",
+  "type": "single",
+  "operation": {
+    "type": "action",
+    "factory": "someOtherFactory"
+  },
+  "label": "some label",
+  "on": {
+    "_success": {
+      "response": {
+        "transition": "_success"
+      },
+      "id": "compositeNode",
+      "type": "composite",
+      "subtasks": [
+        {
+          "id": "successChild",
+          "type": "single",
+          "operation": {
+            "type": "action",
+            "factory": "someFactory"
+          },
+          "label": "some label",
+          "on": {},
+          "status": "unprocessed"
+        },
+        {
+          "response": {
+            "transition": "someothercustomtransition",
+            "invocations": {}
+          },
+          "id": "customChild",
+          "type": "single",
+          "operation": {
+            "type": "action",
+            "factory": "someFactory"
+          },
+          "label": "some label",
+          "on": {
+            "someothercustomtransition": {
+              "status": "missing"
+            }
+          },
+          "status": "other"
+        }
+      ],
+      "label": "some label",
+      "on": {
+        "_success": {
+          "status": "missing"
+        }
+      },
+      "status": "success"
+    }
+  },
+  "status": "success"
+}

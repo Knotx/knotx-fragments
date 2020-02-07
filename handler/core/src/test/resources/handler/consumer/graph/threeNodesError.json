@@ -1,0 +1,48 @@
+{
+  "response": {
+    "transition": "_error",
+    "invocations": {
+      "sample": "node Log"
+    }
+  },
+  "id": "someNode",
+  "type": "single",
+  "operation": {
+    "type": "action",
+    "factory": "someOtherFactory"
+  },
+  "label": "some label",
+  "on": {
+    "_success": {
+      "id": "successChild",
+      "type": "single",
+      "operation": {
+        "type": "action",
+        "factory": "someFactory"
+      },
+      "label": "some label",
+      "on": {},
+      "status": "unprocessed"
+    },
+    "_error": {
+      "response": {
+        "transition": "_success",
+        "invocations": {}
+      },
+      "id": "failChild",
+      "type": "single",
+      "operation": {
+        "type": "action",
+        "factory": "someFactory"
+      },
+      "label": "some label",
+      "on": {
+        "_success": {
+          "status": "missing"
+        }
+      },
+      "status": "success"
+    }
+  },
+  "status": "error"
+}

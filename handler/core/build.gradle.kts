@@ -47,6 +47,7 @@ dependencies {
     testImplementation(group = "io.vertx", name = "vertx-config-hocon")
     testImplementation("org.junit.jupiter:junit-jupiter-params")
     testImplementation(group = "com.github.tomakehurst", name = "wiremock")
+    testImplementation(group = "commons-io", name = "commons-io", version = "2.4")
 }
 
 tasks {

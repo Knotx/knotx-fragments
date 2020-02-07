@@ -25,14 +25,13 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import io.knotx.fragments.api.Fragment;
-import io.knotx.fragments.engine.EventLog;
-import io.knotx.fragments.engine.EventLogEntry;
 import io.knotx.fragments.engine.FragmentEvent;
 import io.knotx.fragments.engine.Task;
 import io.knotx.fragments.handler.api.Action;
 import io.knotx.fragments.handler.api.domain.FragmentContext;
 import io.knotx.fragments.handler.api.domain.FragmentResult;
 import io.knotx.fragments.task.TasksWithFragmentEvents;
+import io.knotx.fragments.task.factory.node.CompositeNodeWithMetadata;
 import io.knotx.fragments.task.factory.node.NodeWithMetadata;
 import io.knotx.fragments.task.factory.node.SingleNodeWithMetadata;
 import io.knotx.server.api.context.ClientRequest;
@@ -40,9 +39,7 @@ import io.vertx.core.Future;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.reactivex.core.MultiMap;
-import java.io.File;
 import java.io.IOException;
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.regex.Matcher;
@@ -242,8 +239,8 @@ class FragmentHtmlBodyWriterFactoryTest {
   }
 
   @Test
-  @DisplayName("Expect fragment body contains debug script when fragment type configured.")
-  void expectFragmentBodyContainsDebugGraphData() throws IOException {
+  @DisplayName("Expect a graph with two successful simple nodes.")
+  void expectFragmentBodyContainsDebugGraphDataWhenSuccess() throws IOException {
     //given
     SingleNodeWithMetadata childNode = new SingleNodeWithMetadata("childNode",
         transitTo("_success", new JsonObject()), new HashMap<>(), "someFactory");
@@ -254,11 +251,146 @@ class FragmentHtmlBodyWriterFactoryTest {
     String body = "<div>body</div>";
     Fragment fragment = new Fragment("snippet", new JsonObject(), body);
     FragmentEvent event = new FragmentEvent(fragment);
+    FragmentContext fragmentContext = new FragmentContext(fragment, new ClientRequest());
+
     JsonObject expected = readFromResources("handler/consumer/graph/twoNodesSuccess.json");
 
     // when
-    rootNode.execute(new FragmentContext(fragment, new ClientRequest())).blockingGet();
-    childNode.execute(new FragmentContext(fragment, new ClientRequest())).blockingGet();
+    rootNode.execute(fragmentContext).blockingGet();
+    childNode.execute(fragmentContext).blockingGet();
+    CONFIGURED_FACTORY.accept(new ClientRequest()
+            .setParams(MultiMap.caseInsensitiveMultiMap().add(EXPECTED_PARAM, "true")),
+        new TasksWithFragmentEvents(ImmutableList.of(task), ImmutableList.of(event)));
+
+    // then
+    JsonObject actual = retrieveGraphData(event);
+    assertEquals(expected, actual);
+  }
+
+  @Test
+  @DisplayName("Expect a graph with error transition.")
+  void expectFragmentBodyContainsDebugGraphDataWhenErrorTransition() throws IOException {
+    //given
+    SingleNodeWithMetadata successChild = new SingleNodeWithMetadata("successChild",
+        transitTo("_success", new JsonObject()), new HashMap<>(), "someFactory");
+    SingleNodeWithMetadata failChild = new SingleNodeWithMetadata("failChild",
+        transitTo("_success", new JsonObject()), new HashMap<>(), "someFactory");
+    SingleNodeWithMetadata rootNode = new SingleNodeWithMetadata("someNode",
+        transitTo("_error", new JsonObject().put("sample", "node Log")),
+        ImmutableMap.of("_success", successChild,
+            "_error", failChild),
+        "someOtherFactory");
+    Task<NodeWithMetadata> task = new Task<>("testTask", rootNode);
+    String body = "<div>body</div>";
+    Fragment fragment = new Fragment("snippet", new JsonObject(), body);
+    FragmentEvent event = new FragmentEvent(fragment);
+    FragmentContext fragmentContext = new FragmentContext(fragment, new ClientRequest());
+
+    JsonObject expected = readFromResources("handler/consumer/graph/threeNodesError.json");
+
+    // when
+    rootNode.execute(fragmentContext).blockingGet();
+    failChild.execute(fragmentContext).blockingGet();
+    CONFIGURED_FACTORY.accept(new ClientRequest()
+            .setParams(MultiMap.caseInsensitiveMultiMap().add(EXPECTED_PARAM, "true")),
+        new TasksWithFragmentEvents(ImmutableList.of(task), ImmutableList.of(event)));
+
+    // then
+    JsonObject actual = retrieveGraphData(event);
+    assertEquals(expected, actual);
+  }
+
+  @Test
+  @DisplayName("Expect a graph with custom transitions.")
+  void expectFragmentBodyContainsDebugGraphDataWhenCustomTransition() throws IOException {
+    //given
+    SingleNodeWithMetadata successChild = new SingleNodeWithMetadata("successChild",
+        transitTo("_success", new JsonObject()), new HashMap<>(), "someFactory");
+    SingleNodeWithMetadata customChild = new SingleNodeWithMetadata("customChild",
+        transitTo("someothercustomtransition", new JsonObject()), new HashMap<>(), "someFactory");
+    SingleNodeWithMetadata rootNode = new SingleNodeWithMetadata("someNode",
+        transitTo("customtransition", new JsonObject().put("sample", "node Log")),
+        ImmutableMap.of("_success", successChild,
+            "customtransition", customChild),
+        "someOtherFactory");
+    Task<NodeWithMetadata> task = new Task<>("testTask", rootNode);
+    String body = "<div>body</div>";
+    Fragment fragment = new Fragment("snippet", new JsonObject(), body);
+    FragmentEvent event = new FragmentEvent(fragment);
+    FragmentContext fragmentContext = new FragmentContext(fragment, new ClientRequest());
+
+    JsonObject expected = readFromResources("handler/consumer/graph/threeNodesCustomTransitions.json");
+
+    // when
+    rootNode.execute(fragmentContext).blockingGet();
+    customChild.execute(fragmentContext).blockingGet();
+    CONFIGURED_FACTORY.accept(new ClientRequest()
+            .setParams(MultiMap.caseInsensitiveMultiMap().add(EXPECTED_PARAM, "true")),
+        new TasksWithFragmentEvents(ImmutableList.of(task), ImmutableList.of(event)));
+
+    // then
+    JsonObject actual = retrieveGraphData(event);
+    assertEquals(expected, actual);
+  }
+
+  @Test
+  @DisplayName("Expect a graph with composite nodes.")
+  void expectFragmentBodyContainsDebugGraphDataWhenCompositeNode() throws IOException {
+    //given
+    SingleNodeWithMetadata successChild = new SingleNodeWithMetadata("successChild",
+        transitTo("_success", new JsonObject()), new HashMap<>(), "someFactory");
+    SingleNodeWithMetadata customChild = new SingleNodeWithMetadata("customChild",
+        transitTo("someothercustomtransition", new JsonObject()), new HashMap<>(), "someFactory");
+    CompositeNodeWithMetadata rootNode = new CompositeNodeWithMetadata("rootNode",
+        ImmutableList.of(successChild, customChild),
+        new HashMap<>());
+    Task<NodeWithMetadata> task = new Task<>("testTask", rootNode);
+    String body = "<div>body</div>";
+    Fragment fragment = new Fragment("snippet", new JsonObject(), body);
+    FragmentEvent event = new FragmentEvent(fragment);
+    FragmentContext fragmentContext = new FragmentContext(fragment, new ClientRequest());
+
+    JsonObject expected = readFromResources("handler/consumer/graph/compositeNode.json");
+
+    // when
+    customChild.execute(fragmentContext).blockingGet();
+    rootNode.next("_success");
+    CONFIGURED_FACTORY.accept(new ClientRequest()
+            .setParams(MultiMap.caseInsensitiveMultiMap().add(EXPECTED_PARAM, "true")),
+        new TasksWithFragmentEvents(ImmutableList.of(task), ImmutableList.of(event)));
+
+    // then
+    JsonObject actual = retrieveGraphData(event);
+    assertEquals(expected, actual);
+  }
+
+  @Test
+  @DisplayName("Expect a graph with single and composite nodes.")
+  void expectFragmentBodyContainsDebugGraphDataWhenSingleAndCompositeNode() throws IOException {
+    //given
+    SingleNodeWithMetadata successChild = new SingleNodeWithMetadata("successChild",
+        transitTo("_success", new JsonObject()), new HashMap<>(), "someFactory");
+    SingleNodeWithMetadata customChild = new SingleNodeWithMetadata("customChild",
+        transitTo("someothercustomtransition", new JsonObject()), new HashMap<>(), "someFactory");
+    CompositeNodeWithMetadata compositeNode = new CompositeNodeWithMetadata("compositeNode",
+        ImmutableList.of(successChild, customChild),
+        new HashMap<>());
+    SingleNodeWithMetadata rootNode = new SingleNodeWithMetadata("someNode",
+        transitTo("_success", new JsonObject().put("sample", "node Log")),
+        ImmutableMap.of("_success", compositeNode),
+        "someOtherFactory");
+    Task<NodeWithMetadata> task = new Task<>("testTask", rootNode);
+    String body = "<div>body</div>";
+    Fragment fragment = new Fragment("snippet", new JsonObject(), body);
+    FragmentEvent event = new FragmentEvent(fragment);
+    FragmentContext fragmentContext = new FragmentContext(fragment, new ClientRequest());
+
+    JsonObject expected = readFromResources("handler/consumer/graph/compositeNode.json");
+
+    // when
+    rootNode.execute(fragmentContext).blockingGet();
+    customChild.execute(fragmentContext).blockingGet();
+    compositeNode.next("_success");
     CONFIGURED_FACTORY.accept(new ClientRequest()
             .setParams(MultiMap.caseInsensitiveMultiMap().add(EXPECTED_PARAM, "true")),
         new TasksWithFragmentEvents(ImmutableList.of(task), ImmutableList.of(event)));
@@ -269,8 +401,7 @@ class FragmentHtmlBodyWriterFactoryTest {
   }
 
   private JsonObject readFromResources(String fileName) throws IOException {
-    return new JsonObject(IOUtils
-        .toString(getClass().getClassLoader().getResourceAsStream(fileName), StandardCharsets.UTF_8));
+    return new JsonObject(IOUtils.toString(getClass().getClassLoader().getResourceAsStream(fileName), StandardCharsets.UTF_8));
   }
 
   private static JsonObject retrieveGraphData(FragmentEvent event) {

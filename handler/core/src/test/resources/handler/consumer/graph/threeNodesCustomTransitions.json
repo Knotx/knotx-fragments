@@ -1,0 +1,48 @@
+{
+  "response": {
+    "transition": "customtransition",
+    "invocations": {
+      "sample": "node Log"
+    }
+  },
+  "id": "someNode",
+  "type": "single",
+  "operation": {
+    "type": "action",
+    "factory": "someOtherFactory"
+  },
+  "label": "some label",
+  "on": {
+    "_success": {
+      "id": "successChild",
+      "type": "single",
+      "operation": {
+        "type": "action",
+        "factory": "someFactory"
+      },
+      "label": "some label",
+      "on": {},
+      "status": "unprocessed"
+    },
+    "customtransition": {
+      "response": {
+        "transition": "someothercustomtransition",
+        "invocations": {}
+      },
+      "id": "customChild",
+      "type": "single",
+      "operation": {
+        "type": "action",
+        "factory": "someFactory"
+      },
+      "label": "some label",
+      "on": {
+        "someothercustomtransition": {
+          "status": "missing"
+        }
+      },
+      "status": "other"
+    }
+  },
+  "status": "other"
+}
