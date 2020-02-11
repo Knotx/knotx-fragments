@@ -52,13 +52,13 @@ import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
 import io.vertx.reactivex.core.MultiMap;
 import io.vertx.reactivex.ext.web.client.WebClient;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
-import java.util.regex.Pattern;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -92,6 +92,7 @@ class HttpActionTest {
       "  \"url\": \"http://knotx.io\",\n" +
       "  \"label\": \"Product\"\n" +
       "}";
+  private static final Set<String> ALLOW_ALL_HEADERS = Collections.singleton(".*");
   private static final JsonObject EMPTY_JSON = new JsonObject();
 
   private WireMockServer wireMockServer;
@@ -538,7 +539,7 @@ class HttpActionTest {
         .setPath("not-existing-endpoint")
         .setDomain("localhost")
         .setPort(wireMockServer.port())
-        .setAllowedRequestHeaderPatterns(Collections.singletonList(Pattern.compile(".*")));
+        .setAllowedRequestHeaders(ALLOW_ALL_HEADERS);
 
     HttpAction tested = new HttpAction(createDefaultWebClient(vertx),
         new HttpActionOptions().setEndpointOptions(endpointOptions)
@@ -629,7 +630,7 @@ class HttpActionTest {
         .setPath(optionsPath)
         .setDomain("localhost")
         .setPort(wireMockServer.port())
-        .setAllowedRequestHeaderPatterns(Collections.singletonList(Pattern.compile(".*")));
+        .setAllowedRequestHeaders(ALLOW_ALL_HEADERS);
 
     HttpAction tested = new HttpAction(createDefaultWebClient(vertx),
         new HttpActionOptions().setEndpointOptions(endpointOptions)
@@ -662,7 +663,7 @@ class HttpActionTest {
         .setPath(optionsPath)
         .setDomain("localhost")
         .setPort(wireMockServer.port())
-        .setAllowedRequestHeaderPatterns(Collections.singletonList(Pattern.compile(".*")));
+        .setAllowedRequestHeaders(ALLOW_ALL_HEADERS);
 
     HttpAction tested = new HttpAction(createDefaultWebClient(vertx),
         new HttpActionOptions().setEndpointOptions(endpointOptions)
@@ -693,7 +694,7 @@ class HttpActionTest {
         .setPath(optionsPath)
         .setDomain("localhost")
         .setPort(wireMockServer.port())
-        .setAllowedRequestHeaderPatterns(Collections.singletonList(Pattern.compile(".*")));
+        .setAllowedRequestHeaders(ALLOW_ALL_HEADERS);
 
     HttpAction tested = new HttpAction(createDefaultWebClient(vertx),
         new HttpActionOptions().setEndpointOptions(endpointOptions)
@@ -724,7 +725,7 @@ class HttpActionTest {
         .setPath(optionsPath)
         .setDomain("localhost")
         .setPort(wireMockServer.port())
-        .setAllowedRequestHeaderPatterns(Collections.singletonList(Pattern.compile(".*")));
+        .setAllowedRequestHeaders(ALLOW_ALL_HEADERS);
 
     HttpAction tested = new HttpAction(createDefaultWebClient(vertx),
         new HttpActionOptions().setEndpointOptions(endpointOptions)
@@ -777,7 +778,7 @@ class HttpActionTest {
         .setPath(HttpActionTest.VALID_REQUEST_PATH)
         .setDomain("localhost")
         .setPort(wireMockServer.port())
-        .setAllowedRequestHeaderPatterns(Collections.singletonList(Pattern.compile(".*")))
+        .setAllowedRequestHeaders(ALLOW_ALL_HEADERS)
         .setAdditionalHeaders(additionalHeaders);
 
     return new HttpAction(createDefaultWebClient(vertx),
@@ -796,7 +797,7 @@ class HttpActionTest {
         .setPath(endpointPath)
         .setDomain("localhost")
         .setPort(wireMockServer.port())
-        .setAllowedRequestHeaderPatterns(Collections.singletonList(Pattern.compile(".*")));
+        .setAllowedRequestHeaders(ALLOW_ALL_HEADERS);
 
     Optional.ofNullable(jsonPredicate).ifPresent(predicates::add);
     ResponseOptions responseOptions = new ResponseOptions()
