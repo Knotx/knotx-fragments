@@ -15,21 +15,20 @@
  */
 package io.knotx.fragments.task.factory.node.subtasks;
 
-import static io.knotx.fragments.handler.api.domain.FragmentResult.ERROR_TRANSITION;
-import static io.knotx.fragments.handler.api.domain.FragmentResult.SUCCESS_TRANSITION;
-
 import io.knotx.fragments.engine.graph.CompositeNode;
 import io.knotx.fragments.engine.graph.Node;
+import io.knotx.fragments.spi.FactoryOptions;
+import io.knotx.fragments.task.NodeWithMetadata;
+import io.knotx.fragments.task.factory.GraphNodeOptions;
 import io.knotx.fragments.task.factory.NodeProvider;
 import io.knotx.fragments.task.factory.node.NodeFactory;
-import io.knotx.fragments.task.factory.GraphNodeOptions;
+import io.knotx.fragments.task.factory.node.NodeMetadata;
 import io.vertx.core.json.JsonObject;
 import io.vertx.reactivex.core.Vertx;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import org.apache.commons.lang3.StringUtils;
 
 public class SubtasksNodeFactory implements NodeFactory {
 
@@ -48,37 +47,54 @@ public class SubtasksNodeFactory implements NodeFactory {
   }
 
   @Override
-  public Node initNode(GraphNodeOptions nodeOptions, Map<String, Node> edges,
+  public NodeWithMetadata initNode(GraphNodeOptions nodeOptions,
+      Map<String, NodeWithMetadata> edges,
       NodeProvider nodeProvider) {
     SubtasksNodeConfig config = new SubtasksNodeConfig(nodeOptions.getNode().getConfig());
-    List<Node> nodes = config.getSubtasks().stream()
+    List<NodeWithMetadata> nodes = config.getSubtasks().stream()
         .map(nodeProvider::initNode)
         .collect(Collectors.toList());
-    return new CompositeNode() {
-      @Override
-      public String getId() {
-        return getNodeId();
-      }
-
-      @Override
-      public Optional<Node> next(String transition) {
-        return filter(transition).map(edges::get);
-      }
-
-      @Override
-      public List<Node> getNodes() {
-        return nodes;
-      }
-
-      private Optional<String> filter(String transition) {
-        return Optional.of(transition)
-            .filter(tr -> StringUtils.equalsAny(tr, ERROR_TRANSITION, SUCCESS_TRANSITION));
-      }
-    };
+    return new SubtasksNode(getNodeId(), nodes, edges, new NodeMetadata(new FactoryOptions(NAME)));
   }
 
   private String getNodeId() {
     // TODO https://github.com/Knotx/knotx-fragments/issues/54
     return COMPOSITE_NODE_ID;
+  }
+
+  class SubtasksNode implements NodeWithMetadata, CompositeNode<NodeWithMetadata> {
+
+    private final String id;
+    private final List<NodeWithMetadata> nodes;
+    private final Map<String, NodeWithMetadata> edges;
+    private final NodeMetadata metadata;
+
+    public SubtasksNode(String id, List<NodeWithMetadata> nodes,
+        Map<String, NodeWithMetadata> edges, NodeMetadata metadata) {
+      this.id = id;
+      this.nodes = nodes;
+      this.edges = edges;
+      this.metadata = metadata;
+    }
+
+    @Override
+    public String getId() {
+      return id;
+    }
+
+    @Override
+    public List<NodeWithMetadata> getNodes() {
+      return nodes;
+    }
+
+    @Override
+    public Optional<Node> next(String transition) {
+      return Optional.ofNullable(edges.get(transition));
+    }
+
+    @Override
+    public NodeMetadata getMetadata() {
+      return metadata;
+    }
   }
 }

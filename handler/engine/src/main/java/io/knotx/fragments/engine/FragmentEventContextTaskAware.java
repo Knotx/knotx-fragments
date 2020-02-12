@@ -15,6 +15,8 @@
  */
 package io.knotx.fragments.engine;
 
+import java.util.Optional;
+
 public class FragmentEventContextTaskAware {
 
   private final Task task;
@@ -26,8 +28,8 @@ public class FragmentEventContextTaskAware {
     this.fragmentEventContext = fragmentEventContext;
   }
 
-  public Task getTask() {
-    return task;
+  public Optional<Task> getTask() {
+    return Optional.of(task);
   }
 
   public FragmentEventContext getFragmentEventContext() {

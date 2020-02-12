@@ -25,7 +25,16 @@ import org.apache.commons.lang3.StringUtils;
 public class FactoryOptions {
 
   private String factory;
-  private JsonObject config;
+  private JsonObject config = new JsonObject();
+
+  public FactoryOptions(String factory) {
+    this.factory = factory;
+  }
+
+  public FactoryOptions(String factory, JsonObject config) {
+    this.factory = factory;
+    this.config = config;
+  }
 
   public FactoryOptions(JsonObject json) {
     FactoryOptionsConverter.fromJson(json, this);

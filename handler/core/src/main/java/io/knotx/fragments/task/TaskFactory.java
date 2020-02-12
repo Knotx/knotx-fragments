@@ -16,7 +16,6 @@
 package io.knotx.fragments.task;
 
 import io.knotx.fragments.engine.FragmentEventContext;
-import io.knotx.fragments.engine.Task;
 import io.knotx.fragments.handler.FragmentsHandlerOptions;
 import io.knotx.fragments.handler.api.exception.ConfigurationException;
 import io.vertx.core.json.JsonObject;
@@ -61,5 +60,5 @@ public interface TaskFactory {
    * @param context fragment event context
    * @return new task instance
    */
-  Task newInstance(FragmentEventContext context);
+  TaskWithMetadata newInstance(FragmentEventContext context);
 }

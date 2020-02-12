@@ -169,7 +169,7 @@ class DefaultTaskFactoryTest {
         .newInstance(SAMPLE_FRAGMENT_EVENT);
 
     // then
-    assertEquals(TASK_NAME, task.getName());
+    assertEquals(TASK_NAME, task.getIdentifier());
   }
 
   @Test
@@ -205,7 +205,7 @@ class DefaultTaskFactoryTest {
         .newInstance(SAMPLE_FRAGMENT_EVENT_WITH_CUSTOM_TASK_KEY);
 
     // then
-    assertEquals(TASK_NAME, task.getName());
+    assertEquals(TASK_NAME, task.getIdentifier());
   }
 
   @Test
@@ -223,7 +223,7 @@ class DefaultTaskFactoryTest {
     Task task = getTask(graph, options, vertx);
 
     // then
-    assertEquals(TASK_NAME, task.getName());
+    assertEquals(TASK_NAME, task.getIdentifier());
 
     assertTrue(task.getRootNode().isPresent());
     Node rootNode = task.getRootNode().get();
@@ -253,7 +253,7 @@ class DefaultTaskFactoryTest {
     Task task = getTask(graph, options, vertx);
 
     // then
-    assertEquals(TASK_NAME, task.getName());
+    assertEquals(TASK_NAME, task.getIdentifier());
     assertTrue(task.getRootNode().isPresent());
     Node rootNode = task.getRootNode().get();
     assertTrue(rootNode instanceof CompositeNode);

@@ -15,7 +15,7 @@
  */
 package io.knotx.fragments.task.factory.node;
 
-import io.knotx.fragments.engine.graph.Node;
+import io.knotx.fragments.task.NodeWithMetadata;
 import io.knotx.fragments.task.factory.GraphNodeOptions;
 import io.knotx.fragments.task.factory.NodeProvider;
 import io.vertx.core.json.JsonObject;
@@ -55,6 +55,6 @@ public interface NodeFactory {
    * @param nodeProvider - node provider if the current node contains others
    * @return node instance
    */
-  Node initNode(GraphNodeOptions nodeOptions, Map<String, Node> edges, NodeProvider nodeProvider);
+  NodeWithMetadata initNode(GraphNodeOptions nodeOptions, Map<String, NodeWithMetadata> edges, NodeProvider nodeProvider);
 
 }

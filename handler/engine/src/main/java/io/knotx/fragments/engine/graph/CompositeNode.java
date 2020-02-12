@@ -17,9 +17,9 @@ package io.knotx.fragments.engine.graph;
 
 import java.util.List;
 
-public interface CompositeNode extends Node {
+public interface CompositeNode<T extends Node> extends Node {
 
-  List<Node> getNodes();
+  List<T> getNodes();
 
   @Override
   default NodeType getType() {

@@ -18,33 +18,10 @@ package io.knotx.fragments.engine;
 import io.knotx.fragments.engine.graph.Node;
 import java.util.Optional;
 
-public class Task {
+public interface Task {
 
-  private final String name;
-  private final Node rootNode;
+  String getIdentifier();
 
-  public Task(String name) {
-    this(name, null);
-  }
+  Node getRootNode();
 
-  public Task(String name, Node rootNode) {
-    this.name = name;
-    this.rootNode = rootNode;
-  }
-
-  public Optional<Node> getRootNode() {
-    return Optional.ofNullable(rootNode);
-  }
-
-  public String getName() {
-    return name;
-  }
-
-  @Override
-  public String toString() {
-    return "Task{" +
-        "name='" + name + '\'' +
-        ", rootNode=" + rootNode +
-        '}';
-  }
 }

@@ -56,8 +56,7 @@ public class FragmentsEngine {
         .concatMap(Flowable::fromIterable)
         .map(fragmentCtx -> fragmentCtx
             .getTask()
-            .getRootNode()
-            .map(rootNode -> startTaskEngine(fragmentCtx, rootNode))
+            .map(task -> startTaskEngine(fragmentCtx, task.getIdentifier(), task.getRootNode()))
             .orElseGet(() -> Single.just(fragmentCtx.getFragmentEventContext().getFragmentEvent()))
         )
         .flatMap(Single::toFlowable)
@@ -69,8 +68,9 @@ public class FragmentsEngine {
         .map(this::traceEngineResults);
   }
 
-  private Single<FragmentEvent> startTaskEngine(FragmentEventContextTaskAware fragment, Node rootNode) {
-      return taskEngine.start(fragment.getTask().getName(), rootNode, fragment.getFragmentEventContext());
+  private Single<FragmentEvent> startTaskEngine(FragmentEventContextTaskAware fragment,
+      String taskName, Node rootNode) {
+    return taskEngine.start(taskName, rootNode, fragment.getFragmentEventContext());
   }
 
   private List<FragmentEvent> incomingOrder(
@@ -84,10 +84,10 @@ public class FragmentsEngine {
 
   private FragmentEvent getFragmentFromListById(String id, List<FragmentEvent> events) {
     return events
-            .stream()
-            .filter(event -> id.equals(event.getFragment().getId()))
-            .findFirst()
-            .orElseThrow(() -> new IllegalStateException("Could not find fragment with id: " + id));
+        .stream()
+        .filter(event -> id.equals(event.getFragment().getId()))
+        .findFirst()
+        .orElseThrow(() -> new IllegalStateException("Could not find fragment with id: " + id));
   }
 
   private List<FragmentEvent> traceEngineResults(List<FragmentEvent> results) {

@@ -24,6 +24,7 @@ import io.knotx.fragments.engine.FragmentEventContext;
 import io.knotx.fragments.engine.FragmentEventContextTaskAware;
 import io.knotx.fragments.engine.FragmentsEngine;
 import io.knotx.fragments.engine.Task;
+import io.knotx.fragments.engine.graph.Node;
 import io.knotx.fragments.handler.consumer.FragmentEventsConsumerProvider;
 import io.knotx.server.api.context.ClientRequest;
 import io.knotx.server.api.context.RequestContext;
@@ -39,6 +40,7 @@ import io.vertx.core.logging.LoggerFactory;
 import io.vertx.reactivex.core.Vertx;
 import io.vertx.reactivex.ext.web.RoutingContext;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -148,7 +150,7 @@ public class FragmentsHandler implements Handler<RoutingContext> {
                   })
                   .map(
                       task -> new FragmentEventContextTaskAware(task, fragmentEventContext))
-                  .orElseGet(() -> new FragmentEventContextTaskAware(new Task("_NOT_DEFINED"),
+                  .orElseGet(() -> new FragmentEventContextTaskAware(null,
                       fragmentEventContext));
             })
         .collect(
