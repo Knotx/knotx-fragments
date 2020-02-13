@@ -48,10 +48,11 @@ steps:
       workingDirectory: '$(workspaceDir)/knotx-stack'
       tasks: 'build'
     displayName: "Build Stack"
-  - task: Maven@3
+  - task: Gradle@2
     inputs:
-      mavenPomFile: '$(workspaceDir)/knotx-docker/pom.xml'
-      goals: 'package'
+      gradleWrapperFile: '$(workspaceDir)/knotx-docker/gradlew'
+      workingDirectory: '$(workspaceDir)/knotx-docker'
+      tasks: 'build'
     displayName: "Build Docker image"
   - task: Gradle@2
     inputs:
