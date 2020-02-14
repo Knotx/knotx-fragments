@@ -17,6 +17,8 @@ package io.knotx.fragments.handler.consumer;
 
 import io.knotx.fragments.api.Fragment;
 import io.knotx.fragments.engine.FragmentEvent;
+import io.knotx.fragments.engine.FragmentEventWithTaskMetadata;
+import io.knotx.fragments.engine.TaskMetadata;
 import io.knotx.server.api.context.ClientRequest;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -32,7 +34,8 @@ public class FragmentHtmlBodyWriterFactory implements FragmentEventsConsumerFact
   static final String FRAGMENT_TYPES_OPTIONS = "fragmentTypes";
   static final String CONDITION_OPTION = "condition";
   static final String HEADER_OPTION = "header";
-  static final String PARAM_OPTION = "param";
+
+  private static final String PARAM_OPTION = "param";
 
   @Override
   public String getName() {
@@ -47,7 +50,7 @@ public class FragmentHtmlBodyWriterFactory implements FragmentEventsConsumerFact
       private String requestParam = getConditionParam(config);
 
       @Override
-      public void accept(ClientRequest request, List<FragmentEvent> events) {
+      public void accept(ClientRequest request, List<FragmentEventWithTaskMetadata> events) {
         if (containsHeader(request) || containsParam(request)) {
           events.stream()
               .filter(this::isSupported)
@@ -55,18 +58,28 @@ public class FragmentHtmlBodyWriterFactory implements FragmentEventsConsumerFact
         }
       }
 
-      private void wrapFragmentBody(FragmentEvent fragmentEvent) {
+      private void wrapFragmentBody(FragmentEventWithTaskMetadata fragmentEventWithTaskMetadata) {
+        TaskMetadata taskMetadata = fragmentEventWithTaskMetadata.getTaskMetadata();
+        FragmentEvent fragmentEvent = fragmentEventWithTaskMetadata.getFragmentEvent();
         Fragment fragment = fragmentEvent.getFragment();
         fragment.setBody("<!-- data-knotx-id=\"" + fragment.getId() + "\" -->"
-            + addAsScript(fragmentEvent)
+            + addNodeLogAsScript(fragmentEvent)
+            + addGraphAsScript(fragmentEvent.getFragment().getId(), taskMetadata)
             + fragment.getBody()
             + "<!-- data-knotx-id=\"" + fragment.getId() + "\" -->");
       }
 
-      private String addAsScript(FragmentEvent event) {
-        return "<script data-knotx-id=\"" + event.getFragment().getId()
+      private String addNodeLogAsScript(FragmentEvent event) {
+        return "<script data-knotx-debug=\"log\" data-knotx-id=\"" + event.getFragment().getId()
             + "\" type=\"application/json\">"
             + event.toJson() +
+            "</script>";
+      }
+
+      private String addGraphAsScript(String fragmentId, TaskMetadata taskMetadata) {
+        return "<script data-knotx-debug=\"graph\" data-knotx-id=\"" + fragmentId
+            + "\" type=\"application/json\">"
+            + taskMetadata.getMetadata() +
             "</script>";
       }
 
@@ -82,8 +95,9 @@ public class FragmentHtmlBodyWriterFactory implements FragmentEventsConsumerFact
             .orElse(Boolean.FALSE);
       }
 
-      private boolean isSupported(FragmentEvent fragmentEvent) {
-        return supportedTypes.contains(fragmentEvent.getFragment().getType());
+      private boolean isSupported(FragmentEventWithTaskMetadata fragmentEventWithTaskMetadata) {
+        return supportedTypes
+            .contains(fragmentEventWithTaskMetadata.getFragmentEvent().getFragment().getType());
       }
     };
   }

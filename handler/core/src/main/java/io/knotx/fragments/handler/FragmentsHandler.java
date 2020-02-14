@@ -22,6 +22,7 @@ import io.knotx.fragments.engine.FragmentEvent;
 import io.knotx.fragments.engine.FragmentEvent.Status;
 import io.knotx.fragments.engine.FragmentEventContext;
 import io.knotx.fragments.engine.FragmentEventContextTaskAware;
+import io.knotx.fragments.engine.FragmentEventWithTaskMetadata;
 import io.knotx.fragments.engine.FragmentsEngine;
 import io.knotx.fragments.engine.api.Task;
 import io.knotx.fragments.handler.consumer.FragmentEventsConsumerProvider;
@@ -67,11 +68,10 @@ public class FragmentsHandler implements Handler<RoutingContext> {
     final List<Fragment> fragments = routingContext.get("fragments");
     final ClientRequest clientRequest = requestContext.getRequestEvent().getClientRequest();
 
-    Single<List<FragmentEvent>> doHandle = doHandle(fragments, clientRequest);
-    doHandle
-        .doOnSuccess(events -> putFragments(routingContext, events))
+    doHandle(fragments, clientRequest)
+        .doOnSuccess(events -> putFragments(routingContext, justFragmentEvents(events)))
         .doOnSuccess(events -> enrichWithEventConsumers(clientRequest, events))
-        .map(events -> toHandlerResult(events, requestContext))
+        .map(events -> toHandlerResult(justFragmentEvents(events), requestContext))
         .subscribe(
             result -> requestContextEngine
                 .processAndSaveResult(result, routingContext, requestContext),
@@ -79,7 +79,14 @@ public class FragmentsHandler implements Handler<RoutingContext> {
         );
   }
 
-  protected Single<List<FragmentEvent>> doHandle(List<Fragment> fragments,
+  private List<FragmentEvent> justFragmentEvents(List<FragmentEventContextTaskAware> events) {
+    return events.stream()
+        .map(FragmentEventContextTaskAware::getFragmentEventContext)
+        .map(FragmentEventContext::getFragmentEvent)
+        .collect(Collectors.toList());
+  }
+
+  protected Single<List<FragmentEventContextTaskAware>> doHandle(List<Fragment> fragments,
       ClientRequest clientRequest) {
     return Single.just(fragments)
         .map(f -> toEvents(f, clientRequest))
@@ -87,9 +94,11 @@ public class FragmentsHandler implements Handler<RoutingContext> {
   }
 
   private void enrichWithEventConsumers(ClientRequest clientRequest,
-      List<FragmentEvent> fragmentEvents) {
+      List<FragmentEventContextTaskAware> events) {
+    List<FragmentEventWithTaskMetadata> eventsWithMetadata = events.stream()
+        .map(FragmentEventContextTaskAware::getEventWithMetadata).collect(Collectors.toList());
     fragmentEventsConsumerProvider.provide()
-        .forEach(consumer -> consumer.accept(clientRequest, fragmentEvents));
+        .forEach(consumer -> consumer.accept(clientRequest, eventsWithMetadata));
   }
 
   private void putFragments(RoutingContext routingContext, List<FragmentEvent> events) {

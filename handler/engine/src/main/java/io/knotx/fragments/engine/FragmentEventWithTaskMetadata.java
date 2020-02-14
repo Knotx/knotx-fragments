@@ -13,26 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.knotx.fragments.task.factory;
+package io.knotx.fragments.engine;
 
-import io.knotx.fragments.engine.api.node.Node;
-import io.vertx.core.json.JsonObject;
+import io.vertx.codegen.annotations.DataObject;
 
-/**
- * Inits node based on node options.
- */
-public interface NodeProvider {
+@DataObject
+public class FragmentEventWithTaskMetadata {
 
-  Node initNode(GraphNodeOptions nodeOptions);
+  private final FragmentEvent fragmentEvent;
+  private final TaskMetadata taskMetadata;
 
-  /**
-   * Attempts to retrieve metadata for the provided node options.
-   *
-   * @param nodeOptions configuration of the requested node
-   * @return metadata of the node or empty JsonObject
-   */
-  default JsonObject getMetadataForNode(GraphNodeOptions nodeOptions) {
-    return new JsonObject();
+  public FragmentEventWithTaskMetadata(FragmentEvent fragmentEvent,
+      TaskMetadata taskMetadata) {
+    this.fragmentEvent = fragmentEvent;
+    this.taskMetadata = taskMetadata;
+  }
+
+  public FragmentEvent getFragmentEvent() {
+    return fragmentEvent;
+  }
+
+  public TaskMetadata getTaskMetadata() {
+    return taskMetadata;
   }
 
 }

@@ -57,4 +57,15 @@ public interface NodeFactory {
    */
   Node initNode(GraphNodeOptions nodeOptions, Map<String, Node> edges, NodeProvider nodeProvider);
 
+  /**
+   * Attempts to retrieve metadata for the provided node options.
+   * May use NodeProvider to retrieve nested metadata if the node is composite.
+   *
+   * @param nodeOptions node configuration to construct metadata from
+   * @param nodeProvider provider for inner nodes metadata
+   * @return metadata for the requested node or empty JsonObject
+   */
+  default JsonObject getNodeMetadata(GraphNodeOptions nodeOptions, NodeProvider nodeProvider) {
+    return new JsonObject();
+  }
 }

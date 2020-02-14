@@ -23,6 +23,7 @@ import io.knotx.fragments.engine.api.node.Node;
 import io.knotx.fragments.task.factory.NodeProvider;
 import io.knotx.fragments.task.factory.node.NodeFactory;
 import io.knotx.fragments.task.factory.GraphNodeOptions;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.reactivex.core.Vertx;
 import java.util.List;
@@ -75,6 +76,19 @@ public class SubtasksNodeFactory implements NodeFactory {
             .filter(tr -> StringUtils.equalsAny(tr, ERROR_TRANSITION, SUCCESS_TRANSITION));
       }
     };
+  }
+
+  @Override
+  public JsonObject getNodeMetadata(GraphNodeOptions nodeOptions, NodeProvider nodeProvider) {
+    SubtasksNodeConfig config = new SubtasksNodeConfig(nodeOptions.getNode().getConfig());
+    List<JsonObject> subTasksMetadata = config.getSubtasks().stream()
+        .map(nodeProvider::getMetadataForNode)
+        .collect(Collectors.toList());
+    return new JsonObject()
+        .put("factory", NAME)
+        .put("type", "composite")
+        .put("config", nodeOptions.getNode().getConfig())
+        .put("subtasks", new JsonArray(subTasksMetadata));
   }
 
   private String getNodeId() {

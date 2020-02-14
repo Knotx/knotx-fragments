@@ -37,7 +37,7 @@ import java.util.stream.StreamSupport;
 
 public class DefaultTaskFactory implements TaskFactory, NodeProvider {
 
-  public static final String NAME = "default";
+  private static final String NAME = "default";
 
   private DefaultTaskFactoryConfig taskFactoryConfig;
   private Map<String, NodeFactory> nodeFactories;
@@ -77,6 +77,7 @@ public class DefaultTaskFactory implements TaskFactory, NodeProvider {
     return Optional.ofNullable(tasks.get(taskName))
         .map(rootGraphNodeOptions -> {
           Node rootNode = initNode(rootGraphNodeOptions);
+          JsonObject metadata = getMetadataForNode(rootGraphNodeOptions);
           return new Task(taskName, rootNode);
         })
         .orElseThrow(() -> new ConfigurationException("Task [" + taskName + "] not configured!"));
@@ -87,6 +88,25 @@ public class DefaultTaskFactory implements TaskFactory, NodeProvider {
     return findNodeFactory(nodeOptions)
         .map(f -> f.initNode(nodeOptions, initTransitions(nodeOptions), this))
         .orElseThrow(() -> new NodeFactoryNotFoundException(nodeOptions.getNode().getFactory()));
+  }
+
+  @Override
+  public JsonObject getMetadataForNode(GraphNodeOptions graphNodeOptions) {
+    return findNodeFactory(graphNodeOptions)
+        .map(f -> f.getNodeMetadata(graphNodeOptions, this))
+        .map(metadata -> addTransitionsRecursively(metadata, graphNodeOptions))
+        .orElseGet(JsonObject::new);
+  }
+
+  private JsonObject addTransitionsRecursively(JsonObject metadata, GraphNodeOptions nodeOptions) {
+    Map<String, GraphNodeOptions> transitions = nodeOptions.getOnTransitions();
+    if (!transitions.isEmpty()) {
+      JsonObject transitionMetadata = new JsonObject();
+      transitions.forEach((transitionName, nextNode) -> transitionMetadata
+          .put(transitionName, getMetadataForNode(nextNode)));
+      metadata.put("transitions", transitionMetadata);
+    }
+    return metadata;
   }
 
   private Optional<NodeFactory> findNodeFactory(GraphNodeOptions nodeOptions) {

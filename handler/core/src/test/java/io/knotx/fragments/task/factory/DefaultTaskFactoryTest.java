@@ -17,6 +17,7 @@ package io.knotx.fragments.task.factory;
 
 import static io.knotx.fragments.engine.api.node.single.FragmentResult.SUCCESS_TRANSITION;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -87,7 +88,7 @@ class DefaultTaskFactoryTest {
     boolean accepted = tested.accept(fragmentWithNoTask);
 
     // then
-    Assertions.assertFalse(accepted);
+    assertFalse(accepted);
   }
 
   @Test
@@ -101,7 +102,7 @@ class DefaultTaskFactoryTest {
     boolean accepted = tested.accept(SAMPLE_FRAGMENT_EVENT);
 
     // then
-    Assertions.assertFalse(accepted);
+    assertFalse(accepted);
   }
 
   @Test
@@ -209,6 +210,30 @@ class DefaultTaskFactoryTest {
   }
 
   @Test
+  @DisplayName("Expect metadata when custom task name key is defined.")
+  void expectMetadataWhenCustomTaskKey(Vertx vertx) {
+    // given
+    JsonObject actionNodeConfig = createActionNodeConfig("A", SUCCESS_TRANSITION,
+        "info");
+    GraphNodeOptions graph = new GraphNodeOptions("A", NO_TRANSITIONS);
+
+    // when
+    Task task = new DefaultTaskFactory()
+        .configure(
+            createTaskFactoryConfig(graph, actionNodeConfig).setTaskNameKey(MY_TASK_KEY).toJson(),
+            vertx)
+        .newInstance(SAMPLE_FRAGMENT_EVENT_WITH_CUSTOM_TASK_KEY);
+
+    JsonObject actionConfig = actionNodeConfig.getJsonObject("actions").getJsonObject("A");
+
+    // then
+    assertFalse(task.getMetadata().isEmpty());
+    assertEquals("action", task.getMetadata().getString("factory"));
+    assertEquals("A", task.getMetadata().getJsonObject("config").getString("action"));
+    assertEquals(actionConfig, task.getMetadata().getJsonObject("actionConfig"));
+  }
+
+  @Test
   @DisplayName("Expect graph of two action nodes with transition between.")
   void expectNodesWithTransitionBetween(Vertx vertx) {
     // given
@@ -234,6 +259,31 @@ class DefaultTaskFactoryTest {
     assertTrue(customNode.get() instanceof SingleNode);
     SingleNode customSingleNode = (SingleNode) customNode.get();
     assertEquals("B", customSingleNode.getId());
+  }
+
+  @Test
+  @DisplayName("Expect metadata of two action nodes with transition between.")
+  void expectMetadataForNodesWithTransitionBetween(Vertx vertx) {
+    // given
+    JsonObject options = createActionNodeConfig("A", SUCCESS_TRANSITION, "info");
+    merge(options, "B", SUCCESS_TRANSITION, "info");
+
+    GraphNodeOptions graph = new GraphNodeOptions("A", Collections
+        .singletonMap("customTransition",
+            new GraphNodeOptions("B", NO_TRANSITIONS)));
+
+    // when
+    Task task = getTask(graph, options, vertx);
+
+    // then
+    JsonObject metadata = task.getMetadata();
+    JsonObject actionAConfig = options.getJsonObject("actions").getJsonObject("A");
+    JsonObject actionBConfig = options.getJsonObject("actions").getJsonObject("B");
+
+    JsonObject nextNodeMetadata = metadata.getJsonObject("transitions").getJsonObject("customTransition");
+
+    assertActionNodeMetadata(metadata, "A", actionAConfig);
+    assertActionNodeMetadata(nextNodeMetadata, "B", actionBConfig);
   }
 
   @Test
@@ -272,6 +322,37 @@ class DefaultTaskFactoryTest {
     assertEquals("A", node.getId());
   }
 
+  @Test
+  @DisplayName("Expect metadata for graph with nested composite nodes")
+  void expectMetadataForNestedCompositeNodesGraph(Vertx vertx) {
+    // given
+    JsonObject options = createActionNodeConfig("A", SUCCESS_TRANSITION, "info");
+
+    GraphNodeOptions graph = new GraphNodeOptions(
+        subTasks(
+            new GraphNodeOptions(subTasks(new GraphNodeOptions("A", NO_TRANSITIONS)),
+                NO_TRANSITIONS)),
+        NO_TRANSITIONS
+    );
+
+    // when
+    Task task = getTask(graph, options, vertx);
+
+    JsonObject actionConfig = options.getJsonObject("actions").getJsonObject("A");
+
+    JsonObject metadata = task.getMetadata();
+    JsonObject nestedNodeMetadata = metadata.getJsonArray("subtasks").getJsonObject(0);
+    JsonObject doubleNestedNodeMetadata = nestedNodeMetadata.getJsonArray("subtasks").getJsonObject(0);
+
+    assertEquals("subtasks", metadata.getString("factory"));
+    assertEquals("composite", metadata.getString("type"));
+
+    assertEquals("subtasks", nestedNodeMetadata.getString("factory"));
+    assertEquals("composite", nestedNodeMetadata.getString("type"));
+
+    assertActionNodeMetadata(doubleNestedNodeMetadata, "A", actionConfig);
+  }
+
   private Task getTask(GraphNodeOptions graph, JsonObject actionNodeConfig, Vertx vertx) {
     DefaultTaskFactoryConfig taskFactoryConfig = createTaskFactoryConfig(graph, actionNodeConfig);
     return new DefaultTaskFactory().configure(taskFactoryConfig.toJson(), vertx)
@@ -299,10 +380,22 @@ class DefaultTaskFactoryTest {
   }
 
   private JsonObject createActionNodeConfig(String actionName, String transition) {
+    JsonObject actionConfig = new JsonObject().put("transition", transition);
+    return createActionNodeConfig(actionName, actionConfig);
+  }
+
+  private JsonObject createActionNodeConfig(String actionName, String transition,
+      String logLevel) {
+    JsonObject actionConfig = new JsonObject().put("transition", transition)
+        .put("logLevel", logLevel);
+    return createActionNodeConfig(actionName, actionConfig);
+  }
+
+  private JsonObject createActionNodeConfig(String actionName, JsonObject actionConfig) {
     return new ActionNodeFactoryConfig(Collections.singletonMap(actionName,
         new ActionFactoryOptions(new JsonObject())
             .setFactory("test-action")
-            .setConfig(new JsonObject().put("transition", transition))))
+            .setConfig(actionConfig)))
         .toJson();
   }
 
@@ -311,7 +404,20 @@ class DefaultTaskFactoryTest {
     return current.getJsonObject("actions").mergeIn(newOptions.getJsonObject("actions"));
   }
 
+  private JsonObject merge(JsonObject current, String actionName, String transition,
+      String logLevel) {
+    JsonObject newOptions = createActionNodeConfig(actionName, transition, logLevel);
+    return current.getJsonObject("actions").mergeIn(newOptions.getJsonObject("actions"));
+  }
+
   private List<GraphNodeOptions> subTasks(GraphNodeOptions... nodes) {
     return Arrays.asList(nodes);
+  }
+
+  private void assertActionNodeMetadata(JsonObject metadata, String actionName, JsonObject actionConfig) {
+    assertEquals("action", metadata.getString("factory"));
+    assertEquals("single", metadata.getString("type"));
+    assertEquals(actionName, metadata.getJsonObject("config").getString("action"));
+    assertEquals(actionConfig, metadata.getJsonObject("actionConfig"));
   }
 }

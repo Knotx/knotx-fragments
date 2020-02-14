@@ -21,6 +21,9 @@ import io.knotx.fragments.handler.api.Action;
 import io.knotx.fragments.handler.api.ActionFactory;
 import io.knotx.fragments.engine.api.node.single.FragmentContext;
 import io.knotx.fragments.engine.api.node.single.FragmentResult;
+import io.knotx.fragments.handler.api.domain.FragmentContext;
+import io.knotx.fragments.handler.api.domain.FragmentResult;
+import io.knotx.fragments.task.factory.ActionFactoryOptions;
 import io.knotx.fragments.task.factory.NodeProvider;
 import io.knotx.fragments.task.factory.node.NodeFactory;
 import io.knotx.fragments.task.factory.GraphNodeOptions;
@@ -38,6 +41,7 @@ public class ActionNodeFactory implements NodeFactory {
 
   public static final String NAME = "action";
   private ActionProvider actionProvider;
+  private Map<String, ActionFactoryOptions> actionNameToOptions;
 
   @Override
   public String getName() {
@@ -46,8 +50,8 @@ public class ActionNodeFactory implements NodeFactory {
 
   @Override
   public ActionNodeFactory configure(JsonObject config, Vertx vertx) {
-    actionProvider = new ActionProvider(supplyFactories(),
-        new ActionNodeFactoryConfig(config).getActions(), vertx);
+    this.actionNameToOptions = new ActionNodeFactoryConfig(config).getActions();
+    actionProvider = new ActionProvider(supplyFactories(), actionNameToOptions, vertx);
     return this;
   }
 
@@ -73,6 +77,16 @@ public class ActionNodeFactory implements NodeFactory {
         return toRxFunction(action).apply(fragmentContext);
       }
     };
+  }
+
+  @Override
+  public JsonObject getNodeMetadata(GraphNodeOptions nodeOptions, NodeProvider nodeProvider) {
+    ActionNodeConfig config = new ActionNodeConfig(nodeOptions.getNode().getConfig());
+    return new JsonObject()
+        .put("factory", NAME)
+        .put("type", "single")
+        .put("config", nodeOptions.getNode().getConfig())
+        .put("actionConfig", actionNameToOptions.get(config.getAction()).toJson());
   }
 
   private Function<FragmentContext, Single<FragmentResult>> toRxFunction(
