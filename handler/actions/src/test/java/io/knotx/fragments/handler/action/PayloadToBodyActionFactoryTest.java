@@ -21,7 +21,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.knotx.fragments.api.Fragment;
 import io.knotx.fragments.handler.api.Action;
-import io.knotx.fragments.handler.api.domain.FragmentContext;
+import io.knotx.fragments.engine.api.node.single.FragmentContext;
 import io.knotx.junit5.KnotxExtension;
 import io.knotx.server.api.context.ClientRequest;
 import io.vertx.core.json.JsonObject;

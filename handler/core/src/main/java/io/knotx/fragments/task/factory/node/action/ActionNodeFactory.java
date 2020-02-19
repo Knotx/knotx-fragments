@@ -15,12 +15,12 @@
  */
 package io.knotx.fragments.task.factory.node.action;
 
-import io.knotx.fragments.engine.graph.Node;
-import io.knotx.fragments.engine.graph.SingleNode;
+import io.knotx.fragments.engine.api.node.Node;
+import io.knotx.fragments.engine.api.node.single.SingleNode;
 import io.knotx.fragments.handler.api.Action;
 import io.knotx.fragments.handler.api.ActionFactory;
-import io.knotx.fragments.handler.api.domain.FragmentContext;
-import io.knotx.fragments.handler.api.domain.FragmentResult;
+import io.knotx.fragments.engine.api.node.single.FragmentContext;
+import io.knotx.fragments.engine.api.node.single.FragmentResult;
 import io.knotx.fragments.task.factory.NodeProvider;
 import io.knotx.fragments.task.factory.node.NodeFactory;
 import io.knotx.fragments.task.factory.GraphNodeOptions;

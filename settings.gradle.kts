@@ -13,8 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-
 pluginManagement {
     repositories {
         maven { url = uri("https://plugins.gradle.org/m2/") }
@@ -40,11 +38,13 @@ project(":knotx-fragments-supplier-html-splitter").projectDir = file("supplier/h
 include("knotx-fragments-handler-api")
 include("knotx-fragments-handler-actions")
 include("knotx-fragments-handler-core")
-include("knotx-fragments-engine")
+include("knotx-fragments-engine-api")
+include("knotx-fragments-engine-core")
 project(":knotx-fragments-handler-api").projectDir = file("handler/api")
 project(":knotx-fragments-handler-actions").projectDir = file("handler/actions")
 project(":knotx-fragments-handler-core").projectDir = file("handler/core")
-project(":knotx-fragments-engine").projectDir = file("handler/engine")
+project(":knotx-fragments-engine-api").projectDir = file("handler/engine/api")
+project(":knotx-fragments-engine-core").projectDir = file("handler/engine/core")
 
 // Assembler
 include("knotx-fragments-assembler")

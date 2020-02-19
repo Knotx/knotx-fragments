@@ -15,7 +15,7 @@
  */
 package io.knotx.fragments.task.factory.node;
 
-import io.knotx.fragments.engine.graph.Node;
+import io.knotx.fragments.engine.api.node.Node;
 import io.knotx.fragments.task.factory.GraphNodeOptions;
 import io.knotx.fragments.task.factory.NodeProvider;
 import io.vertx.core.json.JsonObject;

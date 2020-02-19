@@ -15,8 +15,8 @@
  */
 package io.knotx.fragments.task.factory.node;
 
-import io.knotx.fragments.engine.graph.Node;
-import io.knotx.fragments.engine.graph.NodeType;
+import io.knotx.fragments.engine.api.node.Node;
+import io.knotx.fragments.engine.api.node.NodeType;
 import java.util.Optional;
 
 public class StubNode implements Node {

@@ -15,7 +15,7 @@
  */
 package io.knotx.fragments.task.factory;
 
-import io.knotx.fragments.engine.graph.Node;
+import io.knotx.fragments.engine.api.node.Node;
 
 /**
  * Inits node based on node options.

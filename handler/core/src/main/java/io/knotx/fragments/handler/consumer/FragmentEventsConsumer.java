@@ -15,13 +15,14 @@
  */
 package io.knotx.fragments.handler.consumer;
 
+import io.knotx.fragments.engine.api.Task;
 import io.knotx.server.api.context.ClientRequest;
 import java.util.List;
 
 import io.knotx.fragments.engine.FragmentEvent;
 
 /**
- * Fragment event consumer receives {@link FragmentEvent} when {@link io.knotx.fragments.engine.Task}
+ * Fragment event consumer receives {@link FragmentEvent} when {@link Task}
  * evaluation ends. It can share this information with some external tools or even modify fragment.
  */
 public interface FragmentEventsConsumer {
