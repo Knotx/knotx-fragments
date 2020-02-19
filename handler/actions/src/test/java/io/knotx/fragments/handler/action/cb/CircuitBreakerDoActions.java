@@ -16,13 +16,13 @@
 package io.knotx.fragments.handler.action.cb;
 
 import static io.knotx.fragments.handler.api.actionlog.ActionLogLevel.INFO;
-import static io.knotx.fragments.handler.api.domain.FragmentResult.ERROR_TRANSITION;
-import static io.knotx.fragments.handler.api.domain.FragmentResult.SUCCESS_TRANSITION;
+import static io.knotx.fragments.engine.api.node.single.FragmentResult.ERROR_TRANSITION;
+import static io.knotx.fragments.engine.api.node.single.FragmentResult.SUCCESS_TRANSITION;
 
 import io.knotx.fragments.handler.api.Action;
 import io.knotx.fragments.handler.api.actionlog.ActionLogger;
-import io.knotx.fragments.handler.api.domain.FragmentContext;
-import io.knotx.fragments.handler.api.domain.FragmentResult;
+import io.knotx.fragments.engine.api.node.single.FragmentContext;
+import io.knotx.fragments.engine.api.node.single.FragmentResult;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;

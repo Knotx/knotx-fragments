@@ -16,7 +16,7 @@
 package io.knotx.fragments.handler;
 
 import io.knotx.fragments.engine.FragmentEventContext;
-import io.knotx.fragments.engine.Task;
+import io.knotx.fragments.engine.api.Task;
 import io.knotx.fragments.handler.exception.TaskFactoryNotFoundException;
 import io.knotx.fragments.spi.FactoryOptions;
 import io.knotx.fragments.task.TaskFactory;

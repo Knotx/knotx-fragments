@@ -16,7 +16,7 @@
 package io.knotx.fragments.task;
 
 import io.knotx.fragments.engine.FragmentEventContext;
-import io.knotx.fragments.engine.Task;
+import io.knotx.fragments.engine.api.Task;
 import io.knotx.fragments.handler.FragmentsHandlerOptions;
 import io.knotx.fragments.handler.api.exception.ConfigurationException;
 import io.vertx.core.json.JsonObject;

@@ -15,7 +15,7 @@
  */
 package io.knotx.fragments.task.factory;
 
-import static io.knotx.fragments.handler.api.domain.FragmentResult.SUCCESS_TRANSITION;
+import static io.knotx.fragments.engine.api.node.single.FragmentResult.SUCCESS_TRANSITION;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -24,10 +24,10 @@ import io.knotx.fragments.handler.api.exception.ConfigurationException;
 import io.knotx.fragments.api.Fragment;
 import io.knotx.fragments.engine.FragmentEvent;
 import io.knotx.fragments.engine.FragmentEventContext;
-import io.knotx.fragments.engine.Task;
-import io.knotx.fragments.engine.graph.CompositeNode;
-import io.knotx.fragments.engine.graph.Node;
-import io.knotx.fragments.engine.graph.SingleNode;
+import io.knotx.fragments.engine.api.Task;
+import io.knotx.fragments.engine.api.node.composite.CompositeNode;
+import io.knotx.fragments.engine.api.node.Node;
+import io.knotx.fragments.engine.api.node.single.SingleNode;
 import io.knotx.fragments.task.factory.node.NodeFactoryOptions;
 import io.knotx.fragments.task.factory.node.action.ActionNodeFactory;
 import io.knotx.fragments.task.factory.node.action.ActionNodeFactoryConfig;

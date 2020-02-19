@@ -15,12 +15,12 @@
  */
 package io.knotx.fragments.task.factory.node.action;
 
-import static io.knotx.fragments.handler.api.domain.FragmentResult.SUCCESS_TRANSITION;
+import static io.knotx.fragments.engine.api.node.single.FragmentResult.SUCCESS_TRANSITION;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import io.knotx.fragments.engine.graph.Node;
-import io.knotx.fragments.engine.graph.SingleNode;
+import io.knotx.fragments.engine.api.node.Node;
+import io.knotx.fragments.engine.api.node.single.SingleNode;
 import io.knotx.fragments.task.factory.ActionFactoryOptions;
 import io.knotx.fragments.task.factory.node.StubNode;
 import io.knotx.fragments.task.factory.GraphNodeOptions;

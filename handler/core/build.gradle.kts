@@ -28,7 +28,8 @@ dependencies {
     implementation(platform("io.knotx:knotx-dependencies:${project.version}"))
 
     api(project(":knotx-fragments-handler-api"))
-    implementation(project(":knotx-fragments-engine"))
+    implementation(project(":knotx-fragments-engine-api"))
+    implementation(project(":knotx-fragments-engine-core"))
 
     implementation("io.knotx:knotx-server-http-common-placeholders:${project.version}")
     implementation("io.knotx:knotx-commons:${project.version}")
