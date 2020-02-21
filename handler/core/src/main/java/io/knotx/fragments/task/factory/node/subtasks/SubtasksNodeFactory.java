@@ -15,20 +15,21 @@
  */
 package io.knotx.fragments.task.factory.node.subtasks;
 
-import static io.knotx.fragments.engine.api.node.single.FragmentResult.ERROR_TRANSITION;
-import static io.knotx.fragments.engine.api.node.single.FragmentResult.SUCCESS_TRANSITION;
+import static io.knotx.fragments.handler.api.domain.FragmentResult.ERROR_TRANSITION;
+import static io.knotx.fragments.handler.api.domain.FragmentResult.SUCCESS_TRANSITION;
 
-import io.knotx.fragments.engine.api.node.composite.CompositeNode;
-import io.knotx.fragments.engine.api.node.Node;
+import io.knotx.fragments.engine.graph.CompositeNode;
+import io.knotx.fragments.engine.graph.Node;
 import io.knotx.fragments.task.factory.NodeProvider;
 import io.knotx.fragments.task.factory.node.NodeFactory;
 import io.knotx.fragments.task.factory.GraphNodeOptions;
-import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.reactivex.core.Vertx;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 
@@ -51,14 +52,23 @@ public class SubtasksNodeFactory implements NodeFactory {
   @Override
   public Node initNode(GraphNodeOptions nodeOptions, Map<String, Node> edges,
       NodeProvider nodeProvider) {
+    // The implementation is for backwards compatibility of NodeFactory interface
+    return initNode(nodeOptions, edges, nodeProvider, new HashMap<>());
+  }
+
+  @Override
+  public Node initNode(GraphNodeOptions nodeOptions, Map<String, Node> edges,
+      NodeProvider nodeProvider, Map<String, NodeMetadata> nodesMetadata) {
     SubtasksNodeConfig config = new SubtasksNodeConfig(nodeOptions.getNode().getConfig());
     List<Node> nodes = config.getSubtasks().stream()
-        .map(nodeProvider::initNode)
+        .map(subTaskConfig -> nodeProvider.initNode(subTaskConfig, nodesMetadata))
         .collect(Collectors.toList());
+    final String nodeId = UUID.randomUUID().toString();
+    nodesMetadata.put(nodeId, createSubTaskNodeMetadata(nodeId, edges, nodes));
     return new CompositeNode() {
       @Override
       public String getId() {
-        return getNodeId();
+        return nodeId;
       }
 
       @Override
@@ -78,21 +88,18 @@ public class SubtasksNodeFactory implements NodeFactory {
     };
   }
 
-  @Override
-  public JsonObject getNodeMetadata(GraphNodeOptions nodeOptions, NodeProvider nodeProvider) {
-    SubtasksNodeConfig config = new SubtasksNodeConfig(nodeOptions.getNode().getConfig());
-    List<JsonObject> subTasksMetadata = config.getSubtasks().stream()
-        .map(nodeProvider::getMetadataForNode)
-        .collect(Collectors.toList());
-    return new JsonObject()
-        .put("factory", NAME)
-        .put("type", "composite")
-        .put("config", nodeOptions.getNode().getConfig())
-        .put("subtasks", new JsonArray(subTasksMetadata));
+  private NodeMetadata createSubTaskNodeMetadata(String nodeId, Map<String, Node> edges,
+      List<Node> nodes) {
+    List<String> nestedNodesIds = nodes.stream().map(Node::getId).collect(Collectors.toList());
+    Map<String, String> transitionMetadata = createTransitionMetadata(edges);
+    return new NodeMetadata(nodeId, NAME, NodeType.COMPOSITE, transitionMetadata,
+        nestedNodesIds, new JsonObject());
   }
 
-  private String getNodeId() {
-    // TODO https://github.com/Knotx/knotx-fragments/issues/54
-    return COMPOSITE_NODE_ID;
+  private Map<String, String> createTransitionMetadata(Map<String, Node> edges) {
+    Map<String, String> transitionMetadata = new HashMap<>();
+    edges.forEach((transition, node) -> transitionMetadata.put(transition, node.getId()));
+    return transitionMetadata;
   }
+
 }

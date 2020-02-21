@@ -13,21 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.knotx.fragments.task.factory;
+package io.knotx.fragments.engine;
 
-import io.knotx.fragments.engine.NodeMetadata;
-import io.knotx.fragments.engine.api.node.Node;
-import java.util.Map;
+import io.vertx.codegen.annotations.DataObject;
 
-/**
- * Inits node based on node options.
- */
-public interface NodeProvider {
+@DataObject
+public class FragmentEventWithTaskMetadata {
 
-  Node initNode(GraphNodeOptions nodeOptions);
+  private final FragmentEvent fragmentEvent;
+  private final TaskMetadata taskMetadata;
 
-  default Node initNode(GraphNodeOptions nodeOptions, Map<String, NodeMetadata> nodesMetadata) {
-    return initNode(nodeOptions);
+  public FragmentEventWithTaskMetadata(FragmentEvent fragmentEvent, TaskMetadata taskMetadata) {
+    this.fragmentEvent = fragmentEvent;
+    this.taskMetadata = taskMetadata;
+  }
+
+  public FragmentEvent getFragmentEvent() {
+    return fragmentEvent;
+  }
+
+  public TaskMetadata getTaskMetadata() {
+    return taskMetadata;
   }
 
 }

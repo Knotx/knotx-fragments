@@ -54,6 +54,10 @@ public class EventLog {
     this.operations.addAll(log.operations);
   }
 
+  public List<EventLogEntry> getOperations() {
+    return new ArrayList<>(operations);
+  }
+
   public JsonObject getLog() {
     return toJson();
   }

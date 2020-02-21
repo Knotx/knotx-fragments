@@ -15,26 +15,24 @@
  */
 package io.knotx.fragments.engine;
 
-import io.vertx.codegen.annotations.DataObject;
-import io.vertx.core.json.JsonObject;
+import io.knotx.fragments.engine.api.Task;
 
-@DataObject
-public class TaskMetadata {
+public class TaskWithMetadata {
 
-  private final String taskName;
-  private final JsonObject metadata;
+  private final Task task;
+  private final TaskMetadata taskMetadata;
 
-  public TaskMetadata(String taskName, JsonObject metadata) {
-    this.taskName = taskName;
-    this.metadata = metadata;
+  public TaskWithMetadata(Task task, TaskMetadata taskMetadata) {
+    this.task = task;
+    this.taskMetadata = taskMetadata;
   }
 
-  public String getTaskName() {
-    return taskName;
+  public Task getTask() {
+    return task;
   }
 
-  public JsonObject getMetadata() {
-    return metadata;
+  public TaskMetadata getTaskMetadata() {
+    return taskMetadata;
   }
 
 }

@@ -113,15 +113,14 @@ class FragmentsHandlerTest {
           EMPTY_BODY);
 
       // when
-      Single<List<FragmentEventContextTaskAware>> rxDoHandle = new FragmentsHandler(vertx, config)
-          .doHandle(Collections.singletonList(fragment), new ClientRequest());
+      FragmentsHandler handler = new FragmentsHandler(vertx, config);
+      Single<List<FragmentEvent>> rxDoHandle = handler
+          .doHandle(handler.createExecutionPlan(Collections.singletonList(fragment), new ClientRequest()));
 
       rxDoHandle.subscribe(
           result -> testContext.verify(() -> {
             // then
-            Optional<FragmentEvent> event = result.stream().findFirst()
-                .map(FragmentEventContextTaskAware::getFragmentEventContext)
-                .map(FragmentEventContext::getFragmentEvent);
+            Optional<FragmentEvent> event = result.stream().findFirst();
             assertTrue(event.isPresent());
             String body = event.get().getFragment().getBody();
             assertTrue(body.contains("<!-- data-knotx-id="));
@@ -145,13 +144,13 @@ class FragmentsHandlerTest {
       String expectedBody = "success";
 
       //when
-      Single<List<FragmentEventContextTaskAware>> rxDoHandle = underTest
-          .doHandle(Collections.singletonList(fragment), new ClientRequest());
+      Single<List<FragmentEvent>> rxDoHandle = underTest
+          .doHandle(underTest.createExecutionPlan(Collections.singletonList(fragment), new ClientRequest()));
 
       rxDoHandle.subscribe(
           result -> testContext.verify(() -> {
             // then
-            FragmentEvent fragmentEvent = result.get(0).getFragmentEventContext().getFragmentEvent();
+            FragmentEvent fragmentEvent = result.get(0);
             assertEquals(Status.SUCCESS, fragmentEvent.getStatus());
             assertEquals(expectedBody, fragmentEvent.getFragment().getBody());
             testContext.completeNow();
@@ -171,13 +170,13 @@ class FragmentsHandlerTest {
       Fragment fragment = new Fragment("type", new JsonObject(), EMPTY_BODY);
 
       //when
-      Single<List<FragmentEventContextTaskAware>> rxDoHandle = underTest
-          .doHandle(Collections.singletonList(fragment), new ClientRequest());
+      Single<List<FragmentEvent>> rxDoHandle = underTest
+          .doHandle(underTest.createExecutionPlan(Collections.singletonList(fragment), new ClientRequest()));
 
       rxDoHandle.subscribe(
           result -> testContext.verify(() -> {
             // then
-            assertEquals(Status.UNPROCESSED, result.get(0).getFragmentEventContext().getFragmentEvent().getStatus());
+            assertEquals(Status.UNPROCESSED, result.get(0).getStatus());
             testContext.completeNow();
           }),
           testContext::failNow
@@ -197,12 +196,12 @@ class FragmentsHandlerTest {
       String expectedBody = "custom";
 
       //when
-      Single<List<FragmentEventContextTaskAware>> rxDoHandle = underTest
-          .doHandle(Collections.singletonList(fragment), new ClientRequest());
+      Single<List<FragmentEvent>> rxDoHandle = underTest
+          .doHandle(underTest.createExecutionPlan(Collections.singletonList(fragment), new ClientRequest()));
 
       rxDoHandle.subscribe(
           result -> testContext.verify(() -> {
-            assertEquals(expectedBody, result.get(0).getFragmentEventContext().getFragmentEvent().getFragment().getBody());
+            assertEquals(expectedBody, result.get(0).getFragment().getBody());
             testContext.completeNow();
           }),
           testContext::failNow

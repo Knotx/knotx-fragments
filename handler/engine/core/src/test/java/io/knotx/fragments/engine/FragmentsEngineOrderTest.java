@@ -67,16 +67,16 @@ class FragmentsEngineOrderTest {
     );
 
     // when
-    Single<List<FragmentEventContextTaskAware>> result = new FragmentsEngine(vertx).execute(events);
+    Single<List<FragmentEvent>> result = new FragmentsEngine(vertx).execute(events);
 
     // then
     verifyExecution(result, fragmentEvents -> testContext.verify(() -> {
       assertEquals(2, fragmentEvents.size());
       assertEquals("first fragment",
-          fragmentEvents.get(0).getFragmentEventContext().getFragmentEvent().getFragment()
+          fragmentEvents.get(0).getFragment()
               .getBody());
       assertEquals("second fragment",
-          fragmentEvents.get(1).getFragmentEventContext().getFragmentEvent().getFragment()
+          fragmentEvents.get(1).getFragment()
               .getBody());
     }), testContext);
   }
@@ -91,8 +91,8 @@ class FragmentsEngineOrderTest {
         new FragmentEventContext(new FragmentEvent(fragment), new ClientRequest()));
   }
 
-  void verifyExecution(Single<List<FragmentEventContextTaskAware>> result,
-      Consumer<List<FragmentEventContextTaskAware>> successConsumer,
+  void verifyExecution(Single<List<FragmentEvent>> result,
+      Consumer<List<FragmentEvent>> successConsumer,
       VertxTestContext testContext) throws Throwable {
     result.subscribe(
         onSuccess -> testContext.verify(() -> {

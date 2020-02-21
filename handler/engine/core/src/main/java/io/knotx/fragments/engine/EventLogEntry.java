@@ -96,7 +96,27 @@ public class EventLogEntry {
         '}';
   }
 
-  enum NodeStatus {
+  public String getNode() {
+    return node;
+  }
+
+  public NodeStatus getStatus() {
+    return status;
+  }
+
+  public String getTransition() {
+    return transition;
+  }
+
+  public long getTimestamp() {
+    return timestamp;
+  }
+
+  public JsonObject getNodeLog() {
+    return nodeLog;
+  }
+
+  public enum NodeStatus {
     SUCCESS,
     UNSUPPORTED_TRANSITION,
     ERROR,

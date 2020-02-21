@@ -15,25 +15,28 @@
  */
 package io.knotx.fragments.task.factory.node.action;
 
+import io.knotx.fragments.engine.NodeMetadata;
 import io.knotx.fragments.engine.api.node.Node;
+import io.knotx.fragments.engine.api.node.NodeType;
 import io.knotx.fragments.engine.api.node.single.SingleNode;
 import io.knotx.fragments.handler.api.Action;
 import io.knotx.fragments.handler.api.ActionFactory;
 import io.knotx.fragments.engine.api.node.single.FragmentContext;
 import io.knotx.fragments.engine.api.node.single.FragmentResult;
-import io.knotx.fragments.handler.api.domain.FragmentContext;
-import io.knotx.fragments.handler.api.domain.FragmentResult;
 import io.knotx.fragments.task.factory.ActionFactoryOptions;
+import io.knotx.fragments.task.factory.GraphNodeOptions;
 import io.knotx.fragments.task.factory.NodeProvider;
 import io.knotx.fragments.task.factory.node.NodeFactory;
-import io.knotx.fragments.task.factory.GraphNodeOptions;
 import io.reactivex.Single;
 import io.vertx.core.json.JsonObject;
 import io.vertx.reactivex.core.Vertx;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Optional;
 import java.util.ServiceLoader;
+import java.util.UUID;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -58,13 +61,22 @@ public class ActionNodeFactory implements NodeFactory {
   @Override
   public Node initNode(GraphNodeOptions nodeOptions, Map<String, Node> edges,
       NodeProvider nodeProvider) {
+    // The implementation is for backwards compatibility of NodeFactory interface
+    return initNode(nodeOptions, edges, nodeProvider, new HashMap<>());
+  }
+
+  @Override
+  public Node initNode(GraphNodeOptions nodeOptions, Map<String, Node> edges,
+      NodeProvider nodeProvider, Map<String, NodeMetadata> nodesMetadata) {
     ActionNodeConfig config = new ActionNodeConfig(nodeOptions.getNode().getConfig());
     Action action = actionProvider.get(config.getAction()).orElseThrow(
         () -> new ActionNotFoundException(config.getAction()));
+    final String actionNodeId = UUID.randomUUID().toString();
+    nodesMetadata.put(actionNodeId, createActionNodeMetadata(actionNodeId, edges, config));
     return new SingleNode() {
       @Override
       public String getId() {
-        return config.getAction();
+        return actionNodeId;
       }
 
       @Override
@@ -79,14 +91,27 @@ public class ActionNodeFactory implements NodeFactory {
     };
   }
 
-  @Override
-  public JsonObject getNodeMetadata(GraphNodeOptions nodeOptions, NodeProvider nodeProvider) {
-    ActionNodeConfig config = new ActionNodeConfig(nodeOptions.getNode().getConfig());
+  private NodeMetadata createActionNodeMetadata(String actionNodeId, Map<String, Node> edges,
+      ActionNodeConfig config) {
+    Map<String, String> transitionMetadata = createTransitionMetadata(edges);
+    JsonObject configWithActionConfiguration = createJointConfig(config);
+    return new NodeMetadata(actionNodeId, NAME, NodeType.SINGLE, transitionMetadata,
+        new ArrayList<>(), configWithActionConfiguration);
+  }
+
+  private Map<String, String> createTransitionMetadata(Map<String, Node> edges) {
+    Map<String, String> transitionMetadata = new HashMap<>();
+    edges.forEach((transition, node) -> transitionMetadata.put(transition, node.getId()));
+    return transitionMetadata;
+  }
+
+  private JsonObject createJointConfig(ActionNodeConfig config) {
+    ActionFactoryOptions actionConfig = actionNameToOptions.get(config.getAction());
     return new JsonObject()
-        .put("factory", NAME)
-        .put("type", "single")
-        .put("config", nodeOptions.getNode().getConfig())
-        .put("actionConfig", actionNameToOptions.get(config.getAction()).toJson());
+        .put("type", NAME)
+        .put("alias", config.getAction())
+        .put("factory", actionConfig.getFactory())
+        .put("actionConfig", actionConfig.toJson());
   }
 
   private Function<FragmentContext, Single<FragmentResult>> toRxFunction(

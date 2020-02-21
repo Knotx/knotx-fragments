@@ -27,6 +27,8 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import io.knotx.fragments.engine.NodeMetadata;
+import io.knotx.fragments.engine.api.node.NodeType;
 import io.knotx.fragments.engine.api.node.composite.CompositeNode;
 import io.knotx.fragments.engine.api.node.Node;
 import io.knotx.fragments.task.factory.NodeProvider;
@@ -44,6 +46,7 @@ import java.util.Map;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.internal.matchers.Any;
 
 @ExtendWith(VertxExtension.class)
 class SubtasksNodeFactoryTest {
@@ -65,7 +68,7 @@ class SubtasksNodeFactoryTest {
     );
 
     NodeProvider nodeProvider = mock(NodeProvider.class);
-    when(nodeProvider.initNode(eq(subNodeConfig))).thenReturn(new StubNode("A"));
+    when(nodeProvider.initNode(eq(subNodeConfig), any())).thenReturn(new StubNode("A"));
 
     // when
     Node node = new SubtasksNodeFactory().configure(new JsonObject(), vertx)
@@ -73,7 +76,7 @@ class SubtasksNodeFactoryTest {
 
     // then
     assertTrue(node instanceof CompositeNode);
-    assertEquals(SubtasksNodeFactory.COMPOSITE_NODE_ID, node.getId());
+    assertEquals(NodeType.COMPOSITE, node.getType());
     assertFalse(node.next(SUCCESS_TRANSITION).isPresent());
     assertFalse(node.next(ERROR_TRANSITION).isPresent());
 
@@ -95,7 +98,7 @@ class SubtasksNodeFactoryTest {
     );
 
     NodeProvider nodeProvider = mock(NodeProvider.class);
-    when(nodeProvider.initNode(any())).thenReturn(new StubNode("A"));
+    when(nodeProvider.initNode(any(), any())).thenReturn(new StubNode("A"));
 
     Map<String, Node> transitionsToNodes = new HashMap<>();
     transitionsToNodes.put(SUCCESS_TRANSITION, new StubNode("B"));
@@ -130,13 +133,14 @@ class SubtasksNodeFactoryTest {
     );
 
     NodeProvider nodeProvider = mock(NodeProvider.class);
+    when(nodeProvider.initNode(any(), any())).thenReturn(new StubNode("A"));
 
     // when
     new SubtasksNodeFactory().configure(new JsonObject(), vertx)
         .initNode(graph, Collections.emptyMap(), nodeProvider);
 
     // then
-    verify(nodeProvider, times(1)).initNode(eq(nestedNodeConfig));
+    verify(nodeProvider, times(1)).initNode(eq(nestedNodeConfig), any());
 
   }
 

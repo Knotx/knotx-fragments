@@ -17,10 +17,15 @@ package io.knotx.fragments.task;
 
 import io.knotx.fragments.engine.FragmentEventContext;
 import io.knotx.fragments.engine.api.Task;
+import io.knotx.fragments.engine.TaskMetadata;
+import io.knotx.fragments.engine.TaskWithMetadata;
+import io.knotx.fragments.engine.api.node.Node;
 import io.knotx.fragments.handler.FragmentsHandlerOptions;
 import io.knotx.fragments.handler.api.exception.ConfigurationException;
 import io.vertx.core.json.JsonObject;
 import io.vertx.reactivex.core.Vertx;
+import java.util.HashMap;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * A task factory interface allowing to register a task factory by its name. Implementing class must
@@ -58,8 +63,23 @@ public interface TaskFactory {
    * returns <code>true</code>. When called with a fragment that does not provide a task name, then
    * {@link ConfigurationException} is thrown.
    *
+   * Attempts to fill TaskMetadata with information on task structure.
+   *
    * @param context fragment event context
    * @return new task instance
    */
   Task newInstance(FragmentEventContext context);
+
+  default TaskWithMetadata newInstanceWithMetadata(FragmentEventContext context) {
+    Task task = newInstance(context);
+    return new TaskWithMetadata(
+        task,
+        new TaskMetadata(
+            task.getName(),
+            task.getRootNode().map(Node::getId).orElse(StringUtils.EMPTY),
+            new HashMap<>()
+        )
+    );
+  }
+
 }

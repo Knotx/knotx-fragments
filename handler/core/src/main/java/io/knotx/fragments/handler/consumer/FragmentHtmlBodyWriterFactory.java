@@ -17,13 +17,13 @@ package io.knotx.fragments.handler.consumer;
 
 import io.knotx.fragments.api.Fragment;
 import io.knotx.fragments.engine.FragmentEvent;
-import io.knotx.fragments.engine.FragmentEventWithTaskMetadata;
 import io.knotx.fragments.engine.TaskMetadata;
 import io.knotx.server.api.context.ClientRequest;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -50,36 +50,53 @@ public class FragmentHtmlBodyWriterFactory implements FragmentEventsConsumerFact
       private String requestParam = getConditionParam(config);
 
       @Override
-      public void accept(ClientRequest request, List<FragmentEventWithTaskMetadata> events) {
+      public void accept(ClientRequest request, List<FragmentEvent> events,
+          Map<String, TaskMetadata> taskMetadataByFragmentId) {
         if (containsHeader(request) || containsParam(request)) {
           events.stream()
               .filter(this::isSupported)
-              .forEach(this::wrapFragmentBody);
+              .forEach(event -> wrapFragmentBodyWithMetadata(event, taskMetadataByFragmentId));
         }
       }
 
-      private void wrapFragmentBody(FragmentEventWithTaskMetadata fragmentEventWithTaskMetadata) {
-        TaskMetadata taskMetadata = fragmentEventWithTaskMetadata.getTaskMetadata();
-        FragmentEvent fragmentEvent = fragmentEventWithTaskMetadata.getFragmentEvent();
-        Fragment fragment = fragmentEvent.getFragment();
+      private void wrapFragmentBodyWithMetadata(FragmentEvent event,
+          Map<String, TaskMetadata> taskMetadataByFragmentId) {
+        JsonObject graphMetadata = Optional.of(event)
+            .map(FragmentEvent::getFragment)
+            .map(Fragment::getId)
+            .map(taskMetadataByFragmentId::get)
+            .map(metadata -> GraphDataConverter.from(event, metadata))
+            .map(GraphDataConverter::createJson)
+            .orElseGet(JsonObject::new);
+        wrapFragmentBody(event.getFragment(), event.toJson(), graphMetadata);
+      }
+
+      private void wrapFragmentBody(Fragment fragment, JsonObject eventLog, JsonObject graphMetadata) {
+        wrapFragmentBody(fragment,
+            nodeLogAsScript(fragment.getId(), eventLog),
+            graphMetadata.isEmpty() ? "" : graphAsScript(fragment.getId(), graphMetadata)
+        );
+      }
+
+      private void wrapFragmentBody(Fragment fragment, String eventLogScript, String graphMetadataScript) {
         fragment.setBody("<!-- data-knotx-id=\"" + fragment.getId() + "\" -->"
-            + addNodeLogAsScript(fragmentEvent)
-            + addGraphAsScript(fragmentEvent.getFragment().getId(), taskMetadata)
+            + eventLogScript
+            + graphMetadataScript
             + fragment.getBody()
             + "<!-- data-knotx-id=\"" + fragment.getId() + "\" -->");
       }
 
-      private String addNodeLogAsScript(FragmentEvent event) {
-        return "<script data-knotx-debug=\"log\" data-knotx-id=\"" + event.getFragment().getId()
+      private String nodeLogAsScript(String fragmentId, JsonObject nodeLog) {
+        return "<script data-knotx-debug=\"log\" data-knotx-id=\"" + fragmentId
             + "\" type=\"application/json\">"
-            + event.toJson() +
+            + nodeLog +
             "</script>";
       }
 
-      private String addGraphAsScript(String fragmentId, TaskMetadata taskMetadata) {
+      private String graphAsScript(String fragmentId, JsonObject graphMetadata) {
         return "<script data-knotx-debug=\"graph\" data-knotx-id=\"" + fragmentId
             + "\" type=\"application/json\">"
-            + taskMetadata.getMetadata() +
+            + graphMetadata +
             "</script>";
       }
 
@@ -95,9 +112,8 @@ public class FragmentHtmlBodyWriterFactory implements FragmentEventsConsumerFact
             .orElse(Boolean.FALSE);
       }
 
-      private boolean isSupported(FragmentEventWithTaskMetadata fragmentEventWithTaskMetadata) {
-        return supportedTypes
-            .contains(fragmentEventWithTaskMetadata.getFragmentEvent().getFragment().getType());
+      private boolean isSupported(FragmentEvent fragmentEvent) {
+        return supportedTypes.contains(fragmentEvent.getFragment().getType());
       }
     };
   }

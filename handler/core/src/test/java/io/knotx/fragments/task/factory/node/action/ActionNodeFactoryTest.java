@@ -20,6 +20,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.knotx.fragments.engine.api.node.Node;
+import io.knotx.fragments.engine.api.node.NodeType;
 import io.knotx.fragments.engine.api.node.single.SingleNode;
 import io.knotx.fragments.task.factory.ActionFactoryOptions;
 import io.knotx.fragments.task.factory.node.StubNode;
@@ -69,7 +70,7 @@ class ActionNodeFactoryTest {
   }
 
   @Test
-  @DisplayName("Expect A node when action node defined.")
+  @DisplayName("Expect single node when action node defined.")
   void expectSingleActionNode(Vertx vertx) {
     // given
     String actionAlias = "A";
@@ -81,7 +82,6 @@ class ActionNodeFactoryTest {
         .initNode(graph, Collections.emptyMap(), null);
 
     // then
-    assertEquals(actionAlias, node.getId());
     assertTrue(node instanceof SingleNode);
   }
 
@@ -102,7 +102,7 @@ class ActionNodeFactoryTest {
     // then
     Optional<Node> nextNode = node.next(transition);
     assertTrue(nextNode.isPresent());
-    assertEquals("B", nextNode.get().getId());
+    assertEquals(NodeType.SINGLE, nextNode.get().getType());
   }
 
   private JsonObject createNodeConfig(String actionName, String transition) {

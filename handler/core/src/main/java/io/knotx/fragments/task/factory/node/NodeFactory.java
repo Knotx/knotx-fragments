@@ -15,6 +15,7 @@
  */
 package io.knotx.fragments.task.factory.node;
 
+import io.knotx.fragments.engine.NodeMetadata;
 import io.knotx.fragments.engine.api.node.Node;
 import io.knotx.fragments.task.factory.GraphNodeOptions;
 import io.knotx.fragments.task.factory.NodeProvider;
@@ -58,14 +59,16 @@ public interface NodeFactory {
   Node initNode(GraphNodeOptions nodeOptions, Map<String, Node> edges, NodeProvider nodeProvider);
 
   /**
-   * Attempts to retrieve metadata for the provided node options.
-   * May use NodeProvider to retrieve nested metadata if the node is composite.
+   * Initialize node instance. Nodes are stateless and stateful.
    *
-   * @param nodeOptions node configuration to construct metadata from
-   * @param nodeProvider provider for inner nodes metadata
-   * @return metadata for the requested node or empty JsonObject
+   * @param nodeOptions - graph node options
+   * @param edges - prepared node outgoing edges
+   * @param nodeProvider - node provider if the current node contains others
+   * @return node instance
    */
-  default JsonObject getNodeMetadata(GraphNodeOptions nodeOptions, NodeProvider nodeProvider) {
-    return new JsonObject();
+  default Node initNode(GraphNodeOptions nodeOptions, Map<String, Node> edges, NodeProvider nodeProvider,
+      Map<String, NodeMetadata> nodesMetadata) {
+    return initNode(nodeOptions, edges, nodeProvider);
   }
+
 }

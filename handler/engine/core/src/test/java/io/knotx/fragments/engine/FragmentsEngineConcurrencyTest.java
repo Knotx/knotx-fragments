@@ -79,7 +79,7 @@ class FragmentsEngineConcurrencyTest {
 
     // when
     ExecutorService executorService = Executors.newFixedThreadPool(1);
-    CompletableFuture<Single<List<FragmentEventContextTaskAware>>> completableFuture = CompletableFuture
+    CompletableFuture<Single<List<FragmentEvent>>> completableFuture = CompletableFuture
         .supplyAsync(() -> new FragmentsEngine(vertx).execute(events), executorService);
 
     // then
@@ -94,7 +94,7 @@ class FragmentsEngineConcurrencyTest {
         new FragmentEventContext(new FragmentEvent(fragment), new ClientRequest()));
   }
 
-  private void verifyExecution(CompletableFuture<Single<List<FragmentEventContextTaskAware>>> future,
+  private void verifyExecution(CompletableFuture<Single<List<FragmentEvent>>> future,
       VertxTestContext testContext) throws Throwable {
     // execute
     future.thenApply(result -> {

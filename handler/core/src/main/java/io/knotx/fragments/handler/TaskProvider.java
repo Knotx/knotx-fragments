@@ -16,7 +16,7 @@
 package io.knotx.fragments.handler;
 
 import io.knotx.fragments.engine.FragmentEventContext;
-import io.knotx.fragments.engine.api.Task;
+import io.knotx.fragments.engine.TaskWithMetadata;
 import io.knotx.fragments.handler.exception.TaskFactoryNotFoundException;
 import io.knotx.fragments.spi.FactoryOptions;
 import io.knotx.fragments.task.TaskFactory;
@@ -43,7 +43,7 @@ class TaskProvider {
     factories = initFactories(factoryOptions);
   }
 
-  Optional<Task> newInstance(FragmentEventContext eventContext) {
+  Optional<TaskWithMetadata> newInstance(FragmentEventContext eventContext) {
     return factories.stream()
         .filter(f -> f.accept(eventContext))
         .findFirst()
@@ -52,7 +52,7 @@ class TaskProvider {
               eventContext.getFragmentEvent().getFragment().getId());
           return f;
         })
-        .map(f -> f.newInstance(eventContext));
+        .map(f -> f.newInstanceWithMetadata(eventContext));
   }
 
   private List<TaskFactory> initFactories(List<FactoryOptions> optionsList) {

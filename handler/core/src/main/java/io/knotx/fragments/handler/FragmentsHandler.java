@@ -22,9 +22,8 @@ import io.knotx.fragments.engine.FragmentEvent;
 import io.knotx.fragments.engine.FragmentEvent.Status;
 import io.knotx.fragments.engine.FragmentEventContext;
 import io.knotx.fragments.engine.FragmentEventContextTaskAware;
-import io.knotx.fragments.engine.FragmentEventWithTaskMetadata;
 import io.knotx.fragments.engine.FragmentsEngine;
-import io.knotx.fragments.engine.api.Task;
+import io.knotx.fragments.engine.Task;
 import io.knotx.fragments.handler.consumer.FragmentEventsConsumerProvider;
 import io.knotx.server.api.context.ClientRequest;
 import io.knotx.server.api.context.RequestContext;
@@ -40,6 +39,7 @@ import io.vertx.core.logging.LoggerFactory;
 import io.vertx.reactivex.core.Vertx;
 import io.vertx.reactivex.ext.web.RoutingContext;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -68,10 +68,13 @@ public class FragmentsHandler implements Handler<RoutingContext> {
     final List<Fragment> fragments = routingContext.get("fragments");
     final ClientRequest clientRequest = requestContext.getRequestEvent().getClientRequest();
 
-    doHandle(fragments, clientRequest)
-        .doOnSuccess(events -> putFragments(routingContext, justFragmentEvents(events)))
-        .doOnSuccess(events -> enrichWithEventConsumers(clientRequest, events))
-        .map(events -> toHandlerResult(justFragmentEvents(events), requestContext))
+    Map<FragmentEventContext, TaskWithMetadata> executionPlan = createExecutionPlan(fragments,
+        clientRequest);
+
+    doHandle(executionPlan)
+        .doOnSuccess(events -> putFragments(routingContext, events))
+        .doOnSuccess(events -> enrichWithEventConsumers(clientRequest, events, executionPlan))
+        .map(events -> toHandlerResult(events, requestContext))
         .subscribe(
             result -> requestContextEngine
                 .processAndSaveResult(result, routingContext, requestContext),
@@ -79,26 +82,25 @@ public class FragmentsHandler implements Handler<RoutingContext> {
         );
   }
 
-  private List<FragmentEvent> justFragmentEvents(List<FragmentEventContextTaskAware> events) {
-    return events.stream()
-        .map(FragmentEventContextTaskAware::getFragmentEventContext)
-        .map(FragmentEventContext::getFragmentEvent)
-        .collect(Collectors.toList());
-  }
-
-  protected Single<List<FragmentEventContextTaskAware>> doHandle(List<Fragment> fragments,
-      ClientRequest clientRequest) {
-    return Single.just(fragments)
-        .map(f -> toEvents(f, clientRequest))
-        .flatMap(engine::execute);
+  protected Single<List<FragmentEvent>> doHandle(
+      Map<FragmentEventContext, TaskWithMetadata> executionPlan) {
+    return engine.execute(executionPlan.entrySet().stream()
+        .map(entry -> new FragmentEventContextTaskAware(entry.getValue().getTask(), entry.getKey()))
+        .collect(Collectors.toList()));
   }
 
   private void enrichWithEventConsumers(ClientRequest clientRequest,
-      List<FragmentEventContextTaskAware> events) {
-    List<FragmentEventWithTaskMetadata> eventsWithMetadata = events.stream()
-        .map(FragmentEventContextTaskAware::getEventWithMetadata).collect(Collectors.toList());
+      List<FragmentEvent> events, Map<FragmentEventContext, TaskWithMetadata> executionPlan) {
+    Map<String, TaskMetadata> taskMetadataByFragmentId = getTaskMetadataByFragmentId(executionPlan);
     fragmentEventsConsumerProvider.provide()
-        .forEach(consumer -> consumer.accept(clientRequest, eventsWithMetadata));
+        .forEach(consumer -> consumer.accept(clientRequest, events, taskMetadataByFragmentId));
+  }
+
+  private Map<String, TaskMetadata> getTaskMetadataByFragmentId(
+      Map<FragmentEventContext, TaskWithMetadata> executionPlan) {
+    return executionPlan.entrySet().stream()
+        .collect(Collectors.toMap(entry -> entry.getKey().getFragmentEvent().getFragment().getId(),
+            entry -> entry.getValue().getTaskMetadata()));
   }
 
   private void putFragments(RoutingContext routingContext, List<FragmentEvent> events) {
@@ -140,28 +142,25 @@ public class FragmentsHandler implements Handler<RoutingContext> {
         .collect(Collectors.toList());
   }
 
-  private List<FragmentEventContextTaskAware> toEvents(List<Fragment> fragments,
+  Map<FragmentEventContext, TaskWithMetadata> createExecutionPlan(List<Fragment> fragments,
       ClientRequest clientRequest) {
     LOGGER.trace("Processing fragments [{}]", fragments);
     return fragments.stream()
-        .map(
-            fragment -> {
-              FragmentEventContext fragmentEventContext = new FragmentEventContext(
-                  new FragmentEvent(fragment), clientRequest);
+        .map(fragment -> new FragmentEventContext(new FragmentEvent(fragment), clientRequest))
+        .collect(Collectors.toMap(context -> context, this::getTaskWithMetadataFor));
+  }
 
-              return taskProvider.newInstance(fragmentEventContext)
-                  .map(task -> {
-                    LOGGER.trace("Created task [{}] for fragment [{}]", task,
-                        fragmentEventContext.getFragmentEvent().getFragment().getId());
-                    return task;
-                  })
-                  .map(
-                      task -> new FragmentEventContextTaskAware(task, fragmentEventContext))
-                  .orElseGet(() -> new FragmentEventContextTaskAware(new Task("_NOT_DEFINED"),
-                      fragmentEventContext));
-            })
-        .collect(
-            Collectors.toList());
+  private TaskWithMetadata getTaskWithMetadataFor(FragmentEventContext fragmentEventContext) {
+    return taskProvider.newInstance(fragmentEventContext)
+        .map(task -> {
+          LOGGER.trace("Created task [{}] for fragment [{}]", task,
+              fragmentEventContext.getFragmentEvent().getFragment().getId());
+          return task;
+        })
+        .orElseGet(() -> new TaskWithMetadata(new Task("_NOT_DEFINED"), new TaskMetadata(
+            "_NOT_DEFINED", null, null
+            // TODO ensure consistent handling of missing metadata
+        )));
   }
 
 }

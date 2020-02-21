@@ -15,11 +15,13 @@
  */
 package io.knotx.fragments.task.factory;
 
-import io.knotx.fragments.handler.api.exception.ConfigurationException;
 import io.knotx.fragments.api.Fragment;
 import io.knotx.fragments.engine.FragmentEventContext;
+import io.knotx.fragments.engine.NodeMetadata;
+import io.knotx.fragments.engine.TaskWithMetadata;
 import io.knotx.fragments.engine.api.Task;
 import io.knotx.fragments.engine.api.node.Node;
+import io.knotx.fragments.handler.api.exception.ConfigurationException;
 import io.knotx.fragments.task.TaskFactory;
 import io.knotx.fragments.task.exception.NodeFactoryNotFoundException;
 import io.knotx.fragments.task.factory.node.NodeFactory;
@@ -68,7 +70,13 @@ public class DefaultTaskFactory implements TaskFactory, NodeProvider {
   }
 
   @Override
-  public Task newInstance(FragmentEventContext eventContext) {
+  public Task newInstance(FragmentEventContext context) {
+    // The implementation is for backwards compatibility of NodeFactory interface
+    return newInstanceWithMetadata(context).getTask();
+  }
+
+  @Override
+  public TaskWithMetadata newInstanceWithMetadata(FragmentEventContext eventContext) {
     Fragment fragment = eventContext.getFragmentEvent().getFragment();
     String taskKey = taskFactoryConfig.getTaskNameKey();
     String taskName = fragment.getConfiguration().getString(taskKey);
@@ -77,7 +85,6 @@ public class DefaultTaskFactory implements TaskFactory, NodeProvider {
     return Optional.ofNullable(tasks.get(taskName))
         .map(rootGraphNodeOptions -> {
           Node rootNode = initNode(rootGraphNodeOptions);
-          JsonObject metadata = getMetadataForNode(rootGraphNodeOptions);
           return new Task(taskName, rootNode);
         })
         .orElseThrow(() -> new ConfigurationException("Task [" + taskName + "] not configured!"));
@@ -85,39 +92,27 @@ public class DefaultTaskFactory implements TaskFactory, NodeProvider {
 
   @Override
   public Node initNode(GraphNodeOptions nodeOptions) {
-    return findNodeFactory(nodeOptions)
-        .map(f -> f.initNode(nodeOptions, initTransitions(nodeOptions), this))
-        .orElseThrow(() -> new NodeFactoryNotFoundException(nodeOptions.getNode().getFactory()));
+    return initNode(nodeOptions, new HashMap<>());
   }
 
   @Override
-  public JsonObject getMetadataForNode(GraphNodeOptions graphNodeOptions) {
-    return findNodeFactory(graphNodeOptions)
-        .map(f -> f.getNodeMetadata(graphNodeOptions, this))
-        .map(metadata -> addTransitionsRecursively(metadata, graphNodeOptions))
-        .orElseGet(JsonObject::new);
-  }
-
-  private JsonObject addTransitionsRecursively(JsonObject metadata, GraphNodeOptions nodeOptions) {
-    Map<String, GraphNodeOptions> transitions = nodeOptions.getOnTransitions();
-    if (!transitions.isEmpty()) {
-      JsonObject transitionMetadata = new JsonObject();
-      transitions.forEach((transitionName, nextNode) -> transitionMetadata
-          .put(transitionName, getMetadataForNode(nextNode)));
-      metadata.put("transitions", transitionMetadata);
-    }
-    return metadata;
+  public Node initNode(GraphNodeOptions nodeOptions, Map<String, NodeMetadata> nodesMetadata) {
+    return findNodeFactory(nodeOptions)
+        .map(f -> f.initNode(nodeOptions, initTransitions(nodeOptions, nodesMetadata), this,
+            nodesMetadata))
+        .orElseThrow(() -> new NodeFactoryNotFoundException(nodeOptions.getNode().getFactory()));
   }
 
   private Optional<NodeFactory> findNodeFactory(GraphNodeOptions nodeOptions) {
     return Optional.ofNullable(nodeFactories.get(nodeOptions.getNode().getFactory()));
   }
 
-  private Map<String, Node> initTransitions(GraphNodeOptions nodeOptions) {
+  private Map<String, Node> initTransitions(GraphNodeOptions nodeOptions,
+      Map<String, NodeMetadata> nodesMetadata) {
     Map<String, GraphNodeOptions> transitions = nodeOptions.getOnTransitions();
     Map<String, Node> edges = new HashMap<>();
     transitions.forEach((transition, childGraphOptions) -> edges
-        .put(transition, initNode(childGraphOptions)));
+        .put(transition, initNode(childGraphOptions, nodesMetadata)));
     return edges;
   }
 

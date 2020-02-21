@@ -19,19 +19,19 @@ import static io.knotx.fragments.handler.consumer.FragmentHtmlBodyWriterFactory.
 import static io.knotx.fragments.handler.consumer.FragmentHtmlBodyWriterFactory.FRAGMENT_TYPES_OPTIONS;
 import static io.knotx.fragments.handler.consumer.FragmentHtmlBodyWriterFactory.HEADER_OPTION;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import io.knotx.fragments.api.Fragment;
 import io.knotx.fragments.engine.FragmentEvent;
-import io.knotx.fragments.engine.FragmentEventWithTaskMetadata;
 import io.knotx.fragments.engine.TaskMetadata;
 import io.knotx.server.api.context.ClientRequest;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.reactivex.core.MultiMap;
+import java.util.HashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.junit.jupiter.api.DisplayName;
@@ -57,7 +57,7 @@ class FragmentHtmlBodyWriterFactoryTest {
     FragmentEventsConsumer tested = new FragmentHtmlBodyWriterFactory()
         .create(new JsonObject().put(FRAGMENT_TYPES_OPTIONS, new JsonArray().add(
             EXPECTED_FRAGMENT_TYPE)));
-    tested.accept(new ClientRequest(), ImmutableList.of(wrapWithTaskAndRequest(original)));
+    tested.accept(new ClientRequest(), ImmutableList.of(original), ImmutableMap.of());
 
     // then
     assertEquals(copy, original);
@@ -78,7 +78,7 @@ class FragmentHtmlBodyWriterFactoryTest {
             .put(CONDITION_OPTION, new JsonObject().put(HEADER_OPTION, EXPECTED_HEADER)));
     tested.accept(new ClientRequest()
             .setHeaders(MultiMap.caseInsensitiveMultiMap().add(EXPECTED_HEADER, "true")),
-        ImmutableList.of(wrapWithTaskAndRequest(original)));
+        ImmutableList.of(original), ImmutableMap.of());
 
     // then
     assertEquals(copy, original);
@@ -98,7 +98,7 @@ class FragmentHtmlBodyWriterFactoryTest {
         .put(CONDITION_OPTION, new JsonObject().put(HEADER_OPTION, EXPECTED_HEADER)));
     tested.accept(new ClientRequest()
             .setHeaders(MultiMap.caseInsensitiveMultiMap().add(EXPECTED_HEADER, "true")),
-        ImmutableList.of(wrapWithTaskAndRequest(original)));
+        ImmutableList.of(original), ImmutableMap.of());
 
     // then
     assertEquals(copy, original);
@@ -119,9 +119,8 @@ class FragmentHtmlBodyWriterFactoryTest {
         .put(CONDITION_OPTION, new JsonObject().put(HEADER_OPTION, EXPECTED_HEADER)));
     tested.accept(new ClientRequest()
             .setHeaders(MultiMap.caseInsensitiveMultiMap().add(EXPECTED_HEADER, "true")),
-        ImmutableList.of(wrapWithTaskAndRequest(original)));
+        ImmutableList.of(original), ImmutableMap.of());
 
-    // then
     // then
     assertNotEquals(copy, original);
   }
@@ -141,7 +140,7 @@ class FragmentHtmlBodyWriterFactoryTest {
         .put(CONDITION_OPTION, new JsonObject().put(PARAM_OPTION, EXPECTED_PARAM)));
     tested.accept(new ClientRequest()
             .setParams(MultiMap.caseInsensitiveMultiMap().add(EXPECTED_PARAM, "true")),
-        ImmutableList.of(wrapWithTaskAndRequest(original)));
+        ImmutableList.of(original), ImmutableMap.of());
 
     // then
     // then
@@ -161,7 +160,7 @@ class FragmentHtmlBodyWriterFactoryTest {
         .put(CONDITION_OPTION, new JsonObject().put(PARAM_OPTION, EXPECTED_PARAM)));
     tested.accept(new ClientRequest()
             .setParams(MultiMap.caseInsensitiveMultiMap().add(EXPECTED_PARAM, "true")),
-        ImmutableList.of(wrapWithTaskAndRequest(event)));
+        ImmutableList.of(event), ImmutableMap.of());
 
     // then
     assertTrue(event.getFragment().getBody()
@@ -189,7 +188,7 @@ class FragmentHtmlBodyWriterFactoryTest {
         .put(CONDITION_OPTION, new JsonObject().put(PARAM_OPTION, EXPECTED_PARAM)));
     tested.accept(new ClientRequest()
             .setParams(MultiMap.caseInsensitiveMultiMap().add(EXPECTED_PARAM, "true")),
-        ImmutableList.of(wrapWithTaskAndRequest(event)));
+        ImmutableList.of(event), ImmutableMap.of());
 
     // then
     Matcher matcher = scriptPattern.matcher(event.getFragment().getBody());
@@ -210,7 +209,7 @@ class FragmentHtmlBodyWriterFactoryTest {
         .put(CONDITION_OPTION, new JsonObject().put(PARAM_OPTION, EXPECTED_PARAM)));
     tested.accept(new ClientRequest()
             .setParams(MultiMap.caseInsensitiveMultiMap().add(EXPECTED_PARAM, "true")),
-        ImmutableList.of(wrapWithTaskAndRequest(event)));
+        ImmutableList.of(event), ImmutableMap.of());
 
     // then
     String bodyWithoutComments = event.getFragment().getBody()
@@ -226,8 +225,12 @@ class FragmentHtmlBodyWriterFactoryTest {
   void expectGraphDebugScriptAfterComment() {
     //given
     String body = "<div>body</div>";
-    FragmentEvent event = new FragmentEvent(new Fragment("snippet", new JsonObject(), body));
-    JsonObject metadata = sampleTaskMetadata();
+    Fragment fragment = new Fragment("snippet", new JsonObject(), body);
+    FragmentEvent event = new FragmentEvent(fragment);
+    TaskMetadata metadata = new TaskMetadata("some-task", "root-node-id", new HashMap<>());
+    JsonObject expectedMetadata = new JsonObject()
+        .put("id", "root-node-id")
+        .put("_metadataStatus", "missing");
 
     // when
     FragmentEventsConsumer tested = new FragmentHtmlBodyWriterFactory().create(new JsonObject()
@@ -235,7 +238,7 @@ class FragmentHtmlBodyWriterFactoryTest {
         .put(CONDITION_OPTION, new JsonObject().put(PARAM_OPTION, EXPECTED_PARAM)));
     tested.accept(new ClientRequest()
             .setParams(MultiMap.caseInsensitiveMultiMap().add(EXPECTED_PARAM, "true")),
-        ImmutableList.of(wrapWithTaskAndRequest(event, metadata)));
+        ImmutableList.of(event), ImmutableMap.of(fragment.getId(), metadata));
 
     // then
     String bodyWithoutComments = event.getFragment().getBody()
@@ -249,40 +252,7 @@ class FragmentHtmlBodyWriterFactoryTest {
     Matcher matcher = secondTagsContent.matcher(bodyWithoutComments);
 
     assertTrue(matcher.matches());
-    assertEquals(metadata.toString(), matcher.group(1));
-  }
-
-  @Test
-  void stuff() {
-    String id = "1126-1sehseh-136236";
-    Pattern pattern = Pattern
-        .compile("<[^<>]+>.*</[^<>]><script data-knotx-debug=\"graph\" data-knotx-id=\"" + id
-            + "\" type=\"application/json\">(.*)</script>");
-
-    Matcher m = pattern.matcher(
-        "<a>asdf</a><script data-knotx-debug=\"graph\" data-knotx-id=\"1126-1sehseh-136236\" type=\"application/json\">dupa2</script>");
-
-    assertTrue(m.matches());
-    assertEquals("dupa2", m.group(1));
-  }
-
-  private FragmentEventWithTaskMetadata wrapWithTaskAndRequest(FragmentEvent wrapped) {
-    return wrapWithTaskAndRequest(wrapped, new JsonObject());
-  }
-
-  private FragmentEventWithTaskMetadata wrapWithTaskAndRequest(FragmentEvent wrapped,
-      JsonObject metadata) {
-    return new FragmentEventWithTaskMetadata(
-        wrapped,
-        new TaskMetadata("sample-task", metadata)
-    );
-  }
-
-  private JsonObject sampleTaskMetadata() {
-    return new JsonObject()
-        .put("factory", "action")
-        .put("config", new JsonObject().put("action", "sample-action"))
-        .put("actionConfig", new JsonObject().put("factory", "httpAction"));
+    assertEquals(expectedMetadata.toString(), matcher.group(1));
   }
 
 }

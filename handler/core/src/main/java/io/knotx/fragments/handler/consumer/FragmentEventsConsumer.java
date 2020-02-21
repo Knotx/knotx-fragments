@@ -15,15 +15,13 @@
  */
 package io.knotx.fragments.handler.consumer;
 
-import io.knotx.fragments.engine.api.Task;
 import io.knotx.fragments.engine.FragmentEventWithTaskMetadata;
 import io.knotx.server.api.context.ClientRequest;
 import java.util.List;
-
-import io.knotx.fragments.engine.FragmentEvent;
+import java.util.Map;
 
 /**
- * Fragment event consumer receives {@link FragmentEvent} when {@link Task}
+ * Fragment event consumer receives {@link FragmentEvent} when {@link io.knotx.fragments.engine.Task}
  * evaluation ends. It can share this information with some external tools or even modify fragment.
  */
 public interface FragmentEventsConsumer {
@@ -32,8 +30,9 @@ public interface FragmentEventsConsumer {
    * Gets a list of processed and unprocessed fragments.
    *
    * @param clientRequest - client request
-   * @param fragmentEventsWithMetadata - all fragment events with task metadata
+   * @param fragmentEvents - all fragment events
+   * @param taskMetadataByFragmentId - mapping from fragment id to associated task's metadata
    */
-  void accept(ClientRequest clientRequest, List<FragmentEventWithTaskMetadata> fragmentEventsWithMetadata);
+  void accept(ClientRequest clientRequest, List<FragmentEvent> fragmentEvents, Map<String, TaskMetadata> taskMetadataByFragmentId);
 
 }

@@ -35,14 +35,4 @@ public class FragmentEventContextTaskAware {
   public FragmentEventContext getFragmentEventContext() {
     return fragmentEventContext;
   }
-
-  public FragmentEventWithTaskMetadata getEventWithMetadata() {
-    return new FragmentEventWithTaskMetadata(
-        fragmentEventContext.getFragmentEvent(),
-        new TaskMetadata(
-            task.getName(),
-            task.getMetadata()
-        )
-    );
-  }
 }

@@ -16,25 +16,31 @@
 package io.knotx.fragments.engine;
 
 import io.vertx.codegen.annotations.DataObject;
+import java.util.Map;
 
 @DataObject
-public class FragmentEventWithTaskMetadata {
+public class TaskMetadata {
 
-  private final FragmentEvent fragmentEvent;
-  private final TaskMetadata taskMetadata;
+  private String taskName;
+  private String rootNodeId;
+  private Map<String, NodeMetadata> nodesMetadata;
 
-  public FragmentEventWithTaskMetadata(FragmentEvent fragmentEvent,
-      TaskMetadata taskMetadata) {
-    this.fragmentEvent = fragmentEvent;
-    this.taskMetadata = taskMetadata;
+  public TaskMetadata(String taskName, String rootNodeId,
+      Map<String, NodeMetadata> nodesMetadata) {
+    this.taskName = taskName;
+    this.rootNodeId = rootNodeId;
+    this.nodesMetadata = nodesMetadata;
   }
 
-  public FragmentEvent getFragmentEvent() {
-    return fragmentEvent;
+  public String getTaskName() {
+    return taskName;
   }
 
-  public TaskMetadata getTaskMetadata() {
-    return taskMetadata;
+  public String getRootNodeId() {
+    return rootNodeId;
   }
 
+  public Map<String, NodeMetadata> getNodesMetadata() {
+    return nodesMetadata;
+  }
 }
