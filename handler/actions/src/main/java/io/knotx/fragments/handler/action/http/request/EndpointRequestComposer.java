@@ -24,6 +24,7 @@ import io.knotx.server.common.placeholders.PlaceholdersResolver;
 import io.knotx.server.common.placeholders.SourceDefinitions;
 import io.vertx.reactivex.core.MultiMap;
 import java.util.List;
+import java.util.Set;
 import java.util.regex.Pattern;
 
 public class EndpointRequestComposer {
@@ -58,7 +59,7 @@ public class EndpointRequestComposer {
 
   private MultiMap getRequestHeaders(ClientRequest clientRequest) {
     MultiMap filteredHeaders = getFilteredHeaders(clientRequest.getHeaders(),
-        endpointOptions.getAllowedRequestHeadersPatterns());
+        endpointOptions.getAllowedRequestHeaders());
     if (endpointOptions.getAdditionalHeaders() != null) {
       endpointOptions.getAdditionalHeaders()
           .forEach(entry -> filteredHeaders.add(entry.getKey(), entry.getValue().toString()));
@@ -66,9 +67,9 @@ public class EndpointRequestComposer {
     return filteredHeaders;
   }
 
-  private MultiMap getFilteredHeaders(MultiMap headers, List<Pattern> allowedHeaders) {
+  private MultiMap getFilteredHeaders(MultiMap headers, Set<String> allowedHeaders) {
     return headers.names().stream()
-        .filter(AllowedHeadersFilter.create(allowedHeaders))
+        .filter(AllowedHeadersFilter.CaseInsensitive.create(allowedHeaders))
         .collect(MultiMapCollector.toMultiMap(o -> o, headers::getAll));
   }
 
