@@ -38,6 +38,7 @@ import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import io.vertx.reactivex.core.Vertx;
 import io.vertx.reactivex.ext.web.RoutingContext;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
@@ -68,7 +69,10 @@ public class FragmentsHandler implements Handler<RoutingContext> {
     final List<Fragment> fragments = routingContext.get("fragments");
     final ClientRequest clientRequest = requestContext.getRequestEvent().getClientRequest();
 
-    Map<FragmentEventContext, TaskWithMetadata> executionPlan = createExecutionPlan(fragments,
+    // The LinkedHashMap is required to keep the initial order of the Fragments
+    // Ordinary HashMap does not preserve ordering.
+    LinkedHashMap<FragmentEventContext, TaskWithMetadata> executionPlan = createExecutionPlan(
+        fragments,
         clientRequest);
 
     doHandle(executionPlan)
@@ -83,7 +87,7 @@ public class FragmentsHandler implements Handler<RoutingContext> {
   }
 
   protected Single<List<FragmentEvent>> doHandle(
-      Map<FragmentEventContext, TaskWithMetadata> executionPlan) {
+      LinkedHashMap<FragmentEventContext, TaskWithMetadata> executionPlan) {
     return engine.execute(executionPlan.entrySet().stream()
         .map(entry -> new FragmentEventContextTaskAware(entry.getValue().getTask(), entry.getKey()))
         .collect(Collectors.toList()));
@@ -142,12 +146,19 @@ public class FragmentsHandler implements Handler<RoutingContext> {
         .collect(Collectors.toList());
   }
 
-  Map<FragmentEventContext, TaskWithMetadata> createExecutionPlan(List<Fragment> fragments,
+  LinkedHashMap<FragmentEventContext, TaskWithMetadata> createExecutionPlan(
+      List<Fragment> fragments,
       ClientRequest clientRequest) {
     LOGGER.trace("Processing fragments [{}]", fragments);
     return fragments.stream()
         .map(fragment -> new FragmentEventContext(new FragmentEvent(fragment), clientRequest))
-        .collect(Collectors.toMap(context -> context, this::getTaskWithMetadataFor));
+        .collect(Collectors.toMap(context -> context,
+            this::getTaskWithMetadataFor,
+            (u, v) -> {
+              throw new IllegalStateException(String.format("Duplicate key %s", u));
+            },
+            LinkedHashMap::new
+        ));
   }
 
   private TaskWithMetadata getTaskWithMetadataFor(FragmentEventContext fragmentEventContext) {
@@ -157,10 +168,7 @@ public class FragmentsHandler implements Handler<RoutingContext> {
               fragmentEventContext.getFragmentEvent().getFragment().getId());
           return task;
         })
-        .orElseGet(() -> new TaskWithMetadata(new Task("_NOT_DEFINED"), new TaskMetadata(
-            "_NOT_DEFINED", null, null
-            // TODO ensure consistent handling of missing metadata
-        )));
+        .orElseGet(() -> new TaskWithMetadata(new Task("_NOT_DEFINED"), TaskMetadata.notDefined()));
   }
 
 }

@@ -153,8 +153,7 @@ class TaskExecutionContext {
   void handleSuccess(FragmentResult fragmentResult) {
     FragmentEvent fragmentEvent = fragmentEventContext.getFragmentEvent();
     fragmentEvent.setStatus(Status.SUCCESS);
-    fragmentEvent
-        .log(EventLogEntry.success(taskName, currentNode.getId(), fragmentResult));
+    fragmentEvent.log(EventLogEntry.success(taskName, currentNode.getId(), fragmentResult));
   }
 
   private EventLogEntry getEventLogEntry(Throwable error) {

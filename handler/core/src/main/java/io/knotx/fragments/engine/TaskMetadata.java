@@ -16,6 +16,7 @@
 package io.knotx.fragments.engine;
 
 import io.vertx.codegen.annotations.DataObject;
+import java.util.HashMap;
 import java.util.Map;
 
 @DataObject
@@ -25,11 +26,24 @@ public class TaskMetadata {
   private String rootNodeId;
   private Map<String, NodeMetadata> nodesMetadata;
 
-  public TaskMetadata(String taskName, String rootNodeId,
+  private TaskMetadata(String taskName, String rootNodeId,
       Map<String, NodeMetadata> nodesMetadata) {
     this.taskName = taskName;
     this.rootNodeId = rootNodeId;
     this.nodesMetadata = nodesMetadata;
+  }
+
+  public static TaskMetadata create(String taskName, String rootNodeId,
+      Map<String, NodeMetadata> nodesMetadata) {
+    return new TaskMetadata(taskName, rootNodeId, nodesMetadata);
+  }
+
+  public static TaskMetadata noMetadata(String taskName, String rootNodeId) {
+    return new TaskMetadata(taskName, rootNodeId, new HashMap<>());
+  }
+
+  public static TaskMetadata notDefined() {
+    return noMetadata("_NOT_DEFINED", "");
   }
 
   public String getTaskName() {

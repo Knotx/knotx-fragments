@@ -18,6 +18,7 @@ package io.knotx.fragments.handler.consumer;
 import io.knotx.fragments.api.Fragment;
 import io.knotx.fragments.engine.FragmentEvent;
 import io.knotx.fragments.engine.TaskMetadata;
+import io.knotx.fragments.handler.consumer.metadata.MetadataConverter;
 import io.knotx.server.api.context.ClientRequest;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -65,8 +66,8 @@ public class FragmentHtmlBodyWriterFactory implements FragmentEventsConsumerFact
             .map(FragmentEvent::getFragment)
             .map(Fragment::getId)
             .map(taskMetadataByFragmentId::get)
-            .map(metadata -> GraphDataConverter.from(event, metadata))
-            .map(GraphDataConverter::createJson)
+            .map(metadata -> MetadataConverter.from(event, metadata))
+            .map(MetadataConverter::createJson)
             .orElseGet(JsonObject::new);
         wrapFragmentBody(event.getFragment(), event.toJson(), graphMetadata);
       }

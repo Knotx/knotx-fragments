@@ -84,8 +84,10 @@ public class DefaultTaskFactory implements TaskFactory, NodeProvider {
     Map<String, GraphNodeOptions> tasks = taskFactoryConfig.getTasks();
     return Optional.ofNullable(tasks.get(taskName))
         .map(rootGraphNodeOptions -> {
-          Node rootNode = initNode(rootGraphNodeOptions);
-          return new Task(taskName, rootNode);
+          Map<String, NodeMetadata> nodesMetadata = new HashMap<>();
+          Node rootNode = initNode(rootGraphNodeOptions, nodesMetadata);
+          return new TaskWithMetadata(new Task(taskName, rootNode),
+              TaskMetadata.create(taskName, rootNode.getId(), nodesMetadata));
         })
         .orElseThrow(() -> new ConfigurationException("Task [" + taskName + "] not configured!"));
   }

@@ -24,7 +24,6 @@ import io.knotx.fragments.handler.FragmentsHandlerOptions;
 import io.knotx.fragments.handler.api.exception.ConfigurationException;
 import io.vertx.core.json.JsonObject;
 import io.vertx.reactivex.core.Vertx;
-import java.util.HashMap;
 import org.apache.commons.lang3.StringUtils;
 
 /**
@@ -74,10 +73,9 @@ public interface TaskFactory {
     Task task = newInstance(context);
     return new TaskWithMetadata(
         task,
-        new TaskMetadata(
+        TaskMetadata.noMetadata(
             task.getName(),
-            task.getRootNode().map(Node::getId).orElse(StringUtils.EMPTY),
-            new HashMap<>()
+            task.getRootNode().map(Node::getId).orElse(StringUtils.EMPTY)
         )
     );
   }

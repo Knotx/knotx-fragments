@@ -22,6 +22,7 @@ import io.reactivex.Single;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import io.vertx.reactivex.core.Vertx;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -49,38 +50,31 @@ public class FragmentsEngine {
    * @return asynchronous response containing processed list of fragment events returned in the same
    * order as the original list
    */
-  public Single<List<FragmentEventContextTaskAware>> execute(List<FragmentEventContextTaskAware> fragments) {
+  public Single<List<FragmentEvent>> execute(List<FragmentEventContextTaskAware> fragments) {
+
     return Flowable.just(fragments)
         .concatMap(Flowable::fromIterable)
-        .flatMap(fragmentCtx -> fragmentCtx
+        .map(fragmentCtx -> fragmentCtx
             .getTask()
             .getRootNode()
             .map(rootNode -> startTaskEngine(fragmentCtx, rootNode))
             .orElseGet(() -> Single.just(fragmentCtx.getFragmentEventContext().getFragmentEvent()))
-            .toFlowable()
-            .map(event -> wrapIntoPreviousContext(event, fragmentCtx))
         )
-        .toList()
+        .flatMap(Single::toFlowable)
+        .reduce(new ArrayList<FragmentEvent>(), (list, item) -> {
+          list.add(item);
+          return list;
+        })
         .map(list -> incomingOrder(list, fragments))
         .map(this::traceEngineResults);
-  }
-
-  private FragmentEventContextTaskAware wrapIntoPreviousContext(FragmentEvent event, FragmentEventContextTaskAware fragmentCtx) {
-    return new FragmentEventContextTaskAware(
-        fragmentCtx.getTask(),
-        new FragmentEventContext(
-            event,
-            fragmentCtx.getFragmentEventContext().getClientRequest()
-        )
-    );
   }
 
   private Single<FragmentEvent> startTaskEngine(FragmentEventContextTaskAware fragment, Node rootNode) {
       return taskEngine.start(fragment.getTask().getName(), rootNode, fragment.getFragmentEventContext());
   }
 
-  private List<FragmentEventContextTaskAware> incomingOrder(
-      List<FragmentEventContextTaskAware> list, List<FragmentEventContextTaskAware> sourceEvents) {
+  private List<FragmentEvent> incomingOrder(
+      List<FragmentEvent> list, List<FragmentEventContextTaskAware> sourceEvents) {
 
     return sourceEvents.stream()
         .map(event -> event.getFragmentEventContext().getFragmentEvent().getFragment().getId())
@@ -88,19 +82,17 @@ public class FragmentsEngine {
         .collect(Collectors.toList());
   }
 
-  private FragmentEventContextTaskAware getFragmentFromListById(String id, List<FragmentEventContextTaskAware> events) {
+  private FragmentEvent getFragmentFromListById(String id, List<FragmentEvent> events) {
     return events
             .stream()
-            .filter(event -> id.equals(event.getFragmentEventContext().getFragmentEvent().getFragment().getId()))
+            .filter(event -> id.equals(event.getFragment().getId()))
             .findFirst()
             .orElseThrow(() -> new IllegalStateException("Could not find fragment with id: " + id));
   }
 
-  private List<FragmentEventContextTaskAware> traceEngineResults(List<FragmentEventContextTaskAware> results) {
+  private List<FragmentEvent> traceEngineResults(List<FragmentEvent> results) {
     if (LOGGER.isTraceEnabled()) {
       List<FragmentEvent> processedEvents = results.stream()
-          .map(FragmentEventContextTaskAware::getFragmentEventContext)
-          .map(FragmentEventContext::getFragmentEvent)
           .filter(event -> Status.UNPROCESSED != event.getStatus())
           .collect(Collectors.toList());
       LOGGER.trace("Knot Engine processed fragments: [{}]", processedEvents);

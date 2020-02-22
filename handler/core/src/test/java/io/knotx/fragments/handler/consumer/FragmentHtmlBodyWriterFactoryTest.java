@@ -227,10 +227,11 @@ class FragmentHtmlBodyWriterFactoryTest {
     String body = "<div>body</div>";
     Fragment fragment = new Fragment("snippet", new JsonObject(), body);
     FragmentEvent event = new FragmentEvent(fragment);
-    TaskMetadata metadata = new TaskMetadata("some-task", "root-node-id", new HashMap<>());
+    TaskMetadata metadata = TaskMetadata.noMetadata("some-task", "root-node-id");
     JsonObject expectedMetadata = new JsonObject()
         .put("id", "root-node-id")
-        .put("_metadataStatus", "missing");
+        .put("_metadataStatus", "missing")
+        .put("_logStatus", "missing");
 
     // when
     FragmentEventsConsumer tested = new FragmentHtmlBodyWriterFactory().create(new JsonObject()
