@@ -15,11 +15,10 @@
  */
 package io.knotx.fragments.engine;
 
-import io.vertx.codegen.annotations.DataObject;
 import java.util.HashMap;
 import java.util.Map;
 
-@DataObject
+// todo validate @DataObject
 public class TaskMetadata {
 
   private String taskName;

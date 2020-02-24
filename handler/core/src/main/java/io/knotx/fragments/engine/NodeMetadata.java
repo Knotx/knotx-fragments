@@ -16,12 +16,11 @@
 package io.knotx.fragments.engine;
 
 import io.knotx.fragments.engine.api.node.NodeType;
-import io.vertx.codegen.annotations.DataObject;
 import io.vertx.core.json.JsonObject;
 import java.util.List;
 import java.util.Map;
 
-@DataObject
+// todo validate @DataObject
 public class NodeMetadata {
 
   private String nodeId;

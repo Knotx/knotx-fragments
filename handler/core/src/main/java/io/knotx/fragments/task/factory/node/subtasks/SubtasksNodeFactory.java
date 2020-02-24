@@ -15,14 +15,16 @@
  */
 package io.knotx.fragments.task.factory.node.subtasks;
 
-import static io.knotx.fragments.handler.api.domain.FragmentResult.ERROR_TRANSITION;
-import static io.knotx.fragments.handler.api.domain.FragmentResult.SUCCESS_TRANSITION;
+import static io.knotx.fragments.engine.api.node.single.FragmentResult.ERROR_TRANSITION;
+import static io.knotx.fragments.engine.api.node.single.FragmentResult.SUCCESS_TRANSITION;
 
-import io.knotx.fragments.engine.graph.CompositeNode;
-import io.knotx.fragments.engine.graph.Node;
+import io.knotx.fragments.engine.NodeMetadata;
+import io.knotx.fragments.engine.api.node.Node;
+import io.knotx.fragments.engine.api.node.NodeType;
+import io.knotx.fragments.engine.api.node.composite.CompositeNode;
+import io.knotx.fragments.task.factory.GraphNodeOptions;
 import io.knotx.fragments.task.factory.NodeProvider;
 import io.knotx.fragments.task.factory.node.NodeFactory;
-import io.knotx.fragments.task.factory.GraphNodeOptions;
 import io.vertx.core.json.JsonObject;
 import io.vertx.reactivex.core.Vertx;
 import java.util.HashMap;
@@ -36,7 +38,6 @@ import org.apache.commons.lang3.StringUtils;
 public class SubtasksNodeFactory implements NodeFactory {
 
   public static final String NAME = "subtasks";
-  public static final String COMPOSITE_NODE_ID = "composite";
 
   @Override
   public String getName() {
