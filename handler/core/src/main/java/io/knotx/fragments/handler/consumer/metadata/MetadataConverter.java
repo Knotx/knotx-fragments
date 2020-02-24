@@ -24,8 +24,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import org.apache.commons.lang3.StringUtils;
 
-// TODO: write unit test
 public class MetadataConverter {
 
   private final String rootNodeId;
@@ -43,7 +43,11 @@ public class MetadataConverter {
   }
 
   public JsonObject createJson() {
-    return createNodeJson(rootNodeId);
+    if(StringUtils.isBlank(rootNodeId)) {
+      return new JsonObject();
+    } else {
+      return createNodeJson(rootNodeId);
+    }
   }
 
   private JsonObject createNodeJson(String id) {

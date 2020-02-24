@@ -85,15 +85,13 @@ class EventLogConverter {
             .put("transition", transitionLog.getTransition())
             .put("invocations", executionLog.getNodeLog())
         )
-        .put(LOG_STATUS, "doubleWithUnsupportedTransition")
-        .put(RAW_LOGS, logs);
+        .put(LOG_STATUS, "ok");
   }
 
   private EventLogEntry getLogForExecution(List<EventLogEntry> logs) {
     return singleOrThrow(
         logs.stream()
-            .filter(log -> NodeStatus.UNSUPPORTED_TRANSITION.equals(log.getStatus()))
-            .filter(log -> log.getNodeLog() == null)
+            .filter(log -> !NodeStatus.UNSUPPORTED_TRANSITION.equals(log.getStatus()))
             .collect(Collectors.toList())
     );
   }
@@ -101,7 +99,8 @@ class EventLogConverter {
   private EventLogEntry getLogForUnsupportedTransition(List<EventLogEntry> logs) {
     return singleOrThrow(
         logs.stream()
-            .filter(log -> !NodeStatus.UNSUPPORTED_TRANSITION.equals(log.getStatus()))
+            .filter(log -> NodeStatus.UNSUPPORTED_TRANSITION.equals(log.getStatus()))
+            .filter(log -> log.getNodeLog() == null)
             .collect(Collectors.toList())
     );
   }

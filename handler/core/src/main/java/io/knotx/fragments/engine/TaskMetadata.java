@@ -56,4 +56,13 @@ public class TaskMetadata {
   public Map<String, NodeMetadata> getNodesMetadata() {
     return nodesMetadata;
   }
+
+  @Override
+  public String toString() {
+    return "TaskMetadata{" +
+        "taskName='" + taskName + '\'' +
+        ", rootNodeId='" + rootNodeId + '\'' +
+        ", nodesMetadata=" + nodesMetadata +
+        '}';
+  }
 }

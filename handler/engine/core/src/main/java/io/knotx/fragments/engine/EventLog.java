@@ -28,11 +28,11 @@ public class EventLog {
 
   private final List<EventLogEntry> operations;
 
-  EventLog() {
+  public EventLog() {
     operations = new ArrayList<>();
   }
 
-  EventLog(JsonObject json) {
+  public EventLog(JsonObject json) {
     operations = json.getJsonArray(OPERATIONS_KEY).stream()
         .map(JsonObject.class::cast)
         .map(EventLogEntry::new)
@@ -50,7 +50,7 @@ public class EventLog {
     operations.add(logEntry);
   }
 
-  public void appendAll(EventLog log) {
+  void appendAll(EventLog log) {
     this.operations.addAll(log.operations);
   }
 
