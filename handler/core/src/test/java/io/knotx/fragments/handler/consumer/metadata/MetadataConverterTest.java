@@ -206,7 +206,7 @@ class MetadataConverterTest {
         EventLogEntry
             .success(TASK_NAME, "b1-subgraph", createFragmentResult("_success", simpleNodeLog())),
         EventLogEntry
-            .success(TASK_NAME, "b2-subgraph", createFragmentResult("_fallback", wrappedNodeLog())),
+            .success(TASK_NAME, "b2-subgraph", createFragmentResult("_fallback", complexNodeLog())),
         EventLogEntry.unsupported(TASK_NAME, "b2-subgraph", "_fallback"),
         EventLogEntry
             .success(TASK_NAME, "b-composite", createFragmentResult("_error", simpleNodeLog())),
@@ -236,7 +236,7 @@ class MetadataConverterTest {
     JsonObject expected = jsonForActionNode("a-node")
         .put("response", new JsonObject()
             .put("transition", "_success")
-            .put("invocations", simpleNodeLog()))
+            .put("invocations", wrap(simpleNodeLog())))
         .put("status", "SUCCESS")
         .put("_logStatus", "ok")
         .put("on", new JsonObject()
@@ -244,7 +244,7 @@ class MetadataConverterTest {
             .put("_success", jsonForNode("b-composite")
                 .put("response", new JsonObject()
                     .put("transition", "_error")
-                    .put("invocations", simpleNodeLog()))
+                    .put("invocations", wrap(simpleNodeLog())))
                 .put("status", "SUCCESS")
                 .put("_logStatus", "ok")
                 .put("type", NodeType.COMPOSITE)
@@ -253,7 +253,7 @@ class MetadataConverterTest {
                     .put("_error", jsonForActionNode("f-node")
                         .put("response", new JsonObject()
                             .put("transition", "_success")
-                            .put("invocations", simpleNodeLog()))
+                            .put("invocations", wrap(simpleNodeLog())))
                         .put("status", "SUCCESS")
                         .put("_logStatus", "ok")
                     )
@@ -262,7 +262,7 @@ class MetadataConverterTest {
                     jsonForActionNode("b1-subgraph")
                         .put("response", new JsonObject()
                             .put("transition", "_success")
-                            .put("invocations", simpleNodeLog()))
+                            .put("invocations", wrap(simpleNodeLog())))
                         .put("status", "SUCCESS")
                         .put("_logStatus", "ok"),
                     jsonForActionNode("b2-subgraph")
@@ -270,7 +270,7 @@ class MetadataConverterTest {
                             .put("_success", jsonForActionNode("d-node")))
                         .put("response", new JsonObject()
                             .put("transition", "_fallback")
-                            .put("invocations", wrappedNodeLog()))
+                            .put("invocations", wrap(complexNodeLog())))
                         .put("status", "UNSUPPORTED_TRANSITION")
                         .put("_logStatus", "ok")
                 )))
@@ -390,6 +390,10 @@ class MetadataConverterTest {
         .put("_metadataStatus", "missing");
   }
 
+  private JsonArray wrap(JsonObject instance) {
+    return new JsonArray(Collections.singletonList(instance));
+  }
+
   private JsonObject simpleNodeLog() {
     return new JsonObject()
         .put("alias", "alias")
@@ -399,7 +403,7 @@ class MetadataConverterTest {
         .put("logs", new JsonObject());
   }
 
-  private JsonObject wrappedNodeLog() {
+  private JsonObject complexNodeLog() {
     return new JsonObject()
         .put("alias", "cb-my-payments")
         .put("started", 123123213)

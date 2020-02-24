@@ -43,7 +43,7 @@ class EventLogConverter {
       return input.put("status", log.getStatus())
           .put("response", new JsonObject()
               .put("transition", log.getTransition())
-              .put("invocations", log.getNodeLog())
+              .put("invocations", wrap(log.getNodeLog()))
           )
           .put(LOG_STATUS, "ok");
     } else {
@@ -83,7 +83,7 @@ class EventLogConverter {
         .put("status", transitionLog.getStatus())
         .put("response", new JsonObject()
             .put("transition", transitionLog.getTransition())
-            .put("invocations", executionLog.getNodeLog())
+            .put("invocations", wrap(executionLog.getNodeLog()))
         )
         .put(LOG_STATUS, "ok");
   }
@@ -111,6 +111,10 @@ class EventLogConverter {
     } else {
       throw new IllegalArgumentException();
     }
+  }
+
+  private JsonArray wrap(JsonObject instance) {
+    return new JsonArray().add(instance);
   }
 
 }
