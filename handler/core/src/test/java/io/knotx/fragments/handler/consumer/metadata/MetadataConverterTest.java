@@ -111,10 +111,63 @@ class MetadataConverterTest {
   }
 
   @Test
+  @DisplayName("Expect missing node metadata when transition returned in log that was not described")
+  void shouldProduceCorrectJsonForMissingNodeCase() {
+    EventLogEntry[] logs = new EventLogEntry[]{
+        EventLogEntry.success(TASK_NAME, ROOT_NODE,
+            createFragmentResult("_error", simpleNodeLog())),
+        EventLogEntry.unsupported(TASK_NAME, ROOT_NODE, "_error")
+    };
+
+    givenEventLogAndNodesMetadata(createEventLog(logs), ROOT_NODE,
+        simpleNode(ROOT_NODE, "custom", ImmutableMap.of("_success", "node-A")),
+        simpleNode("node-A", "custom")
+    );
+
+    JsonObject output = tested.createJson();
+
+    JsonObject expected = jsonForNode(ROOT_NODE)
+        .put("_logStatus", "ok")
+        .put("status", NodeStatus.UNSUPPORTED_TRANSITION)
+        .put("on", new JsonObject()
+            .put("_success", jsonForNode("node-A"))
+            .put("_error", jsonForMissingNode()))
+        .put("response", new JsonObject()
+            .put("transition", "_error")
+            .put("invocations", wrap(simpleNodeLog())));
+
+    assertEquals(expected, output);
+  }
+
+  @Test
+  @DisplayName("Expect no missing node metadata when _success transition and no next node defined")
+  void shouldProduceCorrectJsonForSuccessTransitionWithoutNextNode() {
+    EventLogEntry[] logs = new EventLogEntry[]{
+        EventLogEntry.success(TASK_NAME, ROOT_NODE,
+            createFragmentResult("_success", simpleNodeLog())),
+    };
+
+    givenEventLogAndNodesMetadata(createEventLog(logs), ROOT_NODE,
+        simpleNode(ROOT_NODE, "custom")
+    );
+
+    JsonObject output = tested.createJson();
+
+    JsonObject expected = jsonForNode(ROOT_NODE)
+        .put("_logStatus", "ok")
+        .put("status", NodeStatus.SUCCESS)
+        .put("response", new JsonObject()
+            .put("transition", "_success")
+            .put("invocations", wrap(simpleNodeLog())));
+
+    assertEquals(expected, output);
+  }
+
+  @Test
   @DisplayName("Expect correct JSON when metadata with nested nodes provided")
   void shouldProduceCorrectJsonForCompositeNodeWithSimpleNodes() {
     givenNodesMetadata(ROOT_NODE,
-        compositeNode(ROOT_NODE,"node-A", "node-B", "node-C"),
+        compositeNode(ROOT_NODE, "node-A", "node-B", "node-C"),
         simpleNode("node-A", "factory-A"),
         simpleNode("node-B", "factory-B"),
         simpleNode("node-C", "factory-C")
@@ -137,7 +190,7 @@ class MetadataConverterTest {
   @DisplayName("Expect correct JSON when metadata with nested nodes provided and some are not described")
   void shouldProduceCorrectJsonForCompositeNodeWithSimpleNodesNotAllDescribed() {
     givenNodesMetadata(ROOT_NODE,
-        compositeNode(ROOT_NODE,"node-A", "node-B", "node-C"),
+        compositeNode(ROOT_NODE, "node-A", "node-B", "node-C"),
         simpleNode("node-A", "factory-A")
     );
 
@@ -268,7 +321,8 @@ class MetadataConverterTest {
                         .put("_logStatus", "ok"),
                     jsonForActionNode("b2-subgraph")
                         .put("on", new JsonObject()
-                            .put("_success", jsonForActionNode("d-node")))
+                            .put("_success", jsonForActionNode("d-node"))
+                            .put("_fallback", jsonForMissingNode()))
                         .put("response", new JsonObject()
                             .put("transition", "_fallback")
                             .put("invocations", wrap(complexNodeLog())))
@@ -358,6 +412,16 @@ class MetadataConverterTest {
         Arrays.asList(nested),
         new JsonObject()
     );
+  }
+
+  private JsonObject jsonForMissingNode() {
+    return new JsonObject()
+        .put("id", "missing")
+        .put("label", "!")
+        .put("type", NodeType.SINGLE)
+        .put("status", "missing")
+        .put("_logStatus", "missing")
+        .put("_metadataStatus", "missing");
   }
 
   private JsonObject jsonForNode(String id) {
