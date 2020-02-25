@@ -23,7 +23,6 @@ import io.vertx.core.json.JsonObject;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 
 public class MetadataConverter {
@@ -43,7 +42,7 @@ public class MetadataConverter {
   }
 
   public JsonObject createJson() {
-    if(StringUtils.isBlank(rootNodeId)) {
+    if (StringUtils.isBlank(rootNodeId)) {
       return new JsonObject();
     } else {
       return createNodeJson(rootNodeId);
@@ -80,11 +79,11 @@ public class MetadataConverter {
   }
 
   private JsonArray getSubTasks(List<String> nestedNodes) {
-    return new JsonArray(
-        nestedNodes.stream()
-            .map(this::createNodeJson)
-            .collect(Collectors.toList())
-    );
+    JsonArray output = new JsonArray();
+    nestedNodes.stream()
+        .map(this::createNodeJson)
+        .forEach(output::add);
+    return output;
   }
 
 }

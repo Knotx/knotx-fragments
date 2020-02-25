@@ -96,6 +96,10 @@ public class EventLogEntry {
         '}';
   }
 
+  public String getTask() {
+    return task;
+  }
+
   public String getNode() {
     return node;
   }
@@ -120,7 +124,8 @@ public class EventLogEntry {
     SUCCESS,
     UNSUPPORTED_TRANSITION,
     ERROR,
-    TIMEOUT //?
+    TIMEOUT,
+    UNPROCESSED//?
   }
 
 }

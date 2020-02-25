@@ -27,6 +27,7 @@ class EventLogConverter {
 
   private static final String LOG_STATUS = "_logStatus";
   private static final String RAW_LOGS = "_rawLogs";
+  private static final String STATUS = "status";
 
   private final List<EventLogEntry> operationsLog;
 
@@ -37,10 +38,11 @@ class EventLogConverter {
   JsonObject fillWithLog(JsonObject input, String id) {
     List<EventLogEntry> logs = getLogEntriesFor(id);
     if (logs.isEmpty()) {
-      return input.put(LOG_STATUS, "missing");
+      return input.put(LOG_STATUS, "missing")
+          .put(STATUS, NodeStatus.UNPROCESSED);
     } else if (logs.size() == 1) {
       EventLogEntry log = logs.get(0);
-      return input.put("status", log.getStatus())
+      return input.put(STATUS, log.getStatus())
           .put("response", new JsonObject()
               .put("transition", log.getTransition())
               .put("invocations", wrap(log.getNodeLog()))
@@ -52,7 +54,7 @@ class EventLogConverter {
       } catch (IllegalArgumentException e) {
         return input
             .put(LOG_STATUS, "multiple")
-            .put(RAW_LOGS, new JsonArray(logs));
+            .put(RAW_LOGS, wrap(logs));
       }
     }
   }
@@ -80,7 +82,7 @@ class EventLogConverter {
     EventLogEntry transitionLog = getLogForUnsupportedTransition(logs);
 
     return input
-        .put("status", transitionLog.getStatus())
+        .put(STATUS, transitionLog.getStatus())
         .put("response", new JsonObject()
             .put("transition", transitionLog.getTransition())
             .put("invocations", wrap(executionLog.getNodeLog()))
@@ -114,7 +116,17 @@ class EventLogConverter {
   }
 
   private JsonArray wrap(JsonObject instance) {
-    return new JsonArray().add(instance);
+    if (instance != null) {
+      return new JsonArray().add(instance);
+    } else {
+      return new JsonArray();
+    }
+  }
+
+  private JsonArray wrap(List<EventLogEntry> entries) {
+    JsonArray output = new JsonArray();
+    entries.forEach(entry -> output.add(entry.toJson()));
+    return output;
   }
 
 }

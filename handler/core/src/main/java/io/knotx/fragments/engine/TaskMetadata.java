@@ -18,7 +18,6 @@ package io.knotx.fragments.engine;
 import java.util.HashMap;
 import java.util.Map;
 
-// todo validate @DataObject
 public class TaskMetadata {
 
   private String taskName;

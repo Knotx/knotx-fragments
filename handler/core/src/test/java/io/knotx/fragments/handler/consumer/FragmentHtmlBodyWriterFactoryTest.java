@@ -25,6 +25,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import io.knotx.fragments.api.Fragment;
+import io.knotx.fragments.engine.EventLogEntry.NodeStatus;
 import io.knotx.fragments.engine.FragmentEvent;
 import io.knotx.fragments.engine.TaskMetadata;
 import io.knotx.server.api.context.ClientRequest;
@@ -230,6 +231,7 @@ class FragmentHtmlBodyWriterFactoryTest {
     TaskMetadata metadata = TaskMetadata.noMetadata("some-task", "root-node-id");
     JsonObject expectedMetadata = new JsonObject()
         .put("id", "root-node-id")
+        .put("status", NodeStatus.UNPROCESSED)
         .put("_metadataStatus", "missing")
         .put("_logStatus", "missing");
 
@@ -253,7 +255,8 @@ class FragmentHtmlBodyWriterFactoryTest {
     Matcher matcher = secondTagsContent.matcher(bodyWithoutComments);
 
     assertTrue(matcher.matches());
-    assertEquals(expectedMetadata.toString(), matcher.group(1));
+    JsonObject output = new JsonObject(matcher.group(1));
+    assertEquals(expectedMetadata, output);
   }
 
 }
