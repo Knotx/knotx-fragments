@@ -15,6 +15,7 @@
  */
 package io.knotx.fragments.handler.action;
 
+import static io.knotx.fragments.engine.api.node.single.FragmentResult.ERROR_TRANSITION;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -85,7 +86,7 @@ class InMemoryCacheActionFactoryTest {
   void callActionWithErrorTransition(VertxTestContext testContext) throws Throwable {
     // given
     Action doAction = (fragmentContext, resultHandler) -> Future
-        .succeededFuture(new FragmentResult(firstFragment, FragmentResult.ERROR_TRANSITION))
+        .succeededFuture(new FragmentResult(firstFragment, ERROR_TRANSITION))
         .setHandler(resultHandler);
 
     Action tested = new InMemoryCacheActionFactory()
@@ -97,7 +98,7 @@ class InMemoryCacheActionFactoryTest {
           // then
           testContext.verify(() -> {
             assertTrue(result.succeeded());
-            assertEquals(FragmentResult.ERROR_TRANSITION, result.result().getTransition());
+            assertEquals(ERROR_TRANSITION, result.result().getTransition());
           });
           testContext.completeNow();
         });
@@ -123,7 +124,12 @@ class InMemoryCacheActionFactoryTest {
     tested.apply(new FragmentContext(firstFragment, new ClientRequest()),
         result -> {
           // then
-          testContext.verify(() -> assertTrue(result.failed()));
+          testContext.verify(() -> {
+            assertEquals(ERROR_TRANSITION, result.result().getTransition());
+            JsonObject logs = result.result().getNodeLog().getJsonObject("logs");
+            assertEquals(IllegalStateException.class.getCanonicalName(),
+                logs.getJsonArray("errors").getJsonObject(0).getString("className"));
+          });
           testContext.completeNow();
         });
 
@@ -300,7 +306,8 @@ class InMemoryCacheActionFactoryTest {
     // when
     FragmentContext errorRequestContext = new FragmentContext(firstFragment,
         new ClientRequest().setParams(MultiMap.caseInsensitiveMultiMap().add("error", "expected")));
-    FragmentContext successRequestContext = new FragmentContext(secondFragment, new ClientRequest());
+    FragmentContext successRequestContext = new FragmentContext(secondFragment,
+        new ClientRequest());
 
     tested.apply(errorRequestContext,
         firstResult -> tested.apply(successRequestContext,

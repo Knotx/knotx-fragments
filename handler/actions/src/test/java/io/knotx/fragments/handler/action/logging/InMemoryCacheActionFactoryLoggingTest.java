@@ -18,17 +18,18 @@
 package io.knotx.fragments.handler.action.logging;
 
 
+import static io.knotx.fragments.handler.api.actionlog.ActionLogLevel.INFO;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.knotx.fragments.api.Fragment;
-import io.knotx.fragments.handler.action.InMemoryCacheActionFactory;
-import io.knotx.fragments.handler.api.Action;
-import io.knotx.fragments.handler.api.actionlog.ActionLogLevel;
-import io.knotx.fragments.handler.api.actionlog.ActionLogger;
 import io.knotx.fragments.engine.api.node.single.FragmentContext;
 import io.knotx.fragments.engine.api.node.single.FragmentResult;
+import io.knotx.fragments.handler.action.InMemoryCacheActionFactory;
+import io.knotx.fragments.handler.api.Action;
+import io.knotx.fragments.handler.api.actionlog.ActionLogger;
 import io.knotx.junit5.KnotxExtension;
 import io.knotx.server.api.context.ClientRequest;
 import io.vertx.core.Future;
@@ -53,9 +54,7 @@ class InMemoryCacheActionFactoryLoggingTest {
   private static final String CACHE_MISS = "cache_miss";
   private static final String CACHE_HIT = "cache_hit";
   private static final String CACHE_PASS = "cache_pass";
-
   private static final String EXAMPLE_CACHE_KEY = "cProduct";
-
   private static final String ACTION_ALIAS = "action";
   private static final String PAYLOAD_KEY = "product";
   private static final String LOG_LEVEL_KEY = "logLevel";
@@ -64,6 +63,7 @@ class InMemoryCacheActionFactoryLoggingTest {
 
   private static final JsonObject ACTION_CONFIG = new JsonObject().put("payloadKey", PAYLOAD_KEY)
       .put("cacheKey", EXAMPLE_CACHE_KEY);
+  private static final JsonArray EMPTY_JSON_ARRAY = new JsonArray();
 
   private Fragment firstFragment;
   private Fragment secondFragment;
@@ -169,7 +169,7 @@ class InMemoryCacheActionFactoryLoggingTest {
       boolean isLogLevelInfo,
       VertxTestContext testContext) throws Throwable {
 
-    ActionLogger innerActionLog = ActionLogger.create("DoAction", ActionLogLevel.INFO);
+    ActionLogger innerActionLog = ActionLogger.create("DoAction", INFO);
     innerActionLog.info("InnerInfo", "InnerValue");
 
     Action doAction = (fragmentContext, resultHandler) -> Future
@@ -215,7 +215,7 @@ class InMemoryCacheActionFactoryLoggingTest {
       boolean isLogLevelInfo,
       VertxTestContext testContext) throws Throwable {
 
-    ActionLogger innerActionLog = ActionLogger.create("DoAction", ActionLogLevel.INFO);
+    ActionLogger innerActionLog = ActionLogger.create("DoAction", INFO);
     innerActionLog.info("InnerInfo", "InnerValue");
 
     Action doAction = (fragmentContext, resultHandler) -> Future
@@ -281,6 +281,34 @@ class InMemoryCacheActionFactoryLoggingTest {
     }
   }
 
+  @ParameterizedTest
+  @MethodSource("provideAllLogLevelConfigurations")
+  @DisplayName("Should preserve action logs when doAction has ended with failure")
+  void callActionCausingFailure(JsonObject configuration, boolean isLogLevelInfo,
+      VertxTestContext testContext) throws Throwable {
+    Action doAction = (fragmentContext, resultHandler) -> Future
+        .<FragmentResult>failedFuture(new IllegalStateException("Application failed!"))
+        .setHandler(resultHandler);
+
+    Action tested = new InMemoryCacheActionFactory()
+        .create(ACTION_ALIAS, configuration, null, doAction);
+
+    tested.apply(new FragmentContext(firstFragment, new ClientRequest()), result -> {
+      testContext.verify(() -> {
+        JsonObject nodeLog = result.result().getNodeLog();
+        assertNotNull(nodeLog);
+        JsonArray errors = nodeLog.getJsonObject("logs").getJsonArray("errors");
+        JsonObject doActionError = errors.getJsonObject(0);
+        assertEquals(EMPTY_JSON_ARRAY, nodeLog.getJsonArray("doActionLogs"));
+        assertEquals(1, errors.getList().size());
+        assertEquals(IllegalStateException.class.getCanonicalName(),
+            doActionError.getString("className"));
+        assertEquals("Application failed!", doActionError.getString("message"));
+        testContext.completeNow();
+      });
+    });
+  }
+
   private static Stream<Arguments> provideAllLogLevelConfigurations() {
     return Stream.of(
         Arguments.of(ACTION_CONFIG.copy(), false),
@@ -288,5 +316,4 @@ class InMemoryCacheActionFactoryLoggingTest {
         Arguments.of(ACTION_CONFIG.copy().put(LOG_LEVEL_KEY, "info"), true)
     );
   }
-
 }

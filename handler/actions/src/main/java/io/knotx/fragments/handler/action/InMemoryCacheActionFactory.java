@@ -94,8 +94,8 @@ public class InMemoryCacheActionFactory implements ActionFactory {
         getFromCache(fragmentContext, cacheKey, actionLogger)
             .switchIfEmpty(callDoActionAndCache(fragmentContext, cacheKey, actionLogger))
             .map(Future::succeededFuture)
-            .onErrorReturn(Future::failedFuture)
             .doOnSuccess(future -> future.setHandler(resultHandler))
+            .doOnError(error -> handleFailure(fragmentContext, resultHandler, actionLogger, error))
             .subscribe();
       }
 
@@ -163,6 +163,17 @@ public class InMemoryCacheActionFactory implements ActionFactory {
             actionLogger.toLog().toJson());
       }
     };
+  }
+
+  private void handleFailure(FragmentContext fragmentContext,
+      Handler<AsyncResult<FragmentResult>> resultHandler, ActionLogger actionLogger,
+      Throwable error) {
+    final Future<FragmentResult> resultFuture;
+    actionLogger.error(error);
+    resultFuture = Future.succeededFuture(
+        new FragmentResult(fragmentContext.getFragment(), FragmentResult.ERROR_TRANSITION,
+            actionLogger.toLog().toJson()));
+    resultFuture.setHandler(resultHandler);
   }
 
   private String getPayloadKey(JsonObject config) {
