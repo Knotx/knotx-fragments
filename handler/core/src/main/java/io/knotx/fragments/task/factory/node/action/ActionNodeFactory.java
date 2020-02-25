@@ -15,14 +15,15 @@
  */
 package io.knotx.fragments.task.factory.node.action;
 
+import static io.knotx.fragments.engine.NodeMetadata.single;
+
 import io.knotx.fragments.engine.NodeMetadata;
 import io.knotx.fragments.engine.api.node.Node;
-import io.knotx.fragments.engine.api.node.NodeType;
+import io.knotx.fragments.engine.api.node.single.FragmentContext;
+import io.knotx.fragments.engine.api.node.single.FragmentResult;
 import io.knotx.fragments.engine.api.node.single.SingleNode;
 import io.knotx.fragments.handler.api.Action;
 import io.knotx.fragments.handler.api.ActionFactory;
-import io.knotx.fragments.engine.api.node.single.FragmentContext;
-import io.knotx.fragments.engine.api.node.single.FragmentResult;
 import io.knotx.fragments.task.factory.ActionFactoryOptions;
 import io.knotx.fragments.task.factory.GraphNodeOptions;
 import io.knotx.fragments.task.factory.NodeProvider;
@@ -30,7 +31,6 @@ import io.knotx.fragments.task.factory.node.NodeFactory;
 import io.reactivex.Single;
 import io.vertx.core.json.JsonObject;
 import io.vertx.reactivex.core.Vertx;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -95,8 +95,7 @@ public class ActionNodeFactory implements NodeFactory {
       ActionNodeConfig config) {
     Map<String, String> transitionMetadata = createTransitionMetadata(edges);
     JsonObject configWithActionConfiguration = createJointConfig(config);
-    return new NodeMetadata(actionNodeId, NodeType.SINGLE, transitionMetadata, new ArrayList<>(),
-        configWithActionConfiguration);
+    return single(actionNodeId, transitionMetadata, configWithActionConfiguration);
   }
 
   private Map<String, String> createTransitionMetadata(Map<String, Node> edges) {

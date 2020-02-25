@@ -17,6 +17,7 @@ package io.knotx.fragments.engine;
 
 import io.knotx.fragments.engine.api.node.NodeType;
 import io.vertx.core.json.JsonObject;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -28,7 +29,16 @@ public class NodeMetadata {
   private List<String> nestedNodes;
   private JsonObject operation;
 
-  public NodeMetadata(String nodeId, NodeType type, Map<String, String> transitions,
+  public static NodeMetadata single(String nodeId, Map<String, String> transitions, JsonObject operation) {
+    return new NodeMetadata(nodeId, NodeType.SINGLE, transitions, Collections.emptyList(), operation);
+  }
+
+  public static NodeMetadata composite(String nodeId, Map<String, String> transitions,
+      List<String> nestedNodes, JsonObject operation) {
+    return new NodeMetadata(nodeId, NodeType.COMPOSITE, transitions, nestedNodes, operation);
+  }
+
+  private NodeMetadata(String nodeId, NodeType type, Map<String, String> transitions,
       List<String> nestedNodes, JsonObject operation) {
     this.nodeId = nodeId;
     this.type = type;

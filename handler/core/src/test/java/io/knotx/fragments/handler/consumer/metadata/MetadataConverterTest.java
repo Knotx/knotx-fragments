@@ -328,11 +328,9 @@ class MetadataConverterTest {
   }
 
   private NodeMetadata simpleNode(String id, String factory, Map<String, String> transitions) {
-    return new NodeMetadata(
+    return NodeMetadata.single(
         id,
-        NodeType.SINGLE,
         transitions,
-        Collections.emptyList(),
         getSampleConfigFor(factory)
     );
   }
@@ -353,9 +351,8 @@ class MetadataConverterTest {
 
   private NodeMetadata compositeNode(String id, Map<String, String> transitions,
       String... nested) {
-    return new NodeMetadata(
+    return NodeMetadata.composite(
         id,
-        NodeType.COMPOSITE,
         transitions,
         Arrays.asList(nested),
         new JsonObject()
