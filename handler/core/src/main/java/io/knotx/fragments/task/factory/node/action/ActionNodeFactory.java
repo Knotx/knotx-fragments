@@ -18,6 +18,7 @@ package io.knotx.fragments.task.factory.node.action;
 import static io.knotx.fragments.engine.NodeMetadata.single;
 
 import io.knotx.fragments.engine.NodeMetadata;
+import io.knotx.fragments.engine.OperationMetadata;
 import io.knotx.fragments.engine.api.node.Node;
 import io.knotx.fragments.engine.api.node.single.FragmentContext;
 import io.knotx.fragments.engine.api.node.single.FragmentResult;
@@ -94,8 +95,7 @@ public class ActionNodeFactory implements NodeFactory {
   private NodeMetadata createActionNodeMetadata(String actionNodeId, Map<String, Node> edges,
       ActionNodeConfig config) {
     Map<String, String> transitionMetadata = createTransitionMetadata(edges);
-    JsonObject configWithActionConfiguration = createJointConfig(config);
-    return single(actionNodeId, transitionMetadata, configWithActionConfiguration);
+    return single(actionNodeId, transitionMetadata, createOperation(config));
   }
 
   private Map<String, String> createTransitionMetadata(Map<String, Node> edges) {
@@ -104,13 +104,13 @@ public class ActionNodeFactory implements NodeFactory {
     return transitionMetadata;
   }
 
-  private JsonObject createJointConfig(ActionNodeConfig config) {
+  private OperationMetadata createOperation(ActionNodeConfig config) {
     ActionFactoryOptions actionConfig = actionNameToOptions.get(config.getAction());
-    return new JsonObject()
-        .put("type", NAME)
-        .put("alias", config.getAction())
-        .put("factory", actionConfig.getFactory())
-        .put("actionConfig", actionConfig.toJson());
+    return new OperationMetadata().setFactory(NAME)
+        .setData(new JsonObject()
+            .put("alias", config.getAction())
+            .put("actionFactory", actionConfig.getFactory())
+            .put("actionConfig", actionConfig.toJson()));
   }
 
   private Function<FragmentContext, Single<FragmentResult>> toRxFunction(

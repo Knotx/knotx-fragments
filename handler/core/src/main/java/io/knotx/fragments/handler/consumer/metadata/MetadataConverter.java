@@ -64,7 +64,7 @@ public class MetadataConverter {
           .put("type", metadata.getType())
           .put("label", metadata.getNodeId()) // TODO: where should label configuration come from?
           .put("subtasks", getSubTasks(metadata.getNestedNodes()))
-          .put("operation", metadata.getOperation()) // TODO: validate if this is expandable
+          .put("operation", metadata.getOperation().toJson()) // TODO: validate if this is expandable
           .put("on", getTransitions(metadata.getTransitions()))
           .put("_metadataStatus", "ok");
     } else {

@@ -16,7 +16,6 @@
 package io.knotx.fragments.engine;
 
 import io.knotx.fragments.engine.api.node.NodeType;
-import io.vertx.core.json.JsonObject;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -27,19 +26,21 @@ public class NodeMetadata {
   private NodeType type;
   private Map<String, String> transitions;
   private List<String> nestedNodes;
-  private JsonObject operation;
+  private OperationMetadata operation;
 
-  public static NodeMetadata single(String nodeId, Map<String, String> transitions, JsonObject operation) {
-    return new NodeMetadata(nodeId, NodeType.SINGLE, transitions, Collections.emptyList(), operation);
+  public static NodeMetadata single(String nodeId, Map<String, String> transitions,
+      OperationMetadata operation) {
+    return new NodeMetadata(nodeId, NodeType.SINGLE, transitions, Collections.emptyList(),
+        operation);
   }
 
   public static NodeMetadata composite(String nodeId, Map<String, String> transitions,
-      List<String> nestedNodes, JsonObject operation) {
+      List<String> nestedNodes, OperationMetadata operation) {
     return new NodeMetadata(nodeId, NodeType.COMPOSITE, transitions, nestedNodes, operation);
   }
 
   private NodeMetadata(String nodeId, NodeType type, Map<String, String> transitions,
-      List<String> nestedNodes, JsonObject operation) {
+      List<String> nestedNodes, OperationMetadata operation) {
     this.nodeId = nodeId;
     this.type = type;
     this.transitions = transitions;
@@ -63,7 +64,7 @@ public class NodeMetadata {
     return nestedNodes;
   }
 
-  public JsonObject getOperation() {
+  public OperationMetadata getOperation() {
     return operation;
   }
 
@@ -72,9 +73,9 @@ public class NodeMetadata {
     return "NodeMetadata{" +
         "nodeId='" + nodeId + '\'' +
         ", type=" + type +
-        ", transitionNameToNodeIdMap=" + transitions +
+        ", transitions=" + transitions +
         ", nestedNodes=" + nestedNodes +
-        ", config=" + operation +
+        ", operation=" + operation +
         '}';
   }
 }

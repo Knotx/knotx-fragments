@@ -15,7 +15,7 @@
  */
 package io.knotx.fragments.handler.consumer.metadata;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static io.knotx.junit5.assertions.KnotxAssertions.assertJsonEquals;
 
 import com.google.common.collect.ImmutableMap;
 import io.knotx.fragments.api.Fragment;
@@ -23,6 +23,7 @@ import io.knotx.fragments.engine.EventLog;
 import io.knotx.fragments.engine.EventLogEntry;
 import io.knotx.fragments.engine.FragmentEvent;
 import io.knotx.fragments.engine.NodeMetadata;
+import io.knotx.fragments.engine.OperationMetadata;
 import io.knotx.fragments.engine.TaskMetadata;
 import io.knotx.fragments.engine.api.node.NodeType;
 import io.knotx.fragments.engine.api.node.single.FragmentResult;
@@ -53,7 +54,7 @@ class MetadataConverterTest {
 
     JsonObject output = tested.createJson();
 
-    assertEquals(new JsonObject(), output);
+    assertJsonEquals(new JsonObject(), output);
   }
 
   @Test
@@ -65,7 +66,7 @@ class MetadataConverterTest {
 
     JsonObject expected = jsonForNotDescribedNode(ROOT_NODE);
 
-    assertEquals(expected, output);
+    assertJsonEquals(expected, output);
   }
 
   @Test
@@ -75,9 +76,9 @@ class MetadataConverterTest {
 
     JsonObject output = tested.createJson();
 
-    JsonObject expected = jsonForNode(ROOT_NODE);
+    JsonObject expected = jsonForNode(ROOT_NODE, "custom");
 
-    assertEquals(expected, output);
+    assertJsonEquals(expected, output);
   }
 
   @Test
@@ -89,7 +90,7 @@ class MetadataConverterTest {
 
     JsonObject expected = jsonForActionNode(ROOT_NODE);
 
-    assertEquals(expected, output);
+    assertJsonEquals(expected, output);
   }
 
   @Test
@@ -97,23 +98,23 @@ class MetadataConverterTest {
   void shouldProduceCorrectJsonForTwoNodesWithTransition() {
     givenNodesMetadata(ROOT_NODE,
         simpleNode(ROOT_NODE, "custom", ImmutableMap.of("_success", "node-A")),
-        simpleNode("node-A", "custom")
+        simpleNode("node-A", "factory-A")
     );
 
     JsonObject output = tested.createJson();
 
-    JsonObject expected = jsonForNode(ROOT_NODE)
+    JsonObject expected = jsonForNode(ROOT_NODE, "custom")
         .put("on", new JsonObject()
-            .put("_success", jsonForNode("node-A")));
+            .put("_success", jsonForNode("node-A", "factory-A")));
 
-    assertEquals(expected, output);
+    assertJsonEquals(expected, output);
   }
 
   @Test
   @DisplayName("Expect correct JSON when metadata with nested nodes provided")
   void shouldProduceCorrectJsonForCompositeNodeWithSimpleNodes() {
     givenNodesMetadata(ROOT_NODE,
-        compositeNode(ROOT_NODE,"node-A", "node-B", "node-C"),
+        compositeNode(ROOT_NODE, "custom", "node-A", "node-B", "node-C"),
         simpleNode("node-A", "factory-A"),
         simpleNode("node-B", "factory-B"),
         simpleNode("node-C", "factory-C")
@@ -121,36 +122,36 @@ class MetadataConverterTest {
 
     JsonObject output = tested.createJson();
 
-    JsonObject expected = jsonForNode(ROOT_NODE)
+    JsonObject expected = jsonForNode(ROOT_NODE, "custom")
         .put("type", NodeType.COMPOSITE)
         .put("subtasks", new JsonArray(Arrays.asList(
-            jsonForNode("node-A"),
-            jsonForNode("node-B"),
-            jsonForNode("node-C")
+            jsonForNode("node-A", "factory-A"),
+            jsonForNode("node-B", "factory-B"),
+            jsonForNode("node-C", "factory-C")
         )));
 
-    assertEquals(expected, output);
+    assertJsonEquals(expected, output);
   }
 
   @Test
   @DisplayName("Expect correct JSON when metadata with nested nodes provided and some are not described")
   void shouldProduceCorrectJsonForCompositeNodeWithSimpleNodesNotAllDescribed() {
     givenNodesMetadata(ROOT_NODE,
-        compositeNode(ROOT_NODE,"node-A", "node-B", "node-C"),
+        compositeNode(ROOT_NODE, "custom", "node-A", "node-B", "node-C"),
         simpleNode("node-A", "factory-A")
     );
 
     JsonObject output = tested.createJson();
 
-    JsonObject expected = jsonForNode(ROOT_NODE)
+    JsonObject expected = jsonForNode(ROOT_NODE, "custom")
         .put("type", NodeType.COMPOSITE)
         .put("subtasks", new JsonArray(Arrays.asList(
-            jsonForNode("node-A"),
+            jsonForNode("node-A", "factory-A"),
             jsonForNotDescribedNode("node-B"),
             jsonForNotDescribedNode("node-C")
         )));
 
-    assertEquals(expected, output);
+    assertJsonEquals(expected, output);
   }
 
   @Test
@@ -160,14 +161,14 @@ class MetadataConverterTest {
         simpleNode(ROOT_NODE, "custom",
             ImmutableMap.of("_success", "node-A", "_failure", "node-B")),
         simpleNode("node-A", "factory-A"),
-        compositeNode("node-B",
+        compositeSubtasksNode("node-B",
             ImmutableMap.of("_success", "node-C", "_error", "node-D", "_timeout", "node-E"),
             "node-B1", "node-B2", "node-B3"
         ),
         simpleNode("node-B1", "action", ImmutableMap.of("_success", "node-B1-special")),
-        simpleNode("node-B1-special", "factory-BB-special"),
-        simpleNode("node-B2", "factory-BB"),
-        simpleNode("node-B3", "factory-BB"),
+        simpleNode("node-B1-special", "factory-B1-special"),
+        simpleNode("node-B2", "factory-B2"),
+        simpleNode("node-B3", "factory-B3"),
         simpleNode("node-C", "factory-C"),
         simpleNode("node-D", "factory-D"),
         simpleNode("node-E", "factory-E")
@@ -175,26 +176,26 @@ class MetadataConverterTest {
 
     JsonObject output = tested.createJson();
 
-    JsonObject expected = jsonForNode(ROOT_NODE)
+    JsonObject expected = jsonForNode(ROOT_NODE, "custom")
         .put("on", new JsonObject()
-            .put("_success", jsonForNode("node-A"))
-            .put("_failure", jsonForNode("node-B")
+            .put("_success", jsonForNode("node-A", "factory-A"))
+            .put("_failure", jsonForNode("node-B", "subtasks")
                 .put("type", NodeType.COMPOSITE)
                 .put("on", new JsonObject()
-                    .put("_success", jsonForNode("node-C"))
-                    .put("_error", jsonForNode("node-D"))
-                    .put("_timeout", jsonForNode("node-E"))
+                    .put("_success", jsonForNode("node-C", "factory-C"))
+                    .put("_error", jsonForNode("node-D", "factory-D"))
+                    .put("_timeout", jsonForNode("node-E", "factory-E"))
                 )
                 .put("subtasks", new JsonArray(Arrays.asList(
                     jsonForActionNode("node-B1")
                         .put("on", new JsonObject()
-                            .put("_success", jsonForNode("node-B1-special"))),
-                    jsonForNode("node-B2"),
-                    jsonForNode("node-B3")
+                            .put("_success", jsonForNode("node-B1-special", "factory-B1-special"))),
+                    jsonForNode("node-B2", "factory-B2"),
+                    jsonForNode("node-B3", "factory-B3")
                 )))
             ));
 
-    assertEquals(expected, output);
+    assertJsonEquals(expected, output);
   }
 
   @Test
@@ -219,7 +220,7 @@ class MetadataConverterTest {
         "a-node",
         simpleNode("a-node", "action",
             ImmutableMap.of("_success", "b-composite", "_error", "c-node")),
-        compositeNode("b-composite",
+        compositeSubtasksNode("b-composite",
             ImmutableMap.of("_success", "e-node", "_error", "f-node"),
             "b1-subgraph", "b2-subgraph"
         ),
@@ -241,7 +242,7 @@ class MetadataConverterTest {
         .put("_logStatus", "ok")
         .put("on", new JsonObject()
             .put("_error", jsonForActionNode("c-node"))
-            .put("_success", jsonForNode("b-composite")
+            .put("_success", jsonForNode("b-composite", "subtasks")
                 .put("response", new JsonObject()
                     .put("transition", "_error")
                     .put("invocations", wrap(simpleNodeLog())))
@@ -276,7 +277,7 @@ class MetadataConverterTest {
                 )))
             ));
 
-    assertEquals(expected, output);
+    assertJsonEquals(expected, output);
   }
 
   private EventLog createEventLog(EventLogEntry... entries) {
@@ -335,47 +336,53 @@ class MetadataConverterTest {
     );
   }
 
-  private JsonObject getSampleConfigFor(String factory) {
+  private OperationMetadata getSampleConfigFor(String factory) {
+    OperationMetadata result = new OperationMetadata();
+    result.setFactory(factory);
     if ("action".equals(factory)) {
-      return new JsonObject()
-          .put("factory", "http")
-          .put("type", "action");
-    } else {
-      return new JsonObject();
+      result.setData(new JsonObject().put("actionFactory", "http"));
     }
+    return result;
   }
 
-  private NodeMetadata compositeNode(String id, String... nested) {
-    return compositeNode(id, ImmutableMap.of(), nested);
+  private NodeMetadata compositeNode(String id, String factory, String... nested) {
+    return compositeNode(id, factory, ImmutableMap.of(), nested);
   }
 
-  private NodeMetadata compositeNode(String id, Map<String, String> transitions,
+  private NodeMetadata compositeSubtasksNode(String id, Map<String, String> transitions,
+      String... nested) {
+    return compositeNode(id, "subtasks", transitions, nested);
+  }
+
+  private NodeMetadata compositeNode(String id, String factory, Map<String, String> transitions,
       String... nested) {
     return NodeMetadata.composite(
         id,
         transitions,
         Arrays.asList(nested),
-        new JsonObject()
+        getSampleConfigFor(factory)
     );
   }
 
-  private JsonObject jsonForNode(String id) {
+  private JsonObject jsonForNode(String id, String factory) {
     return new JsonObject()
         .put("id", id)
         .put("label", id)
         .put("type", NodeType.SINGLE)
         .put("on", new JsonObject())
         .put("subtasks", new JsonArray())
-        .put("operation", new JsonObject())
+        .put("operation", new OperationMetadata().setFactory(factory).toJson())
         .put("_logStatus", "missing")
         .put("_metadataStatus", "ok");
   }
 
   private JsonObject jsonForActionNode(String id) {
-    return jsonForNode(id)
-        .put("operation", new JsonObject()
-            .put("factory", "http")
-            .put("type", "action"));
+    return jsonForNode(id, "action")
+        .put("operation",
+            new OperationMetadata()
+                .setFactory("action")
+                .setData(new JsonObject().put("actionFactory", "http"))
+                .toJson());
   }
 
   private JsonObject jsonForNotDescribedNode(String id) {
@@ -433,5 +440,4 @@ class MetadataConverterTest {
         )
         ));
   }
-
 }

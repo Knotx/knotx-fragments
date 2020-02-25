@@ -20,6 +20,7 @@ import static io.knotx.fragments.engine.api.node.single.FragmentResult.ERROR_TRA
 import static io.knotx.fragments.engine.api.node.single.FragmentResult.SUCCESS_TRANSITION;
 
 import io.knotx.fragments.engine.NodeMetadata;
+import io.knotx.fragments.engine.OperationMetadata;
 import io.knotx.fragments.engine.api.node.Node;
 import io.knotx.fragments.engine.api.node.composite.CompositeNode;
 import io.knotx.fragments.task.factory.GraphNodeOptions;
@@ -93,7 +94,8 @@ public class SubtasksNodeFactory implements NodeFactory {
       List<Node> nodes) {
     List<String> nestedNodesIds = nodes.stream().map(Node::getId).collect(Collectors.toList());
     Map<String, String> transitionMetadata = createTransitionMetadata(edges);
-    return composite(nodeId, transitionMetadata, nestedNodesIds, new JsonObject());
+    return composite(nodeId, transitionMetadata, nestedNodesIds,
+        new OperationMetadata().setFactory(NAME));
   }
 
   private Map<String, String> createTransitionMetadata(Map<String, Node> edges) {

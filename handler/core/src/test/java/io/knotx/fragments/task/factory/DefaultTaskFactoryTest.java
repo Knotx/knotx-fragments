@@ -25,6 +25,7 @@ import io.knotx.fragments.api.Fragment;
 import io.knotx.fragments.engine.FragmentEvent;
 import io.knotx.fragments.engine.FragmentEventContext;
 import io.knotx.fragments.engine.NodeMetadata;
+import io.knotx.fragments.engine.OperationMetadata;
 import io.knotx.fragments.engine.TaskMetadata;
 import io.knotx.fragments.engine.TaskWithMetadata;
 import io.knotx.fragments.engine.api.Task;
@@ -240,8 +241,8 @@ class DefaultTaskFactoryTest {
     assertTrue(rootMetadata.getNestedNodes().isEmpty());
     assertEquals(NodeType.SINGLE, rootMetadata.getType());
 
-    JsonObject operationMetadata = rootMetadata.getOperation();
-    assertActionNodeMetadata(operationMetadata, "A", actionConfig);
+    OperationMetadata operation = rootMetadata.getOperation();
+    assertActionNodeMetadata(operation, "A", actionConfig);
   }
 
   @Test
@@ -433,11 +434,11 @@ class DefaultTaskFactoryTest {
     return Arrays.asList(nodes);
   }
 
-  private void assertActionNodeMetadata(JsonObject metadata, String actionName,
+  private void assertActionNodeMetadata(OperationMetadata operation, String actionName,
       JsonObject actionConfig) {
-    assertEquals("action", metadata.getString("type"));
-    assertEquals(actionName, metadata.getString("alias"));
-    assertEquals(TEST_ACTION_FACTORY, metadata.getString("factory"));
-    assertEquals(actionConfig, metadata.getJsonObject("actionConfig"));
+    assertEquals("action", operation.getFactory());
+    assertEquals(actionName, operation.getData().getString("alias"));
+    assertEquals(TEST_ACTION_FACTORY, operation.getData().getString("actionFactory"));
+    assertEquals(actionConfig, operation.getData().getJsonObject("actionConfig"));
   }
 }
