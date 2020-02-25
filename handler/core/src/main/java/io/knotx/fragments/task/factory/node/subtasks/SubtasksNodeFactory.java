@@ -93,8 +93,8 @@ public class SubtasksNodeFactory implements NodeFactory {
       List<Node> nodes) {
     List<String> nestedNodesIds = nodes.stream().map(Node::getId).collect(Collectors.toList());
     Map<String, String> transitionMetadata = createTransitionMetadata(edges);
-    return new NodeMetadata(nodeId, NAME, NodeType.COMPOSITE, transitionMetadata,
-        nestedNodesIds, new JsonObject());
+    return new NodeMetadata(nodeId, NodeType.COMPOSITE, transitionMetadata, nestedNodesIds,
+        new JsonObject());
   }
 
   private Map<String, String> createTransitionMetadata(Map<String, Node> edges) {

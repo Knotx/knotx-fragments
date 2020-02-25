@@ -239,7 +239,6 @@ class DefaultTaskFactoryTest {
     assertTrue(rootMetadata.getTransitions().isEmpty());
     assertTrue(rootMetadata.getNestedNodes().isEmpty());
     assertEquals(NodeType.SINGLE, rootMetadata.getType());
-    assertEquals(ActionNodeFactory.NAME, rootMetadata.getFactory());
 
     JsonObject operationMetadata = rootMetadata.getOperation();
     assertActionNodeMetadata(operationMetadata, "A", actionConfig);

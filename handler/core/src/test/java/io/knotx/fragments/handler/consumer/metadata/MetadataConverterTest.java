@@ -113,7 +113,7 @@ class MetadataConverterTest {
   @DisplayName("Expect correct JSON when metadata with nested nodes provided")
   void shouldProduceCorrectJsonForCompositeNodeWithSimpleNodes() {
     givenNodesMetadata(ROOT_NODE,
-        compositeNode(ROOT_NODE, "custom", "node-A", "node-B", "node-C"),
+        compositeNode(ROOT_NODE,"node-A", "node-B", "node-C"),
         simpleNode("node-A", "factory-A"),
         simpleNode("node-B", "factory-B"),
         simpleNode("node-C", "factory-C")
@@ -136,7 +136,7 @@ class MetadataConverterTest {
   @DisplayName("Expect correct JSON when metadata with nested nodes provided and some are not described")
   void shouldProduceCorrectJsonForCompositeNodeWithSimpleNodesNotAllDescribed() {
     givenNodesMetadata(ROOT_NODE,
-        compositeNode(ROOT_NODE, "custom", "node-A", "node-B", "node-C"),
+        compositeNode(ROOT_NODE,"node-A", "node-B", "node-C"),
         simpleNode("node-A", "factory-A")
     );
 
@@ -160,7 +160,7 @@ class MetadataConverterTest {
         simpleNode(ROOT_NODE, "custom",
             ImmutableMap.of("_success", "node-A", "_failure", "node-B")),
         simpleNode("node-A", "factory-A"),
-        compositeNode("node-B", "factory-B",
+        compositeNode("node-B",
             ImmutableMap.of("_success", "node-C", "_error", "node-D", "_timeout", "node-E"),
             "node-B1", "node-B2", "node-B3"
         ),
@@ -219,7 +219,7 @@ class MetadataConverterTest {
         "a-node",
         simpleNode("a-node", "action",
             ImmutableMap.of("_success", "b-composite", "_error", "c-node")),
-        compositeNode("b-composite", "factory-B",
+        compositeNode("b-composite",
             ImmutableMap.of("_success", "e-node", "_error", "f-node"),
             "b1-subgraph", "b2-subgraph"
         ),
@@ -330,7 +330,6 @@ class MetadataConverterTest {
   private NodeMetadata simpleNode(String id, String factory, Map<String, String> transitions) {
     return new NodeMetadata(
         id,
-        factory,
         NodeType.SINGLE,
         transitions,
         Collections.emptyList(),
@@ -348,15 +347,14 @@ class MetadataConverterTest {
     }
   }
 
-  private NodeMetadata compositeNode(String id, String factory, String... nested) {
-    return compositeNode(id, factory, ImmutableMap.of(), nested);
+  private NodeMetadata compositeNode(String id, String... nested) {
+    return compositeNode(id, ImmutableMap.of(), nested);
   }
 
-  private NodeMetadata compositeNode(String id, String factory, Map<String, String> transitions,
+  private NodeMetadata compositeNode(String id, Map<String, String> transitions,
       String... nested) {
     return new NodeMetadata(
         id,
-        factory,
         NodeType.COMPOSITE,
         transitions,
         Arrays.asList(nested),

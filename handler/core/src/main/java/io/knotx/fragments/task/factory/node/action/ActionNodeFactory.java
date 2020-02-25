@@ -95,8 +95,8 @@ public class ActionNodeFactory implements NodeFactory {
       ActionNodeConfig config) {
     Map<String, String> transitionMetadata = createTransitionMetadata(edges);
     JsonObject configWithActionConfiguration = createJointConfig(config);
-    return new NodeMetadata(actionNodeId, NAME, NodeType.SINGLE, transitionMetadata,
-        new ArrayList<>(), configWithActionConfiguration);
+    return new NodeMetadata(actionNodeId, NodeType.SINGLE, transitionMetadata, new ArrayList<>(),
+        configWithActionConfiguration);
   }
 
   private Map<String, String> createTransitionMetadata(Map<String, Node> edges) {

@@ -20,21 +20,17 @@ import io.vertx.core.json.JsonObject;
 import java.util.List;
 import java.util.Map;
 
-// todo validate @DataObject
 public class NodeMetadata {
 
   private String nodeId;
-  private String factory;
   private NodeType type;
   private Map<String, String> transitions;
   private List<String> nestedNodes;
   private JsonObject operation;
 
-  public NodeMetadata(String nodeId, String factory, NodeType type,
-      Map<String, String> transitions,
+  public NodeMetadata(String nodeId, NodeType type, Map<String, String> transitions,
       List<String> nestedNodes, JsonObject operation) {
     this.nodeId = nodeId;
-    this.factory = factory;
     this.type = type;
     this.transitions = transitions;
     this.nestedNodes = nestedNodes;
@@ -43,10 +39,6 @@ public class NodeMetadata {
 
   public String getNodeId() {
     return nodeId;
-  }
-
-  public String getFactory() {
-    return factory;
   }
 
   public NodeType getType() {
@@ -69,7 +61,6 @@ public class NodeMetadata {
   public String toString() {
     return "NodeMetadata{" +
         "nodeId='" + nodeId + '\'' +
-        ", factory='" + factory + '\'' +
         ", type=" + type +
         ", transitionNameToNodeIdMap=" + transitions +
         ", nestedNodes=" + nestedNodes +
