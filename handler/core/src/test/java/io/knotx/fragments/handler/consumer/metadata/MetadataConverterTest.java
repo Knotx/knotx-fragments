@@ -21,6 +21,7 @@ import com.google.common.collect.ImmutableMap;
 import io.knotx.fragments.api.Fragment;
 import io.knotx.fragments.engine.EventLog;
 import io.knotx.fragments.engine.EventLogEntry;
+import io.knotx.fragments.engine.EventLogEntry.NodeStatus;
 import io.knotx.fragments.engine.FragmentEvent;
 import io.knotx.fragments.engine.NodeMetadata;
 import io.knotx.fragments.engine.OperationMetadata;
@@ -106,6 +107,59 @@ class MetadataConverterTest {
     JsonObject expected = jsonForNode(ROOT_NODE, "custom")
         .put("on", new JsonObject()
             .put("_success", jsonForNode("node-A", "factory-A")));
+
+    assertJsonEquals(expected, output);
+  }
+
+  @Test
+  @DisplayName("Expect missing node metadata when transition returned in log that was not described")
+  void shouldProduceCorrectJsonForMissingNodeCase() {
+    EventLogEntry[] logs = new EventLogEntry[]{
+        EventLogEntry.success(TASK_NAME, ROOT_NODE,
+            createFragmentResult("_error", simpleNodeLog())),
+        EventLogEntry.unsupported(TASK_NAME, ROOT_NODE, "_error")
+    };
+
+    givenEventLogAndNodesMetadata(createEventLog(logs), ROOT_NODE,
+        simpleNode(ROOT_NODE, "custom", ImmutableMap.of("_success", "node-A")),
+        simpleNode("node-A", "factory-A")
+    );
+
+    JsonObject output = tested.createJson();
+
+    JsonObject expected = jsonForNode(ROOT_NODE, "custom")
+        .put("_logStatus", "ok")
+        .put("status", NodeStatus.UNSUPPORTED_TRANSITION)
+        .put("on", new JsonObject()
+            .put("_success", jsonForNode("node-A", "factory-A"))
+            .put("_error", jsonForMissingNode()))
+        .put("response", new JsonObject()
+            .put("transition", "_error")
+            .put("invocations", wrap(simpleNodeLog())));
+
+    assertJsonEquals(expected, output);
+  }
+
+  @Test
+  @DisplayName("Expect no missing node metadata when _success transition and no next node defined")
+  void shouldProduceCorrectJsonForSuccessTransitionWithoutNextNode() {
+    EventLogEntry[] logs = new EventLogEntry[]{
+        EventLogEntry.success(TASK_NAME, ROOT_NODE,
+            createFragmentResult("_success", simpleNodeLog())),
+    };
+
+    givenEventLogAndNodesMetadata(createEventLog(logs), ROOT_NODE,
+        simpleNode(ROOT_NODE, "custom")
+    );
+
+    JsonObject output = tested.createJson();
+
+    JsonObject expected = jsonForNode(ROOT_NODE, "custom")
+        .put("_logStatus", "ok")
+        .put("status", NodeStatus.SUCCESS)
+        .put("response", new JsonObject()
+            .put("transition", "_success")
+            .put("invocations", wrap(simpleNodeLog())));
 
     assertJsonEquals(expected, output);
   }
@@ -238,7 +292,7 @@ class MetadataConverterTest {
         .put("response", new JsonObject()
             .put("transition", "_success")
             .put("invocations", wrap(simpleNodeLog())))
-        .put("status", "SUCCESS")
+        .put("status", NodeStatus.SUCCESS)
         .put("_logStatus", "ok")
         .put("on", new JsonObject()
             .put("_error", jsonForActionNode("c-node"))
@@ -246,7 +300,7 @@ class MetadataConverterTest {
                 .put("response", new JsonObject()
                     .put("transition", "_error")
                     .put("invocations", wrap(simpleNodeLog())))
-                .put("status", "SUCCESS")
+                .put("status", NodeStatus.SUCCESS)
                 .put("_logStatus", "ok")
                 .put("type", NodeType.COMPOSITE)
                 .put("on", new JsonObject()
@@ -255,7 +309,7 @@ class MetadataConverterTest {
                         .put("response", new JsonObject()
                             .put("transition", "_success")
                             .put("invocations", wrap(simpleNodeLog())))
-                        .put("status", "SUCCESS")
+                        .put("status", NodeStatus.SUCCESS)
                         .put("_logStatus", "ok")
                     )
                 )
@@ -264,15 +318,16 @@ class MetadataConverterTest {
                         .put("response", new JsonObject()
                             .put("transition", "_success")
                             .put("invocations", wrap(simpleNodeLog())))
-                        .put("status", "SUCCESS")
+                        .put("status", NodeStatus.SUCCESS)
                         .put("_logStatus", "ok"),
                     jsonForActionNode("b2-subgraph")
                         .put("on", new JsonObject()
-                            .put("_success", jsonForActionNode("d-node")))
+                            .put("_success", jsonForActionNode("d-node"))
+                            .put("_fallback", jsonForMissingNode()))
                         .put("response", new JsonObject()
                             .put("transition", "_fallback")
                             .put("invocations", wrap(complexNodeLog())))
-                        .put("status", "UNSUPPORTED_TRANSITION")
+                        .put("status", NodeStatus.UNSUPPORTED_TRANSITION)
                         .put("_logStatus", "ok")
                 )))
             ));
@@ -364,6 +419,16 @@ class MetadataConverterTest {
     );
   }
 
+  private JsonObject jsonForMissingNode() {
+    return new JsonObject()
+        .put("id", "missing")
+        .put("label", "!")
+        .put("type", NodeType.SINGLE)
+        .put("status", "missing")
+        .put("_logStatus", "missing")
+        .put("_metadataStatus", "missing");
+  }
+
   private JsonObject jsonForNode(String id, String factory) {
     return new JsonObject()
         .put("id", id)
@@ -372,6 +437,7 @@ class MetadataConverterTest {
         .put("on", new JsonObject())
         .put("subtasks", new JsonArray())
         .put("operation", new OperationMetadata().setFactory(factory).toJson())
+        .put("status", NodeStatus.UNPROCESSED)
         .put("_logStatus", "missing")
         .put("_metadataStatus", "ok");
   }
@@ -388,6 +454,7 @@ class MetadataConverterTest {
   private JsonObject jsonForNotDescribedNode(String id) {
     return new JsonObject()
         .put("id", id)
+        .put("status", NodeStatus.UNPROCESSED)
         .put("_logStatus", "missing")
         .put("_metadataStatus", "missing");
   }
