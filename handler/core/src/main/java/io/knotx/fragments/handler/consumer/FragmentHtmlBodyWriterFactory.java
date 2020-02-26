@@ -18,7 +18,6 @@ package io.knotx.fragments.handler.consumer;
 import io.knotx.fragments.api.Fragment;
 import io.knotx.fragments.engine.FragmentEvent;
 import io.knotx.fragments.engine.TaskMetadata;
-import io.knotx.fragments.handler.consumer.metadata.MetadataConverter;
 import io.knotx.server.api.context.ClientRequest;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -62,42 +61,25 @@ public class FragmentHtmlBodyWriterFactory implements FragmentEventsConsumerFact
 
       private void wrapFragmentBodyWithMetadata(FragmentEvent event,
           Map<String, TaskMetadata> taskMetadataByFragmentId) {
-        JsonObject graphMetadata = Optional.of(event)
+        TaskMetadata taskMetadata = Optional.of(event)
             .map(FragmentEvent::getFragment)
             .map(Fragment::getId)
-            .map(taskMetadataByFragmentId::get)
-            .map(metadata -> MetadataConverter.from(event, metadata))
-            .map(MetadataConverter::createJson)
-            .orElseGet(JsonObject::new);
-        wrapFragmentBody(event.getFragment(), event.toJson(), graphMetadata);
+            .map(taskMetadataByFragmentId::get).orElse(null);
+        wrapFragmentBody(event.getFragment(),
+            FragmentExecutionLog.from(event, taskMetadata).toJson());
       }
 
-      private void wrapFragmentBody(Fragment fragment, JsonObject eventLog, JsonObject graphMetadata) {
-        wrapFragmentBody(fragment,
-            nodeLogAsScript(fragment.getId(), eventLog),
-            graphMetadata.isEmpty() ? "" : graphAsScript(fragment.getId(), graphMetadata)
-        );
-      }
-
-      private void wrapFragmentBody(Fragment fragment, String eventLogScript, String graphMetadataScript) {
+      private void wrapFragmentBody(Fragment fragment, JsonObject log) {
         fragment.setBody("<!-- data-knotx-id=\"" + fragment.getId() + "\" -->"
-            + eventLogScript
-            + graphMetadataScript
+            + logAsScript(fragment.getId(), log)
             + fragment.getBody()
             + "<!-- data-knotx-id=\"" + fragment.getId() + "\" -->");
       }
 
-      private String nodeLogAsScript(String fragmentId, JsonObject nodeLog) {
+      private String logAsScript(String fragmentId, JsonObject log) {
         return "<script data-knotx-debug=\"log\" data-knotx-id=\"" + fragmentId
             + "\" type=\"application/json\">"
-            + nodeLog +
-            "</script>";
-      }
-
-      private String graphAsScript(String fragmentId, JsonObject graphMetadata) {
-        return "<script data-knotx-debug=\"graph\" data-knotx-id=\"" + fragmentId
-            + "\" type=\"application/json\">"
-            + graphMetadata +
+            + log +
             "</script>";
       }
 

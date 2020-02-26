@@ -18,6 +18,7 @@ package io.knotx.fragments.handler.consumer;
 import static io.knotx.fragments.handler.consumer.FragmentHtmlBodyWriterFactory.CONDITION_OPTION;
 import static io.knotx.fragments.handler.consumer.FragmentHtmlBodyWriterFactory.FRAGMENT_TYPES_OPTIONS;
 import static io.knotx.fragments.handler.consumer.FragmentHtmlBodyWriterFactory.HEADER_OPTION;
+import static io.knotx.junit5.assertions.KnotxAssertions.assertJsonEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -32,7 +33,6 @@ import io.knotx.server.api.context.ClientRequest;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.reactivex.core.MultiMap;
-import java.util.HashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.junit.jupiter.api.DisplayName;
@@ -175,8 +175,16 @@ class FragmentHtmlBodyWriterFactoryTest {
   void expectFragmentBodyContainsDebugScript() {
     //given
     String body = "<div>body</div>";
-    FragmentEvent event = new FragmentEvent(new Fragment("snippet", new JsonObject(), body));
-    JsonObject eventData = event.toJson();
+    Fragment fragment = new Fragment("snippet", new JsonObject(), body);
+    FragmentEvent event = new FragmentEvent(fragment);
+
+    JsonObject expectedLog = new JsonObject()
+        .put("fragmentId", fragment.getId())
+        .put("startTime", 0)
+        .put("finishTime", 0)
+        .put("type", "snippet")
+        .put("status", "UNPROCESSED")
+        .put("graph", new JsonObject());
 
     String scriptRegexp =
         "<script data-knotx-debug=\"log\" data-knotx-id=\"" + event.getFragment().getId()
@@ -194,7 +202,7 @@ class FragmentHtmlBodyWriterFactoryTest {
     // then
     Matcher matcher = scriptPattern.matcher(event.getFragment().getBody());
     assertTrue(matcher.find());
-    assertEquals(eventData, new JsonObject(matcher.group("fragmentEventJson")));
+    assertJsonEquals(expectedLog, new JsonObject(matcher.group("fragmentEventJson")));
   }
 
   @Test
@@ -222,18 +230,25 @@ class FragmentHtmlBodyWriterFactoryTest {
   }
 
   @Test
-  @DisplayName("Expect graph debug script is a second HTML tag.")
+  @DisplayName("Expect debug script is a first HTML tag.")
   void expectGraphDebugScriptAfterComment() {
     //given
     String body = "<div>body</div>";
     Fragment fragment = new Fragment("snippet", new JsonObject(), body);
     FragmentEvent event = new FragmentEvent(fragment);
     TaskMetadata metadata = TaskMetadata.noMetadata("some-task", "root-node-id");
-    JsonObject expectedMetadata = new JsonObject()
-        .put("id", "root-node-id")
-        .put("status", NodeStatus.UNPROCESSED)
-        .put("_metadataStatus", "missing")
-        .put("_logStatus", "missing");
+
+    JsonObject expectedLog = new JsonObject()
+        .put("fragmentId", fragment.getId())
+        .put("startTime", 0)
+        .put("finishTime", 0)
+        .put("type", "snippet")
+        .put("status", "UNPROCESSED")
+        .put("graph", new JsonObject()
+            .put("id", "root-node-id")
+            .put("status", NodeStatus.UNPROCESSED)
+            .put("_metadataStatus", "missing")
+            .put("_logStatus", "missing"));
 
     // when
     FragmentEventsConsumer tested = new FragmentHtmlBodyWriterFactory().create(new JsonObject()
@@ -248,7 +263,7 @@ class FragmentHtmlBodyWriterFactoryTest {
         .replaceAll("<!-- data-knotx-id=\"" + event.getFragment().getId() + "\" -->", "");
 
     Pattern secondTagsContent = Pattern.compile(
-        "<[^<>]+>.*</[^<>]+><script data-knotx-debug=\"graph\" data-knotx-id=\"" + event
+        "<script data-knotx-debug=\"log\" data-knotx-id=\"" + event
             .getFragment().getId()
             + "\" type=\"application/json\">(.*)</script>.*", Pattern.DOTALL);
 
@@ -256,7 +271,7 @@ class FragmentHtmlBodyWriterFactoryTest {
 
     assertTrue(matcher.matches());
     JsonObject output = new JsonObject(matcher.group(1));
-    assertEquals(expectedMetadata, output);
+    assertJsonEquals(expectedLog, output);
   }
 
 }

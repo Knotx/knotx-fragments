@@ -106,6 +106,22 @@ The factory name.
 +++
 |===
 
+[[FragmentExecutionLog]]
+== FragmentExecutionLog
+
+
+[cols=">25%,25%,50%"]
+[frame="topbot"]
+|===
+^|Name | Type ^| Description
+|[[finishTime]]`@finishTime`|`Number (long)`|-
+|[[fragmentId]]`@fragmentId`|`String`|-
+|[[graph]]`@graph`|`Json object`|-
+|[[startTime]]`@startTime`|`Number (long)`|-
+|[[status]]`@status`|`link:enums.html#Status[Status]`|-
+|[[type]]`@type`|`String`|-
+|===
+
 [[FragmentsHandlerOptions]]
 == FragmentsHandlerOptions
 
