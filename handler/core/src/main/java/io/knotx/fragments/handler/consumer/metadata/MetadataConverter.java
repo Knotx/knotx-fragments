@@ -90,9 +90,9 @@ public class MetadataConverter {
       NodeMetadata metadata = nodes.get(id);
       return input.put("id", metadata.getNodeId())
           .put("type", metadata.getType())
-          .put("label", metadata.getNodeId()) // TODO: where should label configuration come from?
+          .put("label", metadata.getLabel())
           .put("subtasks", getSubTasks(metadata.getNestedNodes()))
-          .put("operation", metadata.getOperation().toJson()) // TODO: validate if this is expandable
+          .put("operation", metadata.getOperation().toJson())
           .put("on", getTransitions(metadata.getTransitions()))
           .put(METADATA_STATUS, "ok");
     } else {

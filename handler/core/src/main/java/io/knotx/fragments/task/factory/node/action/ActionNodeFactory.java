@@ -95,7 +95,7 @@ public class ActionNodeFactory implements NodeFactory {
   private NodeMetadata createActionNodeMetadata(String actionNodeId, Map<String, Node> edges,
       ActionNodeConfig config) {
     Map<String, String> transitionMetadata = createTransitionMetadata(edges);
-    return single(actionNodeId, transitionMetadata, createOperation(config));
+    return single(actionNodeId, config.getAction(), transitionMetadata, createOperation(config));
   }
 
   private Map<String, String> createTransitionMetadata(Map<String, Node> edges) {

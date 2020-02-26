@@ -180,6 +180,7 @@ class MetadataConverterTest {
 
     JsonObject expected = jsonForNode(ROOT_NODE, "custom")
         .put("type", NodeType.COMPOSITE)
+        .put("label", "composite")
         .put("subtasks", new JsonArray(Arrays.asList(
             jsonForNode("node-A", "factory-A"),
             jsonForNode("node-B", "factory-B"),
@@ -201,6 +202,7 @@ class MetadataConverterTest {
 
     JsonObject expected = jsonForNode(ROOT_NODE, "custom")
         .put("type", NodeType.COMPOSITE)
+        .put("label", "composite")
         .put("subtasks", new JsonArray(Arrays.asList(
             jsonForNode("node-A", "factory-A"),
             jsonForNotDescribedNode("node-B"),
@@ -237,6 +239,7 @@ class MetadataConverterTest {
             .put("_success", jsonForNode("node-A", "factory-A"))
             .put("_failure", jsonForNode("node-B", "subtasks")
                 .put("type", NodeType.COMPOSITE)
+                .put("label", "composite")
                 .put("on", new JsonObject()
                     .put("_success", jsonForNode("node-C", "factory-C"))
                     .put("_error", jsonForNode("node-D", "factory-D"))
@@ -309,6 +312,7 @@ class MetadataConverterTest {
                 .put("status", NodeStatus.SUCCESS)
                 .put("_logStatus", "ok")
                 .put("type", NodeType.COMPOSITE)
+                .put("label", "composite")
                 .put("on", new JsonObject()
                     .put("_success", jsonForActionNode("e-node"))
                     .put("_error", jsonForActionNode("f-node")
@@ -392,6 +396,7 @@ class MetadataConverterTest {
   private NodeMetadata simpleNode(String id, String factory, Map<String, String> transitions) {
     return NodeMetadata.single(
         id,
+        "simple",
         transitions,
         getSampleConfigFor(factory)
     );
@@ -419,6 +424,7 @@ class MetadataConverterTest {
       String... nested) {
     return NodeMetadata.composite(
         id,
+        "composite",
         transitions,
         Arrays.asList(nested),
         getSampleConfigFor(factory)
@@ -438,7 +444,7 @@ class MetadataConverterTest {
   private JsonObject jsonForNode(String id, String factory) {
     return new JsonObject()
         .put("id", id)
-        .put("label", id)
+        .put("label", "simple")
         .put("type", NodeType.SINGLE)
         .put("on", new JsonObject())
         .put("subtasks", new JsonArray())

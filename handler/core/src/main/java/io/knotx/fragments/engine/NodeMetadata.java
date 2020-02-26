@@ -23,25 +23,27 @@ import java.util.Map;
 public class NodeMetadata {
 
   private String nodeId;
+  private String label;
   private NodeType type;
   private Map<String, String> transitions;
   private List<String> nestedNodes;
   private OperationMetadata operation;
 
-  public static NodeMetadata single(String nodeId, Map<String, String> transitions,
+  public static NodeMetadata single(String nodeId, String label, Map<String, String> transitions,
       OperationMetadata operation) {
-    return new NodeMetadata(nodeId, NodeType.SINGLE, transitions, Collections.emptyList(),
+    return new NodeMetadata(nodeId, label, NodeType.SINGLE, transitions, Collections.emptyList(),
         operation);
   }
 
-  public static NodeMetadata composite(String nodeId, Map<String, String> transitions,
+  public static NodeMetadata composite(String nodeId, String label, Map<String, String> transitions,
       List<String> nestedNodes, OperationMetadata operation) {
-    return new NodeMetadata(nodeId, NodeType.COMPOSITE, transitions, nestedNodes, operation);
+    return new NodeMetadata(nodeId, label, NodeType.COMPOSITE, transitions, nestedNodes, operation);
   }
 
-  private NodeMetadata(String nodeId, NodeType type, Map<String, String> transitions,
+  private NodeMetadata(String nodeId, String label, NodeType type, Map<String, String> transitions,
       List<String> nestedNodes, OperationMetadata operation) {
     this.nodeId = nodeId;
+    this.label = label;
     this.type = type;
     this.transitions = transitions;
     this.nestedNodes = nestedNodes;
@@ -50,6 +52,10 @@ public class NodeMetadata {
 
   public String getNodeId() {
     return nodeId;
+  }
+
+  public String getLabel() {
+    return label;
   }
 
   public NodeType getType() {
@@ -72,6 +78,7 @@ public class NodeMetadata {
   public String toString() {
     return "NodeMetadata{" +
         "nodeId='" + nodeId + '\'' +
+        ", label='" + label + '\'' +
         ", type=" + type +
         ", transitions=" + transitions +
         ", nestedNodes=" + nestedNodes +
