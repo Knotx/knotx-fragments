@@ -127,12 +127,14 @@ class MetadataConverterTest {
 
     JsonObject output = tested.createJson();
 
+    String missingNodeId = output.getJsonObject("on").getJsonObject("_error").getString("id");
+
     JsonObject expected = jsonForNode(ROOT_NODE, "custom")
         .put("_logStatus", "ok")
         .put("status", NodeStatus.UNSUPPORTED_TRANSITION)
         .put("on", new JsonObject()
             .put("_success", jsonForNode("node-A", "factory-A"))
-            .put("_error", jsonForMissingNode()))
+            .put("_error", jsonForMissingNode(missingNodeId)))
         .put("response", new JsonObject()
             .put("transition", "_error")
             .put("invocations", wrap(simpleNodeLog())));
@@ -288,6 +290,10 @@ class MetadataConverterTest {
 
     JsonObject output = tested.createJson();
 
+    String missingNodeId = output.getJsonObject("on").getJsonObject("_success")
+        .getJsonArray("subtasks").getJsonObject(1).getJsonObject("on").getJsonObject("_fallback")
+        .getString("id");
+
     JsonObject expected = jsonForActionNode("a-node")
         .put("response", new JsonObject()
             .put("transition", "_success")
@@ -323,7 +329,7 @@ class MetadataConverterTest {
                     jsonForActionNode("b2-subgraph")
                         .put("on", new JsonObject()
                             .put("_success", jsonForActionNode("d-node"))
-                            .put("_fallback", jsonForMissingNode()))
+                            .put("_fallback", jsonForMissingNode(missingNodeId)))
                         .put("response", new JsonObject()
                             .put("transition", "_fallback")
                             .put("invocations", wrap(complexNodeLog())))
@@ -419,9 +425,9 @@ class MetadataConverterTest {
     );
   }
 
-  private JsonObject jsonForMissingNode() {
+  private JsonObject jsonForMissingNode(String id) {
     return new JsonObject()
-        .put("id", "missing")
+        .put("id", id)
         .put("label", "!")
         .put("type", NodeType.SINGLE)
         .put("status", "missing")

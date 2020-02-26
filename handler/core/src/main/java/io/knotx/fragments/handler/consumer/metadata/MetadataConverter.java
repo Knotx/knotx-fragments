@@ -24,6 +24,7 @@ import io.vertx.core.json.JsonObject;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 import org.apache.commons.lang3.StringUtils;
 
 public class MetadataConverter {
@@ -76,7 +77,7 @@ public class MetadataConverter {
 
   private JsonObject missingNodeData() {
     return new JsonObject()
-        .put("id", MISSING)
+        .put("id", UUID.randomUUID().toString())
         .put("label", "!")
         .put("type", NodeType.SINGLE)
         .put("status", MISSING)
