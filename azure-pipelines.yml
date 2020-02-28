@@ -29,11 +29,12 @@ steps:
   - task: CmdLine@2
     inputs:
       script: |
+        ORGANIZATION=$(cut -d'/' -f1 <<<$(Build.Repository.Name))
         cd knotx-aggregator/development
         if [[ -z "$(System.PullRequest.SourceBranch)" ]] ; then
-          ./pull-all.sh -r ../../$(workspaceDir) -b "$(Build.SourceBranchName)" -a
+          ./pull-all.sh -r ../../$(workspaceDir) -b "$(Build.SourceBranchName)" -a -o $ORGANIZATION
         else
-          ./pull-all.sh -r ../../$(workspaceDir) -b $(System.PullRequest.SourceBranch) -a
+          ./pull-all.sh -r ../../$(workspaceDir) -b $(System.PullRequest.SourceBranch) -a -o $ORGANIZATION
         fi
     displayName: "Clone all repositories"
   - task: Gradle@2
