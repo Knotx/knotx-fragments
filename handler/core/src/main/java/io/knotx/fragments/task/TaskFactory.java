@@ -66,9 +66,21 @@ public interface TaskFactory {
    *
    * @param context fragment event context
    * @return new task instance
+   * @deprecated use {@link #newInstanceWithMetadata(FragmentEventContext)} instead
    */
+  @Deprecated
   Task newInstance(FragmentEventContext context);
 
+  /**
+   * Creates the new task instance. It is called only if {@link #accept(FragmentEventContext)}
+   * returns <code>true</code>. When called with a fragment that does not provide a task name, then
+   * {@link ConfigurationException} is thrown.
+   *
+   * Attempts to fill TaskMetadata with information on task structure.
+   *
+   * @param context fragment event context
+   * @return new task instance with metadata
+   */
   default TaskWithMetadata newInstanceWithMetadata(FragmentEventContext context) {
     Task task = newInstance(context);
     return new TaskWithMetadata(

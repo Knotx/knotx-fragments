@@ -160,7 +160,7 @@ class DefaultTaskFactoryTest {
         ConfigurationException.class,
         () -> new DefaultTaskFactory()
             .configure(createTaskFactoryConfig(graph, actionNodeConfig).toJson(), vertx)
-            .newInstance(fragmentWithNoTask));
+            .newInstanceWithMetadata(fragmentWithNoTask));
   }
 
   @Test
@@ -171,12 +171,12 @@ class DefaultTaskFactoryTest {
     GraphNodeOptions graph = new GraphNodeOptions("A", NO_TRANSITIONS);
 
     // when
-    Task task = new DefaultTaskFactory()
+    TaskWithMetadata task = new DefaultTaskFactory()
         .configure(createTaskFactoryConfig(graph, actionNodeConfig).toJson(), vertx)
-        .newInstance(SAMPLE_FRAGMENT_EVENT);
+        .newInstanceWithMetadata(SAMPLE_FRAGMENT_EVENT);
 
     // then
-    assertEquals(TASK_NAME, task.getName());
+    assertEquals(TASK_NAME, task.getTask().getName());
   }
 
   @Test
@@ -192,8 +192,8 @@ class DefaultTaskFactoryTest {
 
     // then
     assertNotSame(
-        taskFactory.newInstance(SAMPLE_FRAGMENT_EVENT),
-        taskFactory.newInstance(SAMPLE_FRAGMENT_EVENT)
+        taskFactory.newInstanceWithMetadata(SAMPLE_FRAGMENT_EVENT),
+        taskFactory.newInstanceWithMetadata(SAMPLE_FRAGMENT_EVENT)
     );
   }
 
@@ -205,14 +205,14 @@ class DefaultTaskFactoryTest {
     GraphNodeOptions graph = new GraphNodeOptions("A", NO_TRANSITIONS);
 
     // when
-    Task task = new DefaultTaskFactory()
+    TaskWithMetadata task = new DefaultTaskFactory()
         .configure(
             createTaskFactoryConfig(graph, actionNodeConfig).setTaskNameKey(MY_TASK_KEY).toJson(),
             vertx)
-        .newInstance(SAMPLE_FRAGMENT_EVENT_WITH_CUSTOM_TASK_KEY);
+        .newInstanceWithMetadata(SAMPLE_FRAGMENT_EVENT_WITH_CUSTOM_TASK_KEY);
 
     // then
-    assertEquals(TASK_NAME, task.getName());
+    assertEquals(TASK_NAME, task.getTask().getName());
   }
 
   @Test

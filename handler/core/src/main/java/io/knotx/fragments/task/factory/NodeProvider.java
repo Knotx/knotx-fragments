@@ -20,6 +20,10 @@ import io.knotx.fragments.engine.api.node.Node;
 import io.knotx.fragments.task.factory.node.NodeOptions;
 import java.util.Map;
 
+/**
+ * Initialize {@link io.knotx.fragments.engine.api.node.single.SingleNode} or {@link
+ * io.knotx.fragments.engine.api.node.composite.CompositeNode} instances based on node options.
+ */
 public interface NodeProvider {
 
   /**
@@ -43,6 +47,8 @@ public interface NodeProvider {
    * @return {@link io.knotx.fragments.engine.api.node.single.SingleNode} or {@link
    * io.knotx.fragments.engine.api.node.composite.CompositeNode} instance
    */
-  Node initNode(GraphNodeOptions nodeOptions, Map<String, NodeMetadata> nodesMetadata);
+  default Node initNode(GraphNodeOptions nodeOptions, Map<String, NodeMetadata> nodesMetadata) {
+    return initNode(nodeOptions);
+  }
 
 }
