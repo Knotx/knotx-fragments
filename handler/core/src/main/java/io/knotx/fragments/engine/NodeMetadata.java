@@ -62,10 +62,16 @@ public class NodeMetadata {
     return type;
   }
 
+  /**
+   * @return transition name to node id map
+   */
   public Map<String, String> getTransitions() {
     return transitions;
   }
 
+  /**
+   * @return list of composite nodes identifiers
+   */
   public List<String> getNestedNodes() {
     return nestedNodes;
   }

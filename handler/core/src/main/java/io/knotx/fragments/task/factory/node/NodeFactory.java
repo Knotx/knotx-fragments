@@ -55,7 +55,9 @@ public interface NodeFactory {
    * @param edges - prepared node outgoing edges
    * @param nodeProvider - node provider if the current node contains others
    * @return node instance
+   * @deprecated use {@link #initNode(GraphNodeOptions, Map, NodeProvider, Map)} instead.
    */
+  @Deprecated
   Node initNode(GraphNodeOptions nodeOptions, Map<String, Node> edges, NodeProvider nodeProvider);
 
   /**
