@@ -100,7 +100,7 @@ class ActionNodeFactoryTest {
 
     // when
     Node node = new ActionNodeFactory().configure(config, vertx)
-        .initNode(graph, Collections.emptyMap(), null);
+        .initNode(graph, Collections.emptyMap(), null, Collections.emptyMap());
 
     // then
     assertTrue(node instanceof SingleNode);

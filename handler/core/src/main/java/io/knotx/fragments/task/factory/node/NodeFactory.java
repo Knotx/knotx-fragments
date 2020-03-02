@@ -68,9 +68,7 @@ public interface NodeFactory {
    * @param nodeProvider - node provider if the current node contains others
    * @return node instance
    */
-  default Node initNode(GraphNodeOptions nodeOptions, Map<String, Node> edges, NodeProvider nodeProvider,
-      Map<String, NodeMetadata> nodesMetadata) {
-    return initNode(nodeOptions, edges, nodeProvider);
-  }
+  Node initNode(GraphNodeOptions nodeOptions, Map<String, Node> edges, NodeProvider nodeProvider,
+      Map<String, NodeMetadata> nodesMetadata);
 
 }

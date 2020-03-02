@@ -17,17 +17,32 @@ package io.knotx.fragments.task.factory;
 
 import io.knotx.fragments.engine.NodeMetadata;
 import io.knotx.fragments.engine.api.node.Node;
+import io.knotx.fragments.task.factory.node.NodeOptions;
 import java.util.Map;
 
-/**
- * Inits node based on node options.
- */
 public interface NodeProvider {
 
+  /**
+   * Init a graph node based on provided options. If factory defined in {@link
+   * NodeOptions#getFactory()} is not found, then it throws {@link io.knotx.fragments.task.exception.NodeFactoryNotFoundException}.
+   *
+   * @param nodeOptions node options
+   * @return {@link io.knotx.fragments.engine.api.node.single.SingleNode} or {@link
+   * io.knotx.fragments.engine.api.node.composite.CompositeNode} instance
+   * @deprecated use {@link #initNode(GraphNodeOptions, Map)} instead
+   */
+  @Deprecated
   Node initNode(GraphNodeOptions nodeOptions);
 
-  default Node initNode(GraphNodeOptions nodeOptions, Map<String, NodeMetadata> nodesMetadata) {
-    return initNode(nodeOptions);
-  }
+  /**
+   * Init a graph node based on provided options. If factory defined in {@link
+   * NodeOptions#getFactory()} is not found, then it throws {@link io.knotx.fragments.task.exception.NodeFactoryNotFoundException}.
+   * Additionally it adds node's metadata to nodesMetadata map.
+   *
+   * @param nodeOptions node options
+   * @return {@link io.knotx.fragments.engine.api.node.single.SingleNode} or {@link
+   * io.knotx.fragments.engine.api.node.composite.CompositeNode} instance
+   */
+  Node initNode(GraphNodeOptions nodeOptions, Map<String, NodeMetadata> nodesMetadata);
 
 }
