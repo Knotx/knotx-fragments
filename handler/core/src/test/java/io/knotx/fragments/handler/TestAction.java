@@ -34,7 +34,6 @@ public class TestAction implements ActionFactory {
 
   @Override
   public Action create(String alias, JsonObject config, Vertx vertx, Action doAction) {
-
     String transition = config.getString("transition");
 
     return (fragmentContext, resultHandler) -> {

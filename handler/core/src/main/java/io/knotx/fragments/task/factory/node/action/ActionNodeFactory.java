@@ -110,7 +110,7 @@ public class ActionNodeFactory implements NodeFactory {
         .setData(new JsonObject()
             .put("alias", config.getAction())
             .put("actionFactory", actionConfig.getFactory())
-            .put("actionConfig", actionConfig.toJson()));
+            .put("actionConfig", actionConfig.getConfig()));
   }
 
   private Function<FragmentContext, Single<FragmentResult>> toRxFunction(
