@@ -132,7 +132,7 @@ class SubtasksNodeFactoryTest {
 
     // when
     Node node = new SubtasksNodeFactory().configure(new JsonObject(), vertx)
-        .initNode(graph, Collections.emptyMap(), nodeProvider, Collections.emptyMap());
+        .initNode(graph, Collections.emptyMap(), nodeProvider, new HashMap<>());
 
     // then
     CompositeNode compositeRootNode = (CompositeNode) node;
@@ -157,7 +157,7 @@ class SubtasksNodeFactoryTest {
 
     // when
     Node node = new SubtasksNodeFactory().configure(new JsonObject(), vertx)
-        .initNode(graph, transitionsToNodes, nodeProvider, Collections.emptyMap());
+        .initNode(graph, transitionsToNodes, nodeProvider, new HashMap<>());
 
     // then
     assertTrue(node.next(SUCCESS_TRANSITION).isPresent());
