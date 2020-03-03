@@ -18,6 +18,7 @@ package io.knotx.fragments.handler.consumer;
 import io.knotx.fragments.api.Fragment;
 import io.knotx.fragments.engine.FragmentEvent;
 import io.knotx.fragments.engine.TaskMetadata;
+import io.knotx.fragments.engine.TasksMetadata;
 import io.knotx.server.api.context.ClientRequest;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -50,23 +51,20 @@ public class FragmentHtmlBodyWriterFactory implements FragmentEventsConsumerFact
       private String requestParam = getConditionParam(config);
 
       @Override
-      public void accept(ClientRequest request, List<FragmentEvent> events,
-          Map<String, TaskMetadata> taskMetadataByFragmentId) {
+      public void accept(ClientRequest request, List<FragmentEvent> events, TasksMetadata tasksMetadata) {
         if (containsHeader(request) || containsParam(request)) {
           events.stream()
               .filter(this::isSupported)
-              .forEach(event -> wrapFragmentBodyWithMetadata(event, taskMetadataByFragmentId));
+              .forEach(event -> wrapFragmentBodyWithMetadata(event, tasksMetadata));
         }
       }
 
-      private void wrapFragmentBodyWithMetadata(FragmentEvent event,
-          Map<String, TaskMetadata> taskMetadataByFragmentId) {
+      private void wrapFragmentBodyWithMetadata(FragmentEvent event, TasksMetadata tasksMetadata) {
         TaskMetadata taskMetadata = Optional.of(event)
             .map(FragmentEvent::getFragment)
             .map(Fragment::getId)
-            .map(taskMetadataByFragmentId::get).orElse(null);
-        wrapFragmentBody(event.getFragment(),
-            FragmentExecutionLog.from(event, taskMetadata).toJson());
+            .map(tasksMetadata::get).orElse(null);
+        wrapFragmentBody(event.getFragment(), FragmentExecutionLog.from(event, taskMetadata).toJson());
       }
 
       private void wrapFragmentBody(Fragment fragment, JsonObject log) {

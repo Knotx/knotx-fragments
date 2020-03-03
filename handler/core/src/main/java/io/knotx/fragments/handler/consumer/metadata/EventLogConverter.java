@@ -38,8 +38,8 @@ class EventLogConverter {
   JsonObject fillWithLog(JsonObject input, String id) {
     List<EventLogEntry> logs = getLogEntriesFor(id);
     if (logs.isEmpty()) {
-      return input.put(LOG_STATUS, "missing")
-          .put(STATUS, NodeStatus.UNPROCESSED);
+      return input.put(LOG_STATUS, "MISSING")
+          .put(STATUS, NodeStatus.MISSING);
     } else if (logs.size() == 1) {
       EventLogEntry log = logs.get(0);
       return input.put(STATUS, log.getStatus())

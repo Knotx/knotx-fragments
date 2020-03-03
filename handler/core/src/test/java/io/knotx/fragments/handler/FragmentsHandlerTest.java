@@ -85,20 +85,21 @@ class FragmentsHandlerTest {
   void shouldFail(Vertx vertx, VertxTestContext testContext)
       throws Throwable {
     HoconLoader.verify("handler/singleTaskFactoryWithFailingTask.conf", config -> {
-      //given
+      // given
       RoutingContext routingContext = mockRoutingContext("failing-task");
       FragmentsHandler underTest = new FragmentsHandler(vertx, config);
 
-      //when
-      underTest.handle(routingContext);
-
-      //then
+      // when
       doAnswer(invocation -> {
         testContext.completeNow();
         return null;
       })
-          .when(routingContext)
-          .fail(500);
+              .when(routingContext)
+              .fail(500);
+
+      underTest.handle(routingContext);
+
+      // then verified as correct (assertion inside HoconLoader::verify)
     }, testContext, vertx);
   }
 

@@ -17,6 +17,7 @@ package io.knotx.fragments.handler.consumer;
 
 import io.knotx.fragments.engine.FragmentEvent;
 import io.knotx.fragments.engine.TaskMetadata;
+import io.knotx.fragments.engine.TasksMetadata;
 import io.knotx.server.api.context.ClientRequest;
 import java.util.List;
 import java.util.Map;
@@ -32,8 +33,8 @@ public interface FragmentEventsConsumer {
    *
    * @param clientRequest - client request
    * @param fragmentEvents - all fragment events
-   * @param taskMetadataByFragmentId - mapping from fragment id to associated task's metadata
+   * @param tasksMetadata - mapping from fragment id to associated task's metadata
    */
-  void accept(ClientRequest clientRequest, List<FragmentEvent> fragmentEvents, Map<String, TaskMetadata> taskMetadataByFragmentId);
+  void accept(ClientRequest clientRequest, List<FragmentEvent> fragmentEvents, TasksMetadata tasksMetadata);
 
 }

@@ -30,7 +30,7 @@ import org.apache.commons.lang3.StringUtils;
 public class MetadataConverter {
 
   private static final String METADATA_STATUS = "_metadataStatus";
-  private static final String MISSING = "missing";
+  private static final String MISSING = "MISSING";
   private static final String LOG_STATUS = "_logStatus";
 
   private final String rootNodeId;

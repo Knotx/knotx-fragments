@@ -52,15 +52,7 @@ public class SubtasksNodeFactory implements NodeFactory {
   }
 
   @Override
-  public Node initNode(GraphNodeOptions nodeOptions, Map<String, Node> edges,
-      NodeProvider nodeProvider) {
-    // The implementation is for backwards compatibility of NodeFactory interface
-    return initNode(nodeOptions, edges, nodeProvider, new HashMap<>());
-  }
-
-  @Override
-  public Node initNode(GraphNodeOptions nodeOptions, Map<String, Node> edges,
-      NodeProvider nodeProvider, Map<String, NodeMetadata> nodesMetadata) {
+  public Node initNode(GraphNodeOptions nodeOptions, Map<String, Node> edges, NodeProvider nodeProvider, Map<String, NodeMetadata> nodesMetadata) {
     SubtasksNodeConfig config = new SubtasksNodeConfig(nodeOptions.getNode().getConfig());
     List<Node> nodes = config.getSubtasks().stream()
         .map(subTaskConfig -> nodeProvider.initNode(subTaskConfig, nodesMetadata))

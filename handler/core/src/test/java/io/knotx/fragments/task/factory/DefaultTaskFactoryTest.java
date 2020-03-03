@@ -240,7 +240,7 @@ class DefaultTaskFactoryTest {
         .get("A");
 
     // then
-    TaskMetadata metadata = taskWithMetadata.getTaskMetadata();
+    TaskMetadata metadata = taskWithMetadata.getMetadata();
     assertEquals(TASK_NAME, metadata.getTaskName());
 
     NodeMetadata rootMetadata = metadata.getNodesMetadata().get(metadata.getRootNodeId());
@@ -284,7 +284,7 @@ class DefaultTaskFactoryTest {
         new GraphNodeOptions("B", NO_TRANSITIONS)));
 
     // when
-    TaskMetadata metadata = getTaskWithMetadata(rootNodeOptions, options, vertx).getTaskMetadata();
+    TaskMetadata metadata = getTaskWithMetadata(rootNodeOptions, options, vertx).getMetadata();
 
     // then
     assertEquals(TASK_NAME, metadata.getTaskName());
@@ -345,7 +345,7 @@ class DefaultTaskFactoryTest {
     );
 
     // when
-    TaskMetadata metadata = getTaskWithMetadata(rootNodeOptions, options, vertx).getTaskMetadata();
+    TaskMetadata metadata = getTaskWithMetadata(rootNodeOptions, options, vertx).getMetadata();
 
     Map<String, ActionFactoryOptions> actions = new ActionNodeFactoryConfig(options).getActions();
 

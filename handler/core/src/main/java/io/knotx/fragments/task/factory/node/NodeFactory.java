@@ -21,6 +21,8 @@ import io.knotx.fragments.task.factory.GraphNodeOptions;
 import io.knotx.fragments.task.factory.NodeProvider;
 import io.vertx.core.json.JsonObject;
 import io.vertx.reactivex.core.Vertx;
+
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -58,7 +60,9 @@ public interface NodeFactory {
    * @deprecated use {@link #initNode(GraphNodeOptions, Map, NodeProvider, Map)} instead.
    */
   @Deprecated
-  Node initNode(GraphNodeOptions nodeOptions, Map<String, Node> edges, NodeProvider nodeProvider);
+  default Node initNode(GraphNodeOptions nodeOptions, Map<String, Node> edges, NodeProvider nodeProvider) {
+    return initNode(nodeOptions, edges, nodeProvider, new HashMap<>());
+  }
 
   /**
    * Initialize node instance. Nodes are stateless and stateful.
@@ -68,9 +72,5 @@ public interface NodeFactory {
    * @param nodeProvider - node provider if the current node contains others
    * @return node instance
    */
-  default Node initNode(GraphNodeOptions nodeOptions, Map<String, Node> edges, NodeProvider nodeProvider,
-      Map<String, NodeMetadata> nodesMetadata) {
-    return initNode(nodeOptions, edges, nodeProvider);
-  }
-
+  Node initNode(GraphNodeOptions nodeOptions, Map<String, Node> edges, NodeProvider nodeProvider, Map<String, NodeMetadata> nodesMetadata);
 }

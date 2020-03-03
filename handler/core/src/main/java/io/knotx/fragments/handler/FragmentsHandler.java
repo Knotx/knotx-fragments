@@ -18,14 +18,8 @@
 package io.knotx.fragments.handler;
 
 import io.knotx.fragments.api.Fragment;
-import io.knotx.fragments.engine.FragmentEvent;
+import io.knotx.fragments.engine.*;
 import io.knotx.fragments.engine.FragmentEvent.Status;
-import io.knotx.fragments.engine.FragmentEventContext;
-import io.knotx.fragments.engine.FragmentEventContextTaskAware;
-import io.knotx.fragments.engine.FragmentsEngine;
-import io.knotx.fragments.engine.TaskMetadata;
-import io.knotx.fragments.engine.TaskWithMetadata;
-import io.knotx.fragments.engine.api.Task;
 import io.knotx.fragments.handler.consumer.FragmentEventsConsumerProvider;
 import io.knotx.server.api.context.ClientRequest;
 import io.knotx.server.api.context.RequestContext;
@@ -40,9 +34,8 @@ import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import io.vertx.reactivex.core.Vertx;
 import io.vertx.reactivex.ext.web.RoutingContext;
-import java.util.LinkedHashMap;
+
 import java.util.List;
-import java.util.Map;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -71,42 +64,31 @@ public class FragmentsHandler implements Handler<RoutingContext> {
     final List<Fragment> fragments = routingContext.get("fragments");
     final ClientRequest clientRequest = requestContext.getRequestEvent().getClientRequest();
 
-    // The LinkedHashMap is required to keep the initial order of the Fragments
-    // Ordinary HashMap does not preserve ordering.
-    LinkedHashMap<FragmentEventContext, TaskWithMetadata> executionPlan = createExecutionPlan(
-        fragments,
-        clientRequest);
+    ExecutionPlan executionPlan = new ExecutionPlan(fragments, clientRequest, taskProvider);
 
     doHandle(executionPlan)
         .doOnSuccess(events -> putFragments(routingContext, events))
         .doOnSuccess(events -> enrichWithEventConsumers(clientRequest, events, executionPlan))
         .map(events -> toHandlerResult(events, requestContext))
         .subscribe(
-            result -> requestContextEngine
-                .processAndSaveResult(result, routingContext, requestContext),
+            result -> requestContextEngine.processAndSaveResult(result, routingContext, requestContext),
             error -> requestContextEngine.handleFatal(routingContext, requestContext, error)
         );
   }
 
-  protected Single<List<FragmentEvent>> doHandle(
-      LinkedHashMap<FragmentEventContext, TaskWithMetadata> executionPlan) {
-    return engine.execute(executionPlan.entrySet().stream()
-        .map(entry -> new FragmentEventContextTaskAware(entry.getValue().getTask(), entry.getKey()))
+  public ExecutionPlan createExecutionPlan(List<Fragment> fragments, ClientRequest clientRequest) {
+    return new ExecutionPlan(fragments, clientRequest, taskProvider);
+  }
+
+  protected Single<List<FragmentEvent>> doHandle(ExecutionPlan executionPlan) {
+    return engine.execute(executionPlan.getEntryStream()
+        .map(entry -> new FragmentEventContextTaskAware(entry.getTaskWithMetadata().getTask(), entry.getContext()))
         .collect(Collectors.toList()));
   }
 
-  private void enrichWithEventConsumers(ClientRequest clientRequest,
-      List<FragmentEvent> events, Map<FragmentEventContext, TaskWithMetadata> executionPlan) {
-    Map<String, TaskMetadata> taskMetadataByFragmentId = getTaskMetadataByFragmentId(executionPlan);
-    fragmentEventsConsumerProvider.provide()
-        .forEach(consumer -> consumer.accept(clientRequest, events, taskMetadataByFragmentId));
-  }
-
-  private Map<String, TaskMetadata> getTaskMetadataByFragmentId(
-      Map<FragmentEventContext, TaskWithMetadata> executionPlan) {
-    return executionPlan.entrySet().stream()
-        .collect(Collectors.toMap(entry -> entry.getKey().getFragmentEvent().getFragment().getId(),
-            entry -> entry.getValue().getTaskMetadata()));
+  private void enrichWithEventConsumers(ClientRequest clientRequest, List<FragmentEvent> events, ExecutionPlan executionPlan) {
+    TasksMetadata tasksMetadata = executionPlan.getTasksMetadata();
+    fragmentEventsConsumerProvider.provide().forEach(consumer -> consumer.accept(clientRequest, events, tasksMetadata));
   }
 
   private void putFragments(RoutingContext routingContext, List<FragmentEvent> events) {
@@ -147,30 +129,4 @@ public class FragmentsHandler implements Handler<RoutingContext> {
         .map(FragmentEvent::getFragment)
         .collect(Collectors.toList());
   }
-
-  LinkedHashMap<FragmentEventContext, TaskWithMetadata> createExecutionPlan(
-      List<Fragment> fragments,
-      ClientRequest clientRequest) {
-    LOGGER.trace("Processing fragments [{}]", fragments);
-    return fragments.stream()
-        .map(fragment -> new FragmentEventContext(new FragmentEvent(fragment), clientRequest))
-        .collect(Collectors.toMap(context -> context,
-            this::getTaskWithMetadataFor,
-            (u, v) -> {
-              throw new IllegalStateException(String.format("Duplicate key %s", u));
-            },
-            LinkedHashMap::new
-        ));
-  }
-
-  private TaskWithMetadata getTaskWithMetadataFor(FragmentEventContext fragmentEventContext) {
-    return taskProvider.newInstance(fragmentEventContext)
-        .map(task -> {
-          LOGGER.trace("Created task [{}] for fragment [{}]", task,
-              fragmentEventContext.getFragmentEvent().getFragment().getId());
-          return task;
-        })
-        .orElseGet(() -> new TaskWithMetadata(new Task("_NOT_DEFINED"), TaskMetadata.notDefined()));
-  }
-
 }

@@ -24,15 +24,13 @@ public class TaskMetadata {
   private String rootNodeId;
   private Map<String, NodeMetadata> nodesMetadata;
 
-  private TaskMetadata(String taskName, String rootNodeId,
-      Map<String, NodeMetadata> nodesMetadata) {
+  private TaskMetadata(String taskName, String rootNodeId, Map<String, NodeMetadata> nodesMetadata) {
     this.taskName = taskName;
     this.rootNodeId = rootNodeId;
     this.nodesMetadata = nodesMetadata;
   }
 
-  public static TaskMetadata create(String taskName, String rootNodeId,
-      Map<String, NodeMetadata> nodesMetadata) {
+  public static TaskMetadata create(String taskName, String rootNodeId, Map<String, NodeMetadata> nodesMetadata) {
     return new TaskMetadata(taskName, rootNodeId, nodesMetadata);
   }
 

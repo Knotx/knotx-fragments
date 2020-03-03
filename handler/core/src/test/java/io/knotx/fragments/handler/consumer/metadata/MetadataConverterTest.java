@@ -18,6 +18,7 @@ package io.knotx.fragments.handler.consumer.metadata;
 import static io.knotx.junit5.assertions.KnotxAssertions.assertJsonEquals;
 
 import com.google.common.collect.ImmutableMap;
+import com.sun.org.apache.xalan.internal.xsltc.compiler.util.NodeSetType;
 import io.knotx.fragments.api.Fragment;
 import io.knotx.fragments.engine.EventLog;
 import io.knotx.fragments.engine.EventLogEntry;
@@ -45,6 +46,7 @@ class MetadataConverterTest {
 
   private static final String TASK_NAME = "some-task";
   private static final String ROOT_NODE = "1234-4321-1234";
+  private static final String MISSING = "MISSING";
 
   private MetadataConverter tested;
 
@@ -436,9 +438,9 @@ class MetadataConverterTest {
         .put("id", id)
         .put("label", "!")
         .put("type", NodeType.SINGLE)
-        .put("status", "missing")
-        .put("_logStatus", "missing")
-        .put("_metadataStatus", "missing");
+        .put("status", NodeStatus.MISSING)
+        .put("_logStatus", MISSING)
+        .put("_metadataStatus", MISSING);
   }
 
   private JsonObject jsonForNode(String id, String factory) {
@@ -449,8 +451,8 @@ class MetadataConverterTest {
         .put("on", new JsonObject())
         .put("subtasks", new JsonArray())
         .put("operation", new OperationMetadata().setFactory(factory).toJson())
-        .put("status", NodeStatus.UNPROCESSED)
-        .put("_logStatus", "missing")
+        .put("status", NodeStatus.MISSING)
+        .put("_logStatus", MISSING)
         .put("_metadataStatus", "ok");
   }
 
@@ -466,9 +468,9 @@ class MetadataConverterTest {
   private JsonObject jsonForNotDescribedNode(String id) {
     return new JsonObject()
         .put("id", id)
-        .put("status", NodeStatus.UNPROCESSED)
-        .put("_logStatus", "missing")
-        .put("_metadataStatus", "missing");
+        .put("status", NodeStatus.MISSING)
+        .put("_logStatus", MISSING)
+        .put("_metadataStatus", MISSING);
   }
 
   private JsonArray wrap(JsonObject instance) {

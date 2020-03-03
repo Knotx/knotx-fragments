@@ -60,15 +60,7 @@ public class ActionNodeFactory implements NodeFactory {
   }
 
   @Override
-  public Node initNode(GraphNodeOptions nodeOptions, Map<String, Node> edges,
-      NodeProvider nodeProvider) {
-    // The implementation is for backwards compatibility of NodeFactory interface
-    return initNode(nodeOptions, edges, nodeProvider, new HashMap<>());
-  }
-
-  @Override
-  public Node initNode(GraphNodeOptions nodeOptions, Map<String, Node> edges,
-      NodeProvider nodeProvider, Map<String, NodeMetadata> nodesMetadata) {
+  public Node initNode(GraphNodeOptions nodeOptions, Map<String, Node> edges, NodeProvider nodeProvider, Map<String, NodeMetadata> nodesMetadata) {
     ActionNodeConfig config = new ActionNodeConfig(nodeOptions.getNode().getConfig());
     Action action = actionProvider.get(config.getAction()).orElseThrow(
         () -> new ActionNotFoundException(config.getAction()));

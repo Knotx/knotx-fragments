@@ -55,8 +55,7 @@ public class FragmentExecutionLog {
     return new FragmentExecutionLog(
         event,
         Optional.ofNullable(taskMetadata)
-            .map(metadata -> MetadataConverter
-                .from(event, metadata))
+            .map(metadata -> MetadataConverter.from(event, metadata))
             .map(MetadataConverter::createJson)
             .orElseGet(JsonObject::new)
     );

@@ -38,20 +38,20 @@ class EventLogConverterTest {
   private EventLogConverter tested;
 
   @Test
-  @DisplayName("Expect _logStatus=missing when log does not contain any entries")
+  @DisplayName("Expect _logStatus=missing and status=MISSING when log does not contain any entries")
   void fillWithEmptyLog() {
     givenEmptyLogConverter();
 
     JsonObject output = tested.fillWithLog(new JsonObject(), NODE_ID);
 
-    JsonObject expected = new JsonObject().put("_logStatus", "missing")
-        .put("status", NodeStatus.UNPROCESSED);
+    JsonObject expected = new JsonObject().put("_logStatus", "MISSING")
+        .put("status", NodeStatus.MISSING);
 
     assertEquals(expected, output);
   }
 
   @Test
-  @DisplayName("Expect _logStatus=missing and status=UNPROCESSED when log does not contain entries for the given node")
+  @DisplayName("Expect _logStatus=missing and status=MISSING when log does not contain entries for the given node")
   void fillWithMissingLogEntries() {
     givenLogConverter(
         EventLogEntry.success(TASK_NAME, "non-existent", successFragmentResult())
@@ -60,8 +60,8 @@ class EventLogConverterTest {
     JsonObject output = tested.fillWithLog(new JsonObject(), NODE_ID);
 
     JsonObject expected = new JsonObject()
-        .put("status", NodeStatus.UNPROCESSED)
-        .put("_logStatus", "missing");
+        .put("status", NodeStatus.MISSING)
+        .put("_logStatus", "MISSING");
 
     assertEquals(expected, output);
   }

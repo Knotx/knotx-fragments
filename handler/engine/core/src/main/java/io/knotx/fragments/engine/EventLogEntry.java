@@ -125,7 +125,8 @@ public class EventLogEntry {
     UNSUPPORTED_TRANSITION,
     ERROR,
     TIMEOUT,
-    UNPROCESSED//?
+    UNPROCESSED,
+    MISSING
   }
 
 }

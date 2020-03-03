@@ -31,7 +31,7 @@ public class TaskWithMetadata {
     return task;
   }
 
-  public TaskMetadata getTaskMetadata() {
+  public TaskMetadata getMetadata() {
     return taskMetadata;
   }
 
