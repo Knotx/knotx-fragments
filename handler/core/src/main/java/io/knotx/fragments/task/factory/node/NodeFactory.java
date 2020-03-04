@@ -68,6 +68,7 @@ public interface NodeFactory {
    * @param nodeOptions - graph node options
    * @param edges - prepared node outgoing edges
    * @param nodeProvider - node provider if the current node contains others
+   * @param nodesMetadata - node id to metadata map
    * @return node instance
    */
   default Node initNode(NodeOptions nodeOptions, Map<String, Node> edges, NodeProvider nodeProvider,
