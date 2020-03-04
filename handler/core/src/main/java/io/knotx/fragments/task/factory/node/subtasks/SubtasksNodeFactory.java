@@ -26,6 +26,7 @@ import io.knotx.fragments.engine.api.node.composite.CompositeNode;
 import io.knotx.fragments.task.factory.GraphNodeOptions;
 import io.knotx.fragments.task.factory.NodeProvider;
 import io.knotx.fragments.task.factory.node.NodeFactory;
+import io.knotx.fragments.task.factory.node.NodeOptions;
 import io.vertx.core.json.JsonObject;
 import io.vertx.reactivex.core.Vertx;
 import java.util.HashMap;
@@ -52,8 +53,15 @@ public class SubtasksNodeFactory implements NodeFactory {
   }
 
   @Override
-  public Node initNode(GraphNodeOptions nodeOptions, Map<String, Node> edges, NodeProvider nodeProvider, Map<String, NodeMetadata> nodesMetadata) {
-    SubtasksNodeConfig config = new SubtasksNodeConfig(nodeOptions.getNode().getConfig());
+  public Node initNode(GraphNodeOptions nodeOptions, Map<String, Node> edges,
+      NodeProvider nodeProvider) {
+    // The implementation is for backwards compatibility of NodeFactory interface
+    return initNode(nodeOptions.getNode(), edges, nodeProvider, new HashMap<>());
+  }
+
+  @Override
+  public Node initNode(NodeOptions nodeOptions, Map<String, Node> edges, NodeProvider nodeProvider, Map<String, NodeMetadata> nodesMetadata) {
+    SubtasksNodeConfig config = new SubtasksNodeConfig(nodeOptions.getConfig());
     List<Node> nodes = config.getSubtasks().stream()
         .map(subTaskConfig -> nodeProvider.initNode(subTaskConfig, nodesMetadata))
         .collect(Collectors.toList());

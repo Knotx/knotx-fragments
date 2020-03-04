@@ -18,7 +18,6 @@ package io.knotx.fragments.handler.consumer.metadata;
 import static io.knotx.junit5.assertions.KnotxAssertions.assertJsonEquals;
 
 import com.google.common.collect.ImmutableMap;
-import com.sun.org.apache.xalan.internal.xsltc.compiler.util.NodeSetType;
 import io.knotx.fragments.api.Fragment;
 import io.knotx.fragments.engine.EventLog;
 import io.knotx.fragments.engine.EventLogEntry;

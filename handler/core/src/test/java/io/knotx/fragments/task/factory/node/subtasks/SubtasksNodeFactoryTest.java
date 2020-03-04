@@ -17,6 +17,8 @@ package io.knotx.fragments.task.factory.node.subtasks;
 
 import static io.knotx.fragments.engine.api.node.single.FragmentResult.ERROR_TRANSITION;
 import static io.knotx.fragments.engine.api.node.single.FragmentResult.SUCCESS_TRANSITION;
+import static io.knotx.fragments.task.factory.node.subtasks.SubtasksNodeFactory.NAME;
+import static java.util.Collections.singletonList;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -26,6 +28,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import io.knotx.fragments.engine.NodeMetadata;
 import io.knotx.fragments.engine.api.node.Node;
 import io.knotx.fragments.engine.api.node.NodeType;
 import io.knotx.fragments.engine.api.node.composite.CompositeNode;
@@ -49,8 +52,12 @@ import org.junit.jupiter.api.extension.ExtendWith;
 @ExtendWith(VertxExtension.class)
 class SubtasksNodeFactoryTest {
 
+  private static final String FACTORY_NAME = "factoryName";
+  private static final JsonObject FACTORY_CONFIG = new JsonObject();
+
   private static final Map<String, GraphNodeOptions> NO_TRANSITIONS = Collections.emptyMap();
-  public static final String NODE_FACTORY_NAME = "factory";
+  private static final Map<String, Node> NO_EDGES = Collections.emptyMap();
+
 
   @Test
   @DisplayName("Node is composite.")
@@ -59,14 +66,11 @@ class SubtasksNodeFactoryTest {
     NodeProvider nodeProvider = mock(NodeProvider.class);
     when(nodeProvider.initNode(any(), any())).thenThrow(new IllegalStateException());
 
-    GraphNodeOptions graph = new GraphNodeOptions(
-        Collections.emptyList(),
-        NO_TRANSITIONS
-    );
+    NodeOptions nodeOptions = nodeOptions();
 
     // when
-    Node node = new SubtasksNodeFactory().configure(new JsonObject(), vertx)
-        .initNode(graph, Collections.emptyMap(), nodeProvider, new HashMap<>());
+    Node node = new SubtasksNodeFactory().configure(FACTORY_CONFIG, vertx)
+        .initNode(nodeOptions, NO_EDGES, nodeProvider, emptyMetadata());
 
     // then
     assertEquals(NodeType.COMPOSITE, node.getType());
@@ -80,14 +84,11 @@ class SubtasksNodeFactoryTest {
     NodeProvider nodeProvider = mock(NodeProvider.class);
     when(nodeProvider.initNode(any(), any())).thenThrow(new IllegalStateException());
 
-    GraphNodeOptions graph = new GraphNodeOptions(
-        Collections.emptyList(),
-        NO_TRANSITIONS
-    );
+    NodeOptions nodeOptions = nodeOptions();
 
     // when
-    Node node = new SubtasksNodeFactory().configure(new JsonObject(), vertx)
-            .initNode(graph, Collections.emptyMap(), nodeProvider, new HashMap<>());
+    Node node = new SubtasksNodeFactory().configure(FACTORY_CONFIG, vertx)
+        .initNode(nodeOptions, NO_EDGES, nodeProvider, emptyMetadata());
 
     // then
     assertTrue(((CompositeNode) node).getNodes().isEmpty());
@@ -99,19 +100,18 @@ class SubtasksNodeFactoryTest {
     // given
     NodeProvider nodeProvider = mock(NodeProvider.class);
     when(nodeProvider.initNode(any(), any()))
-        .thenThrow(new NodeFactoryNotFoundException(NODE_FACTORY_NAME));
+        .thenThrow(new NodeFactoryNotFoundException(FACTORY_NAME));
 
-    GraphNodeOptions graph = new GraphNodeOptions(
-        subTasks(new GraphNodeOptions(
-            new NodeOptions(NODE_FACTORY_NAME, new JsonObject()),
-            NO_TRANSITIONS
-        )),
+    GraphNodeOptions subNodeConfig = new GraphNodeOptions(
+        new NodeOptions(FACTORY_NAME, new JsonObject()),
         NO_TRANSITIONS
     );
+    NodeOptions nodeOptions = new NodeOptions(NAME,
+        new SubtasksNodeConfig(singletonList(subNodeConfig)).toJson());
 
     assertThrows(NodeFactoryNotFoundException.class,
-        () -> new SubtasksNodeFactory().configure(new JsonObject(), vertx)
-            .initNode(graph, Collections.emptyMap(), nodeProvider, Collections.emptyMap()));
+        () -> new SubtasksNodeFactory().configure(FACTORY_CONFIG, vertx)
+            .initNode(nodeOptions, NO_EDGES, nodeProvider, emptyMetadata()));
   }
 
   @Test
@@ -119,20 +119,18 @@ class SubtasksNodeFactoryTest {
   void expectCompositeWithNodes(Vertx vertx) {
     // given
     GraphNodeOptions subNodeConfig = new GraphNodeOptions(
-        new NodeOptions(NODE_FACTORY_NAME, new JsonObject()),
+        new NodeOptions(FACTORY_NAME, new JsonObject()),
         NO_TRANSITIONS
     );
     NodeProvider nodeProvider = mock(NodeProvider.class);
     when(nodeProvider.initNode(eq(subNodeConfig), any())).thenReturn(new StubNode("A"));
 
-    GraphNodeOptions graph = new GraphNodeOptions(
-        subTasks(subNodeConfig),
-        NO_TRANSITIONS
-    );
+    NodeOptions nodeOptions = new NodeOptions(NAME,
+        new SubtasksNodeConfig(singletonList(subNodeConfig)).toJson());
 
     // when
-    Node node = new SubtasksNodeFactory().configure(new JsonObject(), vertx)
-        .initNode(graph, Collections.emptyMap(), nodeProvider, new HashMap<>());
+    Node node = new SubtasksNodeFactory().configure(FACTORY_CONFIG, vertx)
+        .initNode(nodeOptions, Collections.emptyMap(), nodeProvider, new HashMap<>());
 
     // then
     CompositeNode compositeRootNode = (CompositeNode) node;
@@ -146,18 +144,16 @@ class SubtasksNodeFactoryTest {
     NodeProvider nodeProvider = mock(NodeProvider.class);
     when(nodeProvider.initNode(any(), any())).thenThrow(new IllegalStateException());
 
-    GraphNodeOptions graph = new GraphNodeOptions(
-        Collections.emptyList(),
-        NO_TRANSITIONS
-    );
     Map<String, Node> transitionsToNodes = new HashMap<>();
     transitionsToNodes.put(SUCCESS_TRANSITION, new StubNode("B"));
     transitionsToNodes.put(ERROR_TRANSITION, new StubNode("C"));
     transitionsToNodes.put("otherTransition", new StubNode("D"));
 
+    NodeOptions nodeOptions = nodeOptions();
+
     // when
-    Node node = new SubtasksNodeFactory().configure(new JsonObject(), vertx)
-        .initNode(graph, transitionsToNodes, nodeProvider, new HashMap<>());
+    Node node = new SubtasksNodeFactory().configure(FACTORY_CONFIG, vertx)
+        .initNode(nodeOptions, transitionsToNodes, nodeProvider, emptyMetadata());
 
     // then
     assertTrue(node.next(SUCCESS_TRANSITION).isPresent());
@@ -169,7 +165,16 @@ class SubtasksNodeFactoryTest {
 
   // TODO verify node metadata
 
+  private NodeOptions nodeOptions() {
+    return new NodeOptions(NAME,
+        new SubtasksNodeConfig(Collections.emptyList()).toJson());
+  }
+
   private List<GraphNodeOptions> subTasks(GraphNodeOptions... nodes) {
     return Arrays.asList(nodes);
+  }
+
+  private Map<String, NodeMetadata> emptyMetadata() {
+    return new HashMap<>();
   }
 }

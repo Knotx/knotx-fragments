@@ -15,62 +15,96 @@
  */
 package io.knotx.fragments.task.factory.node.action;
 
+import static io.knotx.fragments.engine.api.node.single.FragmentResult.ERROR_TRANSITION;
+import static io.knotx.fragments.engine.api.node.single.FragmentResult.SUCCESS_TRANSITION;
+import static io.knotx.fragments.task.factory.node.action.ActionNodeFactory.METADATA_ACTION_CONFIG;
+import static io.knotx.fragments.task.factory.node.action.ActionNodeFactory.METADATA_ACTION_FACTORY;
+import static io.knotx.fragments.task.factory.node.action.ActionNodeFactory.METADATA_ALIAS;
+import static io.knotx.fragments.task.factory.node.action.ActionNodeFactory.NAME;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+import io.knotx.fragments.api.Fragment;
 import io.knotx.fragments.engine.NodeMetadata;
-import io.knotx.fragments.engine.OperationMetadata;
 import io.knotx.fragments.engine.api.node.Node;
 import io.knotx.fragments.engine.api.node.NodeType;
+import io.knotx.fragments.engine.api.node.single.FragmentContext;
+import io.knotx.fragments.engine.api.node.single.FragmentResult;
 import io.knotx.fragments.engine.api.node.single.SingleNode;
 import io.knotx.fragments.task.factory.ActionFactoryOptions;
 import io.knotx.fragments.task.factory.GraphNodeOptions;
+import io.knotx.fragments.task.factory.NodeProvider;
+import io.knotx.fragments.task.factory.node.NodeOptions;
 import io.knotx.fragments.task.factory.node.StubNode;
+import io.knotx.server.api.context.ClientRequest;
+import io.reactivex.Single;
 import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.VertxExtension;
+import io.vertx.junit5.VertxTestContext;
 import io.vertx.reactivex.core.Vertx;
-import jdk.dynalink.Operation;
+import java.util.AbstractMap;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
-import java.util.*;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
-import static io.knotx.fragments.engine.api.node.single.FragmentResult.ERROR_TRANSITION;
-import static io.knotx.fragments.engine.api.node.single.FragmentResult.SUCCESS_TRANSITION;
-import static org.junit.jupiter.api.Assertions.*;
-
 @ExtendWith(VertxExtension.class)
 class ActionNodeFactoryTest {
 
+  // ACTION NODE
   private static final Map<String, GraphNodeOptions> NO_TRANSITIONS = Collections.emptyMap();
+  private static final Map<String, Node> NO_EDGES = Collections.emptyMap();
+
+  // ACTION
+  private static final String ACTION_FACTORY_NAME = "test-action";
+  private static final JsonObject ACTION_CONFIG = new JsonObject()
+      .put("actionConfigKey", "actionConfigValue");
+
+  private static NodeProvider emptyNodeProvider;
+
+  @BeforeEach
+  void init() {
+    emptyNodeProvider = mock(NodeProvider.class);
+    when(emptyNodeProvider.initNode(any(), any())).thenThrow(new IllegalStateException());
+  }
 
   @Test
   @DisplayName("Expect exception when `config.actions` not defined.")
   void expectExceptionWhenActionsNotConfigured(Vertx vertx) {
     // given
-    String actionAlias = "A";
-    JsonObject config = new JsonObject();
-    GraphNodeOptions graph = new GraphNodeOptions(actionAlias, NO_TRANSITIONS);
+    ActionNodeFactoryConfig factoryConfig = new ActionNodeFactoryConfig(Collections.emptyMap());
+    NodeOptions nodeOptions = nodeOptions("A");
 
     // when, then
     Assertions.assertThrows(
-        ActionNotFoundException.class, () -> new ActionNodeFactory().configure(config, vertx)
-            .initNode(graph, Collections.emptyMap(), null, Collections.emptyMap()));
+        ActionNotFoundException.class,
+        () -> new ActionNodeFactory().configure(factoryConfig.toJson(), vertx)
+            .initNode(nodeOptions, NO_EDGES, emptyNodeProvider, emptyMetadata()));
   }
 
   @Test
   @DisplayName("Expect exception when action not found.")
   void expectExceptionWhenActionNotFound(Vertx vertx) {
     // given
-    String actionAlias = "A";
-    JsonObject config = createNodeConfig("otherAction");
-    GraphNodeOptions graph = new GraphNodeOptions(actionAlias, NO_TRANSITIONS);
+    ActionNodeFactoryConfig factoryConfig = factoryConfig("otherAction");
+    NodeOptions nodeOptions = nodeOptions("A");
 
     // when, then
     Assertions.assertThrows(
-        ActionNotFoundException.class, () -> new ActionNodeFactory().configure(config, vertx)
-            .initNode(graph, Collections.emptyMap(), null, Collections.emptyMap()));
+        ActionNotFoundException.class,
+        () -> new ActionNodeFactory().configure(factoryConfig.toJson(), vertx)
+            .initNode(nodeOptions, NO_EDGES, emptyNodeProvider, emptyMetadata()));
   }
 
   @Test
@@ -78,31 +112,34 @@ class ActionNodeFactoryTest {
   void expectSingleActionNode(Vertx vertx) {
     // given
     String actionAlias = "A";
-    JsonObject config = createNodeConfig(actionAlias);
-    GraphNodeOptions graph = new GraphNodeOptions(actionAlias, NO_TRANSITIONS);
+    ActionNodeFactoryConfig factoryConfig = factoryConfig(actionAlias);
+    NodeOptions nodeOptions = nodeOptions(actionAlias);
 
     // when
-    Node node = new ActionNodeFactory().configure(config, vertx)
-        .initNode(graph, Collections.emptyMap(), null, new HashMap<>());
+    Node node = new ActionNodeFactory().configure(factoryConfig.toJson(), vertx)
+        .initNode(nodeOptions, NO_EDGES, emptyNodeProvider, emptyMetadata());
 
     // then
+    assertNotNull(node);
     assertTrue(node instanceof SingleNode);
     assertEquals(NodeType.SINGLE, node.getType());
   }
 
   @Test
-  @DisplayName("Deprecated: Expect single node when action node defined.")
+  @Deprecated
+  @DisplayName("Expect single node when action node defined.")
   void validateDeprecatedApi(Vertx vertx) {
     // given
     String actionAlias = "A";
-    JsonObject config = createNodeConfig(actionAlias);
+    ActionNodeFactoryConfig factoryConfig = factoryConfig(actionAlias);
     GraphNodeOptions graph = new GraphNodeOptions(actionAlias, NO_TRANSITIONS);
 
     // when
-    Node node = new ActionNodeFactory().configure(config, vertx)
-        .initNode(graph, Collections.emptyMap(), null, new HashMap<>());
+    Node node = new ActionNodeFactory().configure(factoryConfig.toJson(), vertx)
+        .initNode(graph, NO_EDGES, emptyNodeProvider);
 
     // then
+    assertNotNull(node);
     assertTrue(node instanceof SingleNode);
     assertEquals(NodeType.SINGLE, node.getType());
   }
@@ -112,39 +149,37 @@ class ActionNodeFactoryTest {
   void expectUniqueActionNodeId(Vertx vertx) {
     // given
     String actionAlias = "A";
-    JsonObject config = createNodeConfig(actionAlias);
-    GraphNodeOptions graph = new GraphNodeOptions(actionAlias, NO_TRANSITIONS);
+    ActionNodeFactoryConfig factoryConfig = factoryConfig(actionAlias);
+    NodeOptions nodeOptions = nodeOptions(actionAlias);
+
+    ActionNodeFactory tested = new ActionNodeFactory().configure(factoryConfig.toJson(), vertx);
 
     // when
-    Node first = new ActionNodeFactory().configure(config, vertx)
-        .initNode(graph, Collections.emptyMap(), null, new HashMap<>());
-    // when
-    Node second = new ActionNodeFactory().configure(config, vertx)
-        .initNode(graph, Collections.emptyMap(), null, new HashMap<>());
+    Node first = tested
+        .initNode(nodeOptions, Collections.emptyMap(), emptyNodeProvider, emptyMetadata());
+    Node second = tested.initNode(nodeOptions, NO_EDGES, emptyNodeProvider, emptyMetadata());
 
     // then
     assertNotEquals(first.getId(), second.getId());
   }
-
-  // TODO verify that action function is execution works
 
   @Test
   @DisplayName("Expect node contains passed transitions.")
   void expectActionNodesGraphWithTransition(Vertx vertx) {
     // given
     String actionAlias = "A";
-    JsonObject config = createNodeConfig(actionAlias);
-    // this invalid configuration is expected
-    GraphNodeOptions graph = new GraphNodeOptions(actionAlias, NO_TRANSITIONS);
+    ActionNodeFactoryConfig factoryConfig = factoryConfig(actionAlias);
+    NodeOptions nodeOptions = nodeOptions(actionAlias);
 
-    // when
-    Map<String, Node> transitionToNode = Stream.of(
+    Map<String, Node> edges = Stream.of(
         new AbstractMap.SimpleImmutableEntry<>(SUCCESS_TRANSITION, new StubNode("B")),
         new AbstractMap.SimpleImmutableEntry<>(ERROR_TRANSITION, new StubNode("C")),
         new AbstractMap.SimpleImmutableEntry<>("custom", new StubNode("D")))
         .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-    Node node = new ActionNodeFactory().configure(config, vertx)
-        .initNode(graph, transitionToNode, null, new HashMap<>());
+
+    // when
+    Node node = new ActionNodeFactory().configure(factoryConfig.toJson(), vertx)
+        .initNode(nodeOptions, edges, emptyNodeProvider, emptyMetadata());
 
     // then
     assertTrue(node.next(SUCCESS_TRANSITION).isPresent());
@@ -156,39 +191,85 @@ class ActionNodeFactoryTest {
   }
 
   @Test
-  @DisplayName("Expect metadata to have correct information")
+  @DisplayName("Expect action logic is applied.")
+  void expectActionLogicIsApplied(Vertx vertx, VertxTestContext testContext) {
+    // given
+    String actionAlias = "A";
+    ActionNodeFactoryConfig factoryConfig = factoryConfig(actionAlias);
+    NodeOptions nodeOptions = nodeOptions(actionAlias);
+
+    // when
+    Node node = new ActionNodeFactory().configure(factoryConfig.toJson(), vertx)
+        .initNode(nodeOptions, NO_EDGES, emptyNodeProvider, emptyMetadata());
+
+    // then
+    SingleNode singleNode = (SingleNode) node;
+    Single<FragmentResult> result = singleNode.execute(
+        new FragmentContext(new Fragment("type", new JsonObject(), "body"), new ClientRequest()));
+    result
+        .doOnSuccess(response -> testContext.verify(() -> {
+          assertEquals(SUCCESS_TRANSITION, response.getTransition());
+          testContext.completeNow();
+        }))
+        .doOnError(testContext::failNow)
+        .subscribe();
+  }
+
+  @Test
+  @DisplayName("Expect metadata to have correct information.")
   void expectMetadataToHaveCorrectTransitions(Vertx vertx) {
     // given
     String actionAlias = "A";
-    JsonObject config = createNodeConfig(actionAlias);
-    GraphNodeOptions graph = new GraphNodeOptions(actionAlias, Collections.emptyMap());
+    ActionNodeFactoryConfig factoryConfig = factoryConfig(actionAlias);
+    NodeOptions nodeOptions = nodeOptions(actionAlias);
+
     Map<String, NodeMetadata> nodesMetadata = new HashMap<>();
+    Map<String, Node> edges = Stream.of(
+        new AbstractMap.SimpleImmutableEntry<>(SUCCESS_TRANSITION, new StubNode("B")),
+        new AbstractMap.SimpleImmutableEntry<>(ERROR_TRANSITION, new StubNode("C")),
+        new AbstractMap.SimpleImmutableEntry<>("custom", new StubNode("D")))
+        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
     // when
-    Node node = new ActionNodeFactory().configure(config, vertx).initNode(graph, Collections.emptyMap(), null, nodesMetadata);
+    Node node = new ActionNodeFactory().configure(factoryConfig.toJson(), vertx)
+        .initNode(nodeOptions, edges, emptyNodeProvider, nodesMetadata);
 
     // then
+    Map<String, String> expectedTransitions = Stream.of(new String[][]{
+        {SUCCESS_TRANSITION, "B"},
+        {ERROR_TRANSITION, "C"},
+        {"custom", "D"}
+    }).collect(Collectors.toMap(data -> data[0], data -> data[1]));
+
     assertEquals(1, nodesMetadata.entrySet().size());
+    assertTrue(nodesMetadata.values().stream().findFirst().isPresent());
 
-    NodeMetadata rootMetadata = nodesMetadata.values().stream().findFirst().get();
+    NodeMetadata metadata = nodesMetadata.values().stream().findFirst().get();
+    assertEquals(node.getId(), metadata.getNodeId());
+    assertEquals(actionAlias, metadata.getLabel());
+    assertEquals(node.getType(), metadata.getType());
+    assertEquals(expectedTransitions, metadata.getTransitions());
+    assertEquals(Collections.emptyList(), metadata.getNestedNodes());
+    assertNotNull(metadata.getOperation());
 
-    assertEquals(node.getId(), rootMetadata.getNodeId());
-    assertEquals(actionAlias, rootMetadata.getLabel());
-    assertEquals(node.getType(), rootMetadata.getType());
-    assertEquals(Collections.emptyMap(), rootMetadata.getTransitions());
-    assertEquals(Collections.emptyList(), rootMetadata.getNestedNodes());
-    assertNotNull(rootMetadata.getOperation());
-
-    JsonObject operationMetadata = rootMetadata.getOperation().getData();
-
-    assertEquals(actionAlias, operationMetadata.getString("alias"));
-    assertEquals("test-action", operationMetadata.getString("actionFactory"));
+    JsonObject operationMetadata = metadata.getOperation().getData();
+    assertEquals(actionAlias, operationMetadata.getString(METADATA_ALIAS));
+    assertEquals(ACTION_FACTORY_NAME, operationMetadata.getString(METADATA_ACTION_FACTORY));
+    assertEquals(ACTION_CONFIG, operationMetadata.getJsonObject(METADATA_ACTION_CONFIG));
   }
 
-  private JsonObject createNodeConfig(String actionName) {
+  private ActionNodeFactoryConfig factoryConfig(String actionName) {
     return new ActionNodeFactoryConfig(Collections.singletonMap(actionName,
         new ActionFactoryOptions(new JsonObject())
-            .setFactory("test-action")))
-        .toJson();
+            .setFactory(ACTION_FACTORY_NAME)
+            .setConfig(ACTION_CONFIG)));
+  }
+
+  private NodeOptions nodeOptions(String actionAlias) {
+    return new NodeOptions(NAME, new ActionNodeConfig(actionAlias).toJson());
+  }
+
+  private Map<String, NodeMetadata> emptyMetadata() {
+    return new HashMap<>();
   }
 }

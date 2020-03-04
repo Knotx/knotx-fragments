@@ -101,7 +101,7 @@ public class DefaultTaskFactory implements TaskFactory, NodeProvider {
   @Override
   public Node initNode(GraphNodeOptions nodeOptions, Map<String, NodeMetadata> nodesMetadata) {
     return findNodeFactory(nodeOptions)
-        .map(f -> f.initNode(nodeOptions, initTransitions(nodeOptions, nodesMetadata), this,
+        .map(f -> f.initNode(nodeOptions.getNode(), initTransitions(nodeOptions, nodesMetadata), this,
             nodesMetadata))
         .orElseThrow(() -> new NodeFactoryNotFoundException(nodeOptions.getNode().getFactory()));
   }
