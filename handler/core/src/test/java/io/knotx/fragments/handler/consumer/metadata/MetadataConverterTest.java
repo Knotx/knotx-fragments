@@ -28,6 +28,7 @@ import io.knotx.fragments.engine.OperationMetadata;
 import io.knotx.fragments.engine.TaskMetadata;
 import io.knotx.fragments.engine.api.node.NodeType;
 import io.knotx.fragments.engine.api.node.single.FragmentResult;
+import io.knotx.fragments.handler.LoggedNodeStatus;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import java.util.Arrays;
@@ -131,10 +132,9 @@ class MetadataConverterTest {
     String missingNodeId = output.getJsonObject("on").getJsonObject("_error").getString("id");
 
     JsonObject expected = jsonForNode(ROOT_NODE, "custom")
-        .put("_logStatus", "ok")
-        .put("status", NodeStatus.UNSUPPORTED_TRANSITION)
+        .put("status", LoggedNodeStatus.MISSING)
         .put("on", new JsonObject()
-            .put("_success", jsonForNode("node-A", "factory-A"))
+            .put("_success", jsonForNode( "node-A", "factory-A"))
             .put("_error", jsonForMissingNode(missingNodeId)))
         .put("response", new JsonObject()
             .put("transition", "_error")
@@ -158,8 +158,7 @@ class MetadataConverterTest {
     JsonObject output = tested.createJson();
 
     JsonObject expected = jsonForNode(ROOT_NODE, "custom")
-        .put("_logStatus", "ok")
-        .put("status", NodeStatus.SUCCESS)
+        .put("status", LoggedNodeStatus.SUCCESS)
         .put("response", new JsonObject()
             .put("transition", "_success")
             .put("invocations", wrap(simpleNodeLog())));
@@ -302,16 +301,14 @@ class MetadataConverterTest {
         .put("response", new JsonObject()
             .put("transition", "_success")
             .put("invocations", wrap(simpleNodeLog())))
-        .put("status", NodeStatus.SUCCESS)
-        .put("_logStatus", "ok")
+        .put("status", LoggedNodeStatus.SUCCESS)
         .put("on", new JsonObject()
             .put("_error", jsonForActionNode("c-node"))
             .put("_success", jsonForNode("b-composite", "subtasks")
                 .put("response", new JsonObject()
                     .put("transition", "_error")
                     .put("invocations", wrap(simpleNodeLog())))
-                .put("status", NodeStatus.SUCCESS)
-                .put("_logStatus", "ok")
+                .put("status", LoggedNodeStatus.SUCCESS)
                 .put("type", NodeType.COMPOSITE)
                 .put("label", "composite")
                 .put("on", new JsonObject()
@@ -320,8 +317,7 @@ class MetadataConverterTest {
                         .put("response", new JsonObject()
                             .put("transition", "_success")
                             .put("invocations", wrap(simpleNodeLog())))
-                        .put("status", NodeStatus.SUCCESS)
-                        .put("_logStatus", "ok")
+                        .put("status", LoggedNodeStatus.SUCCESS)
                     )
                 )
                 .put("subtasks", new JsonArray(Arrays.asList(
@@ -329,8 +325,7 @@ class MetadataConverterTest {
                         .put("response", new JsonObject()
                             .put("transition", "_success")
                             .put("invocations", wrap(simpleNodeLog())))
-                        .put("status", NodeStatus.SUCCESS)
-                        .put("_logStatus", "ok"),
+                        .put("status", LoggedNodeStatus.SUCCESS),
                     jsonForActionNode("b2-subgraph")
                         .put("on", new JsonObject()
                             .put("_success", jsonForActionNode("d-node"))
@@ -338,8 +333,7 @@ class MetadataConverterTest {
                         .put("response", new JsonObject()
                             .put("transition", "_fallback")
                             .put("invocations", wrap(complexNodeLog())))
-                        .put("status", NodeStatus.UNSUPPORTED_TRANSITION)
-                        .put("_logStatus", "ok")
+                        .put("status", LoggedNodeStatus.MISSING)
                 )))
             ));
 
@@ -432,13 +426,21 @@ class MetadataConverterTest {
     );
   }
 
+  private JsonObject jsonForOtherNode(String id) {
+    return new JsonObject()
+        .put("id", id)
+        .put("label", "!")
+        .put("type", NodeType.SINGLE)
+        .put("status", LoggedNodeStatus.OTHER)
+        .put("_metadataStatus", "ok");
+  }
+
   private JsonObject jsonForMissingNode(String id) {
     return new JsonObject()
         .put("id", id)
         .put("label", "!")
         .put("type", NodeType.SINGLE)
-        .put("status", NodeStatus.MISSING)
-        .put("_logStatus", MISSING)
+        .put("status", LoggedNodeStatus.MISSING)
         .put("_metadataStatus", MISSING);
   }
 
@@ -450,8 +452,7 @@ class MetadataConverterTest {
         .put("on", new JsonObject())
         .put("subtasks", new JsonArray())
         .put("operation", new OperationMetadata().setFactory(factory).toJson())
-        .put("status", NodeStatus.MISSING)
-        .put("_logStatus", MISSING)
+        .put("status", LoggedNodeStatus.UNPROCESSED)
         .put("_metadataStatus", "ok");
   }
 
@@ -467,8 +468,7 @@ class MetadataConverterTest {
   private JsonObject jsonForNotDescribedNode(String id) {
     return new JsonObject()
         .put("id", id)
-        .put("status", NodeStatus.MISSING)
-        .put("_logStatus", MISSING)
+        .put("status", LoggedNodeStatus.UNPROCESSED)
         .put("_metadataStatus", MISSING);
   }
 

@@ -21,6 +21,7 @@ import io.knotx.fragments.api.Fragment;
 import io.knotx.fragments.engine.EventLogEntry;
 import io.knotx.fragments.engine.EventLogEntry.NodeStatus;
 import io.knotx.fragments.engine.api.node.single.FragmentResult;
+import io.knotx.fragments.handler.LoggedNodeStatus;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import java.util.Arrays;
@@ -38,36 +39,32 @@ class EventLogConverterTest {
   private EventLogConverter tested;
 
   @Test
-  @DisplayName("Expect _logStatus=missing and status=MISSING when log does not contain any entries")
+  @DisplayName("Expect status=UNPROCESSED when log does not contain any entries")
   void fillWithEmptyLog() {
     givenEmptyLogConverter();
 
     JsonObject output = tested.fillWithLog(new JsonObject(), NODE_ID);
 
-    JsonObject expected = new JsonObject().put("_logStatus", "MISSING")
-        .put("status", NodeStatus.MISSING);
+    JsonObject expected = new JsonObject().put("status", LoggedNodeStatus.UNPROCESSED);
 
     assertEquals(expected, output);
   }
 
   @Test
-  @DisplayName("Expect _logStatus=missing and status=MISSING when log does not contain entries for the given node")
+  @DisplayName("Expect status=UNPROCESSED when log does not contain entries for the given node")
   void fillWithMissingLogEntries() {
     givenLogConverter(
         EventLogEntry.success(TASK_NAME, "non-existent", successFragmentResult())
     );
 
     JsonObject output = tested.fillWithLog(new JsonObject(), NODE_ID);
-
-    JsonObject expected = new JsonObject()
-        .put("status", NodeStatus.MISSING)
-        .put("_logStatus", "MISSING");
+    JsonObject expected = new JsonObject().put("status", LoggedNodeStatus.UNPROCESSED);
 
     assertEquals(expected, output);
   }
 
   @Test
-  @DisplayName("Expect _logStatus=ok when single success log entry for node")
+  @DisplayName("Expect status=SUCCESS when single success log entry for node")
   void fillWithSingleSuccessLogEntry() {
     EventLogEntry[] logs = new EventLogEntry[]{
         EventLogEntry.success(TASK_NAME, NODE_ID, successFragmentResult(nodeLog())),
@@ -79,8 +76,8 @@ class EventLogConverterTest {
 
     JsonObject output = tested.fillWithLog(new JsonObject(), NODE_ID);
 
-    JsonObject expected = new JsonObject().put("_logStatus", "ok")
-        .put("status", NodeStatus.SUCCESS)
+    JsonObject expected = new JsonObject()
+        .put("status", LoggedNodeStatus.SUCCESS)
         .put("response", new JsonObject()
             .put("transition", "_success")
             .put("invocations", new JsonArray().add(nodeLog())));
@@ -89,7 +86,7 @@ class EventLogConverterTest {
   }
 
   @Test
-  @DisplayName("Expect _logStatus=ok when single error log entry for node")
+  @DisplayName("Expect status=ERROR when single error log entry for node")
   void fillWithSingleErrorLogEntry() {
     EventLogEntry[] logs = new EventLogEntry[]{
         EventLogEntry.error(TASK_NAME, NODE_ID, "_error"),
@@ -101,8 +98,8 @@ class EventLogConverterTest {
 
     JsonObject output = tested.fillWithLog(new JsonObject(), NODE_ID);
 
-    JsonObject expected = new JsonObject().put("_logStatus", "ok")
-        .put("status", NodeStatus.ERROR)
+    JsonObject expected = new JsonObject()
+        .put("status", LoggedNodeStatus.ERROR)
         .put("response", new JsonObject()
             .put("transition", "_error")
             .put("invocations", new JsonArray()));
@@ -111,8 +108,30 @@ class EventLogConverterTest {
   }
 
   @Test
-  @DisplayName("Expect _logStatus=ok when double log entry for node with unsupported transition")
-  void fillWithDoubleLogEntry() {
+  @DisplayName("Expect status=OTHER when there's a single success log entry with custom transition")
+  void fillWithSingleSuccessCustomLogEntry() {
+    EventLogEntry[] logs = new EventLogEntry[]{
+        EventLogEntry.success(TASK_NAME, NODE_ID, successFragmentResult(nodeLog(), true)),
+        EventLogEntry.success(TASK_NAME, "non-existent", successFragmentResult()),
+        EventLogEntry.error(TASK_NAME, "non-existent", "timeout"),
+    };
+
+    givenLogConverter(logs);
+
+    JsonObject output = tested.fillWithLog(new JsonObject(), NODE_ID);
+
+    JsonObject expected = new JsonObject()
+        .put("status", LoggedNodeStatus.OTHER)
+        .put("response", new JsonObject()
+            .put("transition", "custom")
+            .put("invocations", new JsonArray().add(nodeLog())));
+
+    assertEquals(expected, output);
+  }
+
+  @Test
+  @DisplayName("Expect status=SUCCESS when there's an unsupported success transition")
+  void fillWithDoubleLogSuccessEntry() {
     EventLogEntry[] logs = new EventLogEntry[]{
         EventLogEntry.success(TASK_NAME, NODE_ID, successFragmentResult(nodeLog())),
         EventLogEntry.unsupported(TASK_NAME, NODE_ID, "_success"),
@@ -124,8 +143,8 @@ class EventLogConverterTest {
 
     JsonObject output = tested.fillWithLog(new JsonObject(), NODE_ID);
 
-    JsonObject expected = new JsonObject().put("_logStatus", "ok")
-        .put("status", NodeStatus.UNSUPPORTED_TRANSITION)
+    JsonObject expected = new JsonObject()
+        .put("status", LoggedNodeStatus.SUCCESS)
         .put("response", new JsonObject()
             .put("transition", "_success")
             .put("invocations", new JsonArray().add(nodeLog())));
@@ -134,22 +153,24 @@ class EventLogConverterTest {
   }
 
   @Test
-  @DisplayName("Expect _logStatus=multiple when given multiple log entries for node")
-  void fillWithMultipleLogEntries() {
+  @DisplayName("Expect status=MISSING when there's an unsupported non-success transition")
+  void fillWithDoubleLogNonSuccessEntry() {
     EventLogEntry[] logs = new EventLogEntry[]{
         EventLogEntry.error(TASK_NAME, NODE_ID, "_error"),
         EventLogEntry.unsupported(TASK_NAME, NODE_ID, "_error"),
-        EventLogEntry.success(TASK_NAME, NODE_ID, successFragmentResult())
+        EventLogEntry.success(TASK_NAME, "non-existent", successFragmentResult()),
+        EventLogEntry.error(TASK_NAME, "non-existent", "timeout"),
     };
 
     givenLogConverter(logs);
 
     JsonObject output = tested.fillWithLog(new JsonObject(), NODE_ID);
 
-    JsonObject expected = new JsonObject().put("_logStatus", "multiple")
-        .put("_rawLogs",
-            fromList(Arrays.stream(logs).filter(logEntry -> logEntry.getNode().equals(NODE_ID))
-                .map(EventLogEntry::toJson).collect(Collectors.toList())));
+    JsonObject expected = new JsonObject()
+        .put("status", LoggedNodeStatus.MISSING)
+        .put("response", new JsonObject()
+            .put("transition", "_error")
+            .put("invocations", new JsonArray()));
 
     assertEquals(expected, output);
   }
@@ -167,9 +188,13 @@ class EventLogConverterTest {
   }
 
   private FragmentResult successFragmentResult(JsonObject nodeLog) {
+    return successFragmentResult(nodeLog, false);
+  }
+
+  private FragmentResult successFragmentResult(JsonObject nodeLog, boolean customTransition) {
     return new FragmentResult(
         new Fragment("dummy", new JsonObject(), ""),
-        "_success",
+        customTransition ? "custom" : "_success",
         nodeLog
     );
   }

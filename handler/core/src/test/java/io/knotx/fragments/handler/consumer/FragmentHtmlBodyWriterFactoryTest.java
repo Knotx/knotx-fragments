@@ -252,9 +252,8 @@ class FragmentHtmlBodyWriterFactoryTest {
         .put("status", NodeStatus.UNPROCESSED)
         .put("graph", new JsonObject()
             .put("id", "root-node-id")
-            .put("status", NodeStatus.MISSING)
-            .put("_metadataStatus", "MISSING")
-            .put("_logStatus", "MISSING"));
+            .put("status", NodeStatus.UNPROCESSED)
+            .put("_metadataStatus", "MISSING"));
 
     // when
     FragmentEventsConsumer tested = new FragmentHtmlBodyWriterFactory().create(new JsonObject()

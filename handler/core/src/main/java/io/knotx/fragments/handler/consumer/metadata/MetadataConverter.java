@@ -31,7 +31,6 @@ public class MetadataConverter {
 
   private static final String METADATA_STATUS = "_metadataStatus";
   private static final String MISSING = "MISSING";
-  private static final String LOG_STATUS = "_logStatus";
 
   private final String rootNodeId;
   private final Map<String, NodeMetadata> nodes;
@@ -81,8 +80,7 @@ public class MetadataConverter {
         .put("label", "!")
         .put("type", NodeType.SINGLE)
         .put("status", MISSING)
-        .put(METADATA_STATUS, MISSING)
-        .put(LOG_STATUS, MISSING);
+        .put(METADATA_STATUS, MISSING);
   }
 
   private JsonObject fillWithMetadata(JsonObject input, String id) {

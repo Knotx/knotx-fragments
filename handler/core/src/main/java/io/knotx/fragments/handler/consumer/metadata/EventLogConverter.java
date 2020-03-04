@@ -17,17 +17,20 @@ package io.knotx.fragments.handler.consumer.metadata;
 
 import io.knotx.fragments.engine.EventLogEntry;
 import io.knotx.fragments.engine.EventLogEntry.NodeStatus;
+import io.knotx.fragments.handler.LoggedNodeStatus;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
-import java.util.Collections;
+import org.apache.commons.lang3.StringUtils;
+
 import java.util.List;
 import java.util.stream.Collectors;
 
 class EventLogConverter {
 
-  private static final String LOG_STATUS = "_logStatus";
-  private static final String RAW_LOGS = "_rawLogs";
   private static final String STATUS = "status";
+  private static final String RESPONSE = "response";
+  private static final String TRANSITION = "transition";
+  private static final String INVOCATIONS = "invocations";
 
   private final List<EventLogEntry> operationsLog;
 
@@ -37,57 +40,40 @@ class EventLogConverter {
 
   JsonObject fillWithLog(JsonObject input, String id) {
     List<EventLogEntry> logs = getLogEntriesFor(id);
+    LogData logData = getLogData(logs);
+
+    input.put(STATUS, logData.getStatus());
+
+    if (logData.hasResponse()) {
+      input.put(RESPONSE, new JsonObject()
+        .put(TRANSITION, logData.getTransition())
+        .put(INVOCATIONS, inJsonArray(logData.getNodeLog())));
+    }
+
+    return input;
+  }
+
+  private LogData getLogData(List<EventLogEntry> logs) {
     if (logs.isEmpty()) {
-      return input.put(LOG_STATUS, "MISSING")
-          .put(STATUS, NodeStatus.MISSING);
+      return new LogData(LoggedNodeStatus.UNPROCESSED, null, null);
     } else if (logs.size() == 1) {
       EventLogEntry log = logs.get(0);
-      return input.put(STATUS, log.getStatus())
-          .put("response", new JsonObject()
-              .put("transition", log.getTransition())
-              .put("invocations", wrap(log.getNodeLog()))
-          )
-          .put(LOG_STATUS, "ok");
+
+      return new LogData(LoggedNodeStatus.from(log), log.getTransition(), log.getNodeLog());
     } else {
-      try {
-        return handleMultipleLogEntries(input, logs);
-      } catch (IllegalArgumentException e) {
-        return input
-            .put(LOG_STATUS, "multiple")
-            .put(RAW_LOGS, wrap(logs));
-      }
+      EventLogEntry executionLog = getLogForExecution(logs);
+      EventLogEntry transitionLog = getLogForUnsupportedTransition(logs);
+
+      return executionLog.getStatus() == NodeStatus.SUCCESS
+          ? new LogData(LoggedNodeStatus.from(executionLog), transitionLog.getTransition(), executionLog.getNodeLog())
+          : new LogData(LoggedNodeStatus.from(transitionLog), transitionLog.getTransition(), executionLog.getNodeLog());
     }
   }
 
   private List<EventLogEntry> getLogEntriesFor(String id) {
-    if (id != null) {
-      return operationsLog.stream().filter(entry -> id.equals(entry.getNode()))
-          .collect(Collectors.toList());
-    } else {
-      return Collections.emptyList();
-    }
-  }
-
-  private JsonObject handleMultipleLogEntries(JsonObject input, List<EventLogEntry> logs) {
-    /*
-     * This is a workaround for the case when Fragment's EventLog contains two entries
-     * for node with the given id. If these entries turn out to be originating from a finished
-     * node's execution followed by a transition that was not supported, then this case is handled.
-     */
-    if (logs.size() != 2) {
-      throw new IllegalArgumentException();
-    }
-
-    EventLogEntry executionLog = getLogForExecution(logs);
-    EventLogEntry transitionLog = getLogForUnsupportedTransition(logs);
-
-    return input
-        .put(STATUS, transitionLog.getStatus())
-        .put("response", new JsonObject()
-            .put("transition", transitionLog.getTransition())
-            .put("invocations", wrap(executionLog.getNodeLog()))
-        )
-        .put(LOG_STATUS, "ok");
+    return operationsLog.stream()
+        .filter(entry -> StringUtils.equals(id, entry.getNode()))
+        .collect(Collectors.toList());
   }
 
   private EventLogEntry getLogForExecution(List<EventLogEntry> logs) {
@@ -115,7 +101,7 @@ class EventLogConverter {
     }
   }
 
-  private JsonArray wrap(JsonObject instance) {
+  private JsonArray inJsonArray(JsonObject instance) {
     if (instance != null) {
       return new JsonArray().add(instance);
     } else {
@@ -123,10 +109,31 @@ class EventLogConverter {
     }
   }
 
-  private JsonArray wrap(List<EventLogEntry> entries) {
-    JsonArray output = new JsonArray();
-    entries.forEach(entry -> output.add(entry.toJson()));
-    return output;
-  }
+  private static class LogData {
+    private LoggedNodeStatus status;
+    private String transition;
+    private JsonObject nodeLog;
 
+    public LogData(LoggedNodeStatus status, String transition, JsonObject nodeLog) {
+      this.status = status;
+      this.transition = transition;
+      this.nodeLog = nodeLog;
+    }
+
+    public LoggedNodeStatus getStatus() {
+      return status;
+    }
+
+    public String getTransition() {
+      return transition;
+    }
+
+    public JsonObject getNodeLog() {
+      return nodeLog;
+    }
+
+    public boolean hasResponse() {
+      return transition != null;
+    }
+  }
 }

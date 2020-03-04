@@ -22,8 +22,6 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.when;
 
-import io.knotx.fragments.engine.FragmentEventContext;
-import io.knotx.fragments.engine.FragmentEventContextTaskAware;
 import io.knotx.fragments.handler.api.exception.ConfigurationException;
 import io.knotx.fragments.HoconLoader;
 import io.knotx.fragments.api.Fragment;
@@ -39,9 +37,11 @@ import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
 import io.vertx.reactivex.core.Vertx;
 import io.vertx.reactivex.ext.web.RoutingContext;
+
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -94,8 +94,8 @@ class FragmentsHandlerTest {
         testContext.completeNow();
         return null;
       })
-              .when(routingContext)
-              .fail(500);
+          .when(routingContext)
+          .fail(500);
 
       underTest.handle(routingContext);
 
@@ -287,8 +287,7 @@ class FragmentsHandlerTest {
     RoutingContext routingContext = Mockito.mock(RoutingContext.class);
 
     when(routingContext.get(eq(RequestContext.KEY))).thenReturn(requestContext);
-    when(routingContext.get(eq("fragments"))).thenReturn(
-        newArrayList(fragment(task)));
+    when(routingContext.get(eq("fragments"))).thenReturn(newArrayList(fragment(task)));
     return routingContext;
   }
 
