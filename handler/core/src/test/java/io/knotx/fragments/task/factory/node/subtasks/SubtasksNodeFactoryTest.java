@@ -21,6 +21,8 @@ import static io.knotx.fragments.task.factory.node.subtasks.SubtasksNodeFactory.
 import static java.util.Collections.singletonList;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -40,11 +42,14 @@ import io.knotx.fragments.task.factory.node.StubNode;
 import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.reactivex.core.Vertx;
+import java.util.AbstractMap;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -95,6 +100,24 @@ class SubtasksNodeFactoryTest {
   }
 
   @Test
+  @DisplayName("Expect composite node id is unique.")
+  void expectUniqueNodeId(Vertx vertx) {
+    // given
+    NodeProvider nodeProvider = mock(NodeProvider.class);
+    when(nodeProvider.initNode(any(), any())).thenThrow(new IllegalStateException());
+    NodeOptions nodeOptions = nodeOptions();
+
+    SubtasksNodeFactory tested = new SubtasksNodeFactory().configure(FACTORY_CONFIG, vertx);
+
+    // when
+    Node first = tested.initNode(nodeOptions, NO_EDGES, nodeProvider, emptyMetadata());
+    Node second = tested.initNode(nodeOptions, NO_EDGES, nodeProvider, emptyMetadata());
+
+    // then
+    assertNotEquals(first.getId(), second.getId());
+  }
+
+  @Test
   @DisplayName("Expect exception when subtask can not be initialized.")
   void expectExceptionWhenSubtaskNotInitialized(Vertx vertx) {
     // given
@@ -107,8 +130,9 @@ class SubtasksNodeFactoryTest {
         NO_TRANSITIONS
     );
     NodeOptions nodeOptions = new NodeOptions(NAME,
-        new SubtasksNodeConfig(singletonList(subNodeConfig)).toJson());
+        new SubtasksNodeConfig(subTasks(subNodeConfig)).toJson());
 
+    // when, then
     assertThrows(NodeFactoryNotFoundException.class,
         () -> new SubtasksNodeFactory().configure(FACTORY_CONFIG, vertx)
             .initNode(nodeOptions, NO_EDGES, nodeProvider, emptyMetadata()));
@@ -126,7 +150,7 @@ class SubtasksNodeFactoryTest {
     when(nodeProvider.initNode(eq(subNodeConfig), any())).thenReturn(new StubNode("A"));
 
     NodeOptions nodeOptions = new NodeOptions(NAME,
-        new SubtasksNodeConfig(singletonList(subNodeConfig)).toJson());
+        new SubtasksNodeConfig(subTasks(subNodeConfig)).toJson());
 
     // when
     Node node = new SubtasksNodeFactory().configure(FACTORY_CONFIG, vertx)
@@ -163,7 +187,47 @@ class SubtasksNodeFactoryTest {
     assertFalse(node.next("otherTransition").isPresent());
   }
 
-  // TODO verify node metadata
+  @Test
+  @DisplayName("Expect metadata.")
+  void expectMetadata(Vertx vertx) {
+    // given
+    GraphNodeOptions subNodeConfig = new GraphNodeOptions(
+        new NodeOptions(FACTORY_NAME, new JsonObject()),
+        NO_TRANSITIONS
+    );
+    NodeProvider nodeProvider = mock(NodeProvider.class);
+    when(nodeProvider.initNode(eq(subNodeConfig), any())).thenReturn(new StubNode("A"));
+
+    NodeOptions nodeOptions = new NodeOptions(NAME,
+        new SubtasksNodeConfig(subTasks(subNodeConfig)).toJson());
+    Map<String, Node> edges = Stream.of(
+        new AbstractMap.SimpleImmutableEntry<>(SUCCESS_TRANSITION, new StubNode("B")),
+        new AbstractMap.SimpleImmutableEntry<>(ERROR_TRANSITION, new StubNode("C")),
+        new AbstractMap.SimpleImmutableEntry<>("custom", new StubNode("D")))
+        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+
+    // when
+    Map<String, NodeMetadata> nodesMetadata = emptyMetadata();
+    Node node = new SubtasksNodeFactory().configure(FACTORY_CONFIG, vertx)
+        .initNode(nodeOptions, edges, nodeProvider, nodesMetadata);
+
+    // then
+    Map<String, String> expectedTransitions = Stream.of(new String[][]{
+        {SUCCESS_TRANSITION, "B"},
+        {ERROR_TRANSITION, "C"},
+        {"custom", "D"}
+    }).collect(Collectors.toMap(data -> data[0], data -> data[1]));
+
+    assertTrue(nodesMetadata.values().stream().findFirst().isPresent());
+    NodeMetadata metadata = nodesMetadata.values().stream().findFirst().get();
+    assertEquals(node.getId(), metadata.getNodeId());
+    assertEquals("composite", metadata.getLabel());
+    assertEquals(node.getType(), metadata.getType());
+    assertEquals(expectedTransitions, metadata.getTransitions());
+    assertEquals(singletonList("A"), metadata.getNestedNodes());
+    assertNotNull(metadata.getOperation());
+    assertEquals(NAME, metadata.getOperation().getFactory());
+  }
 
   private NodeOptions nodeOptions() {
     return new NodeOptions(NAME,

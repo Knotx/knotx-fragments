@@ -217,7 +217,7 @@ class ActionNodeFactoryTest {
 
   @Test
   @DisplayName("Expect metadata to have correct information.")
-  void expectMetadataToHaveCorrectTransitions(Vertx vertx) {
+  void expectMetadata(Vertx vertx) {
     // given
     String actionAlias = "A";
     ActionNodeFactoryConfig factoryConfig = factoryConfig(actionAlias);
@@ -241,7 +241,7 @@ class ActionNodeFactoryTest {
         {"custom", "D"}
     }).collect(Collectors.toMap(data -> data[0], data -> data[1]));
 
-    assertEquals(1, nodesMetadata.entrySet().size());
+    assertEquals(1, nodesMetadata.size());
     assertTrue(nodesMetadata.values().stream().findFirst().isPresent());
 
     NodeMetadata metadata = nodesMetadata.values().stream().findFirst().get();
@@ -252,10 +252,11 @@ class ActionNodeFactoryTest {
     assertEquals(Collections.emptyList(), metadata.getNestedNodes());
     assertNotNull(metadata.getOperation());
 
-    JsonObject operationMetadata = metadata.getOperation().getData();
-    assertEquals(actionAlias, operationMetadata.getString(METADATA_ALIAS));
-    assertEquals(ACTION_FACTORY_NAME, operationMetadata.getString(METADATA_ACTION_FACTORY));
-    assertEquals(ACTION_CONFIG, operationMetadata.getJsonObject(METADATA_ACTION_CONFIG));
+    assertEquals(NAME, metadata.getOperation().getFactory());
+    JsonObject data = metadata.getOperation().getData();
+    assertEquals(actionAlias, data.getString(METADATA_ALIAS));
+    assertEquals(ACTION_FACTORY_NAME, data.getString(METADATA_ACTION_FACTORY));
+    assertEquals(ACTION_CONFIG, data.getJsonObject(METADATA_ACTION_CONFIG));
   }
 
   private ActionNodeFactoryConfig factoryConfig(String actionName) {
