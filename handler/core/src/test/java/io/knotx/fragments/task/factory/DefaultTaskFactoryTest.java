@@ -162,7 +162,8 @@ class DefaultTaskFactoryTest {
         );
     GraphNodeOptions rootNodeOptions = new GraphNodeOptions("A", NO_TRANSITIONS);
     DefaultTaskFactory tested = new DefaultTaskFactory()
-        .configure(taskFactoryConfig(rootNodeOptions, actionNodeConfig("A")).toJson(), vertx);
+        .configure(taskFactoryConfig(rootNodeOptions, actionNodeFactoryConfig("A")).toJson(),
+            vertx);
 
     // when, then
     assertThrows(
@@ -178,7 +179,7 @@ class DefaultTaskFactoryTest {
 
     // when
     TaskWithMetadata task = new DefaultTaskFactory()
-        .configure(taskFactoryConfig(rootNodeOptions, actionNodeConfig("A")).toJson(), vertx)
+        .configure(taskFactoryConfig(rootNodeOptions, actionNodeFactoryConfig("A")).toJson(), vertx)
         .newInstanceWithMetadata(fragmentEvent);
 
     // then
@@ -193,7 +194,8 @@ class DefaultTaskFactoryTest {
 
     // when
     DefaultTaskFactory taskFactory = new DefaultTaskFactory()
-        .configure(taskFactoryConfig(rootNodeOptions, actionNodeConfig("A")).toJson(), vertx);
+        .configure(taskFactoryConfig(rootNodeOptions, actionNodeFactoryConfig("A")).toJson(),
+            vertx);
 
     // then
     assertNotSame(
@@ -211,7 +213,7 @@ class DefaultTaskFactoryTest {
     // when
     TaskWithMetadata task = new DefaultTaskFactory()
         .configure(
-            taskFactoryConfig(rootNodeOptions, actionNodeConfig("A"))
+            taskFactoryConfig(rootNodeOptions, actionNodeFactoryConfig("A"))
                 .setTaskNameKey(MY_TASK_KEY)
                 .toJson(),
             vertx)
@@ -225,7 +227,7 @@ class DefaultTaskFactoryTest {
   @DisplayName("Expect task metadata when INFO is configured.")
   void expectMetadata(Vertx vertx) {
     // given
-    JsonObject actionNodeConfig = infoLevel(actionNodeConfig("A"));
+    JsonObject actionNodeConfig = infoLevel(actionNodeFactoryConfig("A"));
     GraphNodeOptions rootNodeOptions = new GraphNodeOptions("A", NO_TRANSITIONS);
 
     // when
@@ -256,7 +258,7 @@ class DefaultTaskFactoryTest {
   @DisplayName("Expect graph of two action nodes with transition between.")
   void expectNodesWithTransitionBetween(Vertx vertx) {
     // given
-    JsonObject options = actionNodeConfig("A", "B");
+    JsonObject options = actionNodeFactoryConfig("A", "B");
 
     GraphNodeOptions rootNodeOptions = new GraphNodeOptions("A",
         singletonMap("customTransition",
@@ -278,7 +280,7 @@ class DefaultTaskFactoryTest {
   @DisplayName("Expect metadata of two action nodes with transition between.")
   void expectMetadataForNodesWithTransitionBetween(Vertx vertx) {
     // given
-    JsonObject options = infoLevel(actionNodeConfig("A", "B"));
+    JsonObject options = infoLevel(actionNodeFactoryConfig("A", "B"));
 
     GraphNodeOptions rootNodeOptions = new GraphNodeOptions("A", singletonMap("customTransition",
         new GraphNodeOptions("B", NO_TRANSITIONS)));
@@ -302,7 +304,7 @@ class DefaultTaskFactoryTest {
   @DisplayName("Expect graph with nested composite nodes")
   void expectNestedCompositeNodesGraph(Vertx vertx) {
     // given
-    JsonObject options = actionNodeConfig("A");
+    JsonObject options = actionNodeFactoryConfig("A");
 
     GraphNodeOptions rootNodeOptions = new GraphNodeOptions(
         subTasks(
@@ -335,7 +337,7 @@ class DefaultTaskFactoryTest {
   @DisplayName("Expect metadata for graph with nested composite nodes")
   void expectMetadataForNestedCompositeNodesGraph(Vertx vertx) {
     // given
-    JsonObject options = infoLevel(actionNodeConfig("A"));
+    JsonObject options = infoLevel(actionNodeFactoryConfig("A"));
 
     GraphNodeOptions rootNodeOptions = new GraphNodeOptions(
         subTasks(
@@ -396,16 +398,12 @@ class DefaultTaskFactoryTest {
   }
 
 
-  private JsonObject actionNodeConfig(String... actionNames) {
+  private JsonObject actionNodeFactoryConfig(String... actionNames) {
     Map<String, ActionFactoryOptions> actionToOptions = new HashMap<>();
-    asList(actionNames).forEach(actionName -> {
-      actionToOptions.put(actionName,
-          new ActionFactoryOptions(TEST_ACTION_FACTORY)
-              .setConfig(new JsonObject().put("transition", SUCCESS_TRANSITION)));
-    });
-    return new ActionNodeFactoryConfig(
-        actionToOptions)
-        .toJson();
+    asList(actionNames).forEach(actionName -> actionToOptions.put(actionName,
+        new ActionFactoryOptions(TEST_ACTION_FACTORY)
+            .setConfig(new JsonObject().put("transition", SUCCESS_TRANSITION))));
+    return new ActionNodeFactoryConfig(actionToOptions).toJson();
   }
 
   private JsonObject infoLevel(JsonObject nodeFactoryConfig) {
