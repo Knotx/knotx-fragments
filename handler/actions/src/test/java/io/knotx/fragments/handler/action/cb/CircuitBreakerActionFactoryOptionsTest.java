@@ -15,6 +15,7 @@
  */
 package io.knotx.fragments.handler.action.cb;
 
+import static io.knotx.fragments.engine.api.node.single.FragmentResult.ERROR_TRANSITION;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -70,6 +71,6 @@ class CircuitBreakerActionFactoryOptionsTest {
     CircuitBreakerActionFactoryOptions tested = new CircuitBreakerActionFactoryOptions(json);
 
     // then
-    assertTrue(tested.getErrorTransitions().contains("_error"));
+    assertTrue(tested.getErrorTransitions().contains(ERROR_TRANSITION));
   }
 }

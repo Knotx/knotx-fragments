@@ -1,5 +1,7 @@
 package io.knotx.fragments.handler;
 
+import static io.knotx.fragments.engine.api.node.single.FragmentResult.SUCCESS_TRANSITION;
+
 import io.knotx.fragments.engine.EventLogEntry;
 
 public enum LoggedNodeStatus {
@@ -19,7 +21,7 @@ public enum LoggedNodeStatus {
       case UNSUPPORTED_TRANSITION:
         return MISSING;
       case SUCCESS:
-        return "_success".equals(logEntry.getTransition()) ? SUCCESS : OTHER;
+        return SUCCESS_TRANSITION.equals(logEntry.getTransition()) ? SUCCESS : OTHER;
       default:
         throw new IllegalArgumentException();
     }
