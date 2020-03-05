@@ -29,7 +29,6 @@ import org.apache.commons.lang3.StringUtils;
 
 public class MetadataConverter {
 
-  private static final String METADATA_STATUS = "_metadataStatus";
   private static final String MISSING = "MISSING";
 
   private final String rootNodeId;
@@ -79,8 +78,7 @@ public class MetadataConverter {
         .put("id", UUID.randomUUID().toString())
         .put("label", "!")
         .put("type", NodeType.SINGLE)
-        .put("status", MISSING)
-        .put(METADATA_STATUS, MISSING);
+        .put("status", MISSING);
   }
 
   private JsonObject fillWithMetadata(JsonObject input, String id) {
@@ -91,11 +89,9 @@ public class MetadataConverter {
           .put("label", metadata.getLabel())
           .put("subtasks", getSubTasks(metadata.getNestedNodes()))
           .put("operation", metadata.getOperation().toJson())
-          .put("on", getTransitions(metadata.getTransitions()))
-          .put(METADATA_STATUS, "ok");
+          .put("on", getTransitions(metadata.getTransitions()));
     } else {
-      return input.put("id", id)
-          .put(METADATA_STATUS, MISSING);
+      return input.put("id", id);
     }
   }
 
