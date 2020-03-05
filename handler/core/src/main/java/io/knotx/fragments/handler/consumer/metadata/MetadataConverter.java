@@ -21,6 +21,7 @@ import io.knotx.fragments.engine.FragmentEvent;
 import io.knotx.fragments.engine.NodeMetadata;
 import io.knotx.fragments.engine.TaskMetadata;
 import io.knotx.fragments.engine.api.node.NodeType;
+import io.knotx.fragments.handler.LoggedNodeStatus;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import java.util.List;
@@ -30,8 +31,6 @@ import java.util.UUID;
 import org.apache.commons.lang3.StringUtils;
 
 public class MetadataConverter {
-
-  private static final String MISSING = "MISSING";
 
   private final String rootNodeId;
   private final Map<String, NodeMetadata> nodes;
@@ -80,7 +79,7 @@ public class MetadataConverter {
         .put("id", UUID.randomUUID().toString())
         .put("label", "!")
         .put("type", NodeType.SINGLE)
-        .put("status", MISSING);
+        .put("status", LoggedNodeStatus.MISSING);
   }
 
   private JsonObject fillWithMetadata(JsonObject input, String id) {
