@@ -346,12 +346,11 @@ class MetadataConverterTest {
   }
 
   private void givenNotDefinedTaskMetadata() {
-    tested = MetadataConverter.from(emptyFragmentEvent(), TaskMetadata.notDefined());
+    tested = new MetadataConverter(emptyFragmentEvent(), TaskMetadata.notDefined());
   }
 
   private void givenNoMetadata(String rootNodeId) {
-    tested = MetadataConverter
-        .from(emptyFragmentEvent(), TaskMetadata.noMetadata(TASK_NAME, rootNodeId));
+    tested = new MetadataConverter(emptyFragmentEvent(), TaskMetadata.noMetadata(TASK_NAME, rootNodeId));
   }
 
   private void givenNodesMetadata(String rootNodeId, NodeMetadata... nodes) {
@@ -365,8 +364,7 @@ class MetadataConverterTest {
       metadata.put(node.getNodeId(), node);
     }
 
-    tested = MetadataConverter
-        .from(emptyFragmentEvent(eventLog), TaskMetadata.create(TASK_NAME, rootNodeId, metadata));
+    tested = new MetadataConverter(emptyFragmentEvent(eventLog), TaskMetadata.create(TASK_NAME, rootNodeId, metadata));
   }
 
   private FragmentEvent emptyFragmentEvent() {

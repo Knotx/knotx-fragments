@@ -36,14 +36,10 @@ public class MetadataConverter {
   private final Map<String, NodeMetadata> nodes;
   private final EventLogConverter eventLogConverter;
 
-  private MetadataConverter(FragmentEvent event, TaskMetadata taskMetadata) {
+  public MetadataConverter(FragmentEvent event, TaskMetadata taskMetadata) {
     this.rootNodeId = taskMetadata.getRootNodeId();
     this.nodes = taskMetadata.getNodesMetadata();
     this.eventLogConverter = new EventLogConverter(event.getLog().getOperations());
-  }
-
-  public static MetadataConverter from(FragmentEvent event, TaskMetadata metadata) {
-    return new MetadataConverter(event, metadata);
   }
 
   public JsonObject createJson() {

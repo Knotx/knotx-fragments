@@ -12,22 +12,21 @@ public enum LoggedNodeStatus {
   SUCCESS {
     @Override
     protected boolean isEquivalent(NodeStatus status, String transition) {
-      return status == NodeStatus.SUCCESS && SUCCESS_TRANSITION.equals(transition);
+      return SUCCESS_TRANSITION.equals(transition);
     }
   },
 
   ERROR {
     @Override
     protected boolean isEquivalent(NodeStatus status, String transition) {
-      return status == NodeStatus.ERROR && ERROR_TRANSITION.equals(transition);
+      return ERROR_TRANSITION.equals(transition);
     }
   },
 
   OTHER {
     @Override
     protected boolean isEquivalent(NodeStatus status, String transition) {
-      return (status == NodeStatus.SUCCESS && !SUCCESS_TRANSITION.equals(transition))
-          || (status == NodeStatus.ERROR && !ERROR_TRANSITION.equals(transition));
+      return transition != null && !SUCCESS_TRANSITION.equals(transition) && !ERROR_TRANSITION.equals(transition);
     }
   },
 

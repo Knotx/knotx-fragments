@@ -27,24 +27,24 @@ import java.util.Optional;
 @DataObject(generateConverter = true)
 public class FragmentExecutionLog {
 
-  private String fragmentId;
-  private String type;
-  private Status status;
+  private FragmentEvent.Status status;
   private long startTime;
   private long finishTime;
+  private JsonObject fragment;
   private JsonObject graph;
 
   private FragmentExecutionLog(FragmentEvent fragmentEvent, JsonObject graph) {
-    this.fragmentId = fragmentEvent.getFragment().getId();
-    this.type = fragmentEvent.getFragment().getType();
+    this.fragment = new FragmentData(fragmentEvent).toJson();
+    this.graph = graph;
+
     this.status = fragmentEvent.getStatus();
+
     /* TODO: the timestamps calculated below are not consistent with the actual execution time
         To fix this, a change in TaskEngine/FragmentsHandler is required */
     this.startTime = fragmentEvent.getLog().getOperations().stream()
         .mapToLong(EventLogEntry::getTimestamp).min().orElse(0);
     this.finishTime = fragmentEvent.getLog().getOperations().stream()
         .mapToLong(EventLogEntry::getTimestamp).max().orElse(0);
-    this.graph = graph;
   }
 
   public FragmentExecutionLog(JsonObject jsonObject) {
@@ -55,7 +55,7 @@ public class FragmentExecutionLog {
     return new FragmentExecutionLog(
         event,
         Optional.ofNullable(taskMetadata)
-            .map(metadata -> MetadataConverter.from(event, metadata))
+            .map(metadata -> new MetadataConverter(event, metadata))
             .map(MetadataConverter::createJson)
             .orElseGet(JsonObject::new)
     );
@@ -65,14 +65,6 @@ public class FragmentExecutionLog {
     JsonObject json = new JsonObject();
     FragmentExecutionLogConverter.toJson(this, json);
     return json;
-  }
-
-  public String getFragmentId() {
-    return fragmentId;
-  }
-
-  public String getType() {
-    return type;
   }
 
   public Status getStatus() {
@@ -86,6 +78,8 @@ public class FragmentExecutionLog {
   public long getFinishTime() {
     return finishTime;
   }
+
+  public JsonObject getFragment() { return fragment; }
 
   public JsonObject getGraph() {
     return graph;
