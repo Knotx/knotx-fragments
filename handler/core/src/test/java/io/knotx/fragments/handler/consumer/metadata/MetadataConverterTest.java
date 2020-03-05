@@ -15,13 +15,14 @@
  */
 package io.knotx.fragments.handler.consumer.metadata;
 
+import static io.knotx.fragments.engine.api.node.single.FragmentResult.ERROR_TRANSITION;
+import static io.knotx.fragments.engine.api.node.single.FragmentResult.SUCCESS_TRANSITION;
 import static io.knotx.junit5.assertions.KnotxAssertions.assertJsonEquals;
 
 import com.google.common.collect.ImmutableMap;
 import io.knotx.fragments.api.Fragment;
 import io.knotx.fragments.engine.EventLog;
 import io.knotx.fragments.engine.EventLogEntry;
-import io.knotx.fragments.engine.EventLogEntry.NodeStatus;
 import io.knotx.fragments.engine.FragmentEvent;
 import io.knotx.fragments.engine.NodeMetadata;
 import io.knotx.fragments.engine.OperationMetadata;
@@ -100,7 +101,7 @@ class MetadataConverterTest {
   @DisplayName("Expect correct JSON when metadata with two nodes with transition provided")
   void shouldProduceCorrectJsonForTwoNodesWithTransition() {
     givenNodesMetadata(ROOT_NODE,
-        simpleNode(ROOT_NODE, "custom", ImmutableMap.of("_success", "node-A")),
+        simpleNode(ROOT_NODE, "custom", ImmutableMap.of(SUCCESS_TRANSITION, "node-A")),
         simpleNode("node-A", "factory-A")
     );
 
@@ -108,7 +109,7 @@ class MetadataConverterTest {
 
     JsonObject expected = jsonForNode(ROOT_NODE, "custom")
         .put("on", new JsonObject()
-            .put("_success", jsonForNode("node-A", "factory-A")));
+            .put(SUCCESS_TRANSITION, jsonForNode("node-A", "factory-A")));
 
     assertJsonEquals(expected, output);
   }
@@ -117,26 +118,26 @@ class MetadataConverterTest {
   @DisplayName("Expect missing node metadata when transition returned in log that was not described")
   void shouldProduceCorrectJsonForMissingNodeCase() {
     EventLogEntry[] logs = new EventLogEntry[]{
-        EventLogEntry.error(TASK_NAME, ROOT_NODE, "_error"),
-        EventLogEntry.unsupported(TASK_NAME, ROOT_NODE, "_error")
+        EventLogEntry.error(TASK_NAME, ROOT_NODE, ERROR_TRANSITION),
+        EventLogEntry.unsupported(TASK_NAME, ROOT_NODE, ERROR_TRANSITION)
     };
 
     givenEventLogAndNodesMetadata(createEventLog(logs), ROOT_NODE,
-        simpleNode(ROOT_NODE, "custom", ImmutableMap.of("_success", "node-A")),
+        simpleNode(ROOT_NODE, "custom", ImmutableMap.of(SUCCESS_TRANSITION, "node-A")),
         simpleNode("node-A", "factory-A")
     );
 
     JsonObject output = tested.createJson();
 
-    String missingNodeId = output.getJsonObject("on").getJsonObject("_error").getString("id");
+    String missingNodeId = output.getJsonObject("on").getJsonObject(ERROR_TRANSITION).getString("id");
 
     JsonObject expected = jsonForNode(ROOT_NODE, "custom")
         .put("status", LoggedNodeStatus.MISSING)
         .put("on", new JsonObject()
-            .put("_success", jsonForNode( "node-A", "factory-A"))
-            .put("_error", jsonForMissingNode(missingNodeId)))
+            .put(SUCCESS_TRANSITION, jsonForNode( "node-A", "factory-A"))
+            .put(ERROR_TRANSITION, jsonForMissingNode(missingNodeId)))
         .put("response", new JsonObject()
-            .put("transition", "_error")
+            .put("transition", ERROR_TRANSITION)
             .put("invocations", new JsonArray()));
 
     assertJsonEquals(expected, output);
@@ -147,7 +148,7 @@ class MetadataConverterTest {
   void shouldProduceCorrectJsonForSuccessTransitionWithoutNextNode() {
     EventLogEntry[] logs = new EventLogEntry[]{
         EventLogEntry.success(TASK_NAME, ROOT_NODE,
-            createFragmentResult("_success", simpleNodeLog())),
+            createFragmentResult(SUCCESS_TRANSITION, simpleNodeLog())),
     };
 
     givenEventLogAndNodesMetadata(createEventLog(logs), ROOT_NODE,
@@ -159,7 +160,7 @@ class MetadataConverterTest {
     JsonObject expected = jsonForNode(ROOT_NODE, "custom")
         .put("status", LoggedNodeStatus.SUCCESS)
         .put("response", new JsonObject()
-            .put("transition", "_success")
+            .put("transition", SUCCESS_TRANSITION)
             .put("invocations", wrap(simpleNodeLog())));
 
     assertJsonEquals(expected, output);
@@ -216,13 +217,13 @@ class MetadataConverterTest {
   void shouldProduceCorrectJsonForComplexGraphWithFullMetadata() {
     givenNodesMetadata(ROOT_NODE,
         simpleNode(ROOT_NODE, "custom",
-            ImmutableMap.of("_success", "node-A", "_failure", "node-B")),
+            ImmutableMap.of(SUCCESS_TRANSITION, "node-A", "_failure", "node-B")),
         simpleNode("node-A", "factory-A"),
         compositeSubtasksNode("node-B",
-            ImmutableMap.of("_success", "node-C", "_error", "node-D", "_timeout", "node-E"),
+            ImmutableMap.of(SUCCESS_TRANSITION, "node-C", ERROR_TRANSITION, "node-D", "_timeout", "node-E"),
             "node-B1", "node-B2", "node-B3"
         ),
-        simpleNode("node-B1", "action", ImmutableMap.of("_success", "node-B1-special")),
+        simpleNode("node-B1", "action", ImmutableMap.of(SUCCESS_TRANSITION, "node-B1-special")),
         simpleNode("node-B1-special", "factory-B1-special"),
         simpleNode("node-B2", "factory-B2"),
         simpleNode("node-B3", "factory-B3"),
@@ -235,19 +236,19 @@ class MetadataConverterTest {
 
     JsonObject expected = jsonForNode(ROOT_NODE, "custom")
         .put("on", new JsonObject()
-            .put("_success", jsonForNode("node-A", "factory-A"))
+            .put(SUCCESS_TRANSITION, jsonForNode("node-A", "factory-A"))
             .put("_failure", jsonForNode("node-B", "subtasks")
                 .put("type", NodeType.COMPOSITE)
                 .put("label", "composite")
                 .put("on", new JsonObject()
-                    .put("_success", jsonForNode("node-C", "factory-C"))
-                    .put("_error", jsonForNode("node-D", "factory-D"))
+                    .put(SUCCESS_TRANSITION, jsonForNode("node-C", "factory-C"))
+                    .put(ERROR_TRANSITION, jsonForNode("node-D", "factory-D"))
                     .put("_timeout", jsonForNode("node-E", "factory-E"))
                 )
                 .put("subtasks", new JsonArray(Arrays.asList(
                     jsonForActionNode("node-B1")
                         .put("on", new JsonObject()
-                            .put("_success", jsonForNode("node-B1-special", "factory-B1-special"))),
+                            .put(SUCCESS_TRANSITION, jsonForNode("node-B1-special", "factory-B1-special"))),
                     jsonForNode("node-B2", "factory-B2"),
                     jsonForNode("node-B3", "factory-B3")
                 )))
@@ -260,25 +261,25 @@ class MetadataConverterTest {
   @DisplayName("Expect correct JSON when full metadata for complex graph provided with event log")
   void shouldProduceCorrectJsonForComplexGraphWithFullMetadataWithEventLog() {
     EventLog eventLog = createEventLog(
-        EventLogEntry.success(TASK_NAME, "a-node", createFragmentResult("_success", simpleNodeLog())),
-        EventLogEntry.success(TASK_NAME, "b1-subgraph", createFragmentResult("_success", simpleNodeLog())),
+        EventLogEntry.success(TASK_NAME, "a-node", createFragmentResult(SUCCESS_TRANSITION, simpleNodeLog())),
+        EventLogEntry.success(TASK_NAME, "b1-subgraph", createFragmentResult(SUCCESS_TRANSITION, simpleNodeLog())),
         EventLogEntry.success(TASK_NAME, "b2-subgraph", createFragmentResult("_fallback", complexNodeLog())),
         EventLogEntry.unsupported(TASK_NAME, "b2-subgraph", "_fallback"),
-        EventLogEntry.error(TASK_NAME, "b-composite", "_error"),
-        EventLogEntry.success(TASK_NAME, "f-node", createFragmentResult("_success", simpleNodeLog()))
+        EventLogEntry.error(TASK_NAME, "b-composite", ERROR_TRANSITION),
+        EventLogEntry.success(TASK_NAME, "f-node", createFragmentResult(SUCCESS_TRANSITION, simpleNodeLog()))
     );
 
     givenEventLogAndNodesMetadata(
         eventLog,
         "a-node",
         simpleNode("a-node", "action",
-            ImmutableMap.of("_success", "b-composite", "_error", "c-node")),
+            ImmutableMap.of(SUCCESS_TRANSITION, "b-composite", ERROR_TRANSITION, "c-node")),
         compositeSubtasksNode("b-composite",
-            ImmutableMap.of("_success", "e-node", "_error", "f-node"),
+            ImmutableMap.of(SUCCESS_TRANSITION, "e-node", ERROR_TRANSITION, "f-node"),
             "b1-subgraph", "b2-subgraph"
         ),
         simpleNode("b1-subgraph", "action"),
-        simpleNode("b2-subgraph", "action", ImmutableMap.of("_success", "d-node")),
+        simpleNode("b2-subgraph", "action", ImmutableMap.of(SUCCESS_TRANSITION, "d-node")),
         simpleNode("c-node", "action"),
         simpleNode("d-node", "action"),
         simpleNode("e-node", "action"),
@@ -287,29 +288,29 @@ class MetadataConverterTest {
 
     JsonObject output = tested.createJson();
 
-    String missingNodeId = output.getJsonObject("on").getJsonObject("_success")
+    String missingNodeId = output.getJsonObject("on").getJsonObject(SUCCESS_TRANSITION)
         .getJsonArray("subtasks").getJsonObject(1).getJsonObject("on").getJsonObject("_fallback")
         .getString("id");
 
     JsonObject expected = jsonForActionNode("a-node")
         .put("response", new JsonObject()
-            .put("transition", "_success")
+            .put("transition", SUCCESS_TRANSITION)
             .put("invocations", wrap(simpleNodeLog())))
         .put("status", LoggedNodeStatus.SUCCESS)
         .put("on", new JsonObject()
-            .put("_error", jsonForActionNode("c-node"))
-            .put("_success", jsonForNode("b-composite", "subtasks")
+            .put(ERROR_TRANSITION, jsonForActionNode("c-node"))
+            .put(SUCCESS_TRANSITION, jsonForNode("b-composite", "subtasks")
                 .put("response", new JsonObject()
-                    .put("transition", "_error")
+                    .put("transition", ERROR_TRANSITION)
                     .put("invocations", new JsonArray()))
                 .put("status", LoggedNodeStatus.ERROR)
                 .put("type", NodeType.COMPOSITE)
                 .put("label", "composite")
                 .put("on", new JsonObject()
-                    .put("_success", jsonForActionNode("e-node"))
-                    .put("_error", jsonForActionNode("f-node")
+                    .put(SUCCESS_TRANSITION, jsonForActionNode("e-node"))
+                    .put(ERROR_TRANSITION, jsonForActionNode("f-node")
                         .put("response", new JsonObject()
-                            .put("transition", "_success")
+                            .put("transition", SUCCESS_TRANSITION)
                             .put("invocations", wrap(simpleNodeLog())))
                         .put("status", LoggedNodeStatus.SUCCESS)
                     )
@@ -317,12 +318,12 @@ class MetadataConverterTest {
                 .put("subtasks", new JsonArray(Arrays.asList(
                     jsonForActionNode("b1-subgraph")
                         .put("response", new JsonObject()
-                            .put("transition", "_success")
+                            .put("transition", SUCCESS_TRANSITION)
                             .put("invocations", wrap(simpleNodeLog())))
                         .put("status", LoggedNodeStatus.SUCCESS),
                     jsonForActionNode("b2-subgraph")
                         .put("on", new JsonObject()
-                            .put("_success", jsonForActionNode("d-node"))
+                            .put(SUCCESS_TRANSITION, jsonForActionNode("d-node"))
                             .put("_fallback", jsonForMissingNode(missingNodeId)))
                         .put("response", new JsonObject()
                             .put("transition", "_fallback")

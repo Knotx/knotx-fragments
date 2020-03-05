@@ -15,6 +15,7 @@
  */
 package io.knotx.fragments.handler.action.cb;
 
+import static io.knotx.fragments.engine.api.node.single.FragmentResult.ERROR_TRANSITION;
 import static io.knotx.fragments.handler.action.cb.CircuitBreakerAction.ERROR_LOG_KEY;
 import static io.knotx.fragments.handler.action.cb.CircuitBreakerAction.INVOCATION_COUNT_LOG_KEY;
 import static io.knotx.fragments.handler.action.cb.CircuitBreakerActionFactory.FALLBACK_TRANSITION;
@@ -679,7 +680,7 @@ class CircuitBreakerActionFactoryTest {
     CircuitBreakerAction tested = new CircuitBreakerAction(circuitBreaker,
         CircuitBreakerDoActions
             .applyOneAfterAnother(firstInvocationBehaviour, secondInvocationBehaviour), "tested",
-        INFO, Collections.singleton("_error"));
+        INFO, Collections.singleton(ERROR_TRANSITION));
 
     // when
     tested.apply(new FragmentContext(FRAGMENT, new ClientRequest()), handler);

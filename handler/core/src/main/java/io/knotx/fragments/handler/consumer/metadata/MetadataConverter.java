@@ -15,6 +15,8 @@
  */
 package io.knotx.fragments.handler.consumer.metadata;
 
+import static io.knotx.fragments.engine.api.node.single.FragmentResult.SUCCESS_TRANSITION;
+
 import io.knotx.fragments.engine.FragmentEvent;
 import io.knotx.fragments.engine.NodeMetadata;
 import io.knotx.fragments.engine.TaskMetadata;
@@ -56,7 +58,7 @@ public class MetadataConverter {
   private JsonObject createNodeJson(String id) {
     return Optional.of(new JsonObject())
         .map(json -> fillWithMetadata(json, id))
-        .map(json -> eventLogConverter.fillWithLog(json, id))
+        .map(json -> json.mergeIn(eventLogConverter.fillWithLog(id).toJson()))
         .map(this::fillMissingNode)
         .orElseGet(JsonObject::new);  // Should never happen
   }
@@ -65,7 +67,7 @@ public class MetadataConverter {
     Optional.of(input)
         .map(metadata -> metadata.getJsonObject("response"))
         .map(response -> response.getString("transition"))
-        .filter(transition -> !"_success".equals(transition))
+        .filter(transition -> !SUCCESS_TRANSITION.equals(transition))
         .ifPresent(transition -> Optional.of(input)
             .map(metadata -> metadata.getJsonObject("on"))
             .filter(transitions -> !transitions.containsKey(transition))

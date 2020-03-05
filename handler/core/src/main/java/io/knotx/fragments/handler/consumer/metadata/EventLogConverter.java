@@ -27,30 +27,21 @@ import java.util.stream.Collectors;
 
 class EventLogConverter {
 
-  private static final String STATUS = "status";
-  private static final String RESPONSE = "response";
-  private static final String TRANSITION = "transition";
-  private static final String INVOCATIONS = "invocations";
-
   private final List<EventLogEntry> operationsLog;
 
   EventLogConverter(List<EventLogEntry> operationsLog) {
     this.operationsLog = operationsLog;
   }
 
-  JsonObject fillWithLog(JsonObject input, String id) {
+  NodeExecutionData fillWithLog(String id) {
     List<EventLogEntry> logs = getLogEntriesFor(id);
     LogData logData = getLogData(logs);
 
-    input.put(STATUS, logData.getStatus());
-
+    NodeExecutionData result = new NodeExecutionData(logData.getStatus());
     if (logData.hasResponse()) {
-      input.put(RESPONSE, new JsonObject()
-        .put(TRANSITION, logData.getTransition())
-        .put(INVOCATIONS, inJsonArray(logData.getNodeLog())));
+      result.setResponse(logData.getTransition(), inJsonArray(logData.getNodeLog()));
     }
-
-    return input;
+    return result;
   }
 
   private LogData getLogData(List<EventLogEntry> logs) {
@@ -136,4 +127,6 @@ class EventLogConverter {
       return transition != null;
     }
   }
+
+
 }
