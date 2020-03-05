@@ -52,7 +52,11 @@ public class EventLogEntry {
     return new EventLogEntry(task, node, NodeStatus.ERROR, transition,null);
   }
 
-  static EventLogEntry timeout(String task, String node) {
+  public static EventLogEntry unprocessed(String task, String node) {
+    return new EventLogEntry(task, node, NodeStatus.UNPROCESSED, null, null);
+  }
+
+  public static EventLogEntry timeout(String task, String node) {
     return new EventLogEntry(task, node, NodeStatus.TIMEOUT, null, null);
   }
 

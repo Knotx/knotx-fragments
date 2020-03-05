@@ -47,7 +47,6 @@ class MetadataConverterTest {
 
   private static final String TASK_NAME = "some-task";
   private static final String ROOT_NODE = "1234-4321-1234";
-  private static final String MISSING = "MISSING";
 
   private MetadataConverter tested;
 

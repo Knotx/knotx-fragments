@@ -19,14 +19,15 @@ public enum LoggedNodeStatus {
   ERROR {
     @Override
     protected boolean isEquivalent(NodeStatus status, String transition) {
-      return ERROR_TRANSITION.equals(transition);
+      return ERROR_TRANSITION.equals(transition) || status == NodeStatus.TIMEOUT;
     }
   },
 
   OTHER {
     @Override
     protected boolean isEquivalent(NodeStatus status, String transition) {
-      return transition != null && !SUCCESS_TRANSITION.equals(transition) && !ERROR_TRANSITION.equals(transition);
+      return !SUCCESS_TRANSITION.equals(transition) && !ERROR_TRANSITION.equals(transition)
+          && status != NodeStatus.UNSUPPORTED_TRANSITION && transition != null;
     }
   },
 

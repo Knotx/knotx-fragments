@@ -185,11 +185,12 @@ class FragmentHtmlBodyWriterFactoryTest {
     FragmentEvent event = new FragmentEvent(fragment);
 
     JsonObject expectedLog = new JsonObject()
-        .put("fragmentId", fragment.getId())
         .put("startTime", 0)
         .put("finishTime", 0)
-        .put("type", "snippet")
         .put("status", "UNPROCESSED")
+        .put("fragment", new JsonObject()
+            .put("id", fragment.getId())
+            .put("type", "snippet"))
         .put("graph", new JsonObject());
 
     String scriptRegexp =
@@ -245,11 +246,12 @@ class FragmentHtmlBodyWriterFactoryTest {
     TaskMetadata metadata = TaskMetadata.noMetadata("some-task", "root-node-id");
 
     JsonObject expectedLog = new JsonObject()
-        .put("fragmentId", fragment.getId())
         .put("startTime", 0)
         .put("finishTime", 0)
-        .put("type", "snippet")
         .put("status", NodeStatus.UNPROCESSED)
+        .put("fragment", new JsonObject()
+            .put("id", fragment.getId())
+            .put("type", "snippet"))
         .put("graph", new JsonObject()
             .put("id", "root-node-id")
             .put("status", NodeStatus.UNPROCESSED));
