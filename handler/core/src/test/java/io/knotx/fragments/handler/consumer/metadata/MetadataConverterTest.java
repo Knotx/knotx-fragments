@@ -132,7 +132,7 @@ class MetadataConverterTest {
     String missingNodeId = output.getJsonObject("on").getJsonObject(ERROR_TRANSITION).getString("id");
 
     JsonObject expected = jsonForNode(ROOT_NODE, "custom")
-        .put("status", LoggedNodeStatus.MISSING)
+        .put("status", LoggedNodeStatus.ERROR)
         .put("on", new JsonObject()
             .put(SUCCESS_TRANSITION, jsonForNode( "node-A", "factory-A"))
             .put(ERROR_TRANSITION, jsonForMissingNode(missingNodeId)))

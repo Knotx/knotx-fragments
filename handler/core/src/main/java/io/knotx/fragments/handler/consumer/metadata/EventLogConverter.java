@@ -23,6 +23,7 @@ import io.vertx.core.json.JsonObject;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 class EventLogConverter {
@@ -35,30 +36,31 @@ class EventLogConverter {
 
   NodeExecutionData fillWithLog(String id) {
     List<EventLogEntry> logs = getLogEntriesFor(id);
-    LogData logData = getLogData(logs);
+    String transition = getTransition(logs);
 
-    NodeExecutionData result = new NodeExecutionData(logData.getStatus());
-    if (logData.hasResponse()) {
-      result.setResponse(logData.getTransition(), inJsonArray(logData.getNodeLog()));
+    NodeExecutionData result = new NodeExecutionData(getLoggedNodesStatus(logs));
+    if (transition != null) {
+      result.setResponse(transition, inJsonArray(getNodeLog(logs)));
     }
     return result;
   }
 
-  private LogData getLogData(List<EventLogEntry> logs) {
-    if (logs.isEmpty()) {
-      return new LogData(LoggedNodeStatus.UNPROCESSED, null, null);
-    } else if (logs.size() == 1) {
-      EventLogEntry log = logs.get(0);
+  private LoggedNodeStatus getLoggedNodesStatus(List<EventLogEntry> logs) {
+    return getLogForExecution(logs)
+        .map(LoggedNodeStatus::from)
+        .orElse(LoggedNodeStatus.UNPROCESSED);
+  }
 
-      return new LogData(LoggedNodeStatus.from(log), log.getTransition(), log.getNodeLog());
-    } else {
-      EventLogEntry executionLog = getLogForExecution(logs);
-      EventLogEntry transitionLog = getLogForUnsupportedTransition(logs);
+  private String getTransition(List<EventLogEntry> logs) {
+    return getLogForExecution(logs)
+        .map(EventLogEntry::getTransition)
+        .orElse(null);
+  }
 
-      return executionLog.getStatus() == NodeStatus.SUCCESS
-          ? new LogData(LoggedNodeStatus.from(executionLog), transitionLog.getTransition(), executionLog.getNodeLog())
-          : new LogData(LoggedNodeStatus.from(transitionLog), transitionLog.getTransition(), executionLog.getNodeLog());
-    }
+  private JsonObject getNodeLog(List<EventLogEntry> logs) {
+    return getLogForExecution(logs)
+        .map(EventLogEntry::getNodeLog)
+        .orElse(null);
   }
 
   private List<EventLogEntry> getLogEntriesFor(String id) {
@@ -67,29 +69,10 @@ class EventLogConverter {
         .collect(Collectors.toList());
   }
 
-  private EventLogEntry getLogForExecution(List<EventLogEntry> logs) {
-    return singleOrThrow(
-        logs.stream()
-            .filter(log -> !NodeStatus.UNSUPPORTED_TRANSITION.equals(log.getStatus()))
-            .collect(Collectors.toList())
-    );
-  }
-
-  private EventLogEntry getLogForUnsupportedTransition(List<EventLogEntry> logs) {
-    return singleOrThrow(
-        logs.stream()
-            .filter(log -> NodeStatus.UNSUPPORTED_TRANSITION.equals(log.getStatus()))
-            .filter(log -> log.getNodeLog() == null)
-            .collect(Collectors.toList())
-    );
-  }
-
-  private EventLogEntry singleOrThrow(List<EventLogEntry> logs) {
-    if (logs.size() == 1) {
-      return logs.get(0);
-    } else {
-      throw new IllegalArgumentException();
-    }
+  private Optional<EventLogEntry> getLogForExecution(List<EventLogEntry> logs) {
+    return logs.stream()
+        .filter(log -> !NodeStatus.UNSUPPORTED_TRANSITION.equals(log.getStatus()))
+        .findFirst();
   }
 
   private JsonArray inJsonArray(JsonObject instance) {
@@ -99,34 +82,5 @@ class EventLogConverter {
       return new JsonArray();
     }
   }
-
-  private static class LogData {
-    private LoggedNodeStatus status;
-    private String transition;
-    private JsonObject nodeLog;
-
-    public LogData(LoggedNodeStatus status, String transition, JsonObject nodeLog) {
-      this.status = status;
-      this.transition = transition;
-      this.nodeLog = nodeLog;
-    }
-
-    public LoggedNodeStatus getStatus() {
-      return status;
-    }
-
-    public String getTransition() {
-      return transition;
-    }
-
-    public JsonObject getNodeLog() {
-      return nodeLog;
-    }
-
-    public boolean hasResponse() {
-      return transition != null;
-    }
-  }
-
 
 }

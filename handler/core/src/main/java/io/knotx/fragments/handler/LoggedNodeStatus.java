@@ -26,14 +26,15 @@ public enum LoggedNodeStatus {
   OTHER {
     @Override
     protected boolean isEquivalent(NodeStatus status, String transition) {
-      return !SUCCESS_TRANSITION.equals(transition) && !ERROR_TRANSITION.equals(transition);
+      return (status == NodeStatus.SUCCESS && !SUCCESS_TRANSITION.equals(transition))
+          || (status == NodeStatus.ERROR && !ERROR_TRANSITION.equals(transition));
     }
   },
 
   MISSING {
     @Override
     protected boolean isEquivalent(NodeStatus status, String transition) {
-      return status == NodeStatus.UNSUPPORTED_TRANSITION;
+      return false;
     }
   },
 
@@ -48,7 +49,9 @@ public enum LoggedNodeStatus {
     return Arrays.stream(LoggedNodeStatus.values())
         .filter(status -> status.isEquivalent(logEntry.getStatus(), logEntry.getTransition()))
         .findAny()
-        .orElseThrow(IllegalArgumentException::new);
+        .orElseThrow((() -> new IllegalArgumentException(
+            String.format("Cannot find LoggedNodeStatus for NodeStatus=%s and transition=%s",
+                logEntry.getStatus(), logEntry.getTransition()))));
   }
 
   protected abstract boolean isEquivalent(NodeStatus status, String transition);

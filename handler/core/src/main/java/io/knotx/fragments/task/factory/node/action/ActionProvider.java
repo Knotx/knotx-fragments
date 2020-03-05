@@ -26,6 +26,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import org.apache.commons.lang3.StringUtils;
@@ -45,7 +46,7 @@ public class ActionProvider {
     this.actionNameToOptions = actionNameToOptions;
     this.vertx = vertx;
     this.factories = loadFactories(supplier);
-    this.cache = new HashMap<>();
+    this.cache = new ConcurrentHashMap<>();
   }
 
   public Optional<Action> get(String action) {

@@ -132,7 +132,7 @@ class EventLogConverterTest {
   }
 
   @Test
-  @DisplayName("Expect status=MISSING when there's an unsupported non-success transition")
+  @DisplayName("Expect unsupported non-success transition to have no effect")
   void fillWithDoubleLogNonSuccessEntry() {
     EventLogEntry[] logs = new EventLogEntry[]{
         EventLogEntry.error(TASK_NAME, NODE_ID, ERROR_TRANSITION),
@@ -144,7 +144,7 @@ class EventLogConverterTest {
 
     NodeExecutionData result = tested.fillWithLog(NODE_ID);
 
-    assertEquals(LoggedNodeStatus.MISSING, result.getStatus());
+    assertEquals(LoggedNodeStatus.ERROR, result.getStatus());
     assertNotNull(result.getResponse());
     assertEquals(ERROR_TRANSITION, result.getResponse().getTransaction());
     assertEquals(new JsonArray(), result.getResponse().getInvocations());
