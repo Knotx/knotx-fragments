@@ -58,6 +58,20 @@ public class EventLog {
     return new ArrayList<>(operations);
   }
 
+  public long getEarliestTimestamp() {
+    return operations.stream()
+        .mapToLong(EventLogEntry::getTimestamp)
+        .min()
+        .orElse(0);
+  }
+
+  public long getLatestTimestamp() {
+    return operations.stream()
+        .mapToLong(EventLogEntry::getTimestamp)
+        .max()
+        .orElse(0);
+  }
+
   public JsonObject getLog() {
     return toJson();
   }
@@ -78,7 +92,6 @@ public class EventLog {
   public int hashCode() {
     return Objects.hash(operations);
   }
-
 
   @Override
   public String toString() {

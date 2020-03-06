@@ -15,7 +15,6 @@
  */
 package io.knotx.fragments.handler.consumer;
 
-import io.knotx.fragments.engine.EventLogEntry;
 import io.knotx.fragments.engine.FragmentEvent;
 import io.knotx.fragments.engine.FragmentEvent.Status;
 import io.knotx.fragments.engine.TaskMetadata;
@@ -39,12 +38,8 @@ public class FragmentExecutionLog {
 
     this.status = fragmentEvent.getStatus();
 
-    /* TODO: the timestamps calculated below are not consistent with the actual execution time
-        To fix this, a change in TaskEngine/FragmentsHandler is required */
-    this.startTime = fragmentEvent.getLog().getOperations().stream()
-        .mapToLong(EventLogEntry::getTimestamp).min().orElse(0);
-    this.finishTime = fragmentEvent.getLog().getOperations().stream()
-        .mapToLong(EventLogEntry::getTimestamp).max().orElse(0);
+    this.startTime = fragmentEvent.getLog().getEarliestTimestamp();
+    this.finishTime = fragmentEvent.getLog().getLatestTimestamp();
   }
 
   public FragmentExecutionLog(JsonObject jsonObject) {

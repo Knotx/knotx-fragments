@@ -398,13 +398,13 @@ class MetadataConverterTest {
     return result;
   }
 
-  private NodeMetadata compositeNode(String id, String factory, String... nested) {
-    return compositeNode(id, factory, ImmutableMap.of(), nested);
-  }
-
   private NodeMetadata compositeSubtasksNode(String id, Map<String, String> transitions,
       String... nested) {
     return compositeNode(id, "subtasks", transitions, nested);
+  }
+
+  private NodeMetadata compositeNode(String id, String factory, String... nested) {
+    return compositeNode(id, factory, ImmutableMap.of(), nested);
   }
 
   private NodeMetadata compositeNode(String id, String factory, Map<String, String> transitions,
