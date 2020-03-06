@@ -23,6 +23,7 @@ import io.knotx.fragments.task.factory.ActionFactoryOptions;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import io.vertx.reactivex.core.Vertx;
+import java.util.function.Function;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.HashMap;
@@ -66,18 +67,15 @@ public class ActionProvider {
     }
 
     if (isCacheable(factory)) {
-      return Optional.ofNullable(cache.get(action))
-          .map(Optional::of)
-          .orElseGet(() -> Optional.ofNullable(createAction(action, actionFactoryOptions, factory)))
-          .map(createdAction -> cacheIfAbsent(action, createdAction));
+      return Optional.of(cache.computeIfAbsent(action, toAction(actionFactoryOptions, factory)));
     } else {
       return Optional.of(createAction(action, actionFactoryOptions, factory));
     }
   }
 
-  private Action cacheIfAbsent(String key, Action action) {
-    cache.putIfAbsent(key, action);
-    return action;
+  private Function<String, Action> toAction(ActionFactoryOptions actionFactoryOptions,
+      ActionFactory factory) {
+    return action -> createAction(action, actionFactoryOptions, factory);
   }
 
   private Action createAction(String action, ActionFactoryOptions actionFactoryOptions,
