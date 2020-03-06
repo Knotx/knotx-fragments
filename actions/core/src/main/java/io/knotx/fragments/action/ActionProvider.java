@@ -91,15 +91,18 @@ public class ActionProvider {
     }
 
     if (isCacheable(factory)) {
-      return Optional.of(cache.computeIfAbsent(alias, toAction(actionFactoryOptions, factory)));
+      return Optional.ofNullable(cache.get(alias))
+          .map(Optional::of)
+          .orElseGet(() -> Optional.ofNullable(createAction(alias, actionFactoryOptions, factory)))
+          .map(createdAction -> cacheIfAbsent(alias, createdAction));
     } else {
       return Optional.of(createAction(alias, actionFactoryOptions, factory));
     }
   }
 
-  private Function<String, Action> toAction(ActionFactoryOptions actionFactoryOptions,
-      ActionFactory factory) {
-    return action -> createAction(action, actionFactoryOptions, factory);
+  private Action cacheIfAbsent(String key, Action action) {
+    cache.putIfAbsent(key, action);
+    return action;
   }
 
   private Action createAction(String action, ActionFactoryOptions actionFactoryOptions,
