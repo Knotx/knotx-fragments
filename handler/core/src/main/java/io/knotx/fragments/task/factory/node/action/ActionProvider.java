@@ -15,10 +15,11 @@
  */
 package io.knotx.fragments.task.factory.node.action;
 
-import io.knotx.fragments.task.factory.ActionFactoryOptions;
+
 import io.knotx.fragments.handler.api.Action;
 import io.knotx.fragments.handler.api.ActionFactory;
 import io.knotx.fragments.handler.api.Cacheable;
+import io.knotx.fragments.task.factory.ActionFactoryOptions;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import io.vertx.reactivex.core.Vertx;
@@ -26,7 +27,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import org.apache.commons.lang3.StringUtils;
@@ -46,7 +46,7 @@ public class ActionProvider {
     this.actionNameToOptions = actionNameToOptions;
     this.vertx = vertx;
     this.factories = loadFactories(supplier);
-    this.cache = new ConcurrentHashMap<>();
+    this.cache = new HashMap<>();
   }
 
   public Optional<Action> get(String action) {
