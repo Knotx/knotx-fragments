@@ -41,6 +41,7 @@ import java.util.stream.Collectors;
 
 public class FragmentsHandler implements Handler<RoutingContext> {
 
+  // TODO add some logging here
   private static final Logger LOGGER = LoggerFactory.getLogger(FragmentsHandler.class);
 
   private final RequestContextEngine requestContextEngine;

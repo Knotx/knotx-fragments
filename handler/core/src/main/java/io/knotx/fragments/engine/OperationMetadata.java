@@ -17,6 +17,7 @@ package io.knotx.fragments.engine;
 
 import io.vertx.codegen.annotations.DataObject;
 import io.vertx.core.json.JsonObject;
+import java.util.Objects;
 
 @DataObject(generateConverter = true)
 public class OperationMetadata {
@@ -55,6 +56,24 @@ public class OperationMetadata {
   public OperationMetadata setData(JsonObject data) {
     this.data = data;
     return this;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    OperationMetadata that = (OperationMetadata) o;
+    return Objects.equals(factory, that.factory) &&
+        Objects.equals(data, that.data);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(factory, data);
   }
 
   @Override

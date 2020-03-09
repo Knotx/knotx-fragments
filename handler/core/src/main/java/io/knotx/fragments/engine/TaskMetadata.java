@@ -15,6 +15,7 @@
  */
 package io.knotx.fragments.engine;
 
+import io.knotx.fragments.handler.ExecutionPlan;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -39,7 +40,7 @@ public class TaskMetadata {
   }
 
   public static TaskMetadata notDefined() {
-    return noMetadata("_NOT_DEFINED", "");
+    return noMetadata(ExecutionPlan.UNDEFINED_TASK, "");
   }
 
   public String getTaskName() {

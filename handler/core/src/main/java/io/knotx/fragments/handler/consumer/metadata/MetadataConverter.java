@@ -22,13 +22,15 @@ import io.knotx.fragments.engine.NodeMetadata;
 import io.knotx.fragments.engine.TaskMetadata;
 import io.knotx.fragments.engine.api.node.NodeType;
 import io.knotx.fragments.handler.LoggedNodeStatus;
-import io.vertx.core.json.JsonArray;
-import io.vertx.core.json.JsonObject;
+import io.knotx.fragments.handler.consumer.html.GraphNodeExecutionLog;
+import io.knotx.fragments.handler.consumer.html.GraphNodeResponseLog;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
-import org.apache.commons.lang3.StringUtils;
+import java.util.stream.Collectors;
 
 public class MetadataConverter {
 
@@ -42,68 +44,64 @@ public class MetadataConverter {
     this.eventLogConverter = new EventLogConverter(event.getLog().getOperations());
   }
 
-  public JsonObject createJson() {
-    if (StringUtils.isBlank(rootNodeId)) {
-      return new JsonObject();
-    } else {
-      return createNodeJson(rootNodeId);
+  public GraphNodeExecutionLog createNode() {
+    return createNodeJson(rootNodeId);
+  }
+
+  private GraphNodeExecutionLog createNodeJson(String id) {
+    GraphNodeExecutionLog graphLog = fillWithMetadata(id);
+    NodeExecutionData nodeExecutionData = eventLogConverter.fillWithLog(id);
+    graphLog.setStatus(nodeExecutionData.getStatus());
+    Optional.ofNullable(nodeExecutionData.getResponse())
+        .map(response -> graphLog
+            .setResponse(GraphNodeResponseLog.newInstance(response.getTransition(),
+                response.getInvocations())));
+    if (isMissing(graphLog)) {
+      graphLog.getOn().put(graphLog.getResponse().getTransition(), missingNodeData());
     }
+    return graphLog;
   }
 
-  private JsonObject createNodeJson(String id) {
-    return Optional.of(new JsonObject())
-        .map(json -> fillWithMetadata(json, id))
-        .map(json -> json.mergeIn(eventLogConverter.fillWithLog(id).toJson()))
-        .map(this::fillMissingNode)
-        .orElseGet(JsonObject::new);  // Should never happen
+  private boolean isMissing(GraphNodeExecutionLog graphLog) {
+    String transition = graphLog.getResponse().getTransition();
+    return transition != null
+        && !SUCCESS_TRANSITION.equals(transition)
+        && !graphLog.getOn().containsKey(transition);
   }
 
-  private JsonObject fillMissingNode(JsonObject input) {
-    Optional.of(input)
-        .map(metadata -> metadata.getJsonObject("response"))
-        .map(response -> response.getString("transition"))
-        .filter(transition -> !SUCCESS_TRANSITION.equals(transition))
-        .ifPresent(transition -> Optional.of(input)
-            .map(metadata -> metadata.getJsonObject("on"))
-            .filter(transitions -> !transitions.containsKey(transition))
-            .ifPresent(transitions -> transitions.put(transition, missingNodeData())));
-    return input;
+  private GraphNodeExecutionLog missingNodeData() {
+    return GraphNodeExecutionLog
+        .newInstance(UUID.randomUUID().toString(), NodeType.SINGLE, "!",
+            Collections.emptyList(), null, Collections.emptyMap())
+        .setStatus(LoggedNodeStatus.MISSING);
   }
 
-  private JsonObject missingNodeData() {
-    return new JsonObject()
-        .put("id", UUID.randomUUID().toString())
-        .put("label", "!")
-        .put("type", NodeType.SINGLE)
-        .put("status", LoggedNodeStatus.MISSING);
-  }
-
-  private JsonObject fillWithMetadata(JsonObject input, String id) {
+  private GraphNodeExecutionLog fillWithMetadata(String id) {
     if (nodes.containsKey(id)) {
       NodeMetadata metadata = nodes.get(id);
-      return input.put("id", metadata.getNodeId())
-          .put("type", metadata.getType())
-          .put("label", metadata.getLabel())
-          .put("subtasks", getSubTasks(metadata.getNestedNodes()))
-          .put("operation", metadata.getOperation().toJson())
-          .put("on", getTransitions(metadata.getTransitions()));
+      return GraphNodeExecutionLog
+          .newInstance(metadata.getNodeId(),
+              metadata.getType(),
+              metadata.getLabel(),
+              getSubTasks(metadata.getNestedNodes()),
+              metadata.getOperation(),
+              getTransitions(metadata.getTransitions()));
     } else {
-      return input.put("id", id);
+      return GraphNodeExecutionLog.newInstance(id);
     }
   }
 
-  private JsonObject getTransitions(Map<String, String> definedTransitions) {
-    JsonObject output = new JsonObject();
-    definedTransitions.forEach((name, nextId) -> output.put(name, createNodeJson(nextId)));
-    return output;
+  private Map<String, GraphNodeExecutionLog> getTransitions(
+      Map<String, String> definedTransitions) {
+    Map<String, GraphNodeExecutionLog> result = new HashMap<>();
+    definedTransitions.forEach((name, nextId) -> result.put(name, createNodeJson(nextId)));
+    return result;
   }
 
-  private JsonArray getSubTasks(List<String> nestedNodes) {
-    JsonArray output = new JsonArray();
-    nestedNodes.stream()
+  private List<GraphNodeExecutionLog> getSubTasks(List<String> nestedNodes) {
+    return nestedNodes.stream()
         .map(this::createNodeJson)
-        .forEach(output::add);
-    return output;
+        .collect(Collectors.toList());
   }
 
 }

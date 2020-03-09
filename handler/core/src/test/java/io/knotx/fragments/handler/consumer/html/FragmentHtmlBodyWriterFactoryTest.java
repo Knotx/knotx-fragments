@@ -13,18 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.knotx.fragments.handler.consumer;
+package io.knotx.fragments.handler.consumer.html;
 
-import static io.knotx.fragments.handler.consumer.FragmentHtmlBodyWriterFactory.CONDITION_OPTION;
-import static io.knotx.fragments.handler.consumer.FragmentHtmlBodyWriterFactory.FRAGMENT_TYPES_OPTIONS;
-import static io.knotx.fragments.handler.consumer.FragmentHtmlBodyWriterFactory.HEADER_OPTION;
+import static io.knotx.fragments.handler.consumer.html.FragmentHtmlBodyWriterFactory.CONDITION_OPTION;
+import static io.knotx.fragments.handler.consumer.html.FragmentHtmlBodyWriterFactory.FRAGMENT_TYPES_OPTIONS;
+import static io.knotx.fragments.handler.consumer.html.FragmentHtmlBodyWriterFactory.HEADER_OPTION;
 import static io.knotx.junit5.assertions.KnotxAssertions.assertJsonEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -33,11 +30,11 @@ import io.knotx.fragments.engine.EventLogEntry.NodeStatus;
 import io.knotx.fragments.engine.FragmentEvent;
 import io.knotx.fragments.engine.TaskMetadata;
 import io.knotx.fragments.engine.TasksMetadata;
+import io.knotx.fragments.handler.consumer.FragmentEventsConsumer;
 import io.knotx.server.api.context.ClientRequest;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.reactivex.core.MultiMap;
-
 import java.util.Collections;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -62,8 +59,8 @@ class FragmentHtmlBodyWriterFactoryTest {
 
     // when
     FragmentEventsConsumer tested = new FragmentHtmlBodyWriterFactory()
-        .create(new JsonObject().put(FRAGMENT_TYPES_OPTIONS, new JsonArray().add(
-            EXPECTED_FRAGMENT_TYPE)));
+        .create(new JsonObject()
+            .put(FRAGMENT_TYPES_OPTIONS, new JsonArray().add(EXPECTED_FRAGMENT_TYPE)));
     tested.accept(new ClientRequest(), ImmutableList.of(original), emptyTasksMetadata());
 
     // then
@@ -149,7 +146,6 @@ class FragmentHtmlBodyWriterFactoryTest {
             .setParams(MultiMap.caseInsensitiveMultiMap().add(EXPECTED_PARAM, "true")),
         ImmutableList.of(original), emptyTasksMetadata());
 
-    // then
     // then
     assertNotEquals(copy, original);
   }

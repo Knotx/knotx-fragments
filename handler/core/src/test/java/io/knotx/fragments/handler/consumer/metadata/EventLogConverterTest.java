@@ -72,7 +72,7 @@ class EventLogConverterTest {
 
     assertEquals(LoggedNodeStatus.SUCCESS, result.getStatus());
     assertNotNull(result.getResponse());
-    assertEquals(SUCCESS_TRANSITION, result.getResponse().getTransaction());
+    assertEquals(SUCCESS_TRANSITION, result.getResponse().getTransition());
     assertEquals(new JsonArray().add(nodeLog()), result.getResponse().getInvocations());
   }
 
@@ -90,7 +90,7 @@ class EventLogConverterTest {
 
     assertEquals(LoggedNodeStatus.ERROR, result.getStatus());
     assertNotNull(result.getResponse());
-    assertEquals(ERROR_TRANSITION, result.getResponse().getTransaction());
+    assertEquals(ERROR_TRANSITION, result.getResponse().getTransition());
     assertEquals(new JsonArray(), result.getResponse().getInvocations());
   }
 
@@ -108,7 +108,7 @@ class EventLogConverterTest {
 
     assertEquals(LoggedNodeStatus.OTHER, result.getStatus());
     assertNotNull(result.getResponse());
-    assertEquals("custom", result.getResponse().getTransaction());
+    assertEquals("custom", result.getResponse().getTransition());
     assertEquals(new JsonArray().add(nodeLog()), result.getResponse().getInvocations());
   }
 
@@ -127,7 +127,7 @@ class EventLogConverterTest {
 
     assertEquals(LoggedNodeStatus.SUCCESS, result.getStatus());
     assertNotNull(result.getResponse());
-    assertEquals(SUCCESS_TRANSITION, result.getResponse().getTransaction());
+    assertEquals(SUCCESS_TRANSITION, result.getResponse().getTransition());
     assertEquals(new JsonArray().add(nodeLog()), result.getResponse().getInvocations());
   }
 
@@ -146,7 +146,7 @@ class EventLogConverterTest {
 
     assertEquals(LoggedNodeStatus.ERROR, result.getStatus());
     assertNotNull(result.getResponse());
-    assertEquals(ERROR_TRANSITION, result.getResponse().getTransaction());
+    assertEquals(ERROR_TRANSITION, result.getResponse().getTransition());
     assertEquals(new JsonArray(), result.getResponse().getInvocations());
   }
 

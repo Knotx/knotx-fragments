@@ -69,5 +69,6 @@ public enum LoggedNodeStatus {
                 logEntry.getStatus(), logEntry.getTransition()))));
   }
 
+  // TODO add unit tests here
   protected abstract boolean isEquivalent(NodeStatus status, String transition);
 }

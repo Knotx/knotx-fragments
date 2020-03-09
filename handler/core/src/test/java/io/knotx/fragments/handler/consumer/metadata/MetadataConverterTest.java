@@ -55,7 +55,7 @@ class MetadataConverterTest {
   void shouldProduceEmptyJsonWhenNoMetadataProvided() {
     givenNotDefinedTaskMetadata();
 
-    JsonObject output = tested.createJson();
+    JsonObject output = tested.createNode().toJson();
 
     assertJsonEquals(new JsonObject(), output);
   }
@@ -65,7 +65,7 @@ class MetadataConverterTest {
   void shouldProduceOnlyProcessingInfoWhenNoMetadataProvided() {
     givenNoMetadata(ROOT_NODE);
 
-    JsonObject output = tested.createJson();
+    JsonObject output = tested.createNode().toJson();
 
     JsonObject expected = jsonForNotDescribedNode(ROOT_NODE);
 
@@ -77,7 +77,7 @@ class MetadataConverterTest {
   void shouldProduceCorrectJsonForOneNodeMetadata() {
     givenNodesMetadata(ROOT_NODE, simpleNode(ROOT_NODE, "custom"));
 
-    JsonObject output = tested.createJson();
+    JsonObject output = tested.createNode().toJson();
 
     JsonObject expected = jsonForNode(ROOT_NODE, "custom");
 
@@ -89,7 +89,7 @@ class MetadataConverterTest {
   void shouldProduceCorrectJsonForOneActionNodeMetadata() {
     givenNodesMetadata(ROOT_NODE, simpleNode(ROOT_NODE, "action"));
 
-    JsonObject output = tested.createJson();
+    JsonObject output = tested.createNode().toJson();
 
     JsonObject expected = jsonForActionNode(ROOT_NODE);
 
@@ -104,7 +104,7 @@ class MetadataConverterTest {
         simpleNode("node-A", "factory-A")
     );
 
-    JsonObject output = tested.createJson();
+    JsonObject output = tested.createNode().toJson();
 
     JsonObject expected = jsonForNode(ROOT_NODE, "custom")
         .put("on", new JsonObject()
@@ -126,7 +126,7 @@ class MetadataConverterTest {
         simpleNode("node-A", "factory-A")
     );
 
-    JsonObject output = tested.createJson();
+    JsonObject output = tested.createNode().toJson();
 
     String missingNodeId = output.getJsonObject("on").getJsonObject(ERROR_TRANSITION).getString("id");
 
@@ -154,7 +154,7 @@ class MetadataConverterTest {
         simpleNode(ROOT_NODE, "custom")
     );
 
-    JsonObject output = tested.createJson();
+    JsonObject output = tested.createNode().toJson();
 
     JsonObject expected = jsonForNode(ROOT_NODE, "custom")
         .put("status", LoggedNodeStatus.SUCCESS)
@@ -175,7 +175,7 @@ class MetadataConverterTest {
         simpleNode("node-C", "factory-C")
     );
 
-    JsonObject output = tested.createJson();
+    JsonObject output = tested.createNode().toJson();
 
     JsonObject expected = jsonForNode(ROOT_NODE, "custom")
         .put("type", NodeType.COMPOSITE)
@@ -194,10 +194,12 @@ class MetadataConverterTest {
   void shouldProduceCorrectJsonForCompositeNodeWithSimpleNodesNotAllDescribed() {
     givenNodesMetadata(ROOT_NODE,
         compositeNode(ROOT_NODE, "custom", "node-A", "node-B", "node-C"),
-        simpleNode("node-A", "factory-A")
+        simpleNode("node-A", "factory-A"),
+        simpleNode("node-B", "factory-B"),
+        simpleNode("node-C", "factory-C")
     );
 
-    JsonObject output = tested.createJson();
+    JsonObject output = tested.createNode().toJson();
 
     JsonObject expected = jsonForNode(ROOT_NODE, "custom")
         .put("type", NodeType.COMPOSITE)
@@ -231,7 +233,7 @@ class MetadataConverterTest {
         simpleNode("node-E", "factory-E")
     );
 
-    JsonObject output = tested.createJson();
+    JsonObject output = tested.createNode().toJson();
 
     JsonObject expected = jsonForNode(ROOT_NODE, "custom")
         .put("on", new JsonObject()
@@ -285,7 +287,7 @@ class MetadataConverterTest {
         simpleNode("f-node", "action")
     );
 
-    JsonObject output = tested.createJson();
+    JsonObject output = tested.createNode().toJson();
 
     String missingNodeId = output.getJsonObject("on").getJsonObject(SUCCESS_TRANSITION)
         .getJsonArray("subtasks").getJsonObject(1).getJsonObject("on").getJsonObject("_fallback")

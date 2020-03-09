@@ -17,12 +17,8 @@ package io.knotx.fragments.handler.consumer.metadata;
 
 import io.knotx.fragments.handler.LoggedNodeStatus;
 import io.vertx.core.json.JsonArray;
-import io.vertx.core.json.JsonObject;
 
 public class NodeExecutionData {
-
-  private static final String STATUS = "status";
-  private static final String RESPONSE = "response";
 
   private final LoggedNodeStatus status;
   private Response response;
@@ -43,39 +39,22 @@ public class NodeExecutionData {
     this.response = new Response(transaction, invocations);
   }
 
-  public JsonObject toJson() {
-    JsonObject result = new JsonObject().put(STATUS, status);
-    if (response != null) {
-      result.put(RESPONSE, response.toJson());
-    }
-    return result;
-  }
-
   static class Response {
 
-    private static final String TRANSITION = "transition";
-    private static final String INVOCATIONS = "invocations";
-
-    private final String transaction;
+    private final String transition;
     private final JsonArray invocations;
 
-    Response(String transaction, JsonArray invocations) {
-      this.transaction = transaction;
+    Response(String transition, JsonArray invocations) {
+      this.transition = transition;
       this.invocations = invocations;
     }
 
-    String getTransaction() {
-      return transaction;
+    public String getTransition() {
+      return transition;
     }
 
-    JsonArray getInvocations() {
+    public JsonArray getInvocations() {
       return invocations;
-    }
-
-    JsonObject toJson() {
-      return new JsonObject()
-          .put(TRANSITION, transaction)
-          .put(INVOCATIONS, invocations);
     }
   }
 
