@@ -25,13 +25,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import org.apache.commons.lang3.StringUtils;
 
 @DataObject(generateConverter = true)
 public class GraphNodeExecutionLog {
 
   private String id;
   private NodeType type = NodeType.SINGLE;
-  private String label;
+  private String label = StringUtils.EMPTY;
   private List<GraphNodeExecutionLog> subtasks = new ArrayList<>();
   private OperationMetadata operation = new OperationMetadata();
   private Map<String, GraphNodeExecutionLog> on = new HashMap<>();
