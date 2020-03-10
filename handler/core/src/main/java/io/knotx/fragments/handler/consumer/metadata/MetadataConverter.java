@@ -19,10 +19,12 @@ import static io.knotx.fragments.engine.api.node.single.FragmentResult.SUCCESS_T
 
 import io.knotx.fragments.engine.FragmentEvent;
 import io.knotx.fragments.engine.NodeMetadata;
+import io.knotx.fragments.engine.OperationMetadata;
 import io.knotx.fragments.engine.TaskMetadata;
 import io.knotx.fragments.engine.api.node.NodeType;
 import io.knotx.fragments.handler.LoggedNodeStatus;
 import io.knotx.fragments.handler.consumer.html.GraphNodeExecutionLog;
+import io.knotx.fragments.handler.consumer.html.GraphNodeOperationLog;
 import io.knotx.fragments.handler.consumer.html.GraphNodeResponseLog;
 import java.util.Collections;
 import java.util.HashMap;
@@ -84,18 +86,11 @@ public class MetadataConverter {
               metadata.getType(),
               metadata.getLabel(),
               getSubTasks(metadata.getNestedNodes()),
-              metadata.getOperation(),
+              getOperationLog(metadata),
               getTransitions(metadata.getTransitions()));
     } else {
       return GraphNodeExecutionLog.newInstance(id);
     }
-  }
-
-  private Map<String, GraphNodeExecutionLog> getTransitions(
-      Map<String, String> definedTransitions) {
-    Map<String, GraphNodeExecutionLog> result = new HashMap<>();
-    definedTransitions.forEach((name, nextId) -> result.put(name, createNodeJson(nextId)));
-    return result;
   }
 
   private List<GraphNodeExecutionLog> getSubTasks(List<String> nestedNodes) {
@@ -104,4 +99,16 @@ public class MetadataConverter {
         .collect(Collectors.toList());
   }
 
+  private GraphNodeOperationLog getOperationLog(NodeMetadata metadata) {
+    OperationMetadata operationMetadata = metadata.getOperation();
+    return GraphNodeOperationLog
+        .newInstance(operationMetadata.getFactory(), operationMetadata.getData());
+  }
+
+  private Map<String, GraphNodeExecutionLog> getTransitions(
+      Map<String, String> definedTransitions) {
+    Map<String, GraphNodeExecutionLog> result = new HashMap<>();
+    definedTransitions.forEach((name, nextId) -> result.put(name, createNodeJson(nextId)));
+    return result;
+  }
 }

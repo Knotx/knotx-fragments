@@ -18,9 +18,9 @@ package io.knotx.fragments.handler.consumer.html;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import io.knotx.fragments.engine.OperationMetadata;
 import io.knotx.fragments.engine.api.node.NodeType;
 import io.knotx.fragments.engine.api.node.single.FragmentResult;
+import io.vertx.core.json.JsonObject;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -55,7 +55,8 @@ class GraphNodeExecutionLogTest {
 
     List<GraphNodeExecutionLog> subtasks = Collections
         .singletonList(GraphNodeExecutionLog.newInstance("AA"));
-    OperationMetadata operation = new OperationMetadata().setFactory("factory");
+    GraphNodeOperationLog operation = GraphNodeOperationLog
+        .newInstance("factory", new JsonObject());
     Map<String, GraphNodeExecutionLog> on = Collections
         .singletonMap(FragmentResult.SUCCESS_TRANSITION, GraphNodeExecutionLog.newInstance("B"));
 

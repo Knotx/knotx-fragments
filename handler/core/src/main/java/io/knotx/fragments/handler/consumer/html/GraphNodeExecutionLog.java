@@ -15,7 +15,6 @@
  */
 package io.knotx.fragments.handler.consumer.html;
 
-import io.knotx.fragments.engine.OperationMetadata;
 import io.knotx.fragments.engine.api.node.NodeType;
 import io.knotx.fragments.handler.LoggedNodeStatus;
 import io.vertx.codegen.annotations.DataObject;
@@ -34,7 +33,7 @@ public class GraphNodeExecutionLog {
   private NodeType type = NodeType.SINGLE;
   private String label = StringUtils.EMPTY;
   private List<GraphNodeExecutionLog> subtasks = new ArrayList<>();
-  private OperationMetadata operation = new OperationMetadata();
+  private GraphNodeOperationLog operation = GraphNodeOperationLog.empty();
   private Map<String, GraphNodeExecutionLog> on = new HashMap<>();
 
   private LoggedNodeStatus status = LoggedNodeStatus.SUCCESS;
@@ -46,7 +45,7 @@ public class GraphNodeExecutionLog {
   }
 
   public static GraphNodeExecutionLog newInstance(String id, NodeType type, String label,
-      List<GraphNodeExecutionLog> subtasks, OperationMetadata operation,
+      List<GraphNodeExecutionLog> subtasks, GraphNodeOperationLog operation,
       Map<String, GraphNodeExecutionLog> on) {
     return new GraphNodeExecutionLog()
         .setId(id)
@@ -109,11 +108,12 @@ public class GraphNodeExecutionLog {
     return this;
   }
 
-  public OperationMetadata getOperation() {
+  public GraphNodeOperationLog getOperation() {
     return operation;
   }
 
-  public GraphNodeExecutionLog setOperation(OperationMetadata operation) {
+  public GraphNodeExecutionLog setOperation(
+      GraphNodeOperationLog operation) {
     this.operation = operation;
     return this;
   }
