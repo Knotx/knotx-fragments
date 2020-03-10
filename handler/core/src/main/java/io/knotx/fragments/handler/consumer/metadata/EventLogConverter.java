@@ -34,7 +34,7 @@ class EventLogConverter {
     this.operationsLog = operationsLog;
   }
 
-  NodeExecutionData fillWithLog(String id) {
+  NodeExecutionData getExecutionData(String id) {
     List<EventLogEntry> logs = getLogEntriesFor(id);
     String transition = getTransition(logs);
 

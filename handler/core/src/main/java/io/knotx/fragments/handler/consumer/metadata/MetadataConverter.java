@@ -26,11 +26,11 @@ import io.knotx.fragments.handler.LoggedNodeStatus;
 import io.knotx.fragments.handler.consumer.html.GraphNodeExecutionLog;
 import io.knotx.fragments.handler.consumer.html.GraphNodeOperationLog;
 import io.knotx.fragments.handler.consumer.html.GraphNodeResponseLog;
+import io.knotx.fragments.handler.consumer.metadata.NodeExecutionData.Response;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -46,39 +46,46 @@ public class MetadataConverter {
     this.eventLogConverter = new EventLogConverter(event.getLog().getOperations());
   }
 
-  public GraphNodeExecutionLog createNode() {
-    return createNodeJson(rootNodeId);
+  public GraphNodeExecutionLog getExecutionLog() {
+    return getExecutionLog(rootNodeId);
   }
 
-  private GraphNodeExecutionLog createNodeJson(String id) {
-    GraphNodeExecutionLog graphLog = fillWithMetadata(id);
-    NodeExecutionData nodeExecutionData = eventLogConverter.fillWithLog(id);
+  private GraphNodeExecutionLog getExecutionLog(String nodeId) {
+    GraphNodeExecutionLog graphLog = fromMetadata(nodeId);
+    NodeExecutionData nodeExecutionData = eventLogConverter.getExecutionData(nodeId);
     graphLog.setStatus(nodeExecutionData.getStatus());
-    Optional.ofNullable(nodeExecutionData.getResponse())
-        .map(response -> graphLog
-            .setResponse(GraphNodeResponseLog.newInstance(response.getTransition(),
-                response.getInvocations())));
-    if (isMissing(graphLog)) {
-      graphLog.getOn().put(graphLog.getResponse().getTransition(), missingNodeData());
+    Response metadataResponse = nodeExecutionData.getResponse();
+    if (metadataResponse != null) {
+      graphLog
+          .setResponse(GraphNodeResponseLog.newInstance(metadataResponse.getTransition(),
+              metadataResponse.getInvocations()));
+    }
+    if (containsUnsupportedTransitions(graphLog)) {
+      addMissingNode(graphLog);
     }
     return graphLog;
   }
 
-  private boolean isMissing(GraphNodeExecutionLog graphLog) {
+  private boolean containsUnsupportedTransitions(GraphNodeExecutionLog graphLog) {
     String transition = graphLog.getResponse().getTransition();
     return transition != null
         && !SUCCESS_TRANSITION.equals(transition)
         && !graphLog.getOn().containsKey(transition);
   }
 
-  private GraphNodeExecutionLog missingNodeData() {
-    return GraphNodeExecutionLog
-        .newInstance(UUID.randomUUID().toString(), NodeType.SINGLE, "!",
-            Collections.emptyList(), null, Collections.emptyMap())
+  private void addMissingNode(GraphNodeExecutionLog graphLog) {
+    GraphNodeExecutionLog missingNode = GraphNodeExecutionLog
+        .newInstance(UUID.randomUUID().toString(),
+            NodeType.SINGLE,
+            "!",
+            Collections.emptyList(),
+            null,
+            Collections.emptyMap())
         .setStatus(LoggedNodeStatus.MISSING);
+    graphLog.getOn().put(graphLog.getResponse().getTransition(), missingNode);
   }
 
-  private GraphNodeExecutionLog fillWithMetadata(String id) {
+  private GraphNodeExecutionLog fromMetadata(String id) {
     if (nodes.containsKey(id)) {
       NodeMetadata metadata = nodes.get(id);
       return GraphNodeExecutionLog
@@ -95,7 +102,7 @@ public class MetadataConverter {
 
   private List<GraphNodeExecutionLog> getSubTasks(List<String> nestedNodes) {
     return nestedNodes.stream()
-        .map(this::createNodeJson)
+        .map(this::getExecutionLog)
         .collect(Collectors.toList());
   }
 
@@ -108,7 +115,7 @@ public class MetadataConverter {
   private Map<String, GraphNodeExecutionLog> getTransitions(
       Map<String, String> definedTransitions) {
     Map<String, GraphNodeExecutionLog> result = new HashMap<>();
-    definedTransitions.forEach((name, nextId) -> result.put(name, createNodeJson(nextId)));
+    definedTransitions.forEach((name, nextId) -> result.put(name, getExecutionLog(nextId)));
     return result;
   }
 }

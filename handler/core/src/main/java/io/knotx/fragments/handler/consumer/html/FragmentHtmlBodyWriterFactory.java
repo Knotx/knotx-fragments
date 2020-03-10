@@ -65,7 +65,7 @@ public class FragmentHtmlBodyWriterFactory implements FragmentEventsConsumerFact
         FragmentExecutionLog executionLog =
             Optional.ofNullable(tasksMetadata.get(event.getFragment().getId()))
                 .map(metadata -> new MetadataConverter(event, metadata))
-                .map(MetadataConverter::createNode)
+                .map(MetadataConverter::getExecutionLog)
                 .map(graphLog -> FragmentExecutionLog.newInstance(event, graphLog))
                 .orElseGet(()-> FragmentExecutionLog.newInstance(event));
 

@@ -41,7 +41,7 @@ class EventLogConverterTest {
   void fillWithEmptyLog() {
     EventLogConverter tested = givenEmptyLogConverter();
 
-    NodeExecutionData result = tested.fillWithLog(NODE_ID);
+    NodeExecutionData result = tested.getExecutionData(NODE_ID);
 
     assertEquals(LoggedNodeStatus.UNPROCESSED, result.getStatus());
   }
@@ -53,7 +53,7 @@ class EventLogConverterTest {
         EventLogEntry.success(TASK_NAME, "non-existent", successFragmentResult())
     );
 
-    NodeExecutionData result = tested.fillWithLog(NODE_ID);
+    NodeExecutionData result = tested.getExecutionData(NODE_ID);
 
     assertEquals(LoggedNodeStatus.UNPROCESSED, result.getStatus());
   }
@@ -68,7 +68,7 @@ class EventLogConverterTest {
     };
     EventLogConverter tested = givenLogConverter(logs);
 
-    NodeExecutionData result = tested.fillWithLog(NODE_ID);
+    NodeExecutionData result = tested.getExecutionData(NODE_ID);
 
     assertEquals(LoggedNodeStatus.SUCCESS, result.getStatus());
     assertNotNull(result.getResponse());
@@ -86,7 +86,7 @@ class EventLogConverterTest {
     };
     EventLogConverter tested = givenLogConverter(logs);
 
-    NodeExecutionData result = tested.fillWithLog(NODE_ID);
+    NodeExecutionData result = tested.getExecutionData(NODE_ID);
 
     assertEquals(LoggedNodeStatus.ERROR, result.getStatus());
     assertNotNull(result.getResponse());
@@ -104,7 +104,7 @@ class EventLogConverterTest {
     };
     EventLogConverter tested = givenLogConverter(logs);
 
-    NodeExecutionData result = tested.fillWithLog(NODE_ID);
+    NodeExecutionData result = tested.getExecutionData(NODE_ID);
 
     assertEquals(LoggedNodeStatus.OTHER, result.getStatus());
     assertNotNull(result.getResponse());
@@ -123,7 +123,7 @@ class EventLogConverterTest {
     };
     EventLogConverter tested = givenLogConverter(logs);
 
-    NodeExecutionData result = tested.fillWithLog(NODE_ID);
+    NodeExecutionData result = tested.getExecutionData(NODE_ID);
 
     assertEquals(LoggedNodeStatus.SUCCESS, result.getStatus());
     assertNotNull(result.getResponse());
@@ -142,7 +142,7 @@ class EventLogConverterTest {
     };
     EventLogConverter tested = givenLogConverter(logs);
 
-    NodeExecutionData result = tested.fillWithLog(NODE_ID);
+    NodeExecutionData result = tested.getExecutionData(NODE_ID);
 
     assertEquals(LoggedNodeStatus.ERROR, result.getStatus());
     assertNotNull(result.getResponse());
