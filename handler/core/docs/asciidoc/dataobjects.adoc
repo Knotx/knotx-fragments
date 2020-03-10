@@ -265,18 +265,6 @@ Sets node factory name
 +++
 |===
 
-[[OperationMetadata]]
-== OperationMetadata
-
-
-[cols=">25%,25%,50%"]
-[frame="topbot"]
-|===
-^|Name | Type ^| Description
-|[[data]]`@data`|`Json object`|-
-|[[factory]]`@factory`|`String`|-
-|===
-
 [[SubtasksNodeConfig]]
 == SubtasksNodeConfig
 
