@@ -41,7 +41,7 @@ class EventLogConverterTest {
   void fillWithEmptyLog() {
     EventLogConverter tested = givenEmptyLogConverter();
 
-    NodeExecutionData result = tested.fillWithLog(NODE_ID);
+    NodeExecutionData result = tested.getExecutionData(NODE_ID);
 
     assertEquals(LoggedNodeStatus.UNPROCESSED, result.getStatus());
   }
@@ -53,7 +53,7 @@ class EventLogConverterTest {
         EventLogEntry.success(TASK_NAME, "non-existent", successFragmentResult())
     );
 
-    NodeExecutionData result = tested.fillWithLog(NODE_ID);
+    NodeExecutionData result = tested.getExecutionData(NODE_ID);
 
     assertEquals(LoggedNodeStatus.UNPROCESSED, result.getStatus());
   }
@@ -68,11 +68,11 @@ class EventLogConverterTest {
     };
     EventLogConverter tested = givenLogConverter(logs);
 
-    NodeExecutionData result = tested.fillWithLog(NODE_ID);
+    NodeExecutionData result = tested.getExecutionData(NODE_ID);
 
     assertEquals(LoggedNodeStatus.SUCCESS, result.getStatus());
     assertNotNull(result.getResponse());
-    assertEquals(SUCCESS_TRANSITION, result.getResponse().getTransaction());
+    assertEquals(SUCCESS_TRANSITION, result.getResponse().getTransition());
     assertEquals(new JsonArray().add(nodeLog()), result.getResponse().getInvocations());
   }
 
@@ -86,11 +86,11 @@ class EventLogConverterTest {
     };
     EventLogConverter tested = givenLogConverter(logs);
 
-    NodeExecutionData result = tested.fillWithLog(NODE_ID);
+    NodeExecutionData result = tested.getExecutionData(NODE_ID);
 
     assertEquals(LoggedNodeStatus.ERROR, result.getStatus());
     assertNotNull(result.getResponse());
-    assertEquals(ERROR_TRANSITION, result.getResponse().getTransaction());
+    assertEquals(ERROR_TRANSITION, result.getResponse().getTransition());
     assertEquals(new JsonArray(), result.getResponse().getInvocations());
   }
 
@@ -104,11 +104,11 @@ class EventLogConverterTest {
     };
     EventLogConverter tested = givenLogConverter(logs);
 
-    NodeExecutionData result = tested.fillWithLog(NODE_ID);
+    NodeExecutionData result = tested.getExecutionData(NODE_ID);
 
     assertEquals(LoggedNodeStatus.OTHER, result.getStatus());
     assertNotNull(result.getResponse());
-    assertEquals("custom", result.getResponse().getTransaction());
+    assertEquals("custom", result.getResponse().getTransition());
     assertEquals(new JsonArray().add(nodeLog()), result.getResponse().getInvocations());
   }
 
@@ -123,11 +123,11 @@ class EventLogConverterTest {
     };
     EventLogConverter tested = givenLogConverter(logs);
 
-    NodeExecutionData result = tested.fillWithLog(NODE_ID);
+    NodeExecutionData result = tested.getExecutionData(NODE_ID);
 
     assertEquals(LoggedNodeStatus.SUCCESS, result.getStatus());
     assertNotNull(result.getResponse());
-    assertEquals(SUCCESS_TRANSITION, result.getResponse().getTransaction());
+    assertEquals(SUCCESS_TRANSITION, result.getResponse().getTransition());
     assertEquals(new JsonArray().add(nodeLog()), result.getResponse().getInvocations());
   }
 
@@ -142,11 +142,11 @@ class EventLogConverterTest {
     };
     EventLogConverter tested = givenLogConverter(logs);
 
-    NodeExecutionData result = tested.fillWithLog(NODE_ID);
+    NodeExecutionData result = tested.getExecutionData(NODE_ID);
 
     assertEquals(LoggedNodeStatus.ERROR, result.getStatus());
     assertNotNull(result.getResponse());
-    assertEquals(ERROR_TRANSITION, result.getResponse().getTransaction());
+    assertEquals(ERROR_TRANSITION, result.getResponse().getTransition());
     assertEquals(new JsonArray(), result.getResponse().getInvocations());
   }
 

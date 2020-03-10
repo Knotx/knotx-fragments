@@ -19,16 +19,20 @@ import static io.knotx.fragments.engine.api.node.single.FragmentResult.SUCCESS_T
 
 import io.knotx.fragments.engine.FragmentEvent;
 import io.knotx.fragments.engine.NodeMetadata;
+import io.knotx.fragments.engine.OperationMetadata;
 import io.knotx.fragments.engine.TaskMetadata;
 import io.knotx.fragments.engine.api.node.NodeType;
 import io.knotx.fragments.handler.LoggedNodeStatus;
-import io.vertx.core.json.JsonArray;
-import io.vertx.core.json.JsonObject;
+import io.knotx.fragments.handler.consumer.html.GraphNodeExecutionLog;
+import io.knotx.fragments.handler.consumer.html.GraphNodeOperationLog;
+import io.knotx.fragments.handler.consumer.html.GraphNodeResponseLog;
+import io.knotx.fragments.handler.consumer.metadata.NodeExecutionData.Response;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.UUID;
-import org.apache.commons.lang3.StringUtils;
+import java.util.stream.Collectors;
 
 public class MetadataConverter {
 
@@ -42,68 +46,76 @@ public class MetadataConverter {
     this.eventLogConverter = new EventLogConverter(event.getLog().getOperations());
   }
 
-  public JsonObject createJson() {
-    if (StringUtils.isBlank(rootNodeId)) {
-      return new JsonObject();
-    } else {
-      return createNodeJson(rootNodeId);
+  public GraphNodeExecutionLog getExecutionLog() {
+    return getExecutionLog(rootNodeId);
+  }
+
+  private GraphNodeExecutionLog getExecutionLog(String nodeId) {
+    GraphNodeExecutionLog graphLog = fromMetadata(nodeId);
+    NodeExecutionData nodeExecutionData = eventLogConverter.getExecutionData(nodeId);
+    graphLog.setStatus(nodeExecutionData.getStatus());
+    Response metadataResponse = nodeExecutionData.getResponse();
+    if (metadataResponse != null) {
+      graphLog
+          .setResponse(GraphNodeResponseLog.newInstance(metadataResponse.getTransition(),
+              metadataResponse.getInvocations()));
     }
+    if (containsUnsupportedTransitions(graphLog)) {
+      addMissingNode(graphLog);
+    }
+    return graphLog;
   }
 
-  private JsonObject createNodeJson(String id) {
-    return Optional.of(new JsonObject())
-        .map(json -> fillWithMetadata(json, id))
-        .map(json -> json.mergeIn(eventLogConverter.fillWithLog(id).toJson()))
-        .map(this::fillMissingNode)
-        .orElseGet(JsonObject::new);  // Should never happen
+  private boolean containsUnsupportedTransitions(GraphNodeExecutionLog graphLog) {
+    String transition = graphLog.getResponse().getTransition();
+    return transition != null
+        && !SUCCESS_TRANSITION.equals(transition)
+        && !graphLog.getOn().containsKey(transition);
   }
 
-  private JsonObject fillMissingNode(JsonObject input) {
-    Optional.of(input)
-        .map(metadata -> metadata.getJsonObject("response"))
-        .map(response -> response.getString("transition"))
-        .filter(transition -> !SUCCESS_TRANSITION.equals(transition))
-        .ifPresent(transition -> Optional.of(input)
-            .map(metadata -> metadata.getJsonObject("on"))
-            .filter(transitions -> !transitions.containsKey(transition))
-            .ifPresent(transitions -> transitions.put(transition, missingNodeData())));
-    return input;
+  private void addMissingNode(GraphNodeExecutionLog graphLog) {
+    GraphNodeExecutionLog missingNode = GraphNodeExecutionLog
+        .newInstance(UUID.randomUUID().toString(),
+            NodeType.SINGLE,
+            "!",
+            Collections.emptyList(),
+            null,
+            Collections.emptyMap())
+        .setStatus(LoggedNodeStatus.MISSING);
+    graphLog.getOn().put(graphLog.getResponse().getTransition(), missingNode);
   }
 
-  private JsonObject missingNodeData() {
-    return new JsonObject()
-        .put("id", UUID.randomUUID().toString())
-        .put("label", "!")
-        .put("type", NodeType.SINGLE)
-        .put("status", LoggedNodeStatus.MISSING);
-  }
-
-  private JsonObject fillWithMetadata(JsonObject input, String id) {
+  private GraphNodeExecutionLog fromMetadata(String id) {
     if (nodes.containsKey(id)) {
       NodeMetadata metadata = nodes.get(id);
-      return input.put("id", metadata.getNodeId())
-          .put("type", metadata.getType())
-          .put("label", metadata.getLabel())
-          .put("subtasks", getSubTasks(metadata.getNestedNodes()))
-          .put("operation", metadata.getOperation().toJson())
-          .put("on", getTransitions(metadata.getTransitions()));
+      return GraphNodeExecutionLog
+          .newInstance(metadata.getNodeId(),
+              metadata.getType(),
+              metadata.getLabel(),
+              getSubTasks(metadata.getNestedNodes()),
+              getOperationLog(metadata),
+              getTransitions(metadata.getTransitions()));
     } else {
-      return input.put("id", id);
+      return GraphNodeExecutionLog.newInstance(id);
     }
   }
 
-  private JsonObject getTransitions(Map<String, String> definedTransitions) {
-    JsonObject output = new JsonObject();
-    definedTransitions.forEach((name, nextId) -> output.put(name, createNodeJson(nextId)));
-    return output;
+  private List<GraphNodeExecutionLog> getSubTasks(List<String> nestedNodes) {
+    return nestedNodes.stream()
+        .map(this::getExecutionLog)
+        .collect(Collectors.toList());
   }
 
-  private JsonArray getSubTasks(List<String> nestedNodes) {
-    JsonArray output = new JsonArray();
-    nestedNodes.stream()
-        .map(this::createNodeJson)
-        .forEach(output::add);
-    return output;
+  private GraphNodeOperationLog getOperationLog(NodeMetadata metadata) {
+    OperationMetadata operationMetadata = metadata.getOperation();
+    return GraphNodeOperationLog
+        .newInstance(operationMetadata.getFactory(), operationMetadata.getData());
   }
 
+  private Map<String, GraphNodeExecutionLog> getTransitions(
+      Map<String, String> definedTransitions) {
+    Map<String, GraphNodeExecutionLog> result = new HashMap<>();
+    definedTransitions.forEach((name, nextId) -> result.put(name, getExecutionLog(nextId)));
+    return result;
+  }
 }

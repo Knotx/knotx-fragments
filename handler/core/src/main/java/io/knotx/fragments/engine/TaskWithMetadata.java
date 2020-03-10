@@ -20,11 +20,11 @@ import io.knotx.fragments.engine.api.Task;
 public class TaskWithMetadata {
 
   private final Task task;
-  private final TaskMetadata taskMetadata;
+  private final TaskMetadata metadata;
 
   public TaskWithMetadata(Task task, TaskMetadata taskMetadata) {
     this.task = task;
-    this.taskMetadata = taskMetadata;
+    this.metadata = taskMetadata;
   }
 
   public Task getTask() {
@@ -32,7 +32,14 @@ public class TaskWithMetadata {
   }
 
   public TaskMetadata getMetadata() {
-    return taskMetadata;
+    return metadata;
   }
 
+  @Override
+  public String toString() {
+    return "TaskWithMetadata{" +
+        "task=" + task +
+        ", taskMetadata=" + metadata +
+        '}';
+  }
 }

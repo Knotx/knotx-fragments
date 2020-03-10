@@ -15,14 +15,15 @@
  */
 package io.knotx.fragments.engine;
 
+import io.knotx.fragments.handler.ExecutionPlan;
 import java.util.HashMap;
 import java.util.Map;
 
 public class TaskMetadata {
 
-  private String taskName;
-  private String rootNodeId;
-  private Map<String, NodeMetadata> nodesMetadata;
+  private final String taskName;
+  private final String rootNodeId;
+  private final Map<String, NodeMetadata> nodesMetadata;
 
   private TaskMetadata(String taskName, String rootNodeId, Map<String, NodeMetadata> nodesMetadata) {
     this.taskName = taskName;
@@ -39,7 +40,7 @@ public class TaskMetadata {
   }
 
   public static TaskMetadata notDefined() {
-    return noMetadata("_NOT_DEFINED", "");
+    return noMetadata(ExecutionPlan.UNDEFINED_TASK, "");
   }
 
   public String getTaskName() {

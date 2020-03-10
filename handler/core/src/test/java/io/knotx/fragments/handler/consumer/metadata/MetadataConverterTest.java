@@ -30,6 +30,8 @@ import io.knotx.fragments.engine.TaskMetadata;
 import io.knotx.fragments.engine.api.node.NodeType;
 import io.knotx.fragments.engine.api.node.single.FragmentResult;
 import io.knotx.fragments.handler.LoggedNodeStatus;
+import io.knotx.fragments.handler.consumer.html.GraphNodeOperationLog;
+import io.knotx.fragments.task.factory.node.action.ActionNodeFactory;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import java.util.Arrays;
@@ -55,7 +57,7 @@ class MetadataConverterTest {
   void shouldProduceEmptyJsonWhenNoMetadataProvided() {
     givenNotDefinedTaskMetadata();
 
-    JsonObject output = tested.createJson();
+    JsonObject output = tested.getExecutionLog().toJson();
 
     assertJsonEquals(new JsonObject(), output);
   }
@@ -65,7 +67,7 @@ class MetadataConverterTest {
   void shouldProduceOnlyProcessingInfoWhenNoMetadataProvided() {
     givenNoMetadata(ROOT_NODE);
 
-    JsonObject output = tested.createJson();
+    JsonObject output = tested.getExecutionLog().toJson();
 
     JsonObject expected = jsonForNotDescribedNode(ROOT_NODE);
 
@@ -77,7 +79,7 @@ class MetadataConverterTest {
   void shouldProduceCorrectJsonForOneNodeMetadata() {
     givenNodesMetadata(ROOT_NODE, simpleNode(ROOT_NODE, "custom"));
 
-    JsonObject output = tested.createJson();
+    JsonObject output = tested.getExecutionLog().toJson();
 
     JsonObject expected = jsonForNode(ROOT_NODE, "custom");
 
@@ -89,7 +91,7 @@ class MetadataConverterTest {
   void shouldProduceCorrectJsonForOneActionNodeMetadata() {
     givenNodesMetadata(ROOT_NODE, simpleNode(ROOT_NODE, "action"));
 
-    JsonObject output = tested.createJson();
+    JsonObject output = tested.getExecutionLog().toJson();
 
     JsonObject expected = jsonForActionNode(ROOT_NODE);
 
@@ -104,7 +106,7 @@ class MetadataConverterTest {
         simpleNode("node-A", "factory-A")
     );
 
-    JsonObject output = tested.createJson();
+    JsonObject output = tested.getExecutionLog().toJson();
 
     JsonObject expected = jsonForNode(ROOT_NODE, "custom")
         .put("on", new JsonObject()
@@ -126,14 +128,15 @@ class MetadataConverterTest {
         simpleNode("node-A", "factory-A")
     );
 
-    JsonObject output = tested.createJson();
+    JsonObject output = tested.getExecutionLog().toJson();
 
-    String missingNodeId = output.getJsonObject("on").getJsonObject(ERROR_TRANSITION).getString("id");
+    String missingNodeId = output.getJsonObject("on").getJsonObject(ERROR_TRANSITION)
+        .getString("id");
 
     JsonObject expected = jsonForNode(ROOT_NODE, "custom")
         .put("status", LoggedNodeStatus.ERROR)
         .put("on", new JsonObject()
-            .put(SUCCESS_TRANSITION, jsonForNode( "node-A", "factory-A"))
+            .put(SUCCESS_TRANSITION, jsonForNode("node-A", "factory-A"))
             .put(ERROR_TRANSITION, jsonForMissingNode(missingNodeId)))
         .put("response", new JsonObject()
             .put("transition", ERROR_TRANSITION)
@@ -154,7 +157,7 @@ class MetadataConverterTest {
         simpleNode(ROOT_NODE, "custom")
     );
 
-    JsonObject output = tested.createJson();
+    JsonObject output = tested.getExecutionLog().toJson();
 
     JsonObject expected = jsonForNode(ROOT_NODE, "custom")
         .put("status", LoggedNodeStatus.SUCCESS)
@@ -175,7 +178,7 @@ class MetadataConverterTest {
         simpleNode("node-C", "factory-C")
     );
 
-    JsonObject output = tested.createJson();
+    JsonObject output = tested.getExecutionLog().toJson();
 
     JsonObject expected = jsonForNode(ROOT_NODE, "custom")
         .put("type", NodeType.COMPOSITE)
@@ -194,10 +197,12 @@ class MetadataConverterTest {
   void shouldProduceCorrectJsonForCompositeNodeWithSimpleNodesNotAllDescribed() {
     givenNodesMetadata(ROOT_NODE,
         compositeNode(ROOT_NODE, "custom", "node-A", "node-B", "node-C"),
-        simpleNode("node-A", "factory-A")
+        simpleNode("node-A", "factory-A"),
+        simpleNode("node-B", "factory-B"),
+        simpleNode("node-C", "factory-C")
     );
 
-    JsonObject output = tested.createJson();
+    JsonObject output = tested.getExecutionLog().toJson();
 
     JsonObject expected = jsonForNode(ROOT_NODE, "custom")
         .put("type", NodeType.COMPOSITE)
@@ -219,7 +224,8 @@ class MetadataConverterTest {
             ImmutableMap.of(SUCCESS_TRANSITION, "node-A", "_failure", "node-B")),
         simpleNode("node-A", "factory-A"),
         compositeSubtasksNode("node-B",
-            ImmutableMap.of(SUCCESS_TRANSITION, "node-C", ERROR_TRANSITION, "node-D", "_timeout", "node-E"),
+            ImmutableMap
+                .of(SUCCESS_TRANSITION, "node-C", ERROR_TRANSITION, "node-D", "_timeout", "node-E"),
             "node-B1", "node-B2", "node-B3"
         ),
         simpleNode("node-B1", "action", ImmutableMap.of(SUCCESS_TRANSITION, "node-B1-special")),
@@ -231,7 +237,7 @@ class MetadataConverterTest {
         simpleNode("node-E", "factory-E")
     );
 
-    JsonObject output = tested.createJson();
+    JsonObject output = tested.getExecutionLog().toJson();
 
     JsonObject expected = jsonForNode(ROOT_NODE, "custom")
         .put("on", new JsonObject()
@@ -247,7 +253,8 @@ class MetadataConverterTest {
                 .put("subtasks", new JsonArray(Arrays.asList(
                     jsonForActionNode("node-B1")
                         .put("on", new JsonObject()
-                            .put(SUCCESS_TRANSITION, jsonForNode("node-B1-special", "factory-B1-special"))),
+                            .put(SUCCESS_TRANSITION,
+                                jsonForNode("node-B1-special", "factory-B1-special"))),
                     jsonForNode("node-B2", "factory-B2"),
                     jsonForNode("node-B3", "factory-B3")
                 )))
@@ -260,12 +267,16 @@ class MetadataConverterTest {
   @DisplayName("Expect correct JSON when full metadata for complex graph provided with event log")
   void shouldProduceCorrectJsonForComplexGraphWithFullMetadataWithEventLog() {
     EventLog eventLog = createEventLog(
-        EventLogEntry.success(TASK_NAME, "a-node", createFragmentResult(SUCCESS_TRANSITION, simpleNodeLog())),
-        EventLogEntry.success(TASK_NAME, "b1-subgraph", createFragmentResult(SUCCESS_TRANSITION, simpleNodeLog())),
-        EventLogEntry.success(TASK_NAME, "b2-subgraph", createFragmentResult("_fallback", complexNodeLog())),
+        EventLogEntry.success(TASK_NAME, "a-node",
+            createFragmentResult(SUCCESS_TRANSITION, simpleNodeLog())),
+        EventLogEntry.success(TASK_NAME, "b1-subgraph",
+            createFragmentResult(SUCCESS_TRANSITION, simpleNodeLog())),
+        EventLogEntry
+            .success(TASK_NAME, "b2-subgraph", createFragmentResult("_fallback", complexNodeLog())),
         EventLogEntry.unsupported(TASK_NAME, "b2-subgraph", "_fallback"),
         EventLogEntry.error(TASK_NAME, "b-composite", ERROR_TRANSITION),
-        EventLogEntry.success(TASK_NAME, "f-node", createFragmentResult(SUCCESS_TRANSITION, simpleNodeLog()))
+        EventLogEntry
+            .success(TASK_NAME, "f-node", createFragmentResult(SUCCESS_TRANSITION, simpleNodeLog()))
     );
 
     givenEventLogAndNodesMetadata(
@@ -285,7 +296,7 @@ class MetadataConverterTest {
         simpleNode("f-node", "action")
     );
 
-    JsonObject output = tested.createJson();
+    JsonObject output = tested.getExecutionLog().toJson();
 
     String missingNodeId = output.getJsonObject("on").getJsonObject(SUCCESS_TRANSITION)
         .getJsonArray("subtasks").getJsonObject(1).getJsonObject("on").getJsonObject("_fallback")
@@ -349,7 +360,8 @@ class MetadataConverterTest {
   }
 
   private void givenNoMetadata(String rootNodeId) {
-    tested = new MetadataConverter(emptyFragmentEvent(), TaskMetadata.noMetadata(TASK_NAME, rootNodeId));
+    tested = new MetadataConverter(emptyFragmentEvent(),
+        TaskMetadata.noMetadata(TASK_NAME, rootNodeId));
   }
 
   private void givenNodesMetadata(String rootNodeId, NodeMetadata... nodes) {
@@ -363,7 +375,8 @@ class MetadataConverterTest {
       metadata.put(node.getNodeId(), node);
     }
 
-    tested = new MetadataConverter(emptyFragmentEvent(eventLog), TaskMetadata.create(TASK_NAME, rootNodeId, metadata));
+    tested = new MetadataConverter(emptyFragmentEvent(eventLog),
+        TaskMetadata.create(TASK_NAME, rootNodeId, metadata));
   }
 
   private FragmentEvent emptyFragmentEvent() {
@@ -390,10 +403,11 @@ class MetadataConverterTest {
   }
 
   private OperationMetadata getSampleConfigFor(String factory) {
-    OperationMetadata result = new OperationMetadata();
-    result.setFactory(factory);
-    if ("action".equals(factory)) {
-      result.setData(new JsonObject().put("actionFactory", "http"));
+    final OperationMetadata result;
+    if (ActionNodeFactory.NAME.equals(factory)) {
+      result = new OperationMetadata(factory, new JsonObject().put("actionFactory", "http"));
+    } else {
+      result = new OperationMetadata(factory);
     }
     return result;
   }
@@ -441,16 +455,15 @@ class MetadataConverterTest {
         .put("type", NodeType.SINGLE)
         .put("on", new JsonObject())
         .put("subtasks", new JsonArray())
-        .put("operation", new OperationMetadata().setFactory(factory).toJson())
+        .put("operation", GraphNodeOperationLog.newInstance(factory, new JsonObject()).toJson())
         .put("status", LoggedNodeStatus.UNPROCESSED);
   }
 
   private JsonObject jsonForActionNode(String id) {
     return jsonForNode(id, "action")
         .put("operation",
-            new OperationMetadata()
-                .setFactory("action")
-                .setData(new JsonObject().put("actionFactory", "http"))
+            GraphNodeOperationLog
+                .newInstance("action", new JsonObject().put("actionFactory", "http"))
                 .toJson());
   }
 

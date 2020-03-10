@@ -15,46 +15,29 @@
  */
 package io.knotx.fragments.engine;
 
-import io.vertx.codegen.annotations.DataObject;
 import io.vertx.core.json.JsonObject;
 
-@DataObject(generateConverter = true)
 public class OperationMetadata {
 
-  private String factory;
+  private final String factory;
 
-  private JsonObject data;
+  private final JsonObject data;
 
-  public OperationMetadata() {
-    // empty
+  public OperationMetadata(String factory) {
+    this(factory, new JsonObject());
   }
 
-  public OperationMetadata(JsonObject obj) {
-    OperationMetadataConverter.fromJson(obj, this);
-  }
-
-  public JsonObject toJson() {
-    JsonObject json = new JsonObject();
-    OperationMetadataConverter.toJson(this, json);
-    return json;
+  public OperationMetadata(String factory, JsonObject data) {
+    this.factory = factory;
+    this.data = data;
   }
 
   public String getFactory() {
     return factory;
   }
 
-  public OperationMetadata setFactory(String factory) {
-    this.factory = factory;
-    return this;
-  }
-
   public JsonObject getData() {
     return data;
-  }
-
-  public OperationMetadata setData(JsonObject data) {
-    this.data = data;
-    return this;
   }
 
   @Override

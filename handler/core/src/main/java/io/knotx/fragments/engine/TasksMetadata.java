@@ -28,4 +28,11 @@ public class TasksMetadata {
   public TaskMetadata get(String fragmentId) {
     return tasksMetadataByFragmentId.get(fragmentId);
   }
+
+  @Override
+  public String toString() {
+    return "TasksMetadata{" +
+        "tasksMetadataByFragmentId=" + tasksMetadataByFragmentId +
+        '}';
+  }
 }

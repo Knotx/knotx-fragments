@@ -13,18 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.knotx.fragments.handler.consumer;
+package io.knotx.fragments.handler.consumer.html;
 
 import io.knotx.fragments.api.Fragment;
 import io.knotx.fragments.engine.FragmentEvent;
-import io.knotx.fragments.engine.TaskMetadata;
 import io.knotx.fragments.engine.TasksMetadata;
+import io.knotx.fragments.handler.consumer.FragmentEventsConsumer;
+import io.knotx.fragments.handler.consumer.FragmentEventsConsumerFactory;
+import io.knotx.fragments.handler.consumer.metadata.MetadataConverter;
 import io.knotx.server.api.context.ClientRequest;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -51,7 +52,8 @@ public class FragmentHtmlBodyWriterFactory implements FragmentEventsConsumerFact
       private String requestParam = getConditionParam(config);
 
       @Override
-      public void accept(ClientRequest request, List<FragmentEvent> events, TasksMetadata tasksMetadata) {
+      public void accept(ClientRequest request, List<FragmentEvent> events,
+          TasksMetadata tasksMetadata) {
         if (containsHeader(request) || containsParam(request)) {
           events.stream()
               .filter(this::isSupported)
@@ -60,11 +62,14 @@ public class FragmentHtmlBodyWriterFactory implements FragmentEventsConsumerFact
       }
 
       private void wrapFragmentBodyWithMetadata(FragmentEvent event, TasksMetadata tasksMetadata) {
-        TaskMetadata taskMetadata = Optional.of(event)
-            .map(FragmentEvent::getFragment)
-            .map(Fragment::getId)
-            .map(tasksMetadata::get).orElse(null);
-        wrapFragmentBody(event.getFragment(), FragmentExecutionLog.from(event, taskMetadata).toJson());
+        FragmentExecutionLog executionLog =
+            Optional.ofNullable(tasksMetadata.get(event.getFragment().getId()))
+                .map(metadata -> new MetadataConverter(event, metadata))
+                .map(MetadataConverter::getExecutionLog)
+                .map(graphLog -> FragmentExecutionLog.newInstance(event, graphLog))
+                .orElseGet(()-> FragmentExecutionLog.newInstance(event));
+
+        wrapFragmentBody(event.getFragment(), executionLog.toJson());
       }
 
       private void wrapFragmentBody(Fragment fragment, JsonObject log) {

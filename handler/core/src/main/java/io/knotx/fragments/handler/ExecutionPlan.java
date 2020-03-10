@@ -26,7 +26,11 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+// TODO create unit tests
+// TODO refactor this class, it should be data structure class
 public class ExecutionPlan {
+
+  public static final String UNDEFINED_TASK = "_NOT_DEFINED";
 
   TaskProvider taskProvider;
   Map<FragmentEventContext, TaskWithMetadata> plan;
@@ -58,7 +62,7 @@ public class ExecutionPlan {
 
   private TaskWithMetadata getTaskWithMetadataFor(FragmentEventContext fragmentEventContext) {
     return taskProvider.newInstance(fragmentEventContext)
-        .orElseGet(() -> new TaskWithMetadata(new Task("_NOT_DEFINED"), TaskMetadata.notDefined()));
+        .orElseGet(() -> new TaskWithMetadata(new Task(UNDEFINED_TASK), TaskMetadata.notDefined()));
   }
 
   public static class Entry {

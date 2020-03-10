@@ -110,11 +110,10 @@ public class ActionNodeFactory implements NodeFactory {
 
   private OperationMetadata createOperation(ActionNodeConfig config) {
     ActionFactoryOptions actionConfig = actionNameToOptions.get(config.getAction());
-    return new OperationMetadata().setFactory(NAME)
-        .setData(new JsonObject()
-            .put(METADATA_ALIAS, config.getAction())
-            .put(METADATA_ACTION_FACTORY, actionConfig.getFactory())
-            .put(METADATA_ACTION_CONFIG, actionConfig.getConfig()));
+    return new OperationMetadata(NAME, new JsonObject()
+        .put(METADATA_ALIAS, config.getAction())
+        .put(METADATA_ACTION_FACTORY, actionConfig.getFactory())
+        .put(METADATA_ACTION_CONFIG, actionConfig.getConfig()));
   }
 
   private Function<FragmentContext, Single<FragmentResult>> toRxFunction(
