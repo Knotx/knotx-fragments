@@ -17,10 +17,14 @@ package io.knotx.fragments.task;
 
 import io.knotx.fragments.engine.FragmentEventContext;
 import io.knotx.fragments.engine.api.Task;
+import io.knotx.fragments.engine.TaskMetadata;
+import io.knotx.fragments.engine.TaskWithMetadata;
+import io.knotx.fragments.engine.api.node.Node;
 import io.knotx.fragments.handler.FragmentsHandlerOptions;
 import io.knotx.fragments.handler.api.exception.ConfigurationException;
 import io.vertx.core.json.JsonObject;
 import io.vertx.reactivex.core.Vertx;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * A task factory interface allowing to register a task factory by its name. Implementing class must
@@ -58,8 +62,34 @@ public interface TaskFactory {
    * returns <code>true</code>. When called with a fragment that does not provide a task name, then
    * {@link ConfigurationException} is thrown.
    *
+   * Attempts to fill TaskMetadata with information on task structure.
+   *
    * @param context fragment event context
    * @return new task instance
+   * @deprecated use {@link #newInstanceWithMetadata(FragmentEventContext)} instead
    */
+  @Deprecated
   Task newInstance(FragmentEventContext context);
+
+  /**
+   * Creates the new task instance. It is called only if {@link #accept(FragmentEventContext)}
+   * returns <code>true</code>. When called with a fragment that does not provide a task name, then
+   * {@link ConfigurationException} is thrown.
+   *
+   * Attempts to fill TaskMetadata with information on task structure.
+   *
+   * @param context fragment event context
+   * @return new task instance with metadata
+   */
+  default TaskWithMetadata newInstanceWithMetadata(FragmentEventContext context) {
+    Task task = newInstance(context);
+    return new TaskWithMetadata(
+        task,
+        TaskMetadata.noMetadata(
+            task.getName(),
+            task.getRootNode().map(Node::getId).orElse(StringUtils.EMPTY)
+        )
+    );
+  }
+
 }

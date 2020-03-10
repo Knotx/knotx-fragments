@@ -15,6 +15,9 @@
  */
 package io.knotx.fragments.task.factory.node;
 
+import static java.util.Collections.emptyMap;
+
+import io.knotx.fragments.engine.NodeMetadata;
 import io.knotx.fragments.engine.api.node.Node;
 import io.knotx.fragments.task.factory.GraphNodeOptions;
 import io.knotx.fragments.task.factory.NodeProvider;
@@ -54,7 +57,22 @@ public interface NodeFactory {
    * @param edges - prepared node outgoing edges
    * @param nodeProvider - node provider if the current node contains others
    * @return node instance
+   * @deprecated use {@link #initNode(NodeOptions, Map, NodeProvider, Map)} instead.
    */
+  @Deprecated
   Node initNode(GraphNodeOptions nodeOptions, Map<String, Node> edges, NodeProvider nodeProvider);
 
+  /**
+   * Initialize node instance. Nodes are stateless and stateful.
+   *
+   * @param nodeOptions - graph node options
+   * @param edges - prepared node outgoing edges
+   * @param nodeProvider - node provider if the current node contains others
+   * @param nodesMetadata - node id to metadata map
+   * @return node instance
+   */
+  default Node initNode(NodeOptions nodeOptions, Map<String, Node> edges, NodeProvider nodeProvider,
+      Map<String, NodeMetadata> nodesMetadata) {
+    return initNode(new GraphNodeOptions(nodeOptions, emptyMap()), edges, nodeProvider);
+  }
 }

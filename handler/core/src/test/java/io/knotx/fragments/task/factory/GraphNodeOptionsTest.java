@@ -16,7 +16,9 @@
 package io.knotx.fragments.task.factory;
 
 import static io.knotx.fragments.HoconLoader.verify;
-import static org.junit.jupiter.api.Assertions.*;
+import static io.knotx.fragments.engine.api.node.single.FragmentResult.SUCCESS_TRANSITION;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.knotx.fragments.task.factory.node.action.ActionNodeConfig;
 import io.knotx.fragments.task.factory.node.action.ActionNodeFactory;
@@ -75,10 +77,10 @@ class GraphNodeOptionsTest {
   void expectTransitionSuccessWithNodeBThenNodeC(Vertx vertx) throws Throwable {
     verify("task/factory/taskWithTransitions.conf", config -> {
       GraphNodeOptions graphNodeOptions = new GraphNodeOptions(config);
-      Optional<GraphNodeOptions> nodeB = graphNodeOptions.get("_success");
+      Optional<GraphNodeOptions> nodeB = graphNodeOptions.get(SUCCESS_TRANSITION);
       assertTrue(nodeB.isPresent());
       assertEquals("b", getAction(nodeB.get()));
-      Optional<GraphNodeOptions> nodeC = nodeB.get().get("_success");
+      Optional<GraphNodeOptions> nodeC = nodeB.get().get(SUCCESS_TRANSITION);
       assertTrue(nodeC.isPresent());
       assertEquals("c", getAction(nodeC.get()));
     }, vertx);

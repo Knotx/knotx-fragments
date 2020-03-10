@@ -15,29 +15,41 @@
  */
 package io.knotx.fragments.task.factory.node.action;
 
+import static io.knotx.fragments.engine.NodeMetadata.single;
+
+import io.knotx.fragments.engine.NodeMetadata;
+import io.knotx.fragments.engine.OperationMetadata;
 import io.knotx.fragments.engine.api.node.Node;
+import io.knotx.fragments.engine.api.node.single.FragmentContext;
+import io.knotx.fragments.engine.api.node.single.FragmentResult;
 import io.knotx.fragments.engine.api.node.single.SingleNode;
 import io.knotx.fragments.handler.api.Action;
 import io.knotx.fragments.handler.api.ActionFactory;
-import io.knotx.fragments.engine.api.node.single.FragmentContext;
-import io.knotx.fragments.engine.api.node.single.FragmentResult;
+import io.knotx.fragments.task.factory.ActionFactoryOptions;
+import io.knotx.fragments.task.factory.GraphNodeOptions;
 import io.knotx.fragments.task.factory.NodeProvider;
 import io.knotx.fragments.task.factory.node.NodeFactory;
-import io.knotx.fragments.task.factory.GraphNodeOptions;
+import io.knotx.fragments.task.factory.node.NodeOptions;
 import io.reactivex.Single;
 import io.vertx.core.json.JsonObject;
 import io.vertx.reactivex.core.Vertx;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Optional;
 import java.util.ServiceLoader;
+import java.util.UUID;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
 public class ActionNodeFactory implements NodeFactory {
 
   public static final String NAME = "action";
+  public static final String METADATA_ALIAS = "alias";
+  public static final String METADATA_ACTION_FACTORY = "actionFactory";
+  public static final String METADATA_ACTION_CONFIG = "actionConfig";
   private ActionProvider actionProvider;
+  private Map<String, ActionFactoryOptions> actionNameToOptions;
 
   @Override
   public String getName() {
@@ -46,21 +58,30 @@ public class ActionNodeFactory implements NodeFactory {
 
   @Override
   public ActionNodeFactory configure(JsonObject config, Vertx vertx) {
-    actionProvider = new ActionProvider(supplyFactories(),
-        new ActionNodeFactoryConfig(config).getActions(), vertx);
+    this.actionNameToOptions = new ActionNodeFactoryConfig(config).getActions();
+    actionProvider = new ActionProvider(supplyFactories(), actionNameToOptions, vertx);
     return this;
   }
 
   @Override
   public Node initNode(GraphNodeOptions nodeOptions, Map<String, Node> edges,
       NodeProvider nodeProvider) {
-    ActionNodeConfig config = new ActionNodeConfig(nodeOptions.getNode().getConfig());
+    // The implementation is for backwards compatibility of NodeFactory interface
+    return initNode(nodeOptions.getNode(), edges, nodeProvider, new HashMap<>());
+  }
+
+  @Override
+  public Node initNode(NodeOptions nodeOptions, Map<String, Node> edges, NodeProvider nodeProvider,
+      Map<String, NodeMetadata> nodesMetadata) {
+    ActionNodeConfig config = new ActionNodeConfig(nodeOptions.getConfig());
     Action action = actionProvider.get(config.getAction()).orElseThrow(
         () -> new ActionNotFoundException(config.getAction()));
+    final String actionNodeId = UUID.randomUUID().toString();
+    nodesMetadata.put(actionNodeId, createActionNodeMetadata(actionNodeId, edges, config));
     return new SingleNode() {
       @Override
       public String getId() {
-        return config.getAction();
+        return actionNodeId;
       }
 
       @Override
@@ -73,6 +94,26 @@ public class ActionNodeFactory implements NodeFactory {
         return toRxFunction(action).apply(fragmentContext);
       }
     };
+  }
+
+  private NodeMetadata createActionNodeMetadata(String actionNodeId, Map<String, Node> edges,
+      ActionNodeConfig config) {
+    Map<String, String> transitionMetadata = createTransitionMetadata(edges);
+    return single(actionNodeId, config.getAction(), transitionMetadata, createOperation(config));
+  }
+
+  private Map<String, String> createTransitionMetadata(Map<String, Node> edges) {
+    Map<String, String> transitionMetadata = new HashMap<>();
+    edges.forEach((transition, node) -> transitionMetadata.put(transition, node.getId()));
+    return transitionMetadata;
+  }
+
+  private OperationMetadata createOperation(ActionNodeConfig config) {
+    ActionFactoryOptions actionConfig = actionNameToOptions.get(config.getAction());
+    return new OperationMetadata(NAME, new JsonObject()
+        .put(METADATA_ALIAS, config.getAction())
+        .put(METADATA_ACTION_FACTORY, actionConfig.getFactory())
+        .put(METADATA_ACTION_CONFIG, actionConfig.getConfig()));
   }
 
   private Function<FragmentContext, Single<FragmentResult>> toRxFunction(

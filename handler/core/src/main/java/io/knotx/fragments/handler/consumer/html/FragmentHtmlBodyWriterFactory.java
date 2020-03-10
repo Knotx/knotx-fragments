@@ -13,10 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.knotx.fragments.handler.consumer;
+package io.knotx.fragments.handler.consumer.html;
 
 import io.knotx.fragments.api.Fragment;
 import io.knotx.fragments.engine.FragmentEvent;
+import io.knotx.fragments.engine.TasksMetadata;
+import io.knotx.fragments.handler.consumer.FragmentEventsConsumer;
+import io.knotx.fragments.handler.consumer.FragmentEventsConsumerFactory;
+import io.knotx.fragments.handler.consumer.metadata.MetadataConverter;
 import io.knotx.server.api.context.ClientRequest;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -32,7 +36,8 @@ public class FragmentHtmlBodyWriterFactory implements FragmentEventsConsumerFact
   static final String FRAGMENT_TYPES_OPTIONS = "fragmentTypes";
   static final String CONDITION_OPTION = "condition";
   static final String HEADER_OPTION = "header";
-  static final String PARAM_OPTION = "param";
+
+  private static final String PARAM_OPTION = "param";
 
   @Override
   public String getName() {
@@ -47,26 +52,37 @@ public class FragmentHtmlBodyWriterFactory implements FragmentEventsConsumerFact
       private String requestParam = getConditionParam(config);
 
       @Override
-      public void accept(ClientRequest request, List<FragmentEvent> events) {
+      public void accept(ClientRequest request, List<FragmentEvent> events,
+          TasksMetadata tasksMetadata) {
         if (containsHeader(request) || containsParam(request)) {
           events.stream()
               .filter(this::isSupported)
-              .forEach(this::wrapFragmentBody);
+              .forEach(event -> wrapFragmentBodyWithMetadata(event, tasksMetadata));
         }
       }
 
-      private void wrapFragmentBody(FragmentEvent fragmentEvent) {
-        Fragment fragment = fragmentEvent.getFragment();
+      private void wrapFragmentBodyWithMetadata(FragmentEvent event, TasksMetadata tasksMetadata) {
+        FragmentExecutionLog executionLog =
+            Optional.ofNullable(tasksMetadata.get(event.getFragment().getId()))
+                .map(metadata -> new MetadataConverter(event, metadata))
+                .map(MetadataConverter::getExecutionLog)
+                .map(graphLog -> FragmentExecutionLog.newInstance(event, graphLog))
+                .orElseGet(()-> FragmentExecutionLog.newInstance(event));
+
+        wrapFragmentBody(event.getFragment(), executionLog.toJson());
+      }
+
+      private void wrapFragmentBody(Fragment fragment, JsonObject log) {
         fragment.setBody("<!-- data-knotx-id=\"" + fragment.getId() + "\" -->"
-            + addAsScript(fragmentEvent)
+            + logAsScript(fragment.getId(), log)
             + fragment.getBody()
             + "<!-- data-knotx-id=\"" + fragment.getId() + "\" -->");
       }
 
-      private String addAsScript(FragmentEvent event) {
-        return "<script data-knotx-id=\"" + event.getFragment().getId()
+      private String logAsScript(String fragmentId, JsonObject log) {
+        return "<script data-knotx-debug=\"log\" data-knotx-id=\"" + fragmentId
             + "\" type=\"application/json\">"
-            + event.toJson() +
+            + log +
             "</script>";
       }
 

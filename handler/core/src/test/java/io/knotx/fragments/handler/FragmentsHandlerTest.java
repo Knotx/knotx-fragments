@@ -37,9 +37,11 @@ import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
 import io.vertx.reactivex.core.Vertx;
 import io.vertx.reactivex.ext.web.RoutingContext;
+
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -83,20 +85,21 @@ class FragmentsHandlerTest {
   void shouldFail(Vertx vertx, VertxTestContext testContext)
       throws Throwable {
     HoconLoader.verify("handler/singleTaskFactoryWithFailingTask.conf", config -> {
-      //given
+      // given
       RoutingContext routingContext = mockRoutingContext("failing-task");
       FragmentsHandler underTest = new FragmentsHandler(vertx, config);
 
-      //when
-      underTest.handle(routingContext);
-
-      //then
+      // when
       doAnswer(invocation -> {
         testContext.completeNow();
         return null;
       })
           .when(routingContext)
           .fail(500);
+
+      underTest.handle(routingContext);
+
+      // then verified as correct (assertion inside HoconLoader::verify)
     }, testContext, vertx);
   }
 
@@ -111,8 +114,9 @@ class FragmentsHandlerTest {
           EMPTY_BODY);
 
       // when
-      Single<List<FragmentEvent>> rxDoHandle = new FragmentsHandler(vertx, config)
-          .doHandle(Collections.singletonList(fragment), new ClientRequest());
+      FragmentsHandler handler = new FragmentsHandler(vertx, config);
+      Single<List<FragmentEvent>> rxDoHandle = handler
+          .doHandle(handler.createExecutionPlan(Collections.singletonList(fragment), new ClientRequest()));
 
       rxDoHandle.subscribe(
           result -> testContext.verify(() -> {
@@ -142,7 +146,7 @@ class FragmentsHandlerTest {
 
       //when
       Single<List<FragmentEvent>> rxDoHandle = underTest
-          .doHandle(Collections.singletonList(fragment), new ClientRequest());
+          .doHandle(underTest.createExecutionPlan(Collections.singletonList(fragment), new ClientRequest()));
 
       rxDoHandle.subscribe(
           result -> testContext.verify(() -> {
@@ -168,7 +172,7 @@ class FragmentsHandlerTest {
 
       //when
       Single<List<FragmentEvent>> rxDoHandle = underTest
-          .doHandle(Collections.singletonList(fragment), new ClientRequest());
+          .doHandle(underTest.createExecutionPlan(Collections.singletonList(fragment), new ClientRequest()));
 
       rxDoHandle.subscribe(
           result -> testContext.verify(() -> {
@@ -194,7 +198,7 @@ class FragmentsHandlerTest {
 
       //when
       Single<List<FragmentEvent>> rxDoHandle = underTest
-          .doHandle(Collections.singletonList(fragment), new ClientRequest());
+          .doHandle(underTest.createExecutionPlan(Collections.singletonList(fragment), new ClientRequest()));
 
       rxDoHandle.subscribe(
           result -> testContext.verify(() -> {
@@ -283,8 +287,7 @@ class FragmentsHandlerTest {
     RoutingContext routingContext = Mockito.mock(RoutingContext.class);
 
     when(routingContext.get(eq(RequestContext.KEY))).thenReturn(requestContext);
-    when(routingContext.get(eq("fragments"))).thenReturn(
-        newArrayList(fragment(task)));
+    when(routingContext.get(eq("fragments"))).thenReturn(newArrayList(fragment(task)));
     return routingContext;
   }
 

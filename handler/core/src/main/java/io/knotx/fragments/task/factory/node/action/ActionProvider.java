@@ -15,10 +15,11 @@
  */
 package io.knotx.fragments.task.factory.node.action;
 
-import io.knotx.fragments.task.factory.ActionFactoryOptions;
+
 import io.knotx.fragments.handler.api.Action;
 import io.knotx.fragments.handler.api.ActionFactory;
 import io.knotx.fragments.handler.api.Cacheable;
+import io.knotx.fragments.task.factory.ActionFactoryOptions;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import io.vertx.reactivex.core.Vertx;

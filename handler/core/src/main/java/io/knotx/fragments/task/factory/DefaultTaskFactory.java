@@ -15,11 +15,14 @@
  */
 package io.knotx.fragments.task.factory;
 
-import io.knotx.fragments.handler.api.exception.ConfigurationException;
 import io.knotx.fragments.api.Fragment;
 import io.knotx.fragments.engine.FragmentEventContext;
+import io.knotx.fragments.engine.NodeMetadata;
+import io.knotx.fragments.engine.TaskMetadata;
+import io.knotx.fragments.engine.TaskWithMetadata;
 import io.knotx.fragments.engine.api.Task;
 import io.knotx.fragments.engine.api.node.Node;
+import io.knotx.fragments.handler.api.exception.ConfigurationException;
 import io.knotx.fragments.task.TaskFactory;
 import io.knotx.fragments.task.exception.NodeFactoryNotFoundException;
 import io.knotx.fragments.task.factory.node.NodeFactory;
@@ -37,7 +40,7 @@ import java.util.stream.StreamSupport;
 
 public class DefaultTaskFactory implements TaskFactory, NodeProvider {
 
-  public static final String NAME = "default";
+  private static final String NAME = "default";
 
   private DefaultTaskFactoryConfig taskFactoryConfig;
   private Map<String, NodeFactory> nodeFactories;
@@ -68,7 +71,13 @@ public class DefaultTaskFactory implements TaskFactory, NodeProvider {
   }
 
   @Override
-  public Task newInstance(FragmentEventContext eventContext) {
+  public Task newInstance(FragmentEventContext context) {
+    // The implementation is for backwards compatibility of NodeFactory interface
+    return newInstanceWithMetadata(context).getTask();
+  }
+
+  @Override
+  public TaskWithMetadata newInstanceWithMetadata(FragmentEventContext eventContext) {
     Fragment fragment = eventContext.getFragmentEvent().getFragment();
     String taskKey = taskFactoryConfig.getTaskNameKey();
     String taskName = fragment.getConfiguration().getString(taskKey);
@@ -76,16 +85,24 @@ public class DefaultTaskFactory implements TaskFactory, NodeProvider {
     Map<String, GraphNodeOptions> tasks = taskFactoryConfig.getTasks();
     return Optional.ofNullable(tasks.get(taskName))
         .map(rootGraphNodeOptions -> {
-          Node rootNode = initNode(rootGraphNodeOptions);
-          return new Task(taskName, rootNode);
+          Map<String, NodeMetadata> nodesMetadata = new HashMap<>();
+          Node rootNode = initNode(rootGraphNodeOptions, nodesMetadata);
+          return new TaskWithMetadata(new Task(taskName, rootNode),
+              TaskMetadata.create(taskName, rootNode.getId(), nodesMetadata));
         })
         .orElseThrow(() -> new ConfigurationException("Task [" + taskName + "] not configured!"));
   }
 
   @Override
   public Node initNode(GraphNodeOptions nodeOptions) {
+    return initNode(nodeOptions, new HashMap<>());
+  }
+
+  @Override
+  public Node initNode(GraphNodeOptions nodeOptions, Map<String, NodeMetadata> nodesMetadata) {
     return findNodeFactory(nodeOptions)
-        .map(f -> f.initNode(nodeOptions, initTransitions(nodeOptions), this))
+        .map(f -> f.initNode(nodeOptions.getNode(), initTransitions(nodeOptions, nodesMetadata), this,
+            nodesMetadata))
         .orElseThrow(() -> new NodeFactoryNotFoundException(nodeOptions.getNode().getFactory()));
   }
 
@@ -93,11 +110,12 @@ public class DefaultTaskFactory implements TaskFactory, NodeProvider {
     return Optional.ofNullable(nodeFactories.get(nodeOptions.getNode().getFactory()));
   }
 
-  private Map<String, Node> initTransitions(GraphNodeOptions nodeOptions) {
+  private Map<String, Node> initTransitions(GraphNodeOptions nodeOptions,
+      Map<String, NodeMetadata> nodesMetadata) {
     Map<String, GraphNodeOptions> transitions = nodeOptions.getOnTransitions();
     Map<String, Node> edges = new HashMap<>();
     transitions.forEach((transition, childGraphOptions) -> edges
-        .put(transition, initNode(childGraphOptions)));
+        .put(transition, initNode(childGraphOptions, nodesMetadata)));
     return edges;
   }
 

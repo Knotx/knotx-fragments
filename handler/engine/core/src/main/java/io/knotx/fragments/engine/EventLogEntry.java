@@ -52,6 +52,10 @@ public class EventLogEntry {
     return new EventLogEntry(task, node, NodeStatus.ERROR, transition,null);
   }
 
+  public static EventLogEntry unprocessed(String task, String node) {
+    return new EventLogEntry(task, node, NodeStatus.UNPROCESSED, null, null);
+  }
+
   public static EventLogEntry timeout(String task, String node) {
     return new EventLogEntry(task, node, NodeStatus.TIMEOUT, null, null);
   }
@@ -74,7 +78,7 @@ public class EventLogEntry {
     this.nodeLog = json.getJsonObject(NODE_LOG_KEY);
   }
 
-  JsonObject toJson() {
+  public JsonObject toJson() {
     return new JsonObject()
         .put(TASK_KEY, task)
         .put(NODE_KEY, node)
@@ -96,11 +100,36 @@ public class EventLogEntry {
         '}';
   }
 
-  enum NodeStatus {
+  public String getTask() {
+    return task;
+  }
+
+  public String getNode() {
+    return node;
+  }
+
+  public NodeStatus getStatus() {
+    return status;
+  }
+
+  public String getTransition() {
+    return transition;
+  }
+
+  public long getTimestamp() {
+    return timestamp;
+  }
+
+  public JsonObject getNodeLog() {
+    return nodeLog;
+  }
+
+  public enum NodeStatus {
     SUCCESS,
     UNSUPPORTED_TRANSITION,
     ERROR,
-    TIMEOUT //?
+    TIMEOUT,
+    UNPROCESSED
   }
 
 }

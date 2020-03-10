@@ -16,18 +16,28 @@
 package io.knotx.fragments.task.factory;
 
 import static io.knotx.fragments.engine.api.node.single.FragmentResult.SUCCESS_TRANSITION;
+import static io.knotx.fragments.task.factory.DefaultTaskFactoryConfig.DEFAULT_TASK_NAME_KEY;
+import static java.util.Arrays.asList;
+import static java.util.Collections.singletonMap;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import io.knotx.fragments.handler.api.exception.ConfigurationException;
 import io.knotx.fragments.api.Fragment;
 import io.knotx.fragments.engine.FragmentEvent;
 import io.knotx.fragments.engine.FragmentEventContext;
-import io.knotx.fragments.engine.api.Task;
-import io.knotx.fragments.engine.api.node.composite.CompositeNode;
+import io.knotx.fragments.engine.NodeMetadata;
+import io.knotx.fragments.engine.OperationMetadata;
+import io.knotx.fragments.engine.TaskMetadata;
+import io.knotx.fragments.engine.TaskWithMetadata;
 import io.knotx.fragments.engine.api.node.Node;
+import io.knotx.fragments.engine.api.node.NodeType;
+import io.knotx.fragments.engine.api.node.composite.CompositeNode;
 import io.knotx.fragments.engine.api.node.single.SingleNode;
+import io.knotx.fragments.handler.api.actionlog.ActionLogLevel;
+import io.knotx.fragments.handler.api.exception.ConfigurationException;
 import io.knotx.fragments.task.factory.node.NodeFactoryOptions;
 import io.knotx.fragments.task.factory.node.action.ActionNodeFactory;
 import io.knotx.fragments.task.factory.node.action.ActionNodeFactoryConfig;
@@ -36,12 +46,12 @@ import io.knotx.server.api.context.ClientRequest;
 import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.reactivex.core.Vertx;
-import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -54,89 +64,94 @@ import org.mockito.quality.Strictness;
 @MockitoSettings(strictness = Strictness.LENIENT)
 class DefaultTaskFactoryTest {
 
+  private static final String MY_TASK_KEY = "myTaskKey";
   private static final String TASK_NAME = "task";
-  private static final String COMPOSITE_NODE_ID = "composite";
+  private static final String TEST_ACTION_FACTORY = "test-action";
   private static final Map<String, GraphNodeOptions> NO_TRANSITIONS = Collections.emptyMap();
 
-  private static final FragmentEventContext SAMPLE_FRAGMENT_EVENT =
-      new FragmentEventContext(new FragmentEvent(new Fragment("type",
-          new JsonObject().put(DefaultTaskFactoryConfig.DEFAULT_TASK_NAME_KEY, TASK_NAME), "body")),
-          new ClientRequest());
+  private FragmentEventContext fragmentEvent;
+  private FragmentEventContext fragmentEventWithCustomTaskKey;
 
-  private static final String MY_TASK_KEY = "myTaskKey";
-
-  private static final FragmentEventContext SAMPLE_FRAGMENT_EVENT_WITH_CUSTOM_TASK_KEY =
-      new FragmentEventContext(new FragmentEvent(new Fragment("type",
-          new JsonObject().put(MY_TASK_KEY, TASK_NAME), "body")),
-          new ClientRequest());
+  @BeforeEach
+  void configure() {
+    fragmentEvent =
+        new FragmentEventContext(new FragmentEvent(new Fragment("type",
+            new JsonObject().put(DEFAULT_TASK_NAME_KEY, TASK_NAME), "body")),
+            new ClientRequest());
+    fragmentEventWithCustomTaskKey =
+        new FragmentEventContext(new FragmentEvent(new Fragment("type",
+            new JsonObject().put(MY_TASK_KEY, TASK_NAME), "body")),
+            new ClientRequest());
+  }
 
   @Test
-  @DisplayName("Expect fragment is not accepted when it does not specify a task.")
+  @DisplayName("Fragment is not accepted when it does not specify a task.")
   void notAcceptFragmentWithoutTask(Vertx vertx) {
     // given
     FragmentEventContext fragmentWithNoTask =
         new FragmentEventContext(
-            new FragmentEvent(
-                new Fragment("type", new JsonObject(), "body")),
+            new FragmentEvent(new Fragment("type", new JsonObject(), "body")),
             new ClientRequest()
         );
     DefaultTaskFactory tested = new DefaultTaskFactory()
-        .configure(emptyFactoryConfig().toJson(), vertx);
+        .configure(taskFactoryConfig().toJson(), vertx);
 
     // when
     boolean accepted = tested.accept(fragmentWithNoTask);
 
     // then
-    Assertions.assertFalse(accepted);
+    assertFalse(accepted);
   }
 
   @Test
-  @DisplayName("Expect fragment is not accepted when it specifies a task but it is not configured")
-  void noAcceptFragmentWhenTaskNotConfigured(Vertx vertx) {
+  @DisplayName("Fragment is not accepted when it specifies a task but it is not configured.")
+  void notAcceptFragmentWhenTaskNotConfigured(Vertx vertx) {
     // given
     DefaultTaskFactory tested = new DefaultTaskFactory()
-        .configure(emptyFactoryConfig().toJson(), vertx);
+        .configure(taskFactoryConfig().toJson(), vertx);
 
     // when
-    boolean accepted = tested.accept(SAMPLE_FRAGMENT_EVENT);
+    boolean accepted = tested.accept(fragmentEvent);
 
     // then
-    Assertions.assertFalse(accepted);
+    assertFalse(accepted);
   }
 
   @Test
-  @DisplayName("Expect fragment is accepted when it specifies a task and it is configured")
+  @DisplayName("Fragment is accepted when it specifies a task and it is configured.")
   void acceptFragment(Vertx vertx) {
-    GraphNodeOptions graph = new GraphNodeOptions("A", NO_TRANSITIONS);
+    // given
+    GraphNodeOptions rootNodeOptions = new GraphNodeOptions("A", NO_TRANSITIONS);
 
     DefaultTaskFactory tested = new DefaultTaskFactory().configure(
-        createTaskFactoryConfig(graph, new JsonObject()).toJson(), vertx);
+        taskFactoryConfig(rootNodeOptions).toJson(), vertx);
 
     // when
-    boolean accepted = tested.accept(SAMPLE_FRAGMENT_EVENT);
+    boolean accepted = tested.accept(fragmentEvent);
 
     // then
-    Assertions.assertTrue(accepted);
+    assertTrue(accepted);
   }
 
   @Test
-  @DisplayName("Expect fragment is accepted when it specifies a custom task name and it is configured")
+  @DisplayName("Fragment is accepted when it specifies a custom task name.")
   void acceptFragmentWhenCustomTaskName(Vertx vertx) {
-    GraphNodeOptions graph = new GraphNodeOptions("A", NO_TRANSITIONS);
+    // given
+    GraphNodeOptions rootNodeOptions = new GraphNodeOptions("A", NO_TRANSITIONS);
 
     DefaultTaskFactory tested = new DefaultTaskFactory().configure(
-        createTaskFactoryConfig(graph, new JsonObject()).setTaskNameKey(MY_TASK_KEY).toJson(),
+        taskFactoryConfig(rootNodeOptions).setTaskNameKey(MY_TASK_KEY).toJson(),
         vertx);
 
     // when
-    boolean accepted = tested.accept(SAMPLE_FRAGMENT_EVENT_WITH_CUSTOM_TASK_KEY);
+    boolean accepted = tested.accept(fragmentEventWithCustomTaskKey);
 
     // then
-    Assertions.assertTrue(accepted);
+    assertTrue(accepted);
   }
 
   @Test
-  @DisplayName("Expect task not found exception when a fragment does not define a task.")
+  @DisplayName("Configuration exception is thrown when a fragment does not define a task.")
   void newInstanceFailedWhenNoTask(Vertx vertx) {
     // given
     FragmentEventContext fragmentWithNoTask =
@@ -145,48 +160,47 @@ class DefaultTaskFactoryTest {
                 new Fragment("type", new JsonObject(), "body")),
             new ClientRequest()
         );
-    JsonObject actionNodeConfig = createActionNodeConfig("A", SUCCESS_TRANSITION);
-    GraphNodeOptions graph = new GraphNodeOptions("A", NO_TRANSITIONS);
+    GraphNodeOptions rootNodeOptions = new GraphNodeOptions("A", NO_TRANSITIONS);
+    DefaultTaskFactory tested = new DefaultTaskFactory()
+        .configure(taskFactoryConfig(rootNodeOptions, actionNodeFactoryConfig("A")).toJson(),
+            vertx);
 
-    // when
-    Assertions.assertThrows(
+    // when, then
+    assertThrows(
         ConfigurationException.class,
-        () -> new DefaultTaskFactory()
-            .configure(createTaskFactoryConfig(graph, actionNodeConfig).toJson(), vertx)
-            .newInstance(fragmentWithNoTask));
+        () -> tested.newInstanceWithMetadata(fragmentWithNoTask));
   }
 
   @Test
   @DisplayName("Expect new task instance when task name is defined and configured.")
   void newInstance(Vertx vertx) {
     // given
-    JsonObject actionNodeConfig = createActionNodeConfig("A", SUCCESS_TRANSITION);
-    GraphNodeOptions graph = new GraphNodeOptions("A", NO_TRANSITIONS);
+    GraphNodeOptions rootNodeOptions = new GraphNodeOptions("A", NO_TRANSITIONS);
 
     // when
-    Task task = new DefaultTaskFactory()
-        .configure(createTaskFactoryConfig(graph, actionNodeConfig).toJson(), vertx)
-        .newInstance(SAMPLE_FRAGMENT_EVENT);
+    TaskWithMetadata task = new DefaultTaskFactory()
+        .configure(taskFactoryConfig(rootNodeOptions, actionNodeFactoryConfig("A")).toJson(), vertx)
+        .newInstanceWithMetadata(fragmentEvent);
 
     // then
-    assertEquals(TASK_NAME, task.getName());
+    assertEquals(TASK_NAME, task.getTask().getName());
   }
 
   @Test
   @DisplayName("Expect always a new task instance.")
   void newInstanceAlways(Vertx vertx) {
     // given
-    JsonObject actionNodeConfig = createActionNodeConfig("A", SUCCESS_TRANSITION);
-    GraphNodeOptions graph = new GraphNodeOptions("A", NO_TRANSITIONS);
+    GraphNodeOptions rootNodeOptions = new GraphNodeOptions("A", NO_TRANSITIONS);
 
     // when
     DefaultTaskFactory taskFactory = new DefaultTaskFactory()
-        .configure(createTaskFactoryConfig(graph, actionNodeConfig).toJson(), vertx);
+        .configure(taskFactoryConfig(rootNodeOptions, actionNodeFactoryConfig("A")).toJson(),
+            vertx);
 
     // then
     assertNotSame(
-        taskFactory.newInstance(SAMPLE_FRAGMENT_EVENT),
-        taskFactory.newInstance(SAMPLE_FRAGMENT_EVENT)
+        taskFactory.newInstanceWithMetadata(fragmentEvent),
+        taskFactory.newInstanceWithMetadata(fragmentEvent)
     );
   }
 
@@ -194,55 +208,105 @@ class DefaultTaskFactoryTest {
   @DisplayName("Expect new task instance when custom task name key is defined.")
   void expectGraphWhenCustomTaskKey(Vertx vertx) {
     // given
-    JsonObject actionNodeConfig = createActionNodeConfig("A", SUCCESS_TRANSITION);
-    GraphNodeOptions graph = new GraphNodeOptions("A", NO_TRANSITIONS);
+    GraphNodeOptions rootNodeOptions = new GraphNodeOptions("A", NO_TRANSITIONS);
 
     // when
-    Task task = new DefaultTaskFactory()
+    TaskWithMetadata task = new DefaultTaskFactory()
         .configure(
-            createTaskFactoryConfig(graph, actionNodeConfig).setTaskNameKey(MY_TASK_KEY).toJson(),
+            taskFactoryConfig(rootNodeOptions, actionNodeFactoryConfig("A"))
+                .setTaskNameKey(MY_TASK_KEY)
+                .toJson(),
             vertx)
-        .newInstance(SAMPLE_FRAGMENT_EVENT_WITH_CUSTOM_TASK_KEY);
+        .newInstanceWithMetadata(fragmentEventWithCustomTaskKey);
 
     // then
-    assertEquals(TASK_NAME, task.getName());
+    assertEquals(TASK_NAME, task.getTask().getName());
+  }
+
+  @Test
+  @DisplayName("Expect task metadata when INFO is configured.")
+  void expectMetadata(Vertx vertx) {
+    // given
+    JsonObject actionNodeConfig = infoLevel(actionNodeFactoryConfig("A"));
+    GraphNodeOptions rootNodeOptions = new GraphNodeOptions("A", NO_TRANSITIONS);
+
+    // when
+    TaskWithMetadata taskWithMetadata = new DefaultTaskFactory()
+        .configure(
+            taskFactoryConfig(rootNodeOptions, actionNodeConfig)
+                .toJson(),
+            vertx)
+        .newInstanceWithMetadata(fragmentEvent);
+
+    ActionFactoryOptions actionOptions = new ActionNodeFactoryConfig(actionNodeConfig).getActions()
+        .get("A");
+
+    // then
+    TaskMetadata metadata = taskWithMetadata.getMetadata();
+    assertEquals(TASK_NAME, metadata.getTaskName());
+
+    NodeMetadata rootMetadata = metadata.getNodesMetadata().get(metadata.getRootNodeId());
+    assertTrue(rootMetadata.getTransitions().isEmpty());
+    assertTrue(rootMetadata.getNestedNodes().isEmpty());
+    assertEquals(NodeType.SINGLE, rootMetadata.getType());
+
+    OperationMetadata operation = rootMetadata.getOperation();
+    assertActionNodeMetadata(operation, "A", actionOptions.getConfig());
   }
 
   @Test
   @DisplayName("Expect graph of two action nodes with transition between.")
   void expectNodesWithTransitionBetween(Vertx vertx) {
     // given
-    JsonObject options = createActionNodeConfig("A", SUCCESS_TRANSITION);
-    merge(options, "B", SUCCESS_TRANSITION);
+    JsonObject options = actionNodeFactoryConfig("A", "B");
 
-    GraphNodeOptions graph = new GraphNodeOptions("A", Collections
-        .singletonMap("customTransition",
+    GraphNodeOptions rootNodeOptions = new GraphNodeOptions("A",
+        singletonMap("customTransition",
             new GraphNodeOptions("B", NO_TRANSITIONS)));
 
     // when
-    Task task = getTask(graph, options, vertx);
+    TaskWithMetadata taskWithMetadata = getTaskWithMetadata(rootNodeOptions, options, vertx);
 
     // then
-    assertEquals(TASK_NAME, task.getName());
+    assertEquals(TASK_NAME, taskWithMetadata.getTask().getName());
 
-    assertTrue(task.getRootNode().isPresent());
-    Node rootNode = task.getRootNode().get();
-    assertTrue(rootNode instanceof SingleNode);
-    assertEquals("A", rootNode.getId());
+    assertTrue(taskWithMetadata.getTask().getRootNode().isPresent());
+    Node rootNode = taskWithMetadata.getTask().getRootNode().get();
     Optional<Node> customNode = rootNode.next("customTransition");
     assertTrue(customNode.isPresent());
-    assertTrue(customNode.get() instanceof SingleNode);
-    SingleNode customSingleNode = (SingleNode) customNode.get();
-    assertEquals("B", customSingleNode.getId());
+  }
+
+  @Test
+  @DisplayName("Expect metadata of two action nodes with transition between.")
+  void expectMetadataForNodesWithTransitionBetween(Vertx vertx) {
+    // given
+    JsonObject options = infoLevel(actionNodeFactoryConfig("A", "B"));
+
+    GraphNodeOptions rootNodeOptions = new GraphNodeOptions("A", singletonMap("customTransition",
+        new GraphNodeOptions("B", NO_TRANSITIONS)));
+
+    // when
+    TaskMetadata metadata = getTaskWithMetadata(rootNodeOptions, options, vertx).getMetadata();
+
+    // then
+    assertEquals(TASK_NAME, metadata.getTaskName());
+
+    NodeMetadata rootMetadata = metadata.getNodesMetadata().get(metadata.getRootNodeId());
+    NodeMetadata nextNodeMetadata = metadata
+        .getNodesMetadata().get(rootMetadata.getTransitions().get("customTransition"));
+
+    Map<String, ActionFactoryOptions> actions = new ActionNodeFactoryConfig(options).getActions();
+    assertActionNodeMetadata(rootMetadata.getOperation(), "A", actions.get("A").getConfig());
+    assertActionNodeMetadata(nextNodeMetadata.getOperation(), "B", actions.get("B").getConfig());
   }
 
   @Test
   @DisplayName("Expect graph with nested composite nodes")
   void expectNestedCompositeNodesGraph(Vertx vertx) {
     // given
-    JsonObject options = createActionNodeConfig("A", SUCCESS_TRANSITION);
+    JsonObject options = actionNodeFactoryConfig("A");
 
-    GraphNodeOptions graph = new GraphNodeOptions(
+    GraphNodeOptions rootNodeOptions = new GraphNodeOptions(
         subTasks(
             new GraphNodeOptions(subTasks(new GraphNodeOptions("A", NO_TRANSITIONS)),
                 NO_TRANSITIONS)),
@@ -250,68 +314,112 @@ class DefaultTaskFactoryTest {
     );
 
     // when
-    Task task = getTask(graph, options, vertx);
+    TaskWithMetadata taskWithMetadata = getTaskWithMetadata(rootNodeOptions, options, vertx);
 
     // then
-    assertEquals(TASK_NAME, task.getName());
-    assertTrue(task.getRootNode().isPresent());
-    Node rootNode = task.getRootNode().get();
+    assertEquals(TASK_NAME, taskWithMetadata.getTask().getName());
+    assertTrue(taskWithMetadata.getTask().getRootNode().isPresent());
+    Node rootNode = taskWithMetadata.getTask().getRootNode().get();
     assertTrue(rootNode instanceof CompositeNode);
-    assertEquals(COMPOSITE_NODE_ID, rootNode.getId());
 
     CompositeNode compositeRootNode = (CompositeNode) rootNode;
     assertEquals(1, compositeRootNode.getNodes().size());
     Node childNode = compositeRootNode.getNodes().get(0);
-    assertEquals(COMPOSITE_NODE_ID, childNode.getId());
     assertTrue(childNode instanceof CompositeNode);
     CompositeNode compositeChildNode = (CompositeNode) childNode;
 
     assertEquals(1, compositeChildNode.getNodes().size());
     Node node = compositeChildNode.getNodes().get(0);
     assertTrue(node instanceof SingleNode);
-    assertEquals("A", node.getId());
   }
 
-  private Task getTask(GraphNodeOptions graph, JsonObject actionNodeConfig, Vertx vertx) {
-    DefaultTaskFactoryConfig taskFactoryConfig = createTaskFactoryConfig(graph, actionNodeConfig);
+  @Test
+  @DisplayName("Expect metadata for graph with nested composite nodes")
+  void expectMetadataForNestedCompositeNodesGraph(Vertx vertx) {
+    // given
+    JsonObject options = infoLevel(actionNodeFactoryConfig("A"));
+
+    GraphNodeOptions rootNodeOptions = new GraphNodeOptions(
+        subTasks(
+            new GraphNodeOptions(subTasks(new GraphNodeOptions("A", NO_TRANSITIONS)),
+                NO_TRANSITIONS)),
+        NO_TRANSITIONS
+    );
+
+    // when
+    TaskMetadata metadata = getTaskWithMetadata(rootNodeOptions, options, vertx).getMetadata();
+
+    Map<String, ActionFactoryOptions> actions = new ActionNodeFactoryConfig(options).getActions();
+
+    NodeMetadata rootMetadata = metadata.getNodesMetadata().get(metadata.getRootNodeId());
+    NodeMetadata nestedNodeMetadata = metadata.getNodesMetadata()
+        .get(rootMetadata.getNestedNodes().get(0));
+    NodeMetadata doubleNestedNodeMetadata = metadata.getNodesMetadata()
+        .get(nestedNodeMetadata.getNestedNodes().get(0));
+
+    assertEquals(NodeType.COMPOSITE, rootMetadata.getType());
+    assertEquals(NodeType.COMPOSITE, nestedNodeMetadata.getType());
+    assertEquals(NodeType.SINGLE, doubleNestedNodeMetadata.getType());
+
+    assertActionNodeMetadata(doubleNestedNodeMetadata.getOperation(), "A",
+        actions.get("A").getConfig());
+  }
+
+  private TaskWithMetadata getTaskWithMetadata(GraphNodeOptions graph, JsonObject actionNodeConfig,
+      Vertx vertx) {
+    DefaultTaskFactoryConfig taskFactoryConfig = taskFactoryConfig(graph, actionNodeConfig);
     return new DefaultTaskFactory().configure(taskFactoryConfig.toJson(), vertx)
-        .newInstance(SAMPLE_FRAGMENT_EVENT);
+        .newInstanceWithMetadata(fragmentEvent);
   }
 
-  private DefaultTaskFactoryConfig emptyFactoryConfig() {
-    return createTaskFactoryConfig(null, null);
+  private DefaultTaskFactoryConfig taskFactoryConfig() {
+    return taskFactoryConfig(null, null);
   }
 
-  private DefaultTaskFactoryConfig createTaskFactoryConfig(GraphNodeOptions graph,
-      JsonObject actionNodeConfig) {
+  private DefaultTaskFactoryConfig taskFactoryConfig(GraphNodeOptions rootNodeOptions) {
+    return taskFactoryConfig(rootNodeOptions, new JsonObject());
+  }
+
+  private DefaultTaskFactoryConfig taskFactoryConfig(GraphNodeOptions rootNodeOptions,
+      JsonObject actionNodeFactoryConfig) {
     DefaultTaskFactoryConfig taskFactoryConfig = new DefaultTaskFactoryConfig();
-    if (graph != null) {
+    if (rootNodeOptions != null) {
       taskFactoryConfig
-          .setTasks(Collections.singletonMap(TASK_NAME, graph));
+          .setTasks(singletonMap(TASK_NAME, rootNodeOptions));
     }
-    if (actionNodeConfig != null) {
-      List<NodeFactoryOptions> nodeFactories = Arrays.asList(
-          new NodeFactoryOptions().setFactory(ActionNodeFactory.NAME).setConfig(actionNodeConfig),
+    if (actionNodeFactoryConfig != null) {
+      List<NodeFactoryOptions> nodeFactories = asList(
+          new NodeFactoryOptions().setFactory(ActionNodeFactory.NAME)
+              .setConfig(actionNodeFactoryConfig),
           new NodeFactoryOptions().setFactory(SubtasksNodeFactory.NAME));
       taskFactoryConfig.setNodeFactories(nodeFactories);
     }
     return taskFactoryConfig;
   }
 
-  private JsonObject createActionNodeConfig(String actionName, String transition) {
-    return new ActionNodeFactoryConfig(Collections.singletonMap(actionName,
-        new ActionFactoryOptions(new JsonObject())
-            .setFactory("test-action")
-            .setConfig(new JsonObject().put("transition", transition))))
-        .toJson();
+
+  private JsonObject actionNodeFactoryConfig(String... actionNames) {
+    Map<String, ActionFactoryOptions> actionToOptions = new HashMap<>();
+    asList(actionNames).forEach(actionName -> actionToOptions.put(actionName,
+        new ActionFactoryOptions(TEST_ACTION_FACTORY)
+            .setConfig(new JsonObject().put("transition", SUCCESS_TRANSITION))));
+    return new ActionNodeFactoryConfig(actionToOptions).toJson();
   }
 
-  private JsonObject merge(JsonObject current, String actionName, String transition) {
-    JsonObject newOptions = createActionNodeConfig(actionName, transition);
-    return current.getJsonObject("actions").mergeIn(newOptions.getJsonObject("actions"));
+  private JsonObject infoLevel(JsonObject nodeFactoryConfig) {
+    ActionNodeFactoryConfig original = new ActionNodeFactoryConfig(nodeFactoryConfig);
+    return new ActionNodeFactoryConfig(original.getActions(), ActionLogLevel.INFO).toJson();
   }
 
   private List<GraphNodeOptions> subTasks(GraphNodeOptions... nodes) {
-    return Arrays.asList(nodes);
+    return asList(nodes);
+  }
+
+  private void assertActionNodeMetadata(OperationMetadata operation, String actionName,
+      JsonObject actionConfig) {
+    assertEquals("action", operation.getFactory());
+    assertEquals(actionName, operation.getData().getString("alias"));
+    assertEquals(TEST_ACTION_FACTORY, operation.getData().getString("actionFactory"));
+    assertEquals(actionConfig, operation.getData().getJsonObject("actionConfig"));
   }
 }
