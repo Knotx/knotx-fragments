@@ -19,7 +19,7 @@ import java.util.Map;
 
 public class TasksMetadata {
 
-  private Map<String, TaskMetadata> tasksMetadataByFragmentId;
+  private final Map<String, TaskMetadata> tasksMetadataByFragmentId;
 
   public TasksMetadata(Map<String, TaskMetadata> tasksMetadataByFragmentId) {
     this.tasksMetadataByFragmentId = tasksMetadataByFragmentId;

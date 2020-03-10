@@ -72,12 +72,8 @@ class FragmentsEngineOrderTest {
     // then
     verifyExecution(result, fragmentEvents -> testContext.verify(() -> {
       assertEquals(2, fragmentEvents.size());
-      assertEquals("first fragment",
-          fragmentEvents.get(0).getFragment()
-              .getBody());
-      assertEquals("second fragment",
-          fragmentEvents.get(1).getFragment()
-              .getBody());
+      assertEquals("first fragment", fragmentEvents.get(0).getFragment().getBody());
+      assertEquals("second fragment", fragmentEvents.get(1).getFragment().getBody());
     }), testContext);
   }
 

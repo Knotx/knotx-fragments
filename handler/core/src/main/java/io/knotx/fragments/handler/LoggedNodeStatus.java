@@ -22,6 +22,7 @@ import static io.knotx.fragments.engine.api.node.single.FragmentResult.SUCCESS_T
 import io.knotx.fragments.engine.EventLogEntry;
 
 import java.util.Arrays;
+import org.apache.commons.lang3.StringUtils;
 
 public enum LoggedNodeStatus {
   SUCCESS {
@@ -41,8 +42,8 @@ public enum LoggedNodeStatus {
   OTHER {
     @Override
     protected boolean isEquivalent(NodeStatus status, String transition) {
-      return !SUCCESS_TRANSITION.equals(transition) && !ERROR_TRANSITION.equals(transition)
-          && status != NodeStatus.UNSUPPORTED_TRANSITION && transition != null;
+      return StringUtils.isNotEmpty(transition) && !SUCCESS_TRANSITION.equals(transition)
+          && !ERROR_TRANSITION.equals(transition) && status != NodeStatus.UNSUPPORTED_TRANSITION;
     }
   },
 
@@ -69,6 +70,5 @@ public enum LoggedNodeStatus {
                 logEntry.getStatus(), logEntry.getTransition()))));
   }
 
-  // TODO add unit tests here
   protected abstract boolean isEquivalent(NodeStatus status, String transition);
 }

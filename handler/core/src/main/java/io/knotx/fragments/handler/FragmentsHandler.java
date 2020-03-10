@@ -68,11 +68,13 @@ public class FragmentsHandler implements Handler<RoutingContext> {
     ExecutionPlan executionPlan = new ExecutionPlan(fragments, clientRequest, taskProvider);
 
     doHandle(executionPlan)
+        .doOnError(e -> LOGGER.error("Fragments not processed correctly!", e))
         .doOnSuccess(events -> putFragments(routingContext, events))
         .doOnSuccess(events -> enrichWithEventConsumers(clientRequest, events, executionPlan))
         .map(events -> toHandlerResult(events, requestContext))
         .subscribe(
-            result -> requestContextEngine.processAndSaveResult(result, routingContext, requestContext),
+            result -> requestContextEngine
+                .processAndSaveResult(result, routingContext, requestContext),
             error -> requestContextEngine.handleFatal(routingContext, requestContext, error)
         );
   }
@@ -83,13 +85,17 @@ public class FragmentsHandler implements Handler<RoutingContext> {
 
   protected Single<List<FragmentEvent>> doHandle(ExecutionPlan executionPlan) {
     return engine.execute(executionPlan.getEntryStream()
-        .map(entry -> new FragmentEventContextTaskAware(entry.getTaskWithMetadata().getTask(), entry.getContext()))
+        .peek(entry -> LOGGER.info("Processing task [{}]", entry.getTaskWithMetadata()))
+        .map(entry -> new FragmentEventContextTaskAware(entry.getTaskWithMetadata().getTask(),
+            entry.getContext()))
         .collect(Collectors.toList()));
   }
 
-  private void enrichWithEventConsumers(ClientRequest clientRequest, List<FragmentEvent> events, ExecutionPlan executionPlan) {
+  private void enrichWithEventConsumers(ClientRequest clientRequest, List<FragmentEvent> events,
+      ExecutionPlan executionPlan) {
     TasksMetadata tasksMetadata = executionPlan.getTasksMetadata();
-    fragmentEventsConsumerProvider.provide().forEach(consumer -> consumer.accept(clientRequest, events, tasksMetadata));
+    fragmentEventsConsumerProvider.provide()
+        .forEach(consumer -> consumer.accept(clientRequest, events, tasksMetadata));
   }
 
   private void putFragments(RoutingContext routingContext, List<FragmentEvent> events) {

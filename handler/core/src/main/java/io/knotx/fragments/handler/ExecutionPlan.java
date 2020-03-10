@@ -26,14 +26,12 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-// TODO create unit tests
-// TODO refactor this class, it should be data structure class
 public class ExecutionPlan {
 
   public static final String UNDEFINED_TASK = "_NOT_DEFINED";
 
-  TaskProvider taskProvider;
-  Map<FragmentEventContext, TaskWithMetadata> plan;
+  private final TaskProvider taskProvider;
+  private final Map<FragmentEventContext, TaskWithMetadata> plan;
 
   ExecutionPlan(List<Fragment> fragments, ClientRequest clientRequest, TaskProvider taskProvider) {
     this.taskProvider = taskProvider;
@@ -66,8 +64,9 @@ public class ExecutionPlan {
   }
 
   public static class Entry {
-    private FragmentEventContext context;
-    private TaskWithMetadata taskWithMetadata;
+
+    private final FragmentEventContext context;
+    private final TaskWithMetadata taskWithMetadata;
 
     private Entry(FragmentEventContext context, TaskWithMetadata taskWithMetadata) {
       this.context = context;
@@ -80,6 +79,14 @@ public class ExecutionPlan {
 
     public TaskWithMetadata getTaskWithMetadata() {
       return taskWithMetadata;
+    }
+
+    @Override
+    public String toString() {
+      return "Entry{" +
+          "context=" + context +
+          ", taskWithMetadata=" + taskWithMetadata +
+          '}';
     }
   }
 }

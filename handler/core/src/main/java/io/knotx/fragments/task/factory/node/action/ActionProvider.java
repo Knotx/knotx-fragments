@@ -27,6 +27,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.function.Supplier;
 import org.apache.commons.lang3.StringUtils;
 
@@ -65,18 +66,15 @@ public class ActionProvider {
     }
 
     if (isCacheable(factory)) {
-      return Optional.ofNullable(cache.get(action))
-          .map(Optional::of)
-          .orElseGet(() -> Optional.ofNullable(createAction(action, actionFactoryOptions, factory)))
-          .map(createdAction -> cacheIfAbsent(action, createdAction));
+      return Optional.of(cache.computeIfAbsent(action, toAction(actionFactoryOptions, factory)));
     } else {
       return Optional.of(createAction(action, actionFactoryOptions, factory));
     }
   }
 
-  private Action cacheIfAbsent(String key, Action action) {
-    cache.putIfAbsent(key, action);
-    return action;
+  private Function<String, Action> toAction(ActionFactoryOptions actionFactoryOptions,
+      ActionFactory factory) {
+    return action -> createAction(action, actionFactoryOptions, factory);
   }
 
   private Action createAction(String action, ActionFactoryOptions actionFactoryOptions,

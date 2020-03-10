@@ -79,10 +79,11 @@ class TaskExecutionContext {
       handleRegularError(error);
     }
     FragmentEvent fragmentEvent = fragmentEventContext.getFragmentEvent();
-    return Single.just(new FragmentResult(fragmentEvent.getFragment(), ERROR_TRANSITION, prepareErrorActionLog(error)));
+    return Single.just(new FragmentResult(fragmentEvent.getFragment(), ERROR_TRANSITION,
+        prepareErrorActionLog(error)));
   }
 
-  private JsonObject prepareErrorActionLog(Throwable error){
+  private JsonObject prepareErrorActionLog(Throwable error) {
     return new JsonObject()
         .put("error", error.getMessage());
   }
