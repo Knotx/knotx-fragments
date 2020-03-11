@@ -17,7 +17,7 @@
  */
 package io.knotx.fragments.engine;
 
-import io.knotx.fragments.engine.api.node.single.FragmentResult;
+import io.knotx.fragments.api.FragmentResult;
 import io.vertx.core.json.JsonObject;
 
 public class EventLogEntry {
@@ -37,7 +37,7 @@ public class EventLogEntry {
   private final JsonObject nodeLog;
 
   public static EventLogEntry success(String task, String node, FragmentResult fragmentResult) {
-    return new EventLogEntry(task, node, NodeStatus.SUCCESS, fragmentResult.getTransition(), fragmentResult.getNodeLog());
+    return new EventLogEntry(task, node, NodeStatus.SUCCESS, fragmentResult.getTransition(), fragmentResult.getLog());
   }
 
   public static EventLogEntry unsupported(String task, String node, String transition) {

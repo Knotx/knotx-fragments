@@ -15,13 +15,11 @@
  */
 package io.knotx.fragments.engine.api.node.single;
 
+import io.knotx.fragments.api.FragmentOperation;
 import io.knotx.fragments.engine.api.node.Node;
 import io.knotx.fragments.engine.api.node.NodeType;
-import io.reactivex.Single;
 
-public interface SingleNode extends Node {
-
-  Single<FragmentResult> execute(FragmentContext fragmentContext);
+public interface SingleNode extends Node, FragmentOperation {
 
   @Override
   default NodeType getType() {

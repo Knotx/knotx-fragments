@@ -15,7 +15,7 @@
  */
 package io.knotx.fragments.handler.consumer.metadata;
 
-import static io.knotx.fragments.engine.api.node.single.FragmentResult.SUCCESS_TRANSITION;
+import static io.knotx.fragments.api.FragmentResult.SUCCESS_TRANSITION;
 
 import io.knotx.fragments.engine.FragmentEvent;
 import io.knotx.fragments.engine.NodeMetadata;

@@ -20,12 +20,14 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.knotx.fragments.api.Fragment;
+import io.knotx.fragments.api.FragmentOperation;
 import io.knotx.fragments.engine.api.Task;
 import io.knotx.fragments.engine.api.node.Node;
-import io.knotx.fragments.engine.api.node.single.FragmentContext;
-import io.knotx.fragments.engine.api.node.single.FragmentResult;
+import io.knotx.fragments.api.FragmentContext;
+import io.knotx.fragments.api.FragmentResult;
 import io.knotx.server.api.context.ClientRequest;
 import io.reactivex.Single;
+import io.vertx.core.Future;
 import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
@@ -42,19 +44,21 @@ import org.junit.jupiter.api.extension.ExtendWith;
 @ExtendWith(VertxExtension.class)
 class FragmentsEngineOrderTest {
 
-  private static final Function<FragmentContext, Single<FragmentResult>> TIME_CONSUMING_OPERATION =
-      fragmentContext -> {
+  private static final FragmentOperation TIME_CONSUMING_OPERATION =
+      (fragmentContext, resultHandler) -> {
         try {
           Thread.sleep(100);
         } catch (InterruptedException e) {
           e.printStackTrace();
         }
-        return Single.just(
-            new FragmentResult(fragmentContext.getFragment(), FragmentResult.SUCCESS_TRANSITION));
+        Future.succeededFuture(
+            new FragmentResult(fragmentContext.getFragment(), FragmentResult.SUCCESS_TRANSITION))
+            .setHandler(resultHandler);
       };
-  private static final Function<FragmentContext, Single<FragmentResult>> SIMPLE_OPERATION =
-      fragmentContext -> Single.just(
-          new FragmentResult(fragmentContext.getFragment(), FragmentResult.SUCCESS_TRANSITION));
+  private static final FragmentOperation SIMPLE_OPERATION =
+      (fragmentContext, resultHandler) -> Future.succeededFuture(
+          new FragmentResult(fragmentContext.getFragment(), FragmentResult.SUCCESS_TRANSITION))
+          .setHandler(resultHandler);
 
   @Test
   @DisplayName("Expect fragments in incoming order")
@@ -77,9 +81,8 @@ class FragmentsEngineOrderTest {
     }), testContext);
   }
 
-  private FragmentEventContextTaskAware initFragmentEventContextTaskAware(
-      String fragmentBody,
-      Function<FragmentContext, Single<FragmentResult>> operation) {
+  private FragmentEventContextTaskAware initFragmentEventContextTaskAware(String fragmentBody,
+      FragmentOperation operation) {
     Node graphNode = single("id", operation);
     Fragment fragment = new Fragment("snippet", new JsonObject(), fragmentBody);
 

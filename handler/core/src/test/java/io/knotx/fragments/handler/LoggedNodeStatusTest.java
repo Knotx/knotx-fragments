@@ -17,7 +17,7 @@ package io.knotx.fragments.handler;
 
 import io.knotx.fragments.api.Fragment;
 import io.knotx.fragments.engine.EventLogEntry;
-import io.knotx.fragments.engine.api.node.single.FragmentResult;
+import io.knotx.fragments.api.FragmentResult;
 import io.vertx.core.json.JsonObject;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

@@ -202,9 +202,9 @@ class TaskEngineScenariosTest {
     Node rootNode = single("first", success(), onSuccess(
         composite(COMPOSITE_NODE_ID,
             parallel(
-                single("A", successWithDelay(500)),
-                single("B", successWithDelay(500)),
-                single("C", successWithDelay(500))),
+                single("A", successWithDelay(500, vertx)),
+                single("B", successWithDelay(500, vertx)),
+                single("C", successWithDelay(500, vertx))),
             single("last", success()))));
     // when
     Single<FragmentEvent> result = new TaskEngine(vertx).start("task", rootNode, eventContext);
@@ -227,13 +227,13 @@ class TaskEngineScenariosTest {
     Node rootNode = single("first", success(), onSuccess(
         composite(COMPOSITE_NODE_ID,
             parallel(
-                single("A", successWithDelay(500)),
+                single("A", successWithDelay(500, vertx)),
                 composite(COMPOSITE_NODE_ID,
                     parallel(
-                        single("B", successWithDelay(500), onSuccess(
+                        single("B", successWithDelay(500, vertx), onSuccess(
                             single("B1", appendPayload("B1", "B1Payload")))),
-                        single("C", successWithDelay(500)))),
-                single("D", successWithDelay(500))),
+                        single("C", successWithDelay(500, vertx)))),
+                single("D", successWithDelay(500, vertx))),
             single("last", success()))));
     // when
     Single<FragmentEvent> result = new TaskEngine(vertx).start("task", rootNode, eventContext);

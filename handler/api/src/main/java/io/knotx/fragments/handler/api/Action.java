@@ -15,24 +15,14 @@
  */
 package io.knotx.fragments.handler.api;
 
-import io.knotx.fragments.engine.api.node.single.FragmentContext;
-import io.knotx.fragments.engine.api.node.single.FragmentResult;
-import io.vertx.codegen.annotations.VertxGen;
+import io.knotx.fragments.api.FragmentContext;
+import io.knotx.fragments.api.FragmentOperation;
+import io.knotx.fragments.api.FragmentResult;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
-import io.vertx.lang.rx.RxGen;
 
-@RxGen(Action.class)
-@VertxGen
-public interface Action {
+public interface Action extends FragmentOperation {
 
-  /**
-   * Transforms a fragment into the new one. It returns a fragment result containing the new fragment
-   * and a transition (which determines an edge in the processing graph).
-   *
-   * @param fragmentContext - contains both fragment and client request
-   * @param resultHandler - handler that is invoked when the new fragment is ready
-   */
   void apply(FragmentContext fragmentContext, Handler<AsyncResult<FragmentResult>> resultHandler);
 
 }

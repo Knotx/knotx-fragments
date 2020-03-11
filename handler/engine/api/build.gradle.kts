@@ -25,7 +25,6 @@ dependencies {
     implementation(platform("io.knotx:knotx-dependencies:${project.version}"))
 
     api(project(":knotx-fragments-api"))
-    api("io.knotx:knotx-server-http-api:${project.version}")
 
     implementation(group = "io.vertx", name = "vertx-core")
     implementation(group = "io.vertx", name = "vertx-rx-java2")

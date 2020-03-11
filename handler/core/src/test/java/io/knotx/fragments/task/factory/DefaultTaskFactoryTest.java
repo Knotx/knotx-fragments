@@ -15,7 +15,7 @@
  */
 package io.knotx.fragments.task.factory;
 
-import static io.knotx.fragments.engine.api.node.single.FragmentResult.SUCCESS_TRANSITION;
+import static io.knotx.fragments.api.FragmentResult.SUCCESS_TRANSITION;
 import static io.knotx.fragments.task.factory.DefaultTaskFactoryConfig.DEFAULT_TASK_NAME_KEY;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonMap;

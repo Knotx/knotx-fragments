@@ -16,7 +16,7 @@
 package io.knotx.fragments.task.factory;
 
 import static io.knotx.fragments.HoconLoader.verify;
-import static io.knotx.fragments.engine.api.node.single.FragmentResult.SUCCESS_TRANSITION;
+import static io.knotx.fragments.api.FragmentResult.SUCCESS_TRANSITION;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 

@@ -24,9 +24,10 @@ import io.knotx.fragments.handler.api.ActionFactory;
 import io.knotx.fragments.handler.api.Cacheable;
 import io.knotx.fragments.handler.api.actionlog.ActionLogLevel;
 import io.knotx.fragments.handler.api.actionlog.ActionLogger;
-import io.knotx.fragments.engine.api.node.single.FragmentContext;
-import io.knotx.fragments.engine.api.node.single.FragmentResult;
+import io.knotx.fragments.api.FragmentContext;
+import io.knotx.fragments.api.FragmentResult;
 import io.knotx.fragments.handler.action.helper.TimeCalculator;
+import io.knotx.reactivex.fragments.api.FragmentOperation;
 import io.knotx.server.api.context.ClientRequest;
 import io.knotx.server.common.placeholders.PlaceholdersResolver;
 import io.knotx.server.common.placeholders.SourceDefinitions;
@@ -122,7 +123,7 @@ public class InMemoryCacheActionFactory implements ActionFactory {
           String cacheKey,
           ActionLogger actionLogger) {
         long startTime = Instant.now().toEpochMilli();
-        return io.knotx.fragments.handler.reactivex.api.Action.newInstance(doAction)
+        return FragmentOperation.newInstance(doAction)
             .rxApply(fragmentContext)
             .doOnSuccess(fr -> logDoAction(actionLogger, startTime, fr))
             .doOnSuccess(fr -> savePayloadToCache(actionLogger, cacheKey, fr))
@@ -218,9 +219,9 @@ public class InMemoryCacheActionFactory implements ActionFactory {
       FragmentResult fragmentResult) {
     long executionTime = TimeCalculator.executionTime(startTime);
     if (isSuccessTransition(fragmentResult)) {
-      actionLogger.doActionLog(executionTime, fragmentResult.getNodeLog());
+      actionLogger.doActionLog(executionTime, fragmentResult.getLog());
     } else {
-      actionLogger.failureDoActionLog(executionTime, fragmentResult.getNodeLog());
+      actionLogger.failureDoActionLog(executionTime, fragmentResult.getLog());
     }
   }
 

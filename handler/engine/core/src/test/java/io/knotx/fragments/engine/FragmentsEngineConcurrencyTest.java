@@ -19,12 +19,14 @@ import static io.knotx.fragments.engine.Nodes.single;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.knotx.fragments.api.Fragment;
+import io.knotx.fragments.api.FragmentOperation;
 import io.knotx.fragments.engine.api.Task;
 import io.knotx.fragments.engine.api.node.single.SingleNode;
-import io.knotx.fragments.engine.api.node.single.FragmentContext;
-import io.knotx.fragments.engine.api.node.single.FragmentResult;
+import io.knotx.fragments.api.FragmentContext;
+import io.knotx.fragments.api.FragmentResult;
 import io.knotx.server.api.context.ClientRequest;
 import io.reactivex.Single;
+import io.vertx.core.Future;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
@@ -54,7 +56,7 @@ class FragmentsEngineConcurrencyTest {
   private static final int WAITING_TIME_IN_MILLIS =
       NUMBER_OF_PROCESSED_EVENTS * BLOCKING_TIME_IN_MILLIS / 2;
 
-  private static final Function<FragmentContext, Single<FragmentResult>> BLOCKING_OPERATION = fragmentContext -> {
+  private static final FragmentOperation BLOCKING_OPERATION = (fragmentContext, resultHandler) -> {
     try {
       System.out.println(Thread.currentThread().getName() + ": executing operation");
       Thread.sleep(BLOCKING_TIME_IN_MILLIS);
@@ -62,8 +64,9 @@ class FragmentsEngineConcurrencyTest {
     } catch (InterruptedException e) {
       LOGGER.warn("Unexpected interrupted error!", e);
     }
-    return Single.just(
-        new FragmentResult(fragmentContext.getFragment(), FragmentResult.SUCCESS_TRANSITION));
+    Future.succeededFuture(
+        new FragmentResult(fragmentContext.getFragment(), FragmentResult.SUCCESS_TRANSITION))
+        .setHandler(resultHandler);
   };
 
   @Test

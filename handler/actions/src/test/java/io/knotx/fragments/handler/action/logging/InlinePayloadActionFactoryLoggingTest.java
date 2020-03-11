@@ -22,7 +22,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import io.knotx.fragments.api.Fragment;
 import io.knotx.fragments.handler.action.InlinePayloadActionFactory;
 import io.knotx.fragments.handler.api.Action;
-import io.knotx.fragments.engine.api.node.single.FragmentContext;
+import io.knotx.fragments.api.FragmentContext;
 import io.knotx.server.api.context.ClientRequest;
 import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.VertxExtension;
@@ -60,7 +60,7 @@ class InlinePayloadActionFactoryLoggingTest {
           // then
           testContext.verify(
               () -> {
-                JsonObject log = result.result().getNodeLog().getJsonObject(LOGS_KEY);
+                JsonObject log = result.result().getLog().getJsonObject(LOGS_KEY);
                 assertEquals(KEY_ALIAS, log.getString(KEY_LOG_KEY));
                 assertEquals(EXPECTED_JSON_OBJECT, log.getJsonObject(VALUE_LOG_KEY));
               });
@@ -89,7 +89,7 @@ class InlinePayloadActionFactoryLoggingTest {
           // then
           testContext.verify(
               () -> {
-                JsonObject log = result.result().getNodeLog().getJsonObject(LOGS_KEY);
+                JsonObject log = result.result().getLog().getJsonObject(LOGS_KEY);
                 assertFalse(log.containsKey(KEY_LOG_KEY));
                 assertFalse(log.containsKey(VALUE_LOG_KEY));
               });

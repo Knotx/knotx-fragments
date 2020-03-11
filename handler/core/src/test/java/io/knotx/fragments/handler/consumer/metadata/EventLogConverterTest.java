@@ -15,14 +15,14 @@
  */
 package io.knotx.fragments.handler.consumer.metadata;
 
-import static io.knotx.fragments.engine.api.node.single.FragmentResult.ERROR_TRANSITION;
-import static io.knotx.fragments.engine.api.node.single.FragmentResult.SUCCESS_TRANSITION;
+import static io.knotx.fragments.api.FragmentResult.ERROR_TRANSITION;
+import static io.knotx.fragments.api.FragmentResult.SUCCESS_TRANSITION;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import io.knotx.fragments.api.Fragment;
 import io.knotx.fragments.engine.EventLogEntry;
-import io.knotx.fragments.engine.api.node.single.FragmentResult;
+import io.knotx.fragments.api.FragmentResult;
 import io.knotx.fragments.handler.LoggedNodeStatus;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;

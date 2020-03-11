@@ -13,17 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.knotx.fragments.engine.api.node.single;
+package io.knotx.fragments.api;
 
-import io.knotx.fragments.api.Fragment;
 import io.knotx.server.api.context.ClientRequest;
 import io.vertx.codegen.annotations.DataObject;
 import io.vertx.core.json.JsonObject;
 import java.util.Objects;
 
-/**
- * This data structure is passed between {@code Actions} that are vertices of a graph.
- */
 @DataObject
 public class FragmentContext {
 
@@ -49,21 +45,10 @@ public class FragmentContext {
         .put(CLIENT_REQUEST_KEY, clientRequest.toJson());
   }
 
-  /**
-   * Fragment that is passed between Actions. It might be transformend or updated by any {@code
-   * Action}.
-   *
-   * @return a Fragment
-   */
   public Fragment getFragment() {
     return fragment;
   }
 
-  /**
-   * Original {@code ClientRequest}. This property is immutable for the Fragments graph processing.
-   *
-   * @return client request
-   */
   public ClientRequest getClientRequest() {
     return clientRequest;
   }

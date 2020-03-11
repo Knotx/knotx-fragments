@@ -29,8 +29,8 @@ import io.knotx.fragments.handler.action.http.options.EndpointOptions;
 import io.knotx.fragments.handler.action.http.options.HttpActionOptions;
 import io.knotx.fragments.handler.action.http.options.ResponseOptions;
 import io.knotx.fragments.handler.api.actionlog.ActionLogLevel;
-import io.knotx.fragments.engine.api.node.single.FragmentContext;
-import io.knotx.fragments.engine.api.node.single.FragmentResult;
+import io.knotx.fragments.api.FragmentContext;
+import io.knotx.fragments.api.FragmentResult;
 import io.knotx.server.api.context.ClientRequest;
 import io.netty.util.internal.StringUtil;
 import io.vertx.core.Vertx;
@@ -134,8 +134,8 @@ class HttpActionNodeLogTest {
         jsonPredicate, forceJson, logLevel);
 
     verifyExecution(tested, clientRequest, createFragment(), fragmentResult -> {
-      assertNotNull(fragmentResult.getNodeLog().getMap().get("logs"));
-      JsonObject logs = fragmentResult.getNodeLog().getJsonObject("logs");
+      assertNotNull(fragmentResult.getLog().getMap().get("logs"));
+      JsonObject logs = fragmentResult.getLog().getJsonObject("logs");
       if (ActionLogLevel.INFO.equals(logLevel)) {
         assertNotNull(logs.getJsonObject("request"));
         assertNotNull(logs.getString("responseBody"));
@@ -163,8 +163,8 @@ class HttpActionNodeLogTest {
 
     verifyExecution(tested, clientRequest, new Fragment("type", EMPTY_JSON, "expectedBody"),
         fragmentResult -> {
-          assertNotNull(fragmentResult.getNodeLog().getMap().get("logs"));
-          JsonObject logs = fragmentResult.getNodeLog().getJsonObject("logs");
+          assertNotNull(fragmentResult.getLog().getMap().get("logs"));
+          JsonObject logs = fragmentResult.getLog().getJsonObject("logs");
           assertNotNull(logs.getJsonObject("request"));
           if (ActionLogLevel.INFO.equals(logLevel)) {
             assertNotNull(logs.getString("responseBody"));
@@ -190,8 +190,8 @@ class HttpActionNodeLogTest {
         jsonPredicate, forceJson, logLevel);
 
     verifyExecution(tested, clientRequest, createFragment(), fragmentResult -> {
-      assertNotNull(fragmentResult.getNodeLog().getJsonObject("logs"));
-      JsonObject logs = fragmentResult.getNodeLog().getJsonObject("logs");
+      assertNotNull(fragmentResult.getLog().getJsonObject("logs"));
+      JsonObject logs = fragmentResult.getLog().getJsonObject("logs");
       assertNotNull(logs.getJsonObject("request"));
       assertNotNull(logs.getJsonArray("errors"));
       assertNull(logs.getJsonObject("response"));
@@ -214,8 +214,8 @@ class HttpActionNodeLogTest {
         null, StringUtil.EMPTY_STRING, null, false, logLevel);
 
     verifyExecution(tested, clientRequest, createFragment(), fragmentResult -> {
-      assertNotNull(fragmentResult.getNodeLog().getJsonObject("logs"));
-      JsonObject logs = fragmentResult.getNodeLog().getJsonObject("logs");
+      assertNotNull(fragmentResult.getLog().getJsonObject("logs"));
+      JsonObject logs = fragmentResult.getLog().getJsonObject("logs");
       assertNotNull(logs.getJsonObject("request"));
       assertNotNull(logs.getJsonObject("response"));
       assertNotNull(logs.getJsonArray("errors"));

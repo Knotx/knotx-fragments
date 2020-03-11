@@ -15,7 +15,7 @@
  */
 package io.knotx.fragments.handler.action.cb;
 
-import static io.knotx.fragments.engine.api.node.single.FragmentResult.ERROR_TRANSITION;
+import static io.knotx.fragments.api.FragmentResult.ERROR_TRANSITION;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 

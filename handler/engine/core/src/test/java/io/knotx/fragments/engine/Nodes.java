@@ -15,24 +15,34 @@
  */
 package io.knotx.fragments.engine;
 
-import static io.knotx.fragments.engine.api.node.single.FragmentResult.ERROR_TRANSITION;
-import static io.knotx.fragments.engine.api.node.single.FragmentResult.SUCCESS_TRANSITION;
+import static io.knotx.fragments.api.FragmentResult.ERROR_TRANSITION;
+import static io.knotx.fragments.api.FragmentResult.SUCCESS_TRANSITION;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.matches;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import io.knotx.fragments.api.FragmentOperation;
 import io.knotx.fragments.engine.api.node.composite.CompositeNode;
 import io.knotx.fragments.engine.api.node.Node;
 import io.knotx.fragments.engine.api.node.NodeType;
 import io.knotx.fragments.engine.api.node.single.SingleNode;
-import io.knotx.fragments.engine.api.node.single.FragmentContext;
-import io.knotx.fragments.engine.api.node.single.FragmentResult;
+import io.knotx.fragments.api.FragmentContext;
+import io.knotx.fragments.api.FragmentResult;
 import io.reactivex.Single;
+import io.vertx.core.AsyncResult;
+import io.vertx.core.Future;
+import io.vertx.core.Handler;
+import io.vertx.core.Promise;
+import io.vertx.reactivex.RxHelper;
+import io.vertx.reactivex.ext.unit.Async;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 
 interface Nodes {
 
@@ -56,17 +66,21 @@ interface Nodes {
     return node;
   }
 
-  static SingleNode single(String nodeId, Function<FragmentContext, Single<FragmentResult>> function) {
+  static SingleNode single(String nodeId, FragmentOperation operation) {
     SingleNode node = mock(SingleNode.class);
     when(node.getId()).thenReturn(nodeId);
-    when(node.execute(any())).thenAnswer(
-        invocation -> function.apply((FragmentContext) invocation.getArguments()[0]));
+    doAnswer(invocation -> {
+      FragmentContext fragmentContext = invocation.getArgument(0);
+      Handler<AsyncResult<FragmentResult>> handler = invocation.getArgument(1);
+      operation.apply(fragmentContext, handler);
+      return null;
+    }).when(node).apply(any(), any());
     when(node.next(any())).thenReturn(Optional.empty());
     return node;
   }
 
-  static SingleNode single(String nodeId, Function<FragmentContext, Single<FragmentResult>> function, Map<String, Node> transitions) {
-    SingleNode node = single(nodeId, function);
+  static SingleNode single(String nodeId, FragmentOperation operation, Map<String, Node> transitions) {
+    SingleNode node = single(nodeId, operation);
     transitions.forEach((key, value) -> when(node.next(matches(key)))
         .thenReturn(Optional.of(value)));
     return node;

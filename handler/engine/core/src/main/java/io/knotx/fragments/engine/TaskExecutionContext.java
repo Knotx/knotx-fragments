@@ -15,14 +15,14 @@
  */
 package io.knotx.fragments.engine;
 
-import static io.knotx.fragments.engine.api.node.single.FragmentResult.ERROR_TRANSITION;
-import static io.knotx.fragments.engine.api.node.single.FragmentResult.SUCCESS_TRANSITION;
+import static io.knotx.fragments.api.FragmentResult.ERROR_TRANSITION;
+import static io.knotx.fragments.api.FragmentResult.SUCCESS_TRANSITION;
 
 import io.knotx.fragments.api.Fragment;
 import io.knotx.fragments.engine.FragmentEvent.Status;
 import io.knotx.fragments.engine.api.node.Node;
-import io.knotx.fragments.engine.api.node.single.FragmentContext;
-import io.knotx.fragments.engine.api.node.single.FragmentResult;
+import io.knotx.fragments.api.FragmentContext;
+import io.knotx.fragments.api.FragmentResult;
 import io.knotx.fragments.engine.exception.NodeFatalException;
 import io.knotx.server.api.context.ClientRequest;
 import io.reactivex.Single;

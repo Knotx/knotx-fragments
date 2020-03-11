@@ -34,3 +34,39 @@ Type of a Fragment. Different types of Fragments can be processed in separate wa
 +++
 |===
 
+[[FragmentContext]]
+== FragmentContext
+
+
+[cols=">25%,25%,50%"]
+[frame="topbot"]
+|===
+^|Name | Type ^| Description
+|[[clientRequest]]`@clientRequest`|`link:dataobjects.html#ClientRequest[ClientRequest]`|-
+|[[fragment]]`@fragment`|`link:dataobjects.html#Fragment[Fragment]`|-
+|===
+
+[[FragmentResult]]
+== FragmentResult
+
+++++
+ Result of the link.
+++++
+'''
+
+[cols=">25%,25%,50%"]
+[frame="topbot"]
+|===
+^|Name | Type ^| Description
+|[[fragment]]`@fragment`|`link:dataobjects.html#Fragment[Fragment]`|+++
+A <code>Fragment</code> transformed or updated during applying the link.
++++
+|[[log]]`@log`|`Json object`|+++
+Log data produced by link. It is a JSON-based value specific to the
+ operation.
++++
+|[[transition]]`@transition`|`String`|+++
+A text value state of link that determines next steps in business logic.
++++
+|===
+

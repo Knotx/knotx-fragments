@@ -27,14 +27,16 @@ import static io.knotx.fragments.engine.Transitions.onSuccess;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import io.knotx.fragments.api.Fragment;
+import io.knotx.fragments.api.FragmentOperation;
 import io.knotx.fragments.engine.FragmentEvent.Status;
 import io.knotx.fragments.engine.FragmentEventLogVerifier.Operation;
 import io.knotx.fragments.engine.api.node.Node;
 import io.knotx.fragments.engine.api.node.single.SingleNode;
-import io.knotx.fragments.engine.api.node.single.FragmentContext;
-import io.knotx.fragments.engine.api.node.single.FragmentResult;
+import io.knotx.fragments.api.FragmentContext;
+import io.knotx.fragments.api.FragmentResult;
 import io.knotx.server.api.context.ClientRequest;
 import io.reactivex.Single;
+import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.VertxExtension;
@@ -176,8 +178,9 @@ class TaskEngineSingleOperationTest {
   void executeEventWithInvalidAddressInKnotFlow(VertxTestContext testContext, Vertx vertx)
       throws Throwable {
     // given
-    Function<FragmentContext, Single<FragmentResult>> operation = context -> Single
-        .just(new FragmentResult(context.getFragment(), "customTransition"));
+    FragmentOperation operation = (context, handler) -> Future
+        .succeededFuture(new FragmentResult(context.getFragment(), "customTransition"))
+        .setHandler(handler);
     SingleNode rootNode = single("knotx.knot.successKnot", operation);
 
     // when
@@ -227,8 +230,9 @@ class TaskEngineSingleOperationTest {
   void expectUnsupportedEventLogEntryWhenCustomTransition(VertxTestContext testContext, Vertx vertx)
       throws Throwable {
     // given
-    Function<FragmentContext, Single<FragmentResult>> operation = context -> Single
-        .just(new FragmentResult(context.getFragment(), "customTransition"));
+    FragmentOperation operation = (context, handler) -> Future
+        .succeededFuture(new FragmentResult(context.getFragment(), "customTransition"))
+        .setHandler(handler);
     SingleNode rootNode = single("first", operation);
 
     // when

@@ -15,9 +15,9 @@
  */
 package io.knotx.fragments.task.factory.node.subtasks;
 
+import static io.knotx.fragments.api.FragmentResult.ERROR_TRANSITION;
+import static io.knotx.fragments.api.FragmentResult.SUCCESS_TRANSITION;
 import static io.knotx.fragments.engine.NodeMetadata.composite;
-import static io.knotx.fragments.engine.api.node.single.FragmentResult.ERROR_TRANSITION;
-import static io.knotx.fragments.engine.api.node.single.FragmentResult.SUCCESS_TRANSITION;
 
 import io.knotx.fragments.engine.NodeMetadata;
 import io.knotx.fragments.engine.OperationMetadata;

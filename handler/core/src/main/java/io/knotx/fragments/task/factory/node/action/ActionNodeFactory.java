@@ -17,11 +17,11 @@ package io.knotx.fragments.task.factory.node.action;
 
 import static io.knotx.fragments.engine.NodeMetadata.single;
 
+import io.knotx.fragments.api.FragmentContext;
+import io.knotx.fragments.api.FragmentResult;
 import io.knotx.fragments.engine.NodeMetadata;
 import io.knotx.fragments.engine.OperationMetadata;
 import io.knotx.fragments.engine.api.node.Node;
-import io.knotx.fragments.engine.api.node.single.FragmentContext;
-import io.knotx.fragments.engine.api.node.single.FragmentResult;
 import io.knotx.fragments.engine.api.node.single.SingleNode;
 import io.knotx.fragments.handler.api.Action;
 import io.knotx.fragments.handler.api.ActionFactory;
@@ -30,7 +30,8 @@ import io.knotx.fragments.task.factory.GraphNodeOptions;
 import io.knotx.fragments.task.factory.NodeProvider;
 import io.knotx.fragments.task.factory.node.NodeFactory;
 import io.knotx.fragments.task.factory.node.NodeOptions;
-import io.reactivex.Single;
+import io.vertx.core.AsyncResult;
+import io.vertx.core.Handler;
 import io.vertx.core.json.JsonObject;
 import io.vertx.reactivex.core.Vertx;
 import java.util.HashMap;
@@ -39,7 +40,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.ServiceLoader;
 import java.util.UUID;
-import java.util.function.Function;
 import java.util.function.Supplier;
 
 public class ActionNodeFactory implements NodeFactory {
@@ -90,8 +90,8 @@ public class ActionNodeFactory implements NodeFactory {
       }
 
       @Override
-      public Single<FragmentResult> execute(FragmentContext fragmentContext) {
-        return toRxFunction(action).apply(fragmentContext);
+      public void apply(FragmentContext fragmentContext, Handler<AsyncResult<FragmentResult>> handler) {
+        action.apply(fragmentContext, handler);
       }
     };
   }
@@ -114,13 +114,6 @@ public class ActionNodeFactory implements NodeFactory {
         .put(METADATA_ALIAS, config.getAction())
         .put(METADATA_ACTION_FACTORY, actionConfig.getFactory())
         .put(METADATA_ACTION_CONFIG, actionConfig.getConfig()));
-  }
-
-  private Function<FragmentContext, Single<FragmentResult>> toRxFunction(
-      Action action) {
-    io.knotx.fragments.handler.reactivex.api.Action rxAction = io.knotx.fragments.handler.reactivex.api.Action
-        .newInstance(action);
-    return rxAction::rxApply;
   }
 
   private Supplier<Iterator<ActionFactory>> supplyFactories() {
