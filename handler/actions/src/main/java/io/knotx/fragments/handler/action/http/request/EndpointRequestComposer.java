@@ -18,14 +18,12 @@ package io.knotx.fragments.handler.action.http.request;
 import io.knotx.commons.http.request.AllowedHeadersFilter;
 import io.knotx.commons.http.request.MultiMapCollector;
 import io.knotx.fragments.handler.action.http.options.EndpointOptions;
-import io.knotx.fragments.engine.api.node.single.FragmentContext;
+import io.knotx.fragments.api.FragmentContext;
 import io.knotx.server.api.context.ClientRequest;
 import io.knotx.server.common.placeholders.PlaceholdersResolver;
 import io.knotx.server.common.placeholders.SourceDefinitions;
 import io.vertx.reactivex.core.MultiMap;
-import java.util.List;
 import java.util.Set;
-import java.util.regex.Pattern;
 
 public class EndpointRequestComposer {
 

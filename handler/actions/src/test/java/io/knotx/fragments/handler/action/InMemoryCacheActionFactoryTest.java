@@ -15,15 +15,15 @@
  */
 package io.knotx.fragments.handler.action;
 
-import static io.knotx.fragments.engine.api.node.single.FragmentResult.ERROR_TRANSITION;
+import static io.knotx.fragments.api.FragmentResult.ERROR_TRANSITION;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.knotx.fragments.api.Fragment;
 import io.knotx.fragments.handler.api.Action;
-import io.knotx.fragments.engine.api.node.single.FragmentContext;
-import io.knotx.fragments.engine.api.node.single.FragmentResult;
+import io.knotx.fragments.api.FragmentContext;
+import io.knotx.fragments.api.FragmentResult;
 import io.knotx.junit5.KnotxExtension;
 import io.knotx.server.api.context.ClientRequest;
 import io.vertx.core.Future;
@@ -126,7 +126,7 @@ class InMemoryCacheActionFactoryTest {
           // then
           testContext.verify(() -> {
             assertEquals(ERROR_TRANSITION, result.result().getTransition());
-            JsonObject logs = result.result().getNodeLog().getJsonObject("logs");
+            JsonObject logs = result.result().getLog().getJsonObject("logs");
             assertEquals(IllegalStateException.class.getCanonicalName(),
                 logs.getJsonArray("errors").getJsonObject(0).getString("className"));
           });

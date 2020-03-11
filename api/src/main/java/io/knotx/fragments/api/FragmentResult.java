@@ -13,18 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.knotx.fragments.engine.api.node.single;
+package io.knotx.fragments.api;
 
 import io.vertx.codegen.annotations.DataObject;
 import java.util.Objects;
 
 import org.apache.commons.lang3.StringUtils;
 
-import io.knotx.fragments.api.Fragment;
 import io.vertx.core.json.JsonObject;
 
 /**
- * Result of the {@code Action} fragment processing.
+ * Result of the {@link FragmentOperation}.
  */
 @DataObject
 public class FragmentResult {
@@ -34,16 +33,16 @@ public class FragmentResult {
 
   private static final String FRAGMENT_KEY = "fragment";
   private static final String TRANSITION_KEY = "transition";
-  private static final String NODE_LOG_KEY = "nodeLog";
+  private static final String LOG_KEY = "log";
 
   private final Fragment fragment;
   private final String transition;
-  private final JsonObject nodeLog;
+  private final JsonObject log;
 
-  public FragmentResult(Fragment fragment, String transition, JsonObject nodeLog) {
+  public FragmentResult(Fragment fragment, String transition, JsonObject log) {
     this.fragment = fragment;
     this.transition = transition;
-    this.nodeLog = nodeLog;
+    this.log = log;
   }
 
   public FragmentResult(Fragment fragment, String transition) {
@@ -53,18 +52,18 @@ public class FragmentResult {
   public FragmentResult(JsonObject json) {
     this.fragment = new Fragment(json.getJsonObject(FRAGMENT_KEY));
     this.transition = json.getString(TRANSITION_KEY);
-    this.nodeLog = json.getJsonObject(NODE_LOG_KEY);
+    this.log = json.getJsonObject(LOG_KEY);
   }
 
   public JsonObject toJson() {
     return new JsonObject()
         .put(FRAGMENT_KEY, fragment.toJson())
         .put(TRANSITION_KEY, transition)
-        .put(NODE_LOG_KEY, nodeLog);
+        .put(LOG_KEY, log);
   }
 
   /**
-   * A {@code Fragment} transformed or updated during applying the {@code Action}.
+   * A {@code Fragment} transformed or updated during applying the {@link FragmentOperation}.
    *
    * @return transformed or updated Fragment
    */
@@ -73,9 +72,9 @@ public class FragmentResult {
   }
 
   /**
-   * Name of the next step in the graph that is defined as the {@code Action} output.
+   * A text value state of {@link FragmentOperation} that determines next steps in business logic.
    *
-   * @return next transition
+   * @return a state of {@link FragmentOperation}
    */
   public String getTransition() {
     if (StringUtils.isBlank(transition)) {
@@ -86,12 +85,13 @@ public class FragmentResult {
   }
 
   /**
-   * Log produced by node execution.
+   * Log data produced by {@link FragmentOperation}. It is a JSON-based value specific to the
+   * operation.
    *
-   * @return node log
+   * @return operation log
    */
-  public JsonObject getNodeLog() {
-    return nodeLog;
+  public JsonObject getLog() {
+    return log;
   }
 
   @Override
@@ -105,12 +105,12 @@ public class FragmentResult {
     FragmentResult that = (FragmentResult) o;
     return Objects.equals(fragment, that.fragment) &&
         Objects.equals(transition, that.transition) &&
-        Objects.equals(nodeLog, that.nodeLog);
+        Objects.equals(log, that.log);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(fragment, transition, nodeLog);
+    return Objects.hash(fragment, transition, log);
   }
 
   @Override
@@ -118,7 +118,7 @@ public class FragmentResult {
     return "FragmentResult{" +
         "fragment=" + fragment +
         ", transition='" + transition + '\'' +
-        ", nodeLog=" + nodeLog +
+        ", log=" + log +
         '}';
   }
 }

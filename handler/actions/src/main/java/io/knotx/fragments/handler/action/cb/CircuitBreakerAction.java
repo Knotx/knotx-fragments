@@ -27,8 +27,8 @@ import io.knotx.fragments.handler.api.Action;
 import io.knotx.fragments.handler.api.actionlog.ActionLog;
 import io.knotx.fragments.handler.api.actionlog.ActionLogLevel;
 import io.knotx.fragments.handler.api.actionlog.ActionLogger;
-import io.knotx.fragments.engine.api.node.single.FragmentContext;
-import io.knotx.fragments.engine.api.node.single.FragmentResult;
+import io.knotx.fragments.api.FragmentContext;
+import io.knotx.fragments.api.FragmentResult;
 import io.vertx.circuitbreaker.CircuitBreaker;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
@@ -92,7 +92,7 @@ class CircuitBreakerAction implements Action {
       FragmentResult result, AtomicInteger counter, long startTime,
       ActionLogger actionLogger) {
     if (isErrorTransition(result)) {
-      handleFail(promise, result.getNodeLog(), startTime,
+      handleFail(promise, result.getLog(), startTime,
           new DoActionExecuteException(
               format("Action end up %s transition", result.getTransition())),
           actionLogger);
@@ -114,7 +114,7 @@ class CircuitBreakerAction implements Action {
   private static void handleSuccess(Promise<FragmentResult> f, FragmentResult result,
       AtomicInteger counter, long startTime, ActionLogger actionLogger) {
     actionLogger.info(INVOCATION_COUNT_LOG_KEY, valueOf(counter.get()));
-    actionLogger.doActionLog(TimeCalculator.executionTime(startTime), result.getNodeLog());
+    actionLogger.doActionLog(TimeCalculator.executionTime(startTime), result.getLog());
     f.complete(new FragmentResult(result.getFragment(), result.getTransition(),
         actionLogger.toLog().toJson()));
   }

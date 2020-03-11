@@ -16,7 +16,7 @@
 package io.knotx.fragments.handler.action.cb;
 
 import static io.knotx.fragments.handler.api.actionlog.ActionLogLevel.ERROR;
-import static io.knotx.fragments.engine.api.node.single.FragmentResult.ERROR_TRANSITION;
+import static io.knotx.fragments.api.FragmentResult.ERROR_TRANSITION;
 
 import io.vertx.circuitbreaker.CircuitBreakerOptions;
 import io.vertx.codegen.annotations.DataObject;

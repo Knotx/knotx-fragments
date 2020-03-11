@@ -25,8 +25,8 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.knotx.fragments.api.Fragment;
-import io.knotx.fragments.engine.api.node.single.FragmentContext;
-import io.knotx.fragments.engine.api.node.single.FragmentResult;
+import io.knotx.fragments.api.FragmentContext;
+import io.knotx.fragments.api.FragmentResult;
 import io.knotx.fragments.handler.action.InMemoryCacheActionFactory;
 import io.knotx.fragments.handler.api.Action;
 import io.knotx.fragments.handler.api.actionlog.ActionLogger;
@@ -97,7 +97,7 @@ class InMemoryCacheActionFactoryLoggingTest {
         result -> {
           // then
           testContext.verify(() -> {
-            JsonObject log = result.result().getNodeLog().getJsonObject(LOGS_KEY);
+            JsonObject log = result.result().getLog().getJsonObject(LOGS_KEY);
             if (isLogLevelInfo) {
               assertTrue(log.containsKey(CACHE_MISS));
               assertEquals(expectedPayloadValue,
@@ -143,7 +143,7 @@ class InMemoryCacheActionFactoryLoggingTest {
             secondRequestContext, secondResult -> {
               // then
               testContext.verify(() -> {
-                JsonObject log = secondResult.result().getNodeLog().getJsonObject(LOGS_KEY);
+                JsonObject log = secondResult.result().getLog().getJsonObject(LOGS_KEY);
                 if (isLogLevelInfo) {
                   assertTrue(log.containsKey(CACHE_HIT));
                   assertEquals(expectedPayloadValue, log.getJsonObject(CACHE_HIT)
@@ -186,7 +186,7 @@ class InMemoryCacheActionFactoryLoggingTest {
         result -> {
           // then
           testContext.verify(() -> {
-            JsonArray calledDoActionLogEntires = result.result().getNodeLog()
+            JsonArray calledDoActionLogEntires = result.result().getLog()
                 .getJsonArray(DO_ACTION_LOGS_KEY);
             if (isLogLevelInfo) {
               JsonObject calledDoActionLogEntry = calledDoActionLogEntires.getJsonObject(0);
@@ -232,7 +232,7 @@ class InMemoryCacheActionFactoryLoggingTest {
         result -> {
           // then
           testContext.verify(() -> {
-            JsonObject calledActionLog = result.result().getNodeLog()
+            JsonObject calledActionLog = result.result().getLog()
                 .getJsonArray(DO_ACTION_LOGS_KEY).getJsonObject(0);
             assertFalse(calledActionLog.getBoolean("success"));
             String innerInfoLogValue = calledActionLog.getJsonObject("doActionLog")
@@ -268,7 +268,7 @@ class InMemoryCacheActionFactoryLoggingTest {
         result -> {
           // then
           testContext.verify(() -> {
-            JsonObject log = result.result().getNodeLog().getJsonObject(LOGS_KEY);
+            JsonObject log = result.result().getLog().getJsonObject(LOGS_KEY);
             assertTrue(log.containsKey(CACHE_PASS));
             assertEquals(EXAMPLE_CACHE_KEY, log.getJsonObject(CACHE_PASS).getString(CACHE_KEY));
             testContext.completeNow();
@@ -295,7 +295,7 @@ class InMemoryCacheActionFactoryLoggingTest {
 
     tested.apply(new FragmentContext(firstFragment, new ClientRequest()), result -> {
       testContext.verify(() -> {
-        JsonObject nodeLog = result.result().getNodeLog();
+        JsonObject nodeLog = result.result().getLog();
         assertNotNull(nodeLog);
         JsonArray errors = nodeLog.getJsonObject("logs").getJsonArray("errors");
         JsonObject doActionError = errors.getJsonObject(0);

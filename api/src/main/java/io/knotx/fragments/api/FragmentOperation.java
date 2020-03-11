@@ -13,30 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.knotx.fragments.handler.api;
+package io.knotx.fragments.api;
 
-import io.knotx.fragments.api.FragmentContext;
-import io.knotx.fragments.api.FragmentResult;
-import io.vertx.codegen.annotations.ProxyGen;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
-import io.vertx.core.Vertx;
-import io.vertx.core.eventbus.DeliveryOptions;
+import io.vertx.lang.rx.RxGen;
 
-@ProxyGen
+@RxGen(FragmentOperation.class)
 @VertxGen
-public interface Knot extends Action {
+public interface FragmentOperation {
 
-  static Knot createProxy(Vertx vertx, String address) {
-    return new KnotVertxEBProxy(vertx, address);
-  }
-
-  static Knot createProxyWithOptions(Vertx vertx, String address, DeliveryOptions deliveryOptions) {
-    return new KnotVertxEBProxy(vertx, address, deliveryOptions);
-  }
-
-  // This method is repeated for VertxGen
-  void apply(FragmentContext fragmentContext, Handler<AsyncResult<FragmentResult>> result);
+  /**
+   * Transforms a fragment into the new one. It returns a fragment result containing the new
+   * fragment and a transition (which tells about the status of the fragment transformation (e.g. `_success` or `_error`).
+   *
+   * @param fragmentContext - contains both fragment and client request
+   * @param resultHandler - handler that is invoked when the new fragment is ready
+   */
+  void apply(FragmentContext fragmentContext, Handler<AsyncResult<FragmentResult>> resultHandler);
 
 }

@@ -15,113 +15,110 @@
  */
 package io.knotx.fragments.engine;
 
-import static io.knotx.fragments.engine.api.node.single.FragmentResult.ERROR_TRANSITION;
-import static io.knotx.fragments.engine.api.node.single.FragmentResult.SUCCESS_TRANSITION;
+import static io.knotx.fragments.api.FragmentResult.ERROR_TRANSITION;
+import static io.knotx.fragments.api.FragmentResult.SUCCESS_TRANSITION;
 
 import io.knotx.fragments.api.Fragment;
-import io.knotx.fragments.engine.api.node.single.FragmentContext;
-import io.knotx.fragments.engine.api.node.single.FragmentResult;
+import io.knotx.fragments.api.FragmentOperation;
+import io.knotx.fragments.api.FragmentResult;
 import io.knotx.fragments.engine.exception.NodeFatalException;
-import io.reactivex.Single;
+import io.vertx.core.Future;
+import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
-import java.util.concurrent.TimeUnit;
-import java.util.function.Function;
 
-interface TestFunction extends Function<FragmentContext, Single<FragmentResult>> {
+interface TestFunction extends FragmentOperation {
 
   static TestFunction success() {
-    return fragmentContext -> {
+    return (fragmentContext, resultHandler) -> {
       Fragment fragment = fragmentContext.getFragment();
       FragmentResult result = new FragmentResult(fragment, SUCCESS_TRANSITION);
-      return Single.just(result);
+      Future.succeededFuture(result).setHandler(resultHandler);
     };
   }
 
-  static TestFunction successWithDelay(long delayInMs) {
-    return fragmentContext -> {
+  static TestFunction successWithDelay(long delayInMs, Vertx vertx) {
+    return (fragmentContext, resultHandler) -> {
       Fragment fragment = fragmentContext.getFragment();
       FragmentResult result = new FragmentResult(fragment, SUCCESS_TRANSITION);
-      return Single.just(result).delay(delayInMs, TimeUnit.MILLISECONDS);
+      vertx.setTimer(delayInMs, event -> Future.succeededFuture(result).setHandler(resultHandler));
     };
   }
 
   static TestFunction successWithNodeLog(JsonObject nodeObject) {
-    return fragmentContext -> {
+    return (fragmentContext, resultHandler) -> {
       Fragment fragment = fragmentContext.getFragment();
       FragmentResult result = new FragmentResult(fragment, SUCCESS_TRANSITION, nodeObject);
-      return Single.just(result);
+      Future.succeededFuture(result).setHandler(resultHandler);
     };
   }
 
   static TestFunction errorWithNodeLog(JsonObject nodeLog) {
-    return fragmentContext -> {
+    return (fragmentContext, resultHandler) -> {
       Fragment fragment = fragmentContext.getFragment();
       FragmentResult result = new FragmentResult(fragment, ERROR_TRANSITION, nodeLog);
-      return Single.just(result);
+      Future.succeededFuture(result).setHandler(resultHandler);
     };
   }
 
 
   static TestFunction failure() {
-    return fragmentContext -> {
-      throw new RuntimeException();
-    };
+    return (fragmentContext, resultHandler) -> Future.<FragmentResult>failedFuture(
+        new RuntimeException()).setHandler(resultHandler);
   }
 
   static TestFunction fatal(Fragment fragment) {
-    return fragmentContext -> {
-      throw new NodeFatalException(fragment);
-    };
+    return (fragmentContext, resultHandler) -> Future.<FragmentResult>failedFuture(
+        new NodeFatalException(fragment))
+        .setHandler(resultHandler);
   }
 
   static TestFunction appendPayload(String payloadKey, JsonObject payloadValue) {
-    return fragmentContext -> {
+    return (fragmentContext, resultHandler) -> {
       Fragment fragment = fragmentContext.getFragment();
       fragment.appendPayload(payloadKey, payloadValue);
       FragmentResult result = new FragmentResult(fragment, SUCCESS_TRANSITION);
-      return Single.just(result);
+      Future.succeededFuture(result).setHandler(resultHandler);
     };
   }
 
   static TestFunction appendPayload(String payloadKey, String payloadValue) {
-    return fragmentContext -> {
+    return (fragmentContext, resultHandler) -> {
       Fragment fragment = fragmentContext.getFragment();
       fragment.appendPayload(payloadKey, payloadValue);
       FragmentResult result = new FragmentResult(fragment, SUCCESS_TRANSITION);
-      return Single.just(result);
+      Future.succeededFuture(result).setHandler(resultHandler);
     };
   }
 
   static TestFunction appendPayloadBasingOnContext(String expectedPayloadKey,
       String updatedPayloadKey, String updatedPayloadValue) {
-    return fragmentContext -> {
+    return (fragmentContext, resultHandler) -> {
       Fragment fragment = fragmentContext.getFragment();
       String payloadValue = fragment.getPayload().getString(expectedPayloadKey);
       fragment.appendPayload(updatedPayloadKey, payloadValue + updatedPayloadValue);
       FragmentResult result = new FragmentResult(fragment, SUCCESS_TRANSITION);
-      return Single.just(result);
+      Future.succeededFuture(result).setHandler(resultHandler);
     };
   }
 
   static TestFunction appendBody(String postfix) {
-    return fragmentContext -> {
+    return (fragmentContext, resultHandler) -> {
       Fragment fragment = fragmentContext.getFragment();
       fragment.setBody(fragment.getBody() + postfix);
       FragmentResult result = new FragmentResult(fragment, SUCCESS_TRANSITION);
-      return Single.just(result);
+      Future.succeededFuture(result).setHandler(resultHandler);
     };
   }
 
   static TestFunction appendBodyWithPayload(String... expectedPayloadKeys) {
-    return fragmentContext -> {
+    return (fragmentContext, resultHandler) -> {
       Fragment fragment = fragmentContext.getFragment();
       for (String expectedPayloadKey : expectedPayloadKeys) {
         String payloadValue = fragment.getPayload().getString(expectedPayloadKey);
         fragment.setBody(fragment.getBody() + payloadValue);
       }
       FragmentResult result = new FragmentResult(fragment, SUCCESS_TRANSITION);
-      return Single.just(result);
+      Future.succeededFuture(result).setHandler(resultHandler);
     };
   }
-
 }

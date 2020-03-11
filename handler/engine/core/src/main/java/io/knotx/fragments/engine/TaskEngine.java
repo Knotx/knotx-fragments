@@ -15,11 +15,13 @@
  */
 package io.knotx.fragments.engine;
 
-import io.knotx.fragments.engine.api.node.NodeType;
-import io.knotx.fragments.engine.api.node.single.SingleNode;
-import io.knotx.fragments.engine.api.node.composite.CompositeNode;
+import static io.knotx.reactivex.fragments.api.FragmentOperation.newInstance;
+
+import io.knotx.fragments.api.FragmentResult;
 import io.knotx.fragments.engine.api.node.Node;
-import io.knotx.fragments.engine.api.node.single.FragmentResult;
+import io.knotx.fragments.engine.api.node.NodeType;
+import io.knotx.fragments.engine.api.node.composite.CompositeNode;
+import io.knotx.fragments.engine.api.node.single.SingleNode;
 import io.reactivex.Observable;
 import io.reactivex.Single;
 import io.vertx.core.Vertx;
@@ -48,11 +50,11 @@ class TaskEngine {
     traceEvent(context);
 
     return context.hasNext()
-            ? getResult(context).flatMap(fragmentResult -> {
-                context.updateResult(fragmentResult);
-                return processTask(context);
-            })
-            : Single.just(context);
+        ? getResult(context).flatMap(fragmentResult -> {
+      context.updateResult(fragmentResult);
+      return processTask(context);
+    })
+        : Single.just(context);
   }
 
   private Single<TaskExecutionContext> processTask(TaskExecutionContext context, Node currentNode) {
@@ -61,15 +63,15 @@ class TaskEngine {
 
   private Single<FragmentResult> getResult(TaskExecutionContext context) {
     return NodeType.COMPOSITE == context.getCurrentNode().getType()
-            ? mapReduce(context)
-            : execute(context);
+        ? mapReduce(context)
+        : execute(context);
   }
 
   private Single<FragmentResult> execute(TaskExecutionContext context) {
     return Single.just(context.getCurrentNode())
         .map(SingleNode.class::cast)
         .observeOn(RxHelper.blockingScheduler(vertx))
-        .flatMap(gn -> gn.execute(context.fragmentContextInstance()))
+        .flatMap(gn -> newInstance(gn).rxApply(context.fragmentContextInstance()))
         .doOnSuccess(context::handleSuccess)
         .onErrorResumeNext(context::handleError);
   }
@@ -89,5 +91,4 @@ class TaskEngine {
           context.getCurrentNode());
     }
   }
-
 }

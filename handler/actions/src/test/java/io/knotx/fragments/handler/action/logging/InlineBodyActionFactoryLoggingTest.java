@@ -21,7 +21,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import io.knotx.fragments.api.Fragment;
 import io.knotx.fragments.handler.action.InlineBodyActionFactory;
 import io.knotx.fragments.handler.api.Action;
-import io.knotx.fragments.engine.api.node.single.FragmentContext;
+import io.knotx.fragments.api.FragmentContext;
 import io.knotx.junit5.KnotxExtension;
 import io.knotx.server.api.context.ClientRequest;
 import io.vertx.core.json.JsonObject;
@@ -57,7 +57,7 @@ class InlineBodyActionFactoryLoggingTest {
         result -> {
           // then
           testContext.verify(() -> {
-            JsonObject logs = result.result().getNodeLog().getJsonObject(LOGS_KEY);
+            JsonObject logs = result.result().getLog().getJsonObject(LOGS_KEY);
             assertEquals(INITIAL_BODY, logs.getString(ORIGINAL_BODY_KEY));
             assertEquals(BODY_TO_INLINE, logs.getString(BODY_KEY));
           });
@@ -83,7 +83,7 @@ class InlineBodyActionFactoryLoggingTest {
         result -> {
           // then
           testContext.verify(() -> {
-            JsonObject logs = result.result().getNodeLog();
+            JsonObject logs = result.result().getLog();
             assertTrue(logs.getJsonObject(LOGS_KEY).isEmpty());
             assertTrue(logs.getJsonArray(DO_ACTION_LOGS_KEY).isEmpty());
           });

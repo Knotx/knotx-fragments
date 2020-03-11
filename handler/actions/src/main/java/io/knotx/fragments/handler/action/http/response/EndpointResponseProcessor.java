@@ -15,14 +15,14 @@
  */
 package io.knotx.fragments.handler.action.http.response;
 
-import static io.knotx.fragments.engine.api.node.single.FragmentResult.ERROR_TRANSITION;
+import static io.knotx.fragments.api.FragmentResult.ERROR_TRANSITION;
 
 import io.knotx.commons.json.MultiMapTransformer;
 import io.knotx.fragments.handler.action.http.HttpAction.HttpActionResult;
 import io.knotx.fragments.handler.action.http.log.HttpActionLogger;
 import io.knotx.fragments.handler.action.http.options.ResponseOptions;
 import io.knotx.fragments.handler.action.http.request.EndpointRequest;
-import io.knotx.fragments.engine.api.node.single.FragmentResult;
+import io.knotx.fragments.api.FragmentResult;
 import io.knotx.fragments.handler.api.domain.payload.ActionPayload;
 import io.knotx.fragments.handler.api.domain.payload.ActionRequest;
 import io.knotx.fragments.handler.api.domain.payload.ActionResponse;

@@ -15,8 +15,8 @@
  */
 package io.knotx.fragments.handler.consumer.metadata;
 
-import static io.knotx.fragments.engine.api.node.single.FragmentResult.ERROR_TRANSITION;
-import static io.knotx.fragments.engine.api.node.single.FragmentResult.SUCCESS_TRANSITION;
+import static io.knotx.fragments.api.FragmentResult.ERROR_TRANSITION;
+import static io.knotx.fragments.api.FragmentResult.SUCCESS_TRANSITION;
 import static io.knotx.junit5.assertions.KnotxAssertions.assertJsonEquals;
 
 import com.google.common.collect.ImmutableMap;
@@ -28,7 +28,7 @@ import io.knotx.fragments.engine.NodeMetadata;
 import io.knotx.fragments.engine.OperationMetadata;
 import io.knotx.fragments.engine.TaskMetadata;
 import io.knotx.fragments.engine.api.node.NodeType;
-import io.knotx.fragments.engine.api.node.single.FragmentResult;
+import io.knotx.fragments.api.FragmentResult;
 import io.knotx.fragments.handler.LoggedNodeStatus;
 import io.knotx.fragments.handler.consumer.html.GraphNodeOperationLog;
 import io.knotx.fragments.task.factory.node.action.ActionNodeFactory;

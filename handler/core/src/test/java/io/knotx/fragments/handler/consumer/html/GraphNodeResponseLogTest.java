@@ -17,7 +17,7 @@ package io.knotx.fragments.handler.consumer.html;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import io.knotx.fragments.engine.api.node.single.FragmentResult;
+import io.knotx.fragments.api.FragmentResult;
 import io.vertx.core.json.JsonArray;
 import org.junit.jupiter.api.Test;
 

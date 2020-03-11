@@ -15,8 +15,8 @@
  */
 package io.knotx.fragments.task.factory.node.action;
 
-import static io.knotx.fragments.engine.api.node.single.FragmentResult.ERROR_TRANSITION;
-import static io.knotx.fragments.engine.api.node.single.FragmentResult.SUCCESS_TRANSITION;
+import static io.knotx.fragments.api.FragmentResult.ERROR_TRANSITION;
+import static io.knotx.fragments.api.FragmentResult.SUCCESS_TRANSITION;
 import static io.knotx.fragments.task.factory.node.action.ActionNodeFactory.METADATA_ACTION_CONFIG;
 import static io.knotx.fragments.task.factory.node.action.ActionNodeFactory.METADATA_ACTION_FACTORY;
 import static io.knotx.fragments.task.factory.node.action.ActionNodeFactory.METADATA_ALIAS;
@@ -33,14 +33,15 @@ import io.knotx.fragments.api.Fragment;
 import io.knotx.fragments.engine.NodeMetadata;
 import io.knotx.fragments.engine.api.node.Node;
 import io.knotx.fragments.engine.api.node.NodeType;
-import io.knotx.fragments.engine.api.node.single.FragmentContext;
-import io.knotx.fragments.engine.api.node.single.FragmentResult;
+import io.knotx.fragments.api.FragmentContext;
+import io.knotx.fragments.api.FragmentResult;
 import io.knotx.fragments.engine.api.node.single.SingleNode;
 import io.knotx.fragments.task.factory.ActionFactoryOptions;
 import io.knotx.fragments.task.factory.GraphNodeOptions;
 import io.knotx.fragments.task.factory.NodeProvider;
 import io.knotx.fragments.task.factory.node.NodeOptions;
 import io.knotx.fragments.task.factory.node.StubNode;
+import io.knotx.reactivex.fragments.api.FragmentOperation;
 import io.knotx.server.api.context.ClientRequest;
 import io.reactivex.Single;
 import io.vertx.core.json.JsonObject;
@@ -204,7 +205,7 @@ class ActionNodeFactoryTest {
 
     // then
     SingleNode singleNode = (SingleNode) node;
-    Single<FragmentResult> result = singleNode.execute(
+    Single<FragmentResult> result = FragmentOperation.newInstance(singleNode).rxApply(
         new FragmentContext(new Fragment("type", new JsonObject(), "body"), new ClientRequest()));
     result
         .doOnSuccess(response -> testContext.verify(() -> {
