@@ -20,6 +20,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.knotx.fragments.handler.action.exception.ActionConfigurationException;
 import io.knotx.fragments.handler.api.Cacheable;
+import io.netty.handler.codec.http.HttpMethod;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.VertxExtension;
@@ -27,6 +28,9 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
+import org.junit.jupiter.params.provider.ValueSource;
 
 @ExtendWith(VertxExtension.class)
 class HttpActionFactoryTest {
@@ -54,5 +58,32 @@ class HttpActionFactoryTest {
   void shouldBeCacheable() {
     Class<?> tested = HttpActionFactory.class;
     Assertions.assertNotNull(tested.getAnnotation(Cacheable.class));
+  }
+
+  @ParameterizedTest
+  @ValueSource(strings = {"GET", "POST", "PUT", "PATCH", "DELETE", "HEAD"})
+  @DisplayName("Http Action supports expected methods")
+  void shouldSupportMethods(String method, Vertx vertx) {
+    HttpActionFactory tested = new HttpActionFactory();
+    JsonObject config = new JsonObject().put("httpMethod", method);
+    assertTrue(tested.create("", config, vertx, null) instanceof HttpAction);
+  }
+
+  @ParameterizedTest
+  @ValueSource(strings = {"CONNECT", "OPTIONS", "TRACE"})
+  @DisplayName("Http Action Factory throws when not supported HTTP method specified")
+  void shouldThrowOnNotSupportedMethods(String method, Vertx vertx) {
+    HttpActionFactory tested = new HttpActionFactory();
+    JsonObject config = new JsonObject().put("httpMethod", method);
+    assertThrows(ActionConfigurationException.class, () -> tested.create("", config, vertx, null));
+  }
+
+  @ParameterizedTest
+  @ValueSource(strings = {"invalid", "getpost", "postt"})
+  @DisplayName("Http Action Factory throws when invalid HTTP method specified")
+  void shouldThrowOnInvalidMethods(String method, Vertx vertx) {
+    HttpActionFactory tested = new HttpActionFactory();
+    JsonObject config = new JsonObject().put("httpMethod", method);
+    assertThrows(ActionConfigurationException.class, () -> tested.create("", config, vertx, null));
   }
 }

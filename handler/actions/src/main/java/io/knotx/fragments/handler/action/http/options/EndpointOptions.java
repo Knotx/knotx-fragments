@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * Describes a physical details of HTTP service endpoint that Action will connect to.
@@ -32,11 +33,15 @@ import java.util.stream.Collectors;
 public class EndpointOptions {
 
   private String path;
+  private String body = StringUtils.EMPTY;
+  private JsonObject bodyJson = new JsonObject();
   private String domain;
   private int port;
   private Set<String> allowedRequestHeaders;
   private JsonObject additionalHeaders;
   private List<Pattern> allowedRequestHeadersPatterns;
+  private boolean interpolatePath = true;
+  private boolean interpolateBody = false;
   //ToDo: private Set<StatusCode> successStatusCodes;
 
   public EndpointOptions() {
@@ -45,11 +50,15 @@ public class EndpointOptions {
 
   public EndpointOptions(EndpointOptions other) {
     this.path = other.path;
+    this.body = other.body;
     this.domain = other.domain;
     this.port = other.port;
     this.allowedRequestHeaders = new HashSet<>(other.allowedRequestHeaders);
     this.allowedRequestHeadersPatterns = new ArrayList<>(other.allowedRequestHeadersPatterns);
     this.additionalHeaders = other.additionalHeaders.copy();
+    this.bodyJson = other.getBodyJson();
+    this.interpolatePath = other.isInterpolatePath();
+    this.interpolateBody = other.isInterpolateBody();
   }
 
   public EndpointOptions(JsonObject json) {
@@ -72,13 +81,60 @@ public class EndpointOptions {
   }
 
   /**
-   * Sets the request path to the endpoint.
+   * Sets the request path to the endpoint. The request path may contain <a
+   * href="https://github.com/Knotx/knotx-server-http/tree/master/common/placeholders">Knot.x Server
+   * Common Placeholders</a> referencing ClientRequest, Fragment's configuration or Fragment's
+   * payload.
    *
    * @param path an endpoint request path.
    * @return a reference to this, so the API can be used fluently
    */
   public EndpointOptions setPath(String path) {
     this.path = path;
+    return this;
+  }
+
+  public String getBody() {
+    return body;
+  }
+
+  /**
+   * Sets the request body schema to be sent to the endpoint. The body may contain <a
+   * href="https://github.com/Knotx/knotx-server-http/tree/master/common/placeholders">Knot.x Server
+   * Common Placeholders</a> referencing ClientRequest, Fragment's configuration or Fragment's
+   * payload, which will be interpolated if {@link EndpointOptions#interpolateBody} flag is set.
+   *
+   * Please note that request body is sent only in case of using PUT, POST or PATCH HTTP method.
+   *
+   * This field is mutually exclusive with {@link EndpointOptions#bodyJson}.
+   *
+   * @param body a body to be send to the endpoint
+   * @return a reference to this, so the API can be used fluently
+   */
+  public EndpointOptions setBody(String body) {
+    this.body = body;
+    return this;
+  }
+
+  public JsonObject getBodyJson() {
+    return bodyJson;
+  }
+
+  /**
+   * Sets the request body schema to be sent to the endpoint. The body may contain <a
+   * href="https://github.com/Knotx/knotx-server-http/tree/master/common/placeholders">Knot.x Server
+   * Common Placeholders</a> referencing ClientRequest, Fragment's configuration or Fragment's
+   * payload, which will be interpolated if {@link EndpointOptions#interpolateBody} flag is set.
+   *
+   * Please note that request body is sent only in case of using PUT, POST or PATCH HTTP method.
+   *
+   * This field is mutually exclusive with {@link EndpointOptions#body}.
+   *
+   * @param bodyJson a body to be send to the endpoint
+   * @return a reference to this, so the API can be used fluently
+   */
+  public EndpointOptions setBodyJson(JsonObject bodyJson) {
+    this.bodyJson = bodyJson;
     return this;
   }
 
@@ -168,4 +224,57 @@ public class EndpointOptions {
     this.allowedRequestHeadersPatterns = allowedRequestHeaderPatterns;
     return this;
   }
+
+  public boolean isInterpolatePath() {
+    return interpolatePath;
+  }
+
+  /**
+   * Configures interpolation of {@link EndpointOptions#path} parameter. When set, the path will be
+   * interpolated using <a href="https://github.com/Knotx/knotx-server-http/tree/master/common/placeholders">Knot.x
+   * Server Common Placeholders</a> referencing ClientRequest, Fragment's configuration or
+   * Fragment's payload.
+   *
+   * @param interpolatePath flag enabling path interpolation
+   * @return a reference to this, so the API can be used fluently
+   */
+  public EndpointOptions setInterpolatePath(boolean interpolatePath) {
+    this.interpolatePath = interpolatePath;
+    return this;
+  }
+
+  public boolean isInterpolateBody() {
+    return interpolateBody;
+  }
+
+  /**
+   * Configures interpolation of {@link EndpointOptions#body} parameter. When set, the body will be
+   * interpolated using <a href="https://github.com/Knotx/knotx-server-http/tree/master/common/placeholders">Knot.x
+   * Server Common Placeholders</a> referencing ClientRequest, Fragment's configuration or
+   * Fragment's payload.
+   *
+   * @param interpolateBody flag enabling body interpolation
+   * @return a reference to this, so the API can be used fluently
+   */
+  public EndpointOptions setInterpolateBody(boolean interpolateBody) {
+    this.interpolateBody = interpolateBody;
+    return this;
+  }
+
+  @Override
+  public String toString() {
+    return "EndpointOptions{" +
+        "path='" + path + '\'' +
+        ", body='" + body + '\'' +
+        ", bodyJson=" + bodyJson +
+        ", domain='" + domain + '\'' +
+        ", port=" + port +
+        ", allowedRequestHeaders=" + allowedRequestHeaders +
+        ", additionalHeaders=" + additionalHeaders +
+        ", allowedRequestHeadersPatterns=" + allowedRequestHeadersPatterns +
+        ", interpolatePath=" + interpolatePath +
+        ", interpolateBody=" + interpolateBody +
+        '}';
+  }
+
 }

@@ -48,7 +48,8 @@ public class HttpActionOptions {
 
   /**
    * Set the {@code HttpMethod} used for performing the request.
-   * At the moment only HTTP GET method is supported.
+   * Defaults to GET.
+   * Supported methods are GET, POST, PATCH, PUT, DELETE and HEAD.
    *
    * @param httpMethod HTTP method
    * @return a reference to this, so the API can be used fluently
@@ -134,11 +135,13 @@ public class HttpActionOptions {
   @Override
   public String toString() {
     return "HttpActionOptions{" +
-        "webClientOptions=" + webClientOptions +
+        "httpMethod='" + httpMethod + '\'' +
+        ", webClientOptions=" + webClientOptions +
         ", endpointOptions=" + endpointOptions +
         ", responseOptions=" + responseOptions +
         ", requestTimeoutMs=" + requestTimeoutMs +
-        ", logLevel=" + logLevel +
+        ", logLevel='" + logLevel + '\'' +
         '}';
   }
+
 }

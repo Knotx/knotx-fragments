@@ -294,6 +294,7 @@ class HttpActionLoggerTest {
   private static void assertRequestLogs(JsonObject requestLog) {
     assertTrue(requestLog.containsKey("path"));
     assertTrue(requestLog.containsKey("requestHeaders"));
+    assertTrue(requestLog.containsKey("requestBody"));
   }
 
   private static void assertErrorLogs(JsonArray errorLog) {

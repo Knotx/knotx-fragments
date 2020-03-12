@@ -3,6 +3,7 @@ All notable changes to `knotx-fragments` will be documented in this file.
 
 ## Unreleased
 List of changes that are finished but not yet released in any final version.
+- [PR-120](https://github.com/Knotx/knotx-fragments/pull/120) - HTTP methods for HttpAction - support for POST/PUT/PATCH/DELETE/HEAD and sending body.
 - [PR-100](https://github.com/Knotx/knotx-fragments/pull/100) - KnotxServer response configuration - wildcards, case-insensitive filtering allowed headers
 - [PR-96](https://github.com/Knotx/knotx-fragments/pull/96) - HttpAction in knotx-fragments. Actions moved to a new module `knotx-fragments-handler-actions`.
 - [PR-80](https://github.com/Knotx/knotx-fragments/pull/80) - Circuit breaker understands which custom transition mean error.

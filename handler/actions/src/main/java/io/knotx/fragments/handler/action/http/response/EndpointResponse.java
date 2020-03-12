@@ -45,7 +45,6 @@ public class EndpointResponse {
     return endpointResponse;
   }
 
-
   HttpResponseStatus getStatusCode() {
     return statusCode;
   }

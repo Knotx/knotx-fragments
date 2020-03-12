@@ -93,7 +93,8 @@ Node log is presented as `JSON` and has the following structure:
   "path": "/api/endpoint",
   "requestHeaders": {
     "Content-Type": "application/json"
-  }
+  },
+  "requestBody": ""
 }
 ```
 `RESPONSE_DATA` contains the following entries:
@@ -136,6 +137,19 @@ The table below presents expected entries in node log on particular log levels d
 | exception occurs and `_error`              | ERROR      | REQUEST_DATA, LIST_OF_ERRORS               |
 | `_error` (e.g service responds with `500`) | INFO       | REQUEST_DATA, RESPONSE_DATA, RESPONSE_BODY |
 | `_error` (e.g service responds with `500`) | INFO       | REQUEST_DATA, RESPONSE_DATA                |
+
+#### Supported HTTP methods
+
+Currently Knot.x supports `GET`, `POST`, `PUT`, `PATCH`, `DELETE` and `HEAD` HTTP methods.
+This is specified using `httpMethod` option under `config` node of HttpAction (defaults to `GET`).
+
+For `POST`, `PUT` and `PATCH` methods, request body is send. 
+Body can be specified either as String or as a JSON, using `body` and `bodyJson` parameters under `endpointOptions`.
+In both cases, it is possible to perform interpolation based on the original request, Fragment's configuration or Fragment's payload.
+For details, see [Knot.x Server Common Placeholders](https://github.com/Knotx/knotx-server-http/tree/master/common/placeholders#available-request-placeholders-support).
+Please note that unlike for path, placeholder values put into body are not URL-encoded.
+ 
+To enable body interpolation, set `interpolateBody` flag under `endpointOptions` to `true`.
 
 #### Detailed configuration
 All configuration options are explained in details in the [Config Options Cheetsheet](https://github.com/Knotx/knotx-fragments/tree/master/handler/core/docs/asciidoc/dataobjects.adoc).

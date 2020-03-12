@@ -16,15 +16,22 @@
 package io.knotx.fragments.handler.action.http.request;
 
 import io.vertx.reactivex.core.MultiMap;
+import org.apache.commons.lang3.StringUtils;
 
 public class EndpointRequest {
 
   private final String path;
   private final MultiMap headers;
+  private final String body;
 
   public EndpointRequest(String path, MultiMap headers) {
+    this(path, headers, StringUtils.EMPTY);
+  }
+
+  public EndpointRequest(String path, MultiMap headers, String body) {
     this.path = path;
     this.headers = headers;
+    this.body = body;
   }
 
   public String getPath() {
@@ -33,6 +40,10 @@ public class EndpointRequest {
 
   public MultiMap getHeaders() {
     return headers;
+  }
+
+  public String getBody() {
+    return body;
   }
 
 }

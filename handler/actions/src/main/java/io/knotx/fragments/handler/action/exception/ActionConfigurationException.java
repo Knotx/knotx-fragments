@@ -23,4 +23,8 @@ public class ActionConfigurationException extends ConfigurationException {
     super(actionAlias + ": " + message);
   }
 
+  public ActionConfigurationException(String actionAlias, String message, Throwable cause) {
+    super(actionAlias + ": " + message, cause);
+  }
+
 }

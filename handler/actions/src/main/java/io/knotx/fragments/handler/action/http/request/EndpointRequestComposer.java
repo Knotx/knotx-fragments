@@ -15,60 +15,43 @@
  */
 package io.knotx.fragments.handler.action.http.request;
 
-import io.knotx.commons.http.request.AllowedHeadersFilter;
-import io.knotx.commons.http.request.MultiMapCollector;
-import io.knotx.fragments.handler.action.http.options.EndpointOptions;
 import io.knotx.fragments.api.FragmentContext;
-import io.knotx.server.api.context.ClientRequest;
-import io.knotx.server.common.placeholders.PlaceholdersResolver;
-import io.knotx.server.common.placeholders.SourceDefinitions;
+import io.knotx.fragments.handler.action.http.options.EndpointOptions;
 import io.vertx.reactivex.core.MultiMap;
-import java.util.Set;
 
 public class EndpointRequestComposer {
 
-  private static final String PLACEHOLDER_PREFIX_PAYLOAD = "payload";
-  private static final String PLACEHOLDER_PREFIX_CONFIG = "config";
-
-  private EndpointOptions endpointOptions;
+  private final EndpointOptions endpointOptions;
+  private final HeadersComposer headersComposer;
+  private final BodyComposer bodyComposer;
 
   public EndpointRequestComposer(EndpointOptions endpointOptions) {
     this.endpointOptions = endpointOptions;
+    this.headersComposer = new HeadersComposer(endpointOptions);
+    this.bodyComposer = new BodyComposer(endpointOptions);
   }
 
   public EndpointRequest createEndpointRequest(FragmentContext context) {
-    ClientRequest clientRequest = context.getClientRequest();
-    SourceDefinitions sourceDefinitions = buildSourceDefinitions(context, clientRequest);
-    String path = PlaceholdersResolver.resolve(endpointOptions.getPath(), sourceDefinitions);
-    MultiMap requestHeaders = getRequestHeaders(clientRequest);
-    return new EndpointRequest(path, requestHeaders);
+    EndpointPlaceholdersResolver resolver = new EndpointPlaceholdersResolver(context);
+    String path = getPath(resolver);
+    MultiMap requestHeaders = headersComposer.getRequestHeaders(context.getClientRequest());
+    String body = bodyComposer.getBody(resolver);
+    setContentTypeIfApplicable(requestHeaders);
+    return new EndpointRequest(path, requestHeaders, body);
   }
 
-  private SourceDefinitions buildSourceDefinitions(FragmentContext context,
-      ClientRequest clientRequest) {
-    return SourceDefinitions.builder()
-        .addClientRequestSource(clientRequest)
-        .addJsonObjectSource(context.getFragment()
-            .getPayload(), PLACEHOLDER_PREFIX_PAYLOAD)
-        .addJsonObjectSource(context.getFragment()
-            .getConfiguration(), PLACEHOLDER_PREFIX_CONFIG)
-        .build();
-  }
-
-  private MultiMap getRequestHeaders(ClientRequest clientRequest) {
-    MultiMap filteredHeaders = getFilteredHeaders(clientRequest.getHeaders(),
-        endpointOptions.getAllowedRequestHeaders());
-    if (endpointOptions.getAdditionalHeaders() != null) {
-      endpointOptions.getAdditionalHeaders()
-          .forEach(entry -> filteredHeaders.add(entry.getKey(), entry.getValue().toString()));
+  private void setContentTypeIfApplicable(MultiMap requestHeaders) {
+    if(bodyComposer.shouldUseJsonBody()) {
+      headersComposer.setJsonContentTypeIfEmpty(requestHeaders);
     }
-    return filteredHeaders;
   }
 
-  private MultiMap getFilteredHeaders(MultiMap headers, Set<String> allowedHeaders) {
-    return headers.names().stream()
-        .filter(AllowedHeadersFilter.CaseInsensitive.create(allowedHeaders))
-        .collect(MultiMapCollector.toMultiMap(o -> o, headers::getAll));
+  private String getPath(EndpointPlaceholdersResolver resolver) {
+    if (endpointOptions.isInterpolatePath()) {
+      return resolver.resolveAndEncode(endpointOptions.getPath());
+    } else {
+      return endpointOptions.getPath();
+    }
   }
 
 }
