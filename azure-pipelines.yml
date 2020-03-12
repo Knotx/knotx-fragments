@@ -29,7 +29,10 @@ steps:
   - task: CmdLine@2
     inputs:
       script: |
-        ORGANIZATION=$(cut -d'/' -f1 <<<$(Build.Repository.Name))
+        PR_NO=$(System.PullRequest.PullRequestNumber)
+        REPO_NAME=$(Build.Repository.Name)
+        LABEL=$(curl https://api.github.com/repos/$REPO_NAME/pulls/$PR_NO | jq --raw-output '.head.label')
+        ORGANIZATION=$(cut -d':' -f1 <<<$LABEL)
         cd knotx-aggregator/development
         if [[ -z "$(System.PullRequest.SourceBranch)" ]] ; then
           ./pull-all.sh -r ../../$(workspaceDir) -b "$(Build.SourceBranchName)" -a -o $ORGANIZATION
