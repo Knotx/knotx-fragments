@@ -1,84 +1,76 @@
 # Fragments Engine
-Fragments Engine is a [reactive](https://www.reactivemanifesto.org/) asynchronous 
-[map-reduce](https://en.wikipedia.org/wiki/MapReduce) implementation, enjoying the benefits of 
-[Reactive Extensions](http://reactivex.io/), that evaluates each 
-[Fragment](https://github.com/Knotx/knotx-fragments/tree/master/api) independently using a 
-[Task](#task) definition. Task specifies Nodes through which Fragments will be routed by 
-(a directed graph of [Nodes](#node)), allowing to transform Fragment into the new one.
+Fragments Engine is a framework that transforms a business logic into a graph, that can be easily adjusted to the changes in the future. 
 
 ## How does it work
-Fragments engine accepts a list of fragments decorated with its [status](#fragments-status), 
-[processing log](#fragments-status) and the incoming HTTP request data. All operations, nodes 
-evaluations and graph executions are asynchronous. So the engine responds with RX handler that 
-enables the user to press the play button (with the `io.reactivex.SingleSource.subscribe` method). 
-This is where map-reduce magic begins.
+Fragments Engine accepts a list of fragments decorated with the incoming HTTP request data. Each 
+[Fragment](https://github.com/Knotx/knotx-fragments/tree/master/api#fragment) defines its own 
+business logic in the form of a [Task](#task). The task is a graph (speaking strictly 
+a [DAG - Directed Acyclic Graph](https://en.wikipedia.org/wiki/Directed_acyclic_graph_), composed of steps ([Nodes](#node)) 
+that are connected with business decisions ([Transitions](#transition)).
 
-When the user calls the `subscribe` method, then all fragments are evaluated in parallel. Finally, 
-we get a list of modified fragments that contain also their statuses and processing log.
+It applies tasks to fragments asynchronously.
 
-The engine handles all exceptions launched by nodes with a graph logic. It translates errors to 
-`_error` transitions and tries to manage them.\
-All `io.knotx.fragments.engine.exception.NodeFatalException` exceptions break the processing 
-of all fragments and call the `io.reactivex.SingleObserver#onError` method to indicate that all 
-fragments have failed. Then the client can handle this situation.
+Finally, we get a list of modified fragments that contain [fragments' statuses](#fragments-status) 
+and [processing logs](#fragments-log). 
 
-## How to configure
-The engine is stateless, so no configuration is required. The clients provide their custom 
-configurations and build tasks. Tasks contain all details about graph processing.
-
-# Task
-Task decomposes business logic into lightweight independent parts. Those parts are graph nodes 
-connected by transitions. So a task is a directed graph of nodes. Nodes specify fragment's 
-processing, whereas transitions draw business decisions.
+## Task
+Task decomposes business logic into lightweight dependent parts. Those parts are graph nodes 
+connected by transitions. So a task is a directed graph of nodes. Nodes define an operation on the 
+fragment (some business logic), whereas transitions draw business decisions.
 This graph is acyclic and each of its nodes can be reached only from exactly one path (transition). 
 These properties enable us to treat the Task as a tree structure.
-```
-(A) ───> (B) ───> (C)
- └─────> (D)
-```
-The above graph contains nodes, represented by `(A)`, and transitions illustrated as arrows. Arrows 
-set a node's contract. 
 
-So, for example, a node can invoke API and store the response in the fragment. Then it 
-responds with the modified fragment and transition.
+![Task](assets/images/graph.png)
 
+The graph above depicts nodes, represented by circles (`A, B, C`), and transitions illustrated as 
+arrows (`B transition`, `C transition`).
 
-## Node
-The node responsibility can be described as: 
-> Graph node gets a fragment, processes it, adds some processing logs and responds with a transition. 
-> So a node is the F -> (F', T, L) function where F is a fragment, F' is a modified Fragment, T is a 
-> transition and L is a node log.
+Tasks allow defining more complex structures such as a list of subtasks (subgraphs).
 
-The node definition is abstract. It allows to define simple processing nodes but also more complex 
-structures such as a list of subgraphs. Each node may define possible outgoing edges, called 
-transitions.
-
-### Node types
-There are two **node** types:
-  - **single nodes** that are simple operations that do some fragments modifications (called [Single Node](#single-node)),
-  - **parallel complex nodes** that are lists of subgraphs (called [Composite Node](#composite-node)).
+### Node
+Node has a single input and declares zero-to-many outputs (transitions). Node outputs (transitions) 
+indicate business decisions, whereas node logic can modify a fragment.
 
 #### Single Node
-A node represents a single operation that transforms one Fragment into another. The operation can 
-produce multiple **custom** transitions that indicate various business decisions.
+A node represents a [fragment operation](https://github.com/Knotx/knotx-fragments/tree/master/api#fragment-operation) 
+that performs business logic operations (see [Fragment Operation](https://github.com/Knotx/knotx-fragments/tree/master/api#fragment-operation) for more details).
+
+The diagram below represents the single node (A) with three outputs: `B transition`, `C transition`, 
+`D transition`.
+
+![Single node](assets/images/single-node.png)
 
 The example of this node is calling an authentication RESTful API. The node implements a communication 
-logic and reacts to different API responses such as  HTTP 200/401/404 status codes. 
+logic and reacts to different API responses such as  HTTP 200/401/404 status codes.
+
+![Single node example](assets/images/single-node-example.png)
+
 Each status code may represent various decisions such as a successful authentication, a user not 
-found or even expired password. Those responses can be easily converted into custom transitions.
+found or even expired password.
  
 #### Composite Node
-A node defines a list of subgrahs to evaluate. It may consist of other Composite Nodes or Single Nodes 
-or a mix of both. It enables parallel processing of independent nodes/subgraphs (e.g. calling two 
-external independent data sources).
+Composite node defines a list of subgraphs to evaluate. It enables `parallel` processing of independent 
+nodes/subgraphs (e.g. calling two external independent data sources).
 
-Composite Node may respond with only two default transitions:
+A composite node can respond with only two transitions:
   - `_success` - the default one, means that operation ends without any exception
   - `_error` - when operation throws an exception
+
+It may consist of list of subgraphs of single nodes:
+
+![Composite node](assets/images/composite.png)
+
+or other composite nodes (or a mix of both).
+
+![Nested composite nodes](assets/images/nested-composite.png)
+
+The diagram above represents a composite node that consists of: 
+- subgraph starting with `A` node
+- subgraph that is also a composite node (that consists of two subgraphs starting with `C` and `D` nodes).
   
 > Important note!
-> Single Nodes inside the Composite Node may only modify the Fragment's payload and should not modify 
->the Fragment's body.
+> Nodes inside the composite node may only modify the Fragment's payload and should not modify 
+> the Fragment's body.
 
 ### Node log
 Every node can prepare some data that describes what happened during its processing. It is a JSON 
@@ -157,7 +149,7 @@ Otherwise, if the `custom` transition is set but is not declared, then the `FAIL
 
 ## Fragment's log
 A fragment's log contains details about task evaluation. When node processing ends (or 
-raises an exception), the engine appends the new [entry](https://github.com/Knotx/knotx-fragments/blob/master/handler/engine/src/main/java/io/knotx/fragments/engine/EventLogEntry.java) 
+raises an exception), the engine appends the new [entry](https://github.com/Knotx/knotx-fragments/blob/master/engine/src/main/java/io/knotx/fragments/engine/EventLogEntry.java) 
 in the fragment's log containing:
 - task name
 - node identifier

@@ -15,14 +15,8 @@
  */
 package io.knotx.fragments.handler.api;
 
-import io.knotx.fragments.api.FragmentContext;
 import io.knotx.fragments.api.FragmentOperation;
-import io.knotx.fragments.api.FragmentResult;
-import io.vertx.core.AsyncResult;
-import io.vertx.core.Handler;
 
 public interface Action extends FragmentOperation {
-
-  void apply(FragmentContext fragmentContext, Handler<AsyncResult<FragmentResult>> resultHandler);
 
 }
