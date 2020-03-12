@@ -18,7 +18,6 @@ package io.knotx.fragments.handler.action.http;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import io.knotx.fragments.handler.action.http.request.ResponsePredicatesProvider;
 import io.vertx.reactivex.ext.web.client.predicate.ResponsePredicate;
 import java.util.stream.Stream;
 import org.junit.jupiter.params.ParameterizedTest;

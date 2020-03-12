@@ -42,11 +42,46 @@ Sets the additional request headers (and values) to be send in each request
 Sets the allowed requests headers that should be send to the service. The selected headers from
  the original client HTTP request are being send.
 +++
+|[[body]]`@body`|`String`|+++
+Sets the request body schema to be sent to the endpoint. The body may contain <a
+ href="https://github.com/Knotx/knotx-server-http/tree/master/common/placeholders">Knot.x Server
+ Common Placeholders</a> referencing ClientRequest, Fragment's configuration or Fragment's
+ payload, which will be interpolated if link flag is set.
+
+ Please note that request body is sent only in case of using PUT, POST or PATCH HTTP method.
+
+ This field is mutually exclusive with link.
++++
+|[[bodyJson]]`@bodyJson`|`Json object`|+++
+Sets the request body schema to be sent to the endpoint. The body may contain <a
+ href="https://github.com/Knotx/knotx-server-http/tree/master/common/placeholders">Knot.x Server
+ Common Placeholders</a> referencing ClientRequest, Fragment's configuration or Fragment's
+ payload, which will be interpolated if link flag is set.
+
+ Please note that request body is sent only in case of using PUT, POST or PATCH HTTP method.
+
+ This field is mutually exclusive with link.
++++
 |[[domain]]`@domain`|`String`|+++
 Sets the <code>domain</code> of the external service
 +++
+|[[interpolateBody]]`@interpolateBody`|`Boolean`|+++
+Configures interpolation of link parameter. When set, the body will be
+ interpolated using <a href="https://github.com/Knotx/knotx-server-http/tree/master/common/placeholders">Knot.x
+ Server Common Placeholders</a> referencing ClientRequest, Fragment's configuration or
+ Fragment's payload.
++++
+|[[interpolatePath]]`@interpolatePath`|`Boolean`|+++
+Configures interpolation of link parameter. When set, the path will be
+ interpolated using <a href="https://github.com/Knotx/knotx-server-http/tree/master/common/placeholders">Knot.x
+ Server Common Placeholders</a> referencing ClientRequest, Fragment's configuration or
+ Fragment's payload.
++++
 |[[path]]`@path`|`String`|+++
-Sets the request path to the endpoint.
+Sets the request path to the endpoint. The request path may contain <a
+ href="https://github.com/Knotx/knotx-server-http/tree/master/common/placeholders">Knot.x Server
+ Common Placeholders</a> referencing ClientRequest, Fragment's configuration or Fragment's
+ payload.
 +++
 |[[port]]`@port`|`Number (int)`|+++
 Sets the HTTP <code>port</code> the external service
@@ -70,7 +105,8 @@ Set the details of the remote http endpoint location.
 +++
 |[[httpMethod]]`@httpMethod`|`String`|+++
 Set the <code>HttpMethod</code> used for performing the request.
- At the moment only HTTP GET method is supported.
+ Defaults to GET.
+ Supported methods are GET, POST, PATCH, PUT, DELETE and HEAD.
 +++
 |[[logLevel]]`@logLevel`|`String`|+++
 Set level of action logs.

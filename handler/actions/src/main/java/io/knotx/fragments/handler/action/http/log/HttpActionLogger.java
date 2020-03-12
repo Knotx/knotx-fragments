@@ -118,7 +118,8 @@ public class HttpActionLogger {
 
   private JsonObject getRequestData() {
     return new JsonObject().put("path", endpointRequest.getPath())
-        .put("requestHeaders", MultiMapTransformer.toJson(endpointRequest.getHeaders()));
+        .put("requestHeaders", MultiMapTransformer.toJson(endpointRequest.getHeaders()))
+        .put("requestBody", endpointRequest.getBody());
   }
 
   private JsonObject getResponseData() {

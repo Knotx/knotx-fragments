@@ -191,7 +191,7 @@ public class InMemoryCacheActionFactory implements ActionFactory {
     if (StringUtils.isBlank(key)) {
       throw new IllegalArgumentException("Action requires cacheKey value in configuration.");
     }
-    return PlaceholdersResolver.resolve(key, buildSourceDefinitions(clientRequest));
+    return PlaceholdersResolver.resolveAndEncode(key, buildSourceDefinitions(clientRequest));
   }
 
   private SourceDefinitions buildSourceDefinitions(ClientRequest clientRequest) {

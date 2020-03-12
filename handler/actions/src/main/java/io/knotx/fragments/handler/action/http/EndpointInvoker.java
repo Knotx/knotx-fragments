@@ -17,7 +17,6 @@ package io.knotx.fragments.handler.action.http;
 
 import io.knotx.fragments.handler.action.http.options.HttpActionOptions;
 import io.knotx.fragments.handler.action.http.request.EndpointRequest;
-import io.knotx.fragments.handler.action.http.request.ResponsePredicatesProvider;
 import io.reactivex.Single;
 import io.vertx.core.eventbus.ReplyException;
 import io.vertx.core.eventbus.ReplyFailure;
@@ -28,34 +27,46 @@ import io.vertx.reactivex.ext.web.client.HttpResponse;
 import io.vertx.reactivex.ext.web.client.WebClient;
 import io.vertx.reactivex.ext.web.client.predicate.ErrorConverter;
 import io.vertx.reactivex.ext.web.client.predicate.ResponsePredicate;
+import java.util.EnumSet;
 import java.util.Set;
 
 class EndpointInvoker {
 
   private static final ResponsePredicate IS_JSON_RESPONSE = createJsonPredicate();
   private static final String JSON = "JSON";
+  private static final EnumSet<HttpMethod> HTTP_METHODS_WITH_BODY = EnumSet
+      .of(HttpMethod.PUT, HttpMethod.POST, HttpMethod.PATCH);
 
   private final WebClient webClient;
   private final HttpActionOptions httpActionOptions;
+  private final HttpMethod httpMethod;
   private final ResponsePredicatesProvider predicatesProvider = new ResponsePredicatesProvider();
   private final boolean isJsonPredicate;
 
   EndpointInvoker(WebClient webClient, HttpActionOptions httpActionOptions) {
     this.webClient = webClient;
     this.httpActionOptions = httpActionOptions;
+    this.httpMethod = HttpMethod.valueOf(httpActionOptions.getHttpMethod().toUpperCase());
     this.isJsonPredicate = httpActionOptions.getResponseOptions().getPredicates().contains(JSON);
   }
 
-  Single<HttpResponse<Buffer>> invokeEndpoint(EndpointRequest request) {
-    return Single.just(request)
+  Single<HttpResponse<Buffer>> invokeEndpoint(EndpointRequest endpointRequest) {
+    return Single.just(endpointRequest)
         .map(this::createHttpRequest)
         .doOnSuccess(this::addPredicates)
-        .flatMap(HttpRequest::rxSend);
+        .flatMap(request ->
+            shouldSendBody() ?
+                request.rxSendBuffer(Buffer.buffer(endpointRequest.getBody()))
+                : request.rxSend());
+  }
+
+  private boolean shouldSendBody() {
+    return HTTP_METHODS_WITH_BODY.contains(httpMethod);
   }
 
   private HttpRequest<Buffer> createHttpRequest(EndpointRequest endpointRequest) {
     return webClient
-        .request(HttpMethod.GET,
+        .request(httpMethod,
             httpActionOptions.getEndpointOptions().getPort(),
             httpActionOptions.getEndpointOptions().getDomain(),
             endpointRequest.getPath())
