@@ -72,11 +72,11 @@ Read more about configuring HTML template processing in the [Knot.x Example Proj
 - [Fragments Supplier](https://github.com/Knotx/knotx-fragments/tree/master/supplier) - converts a HTTP request into one or more [**Fragments**](https://github.com/Knotx/knotx-fragments/tree/master/api#knotx-fragment-api)
     - [HTML Splitter](https://github.com/Knotx/knotx-fragments/tree/master/supplier/html-splitter)
     - [Single Fragment Supplier](https://github.com/Knotx/knotx-fragments/tree/master/supplier/single-fragment)
-- [Fragments Handler](https://github.com/Knotx/knotx-fragments/tree/master/handler) - evaluates Tasks assigned to Fragments
+- [Fragments Handler](https://github.com/Knotx/knotx-fragments/tree/master/handler) - configures tasks for fragments and delegate processing to Engine 
+- [Fragments Engine](https://github.com/Knotx/knotx-fragments/tree/master/engine) - evaluates fragments (tasks) with map-reduce nature
 - [Fragments Assembler](https://github.com/Knotx/knotx-fragments/tree/master/assembler) - merges Fragments into one a single response
 
 Each module contains its own documentation inside.
-
 
 ## License
 **Knot.x Fragments** is licensed under the [Apache License, Version 2.0 (the "License")](https://www.apache.org/licenses/LICENSE-2.0.txt)

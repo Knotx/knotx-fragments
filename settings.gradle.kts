@@ -34,17 +34,21 @@ project(":knotx-fragments-supplier-api").projectDir = file("supplier/api")
 project(":knotx-fragments-supplier-single-fragment").projectDir = file("supplier/single-fragment")
 project(":knotx-fragments-supplier-html-splitter").projectDir = file("supplier/html-splitter")
 
+// Actions
+include("knotx-fragments-handler-actions")
+project(":knotx-fragments-handler-actions").projectDir = file("handler/actions")
+
 // Handler
 include("knotx-fragments-handler-api")
-include("knotx-fragments-handler-actions")
 include("knotx-fragments-handler-core")
+project(":knotx-fragments-handler-api").projectDir = file("handler/api")
+project(":knotx-fragments-handler-core").projectDir = file("handler/core")
+
+// Engine
 include("knotx-fragments-engine-api")
 include("knotx-fragments-engine-core")
-project(":knotx-fragments-handler-api").projectDir = file("handler/api")
-project(":knotx-fragments-handler-actions").projectDir = file("handler/actions")
-project(":knotx-fragments-handler-core").projectDir = file("handler/core")
-project(":knotx-fragments-engine-api").projectDir = file("handler/engine/api")
-project(":knotx-fragments-engine-core").projectDir = file("handler/engine/core")
+project(":knotx-fragments-engine-api").projectDir = file("engine/api")
+project(":knotx-fragments-engine-core").projectDir = file("engine/core")
 
 // Assembler
 include("knotx-fragments-assembler")

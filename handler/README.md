@@ -5,7 +5,7 @@ a standard [HTTP Server routing handler](https://github.com/Knotx/knotx-server-h
 
 ## How does it work
 Fragments handler evaluates all fragments independently in a map-reduce fashion. It delegates fragment 
-processing to the [Fragment Engine](https://github.com/Knotx/knotx-fragments/tree/master/handler/engine).  
+processing to the [Fragment Engine](https://github.com/Knotx/knotx-fragments/tree/master/engine).  
 The engine checks if the fragment requires processing and if it does then fragment processing starts.
 Order and transitions between each of these executions is represented as a directed acyclic graph 
 (DAG). A single graph is called a `Task`.
@@ -30,10 +30,10 @@ For all configuration fields and their defaults consult [FragmentsHandlerOptions
 In general:
 - it gets fragments from a request, collects only those that require processing checking fragment's 
 configuration `taskNameKey` key
-- it finds [task](https://github.com/Knotx/knotx-fragments/tree/master/handler/engine#task) factory 
+- it finds [task](https://github.com/Knotx/knotx-fragments/tree/master/engine#task) factory 
 from `taskFactories` that can create a task
 - task factory constructs a task (DAG - directed acyclic graph)
-- [Fragment Engine](https://github.com/Knotx/knotx-fragments/tree/master/handler/engine) continues 
+- [Fragment Engine](https://github.com/Knotx/knotx-fragments/tree/master/engine) continues 
 further fragment's processing
 - when fragments processing ends it notifies all [consumers](#fragment-event-consumer) about 
 processed fragments, consumers are registered with factories defined in `consumerFactories`
@@ -60,7 +60,7 @@ It introduces its custom graph nodes
 Task factory creates a task based on its configuration. It registers graph node factories, delegates 
 node initialization to them and joins all nodes with transitions. 
 
-The task is an [identifiable graph](https://github.com/Knotx/knotx-fragments/blob/master/handler/engine/src/main/java/io/knotx/fragments/engine/Task.java) 
+The task is an [identifiable graph](https://github.com/Knotx/knotx-fragments/blob/master/engine/src/main/java/io/knotx/fragments/engine/Task.java) 
 that describes the way fragment should be processed. It is a part of Fragment Engine's API.
 
 ## How to configure
@@ -71,7 +71,7 @@ In general:
 - a graph configuration is converted to task with node factories defined in `nodeFactories`
 
 ### Tasks
-[Tasks](https://github.com/Knotx/knotx-fragments/tree/master/handler/engine#task) are configured in 
+[Tasks](https://github.com/Knotx/knotx-fragments/tree/master/engine#task) are configured in 
 the form of a dictionary (`taskName -> graph logic`):
 ```hocon
 tasks {
@@ -94,7 +94,7 @@ onTransitions {
 ```
 
 #### Node
-Node is described [here](https://github.com/Knotx/knotx-fragments/tree/master/handler/engine#node).
+Node is described [here](https://github.com/Knotx/knotx-fragments/tree/master/engine#node).
 Each task provider can provide its custom nodes.
 
 The default task provider allows registering node factories that are used during the graph 
@@ -111,12 +111,11 @@ node {
 The `factory` parameter specifies a node factory name, `config` contains all configs passed to 
 the factory.
 
-All custom node types that are finally converted to the 
-[generic node types](https://github.com/Knotx/knotx-fragments/tree/master/handler/engine#node-types).
+All custom nodes that are finally converted to the [generic nodes](https://github.com/Knotx/knotx-fragments/tree/master/engine#node).
 
 #### Transition
 A directed graph consists of nodes and edges. Edges are called 
-[transitions](https://github.com/Knotx/knotx-fragments/tree/master/handler/engine#transition). 
+[transitions](https://github.com/Knotx/knotx-fragments/tree/master/engine#transition). 
 
 Their configuration looks like:
 ```hocon
@@ -171,14 +170,14 @@ action = reference-to-action
 ```
 
 ##### Logs
-Action node appends a single [fragment's log](https://github.com/Knotx/knotx-fragments/tree/master/handler/engine#fragments-log) 
+Action node appends a single [fragment's log](https://github.com/Knotx/knotx-fragments/tree/master/engine#fragments-log) 
 entry:
 
 | Task       | Node identifier       | Node status | Transition | Node Log        |
 |------------|-----------------------|-------------|------------|-----------------|
 | `taskName` | `reference-to-action` | SUCCESS     | `_success` |  { }            |
 
-with the custom [node log](https://github.com/Knotx/knotx-fragments/tree/master/handler/engine#node-log) syntax.
+with the custom [node log](https://github.com/Knotx/knotx-fragments/tree/master/engine#node-log) syntax.
 
 Let's assume that `NODE_LOG` is an action's node log. The node log has the syntax:
 ```json5
@@ -257,7 +256,7 @@ See the [example section](#the-example) for a more complex scenario. Before we s
 power of graphs, we need to understand how nodes are connected.
 
 ##### Logs
-Subtasks node appends a single [fragment's log](https://github.com/Knotx/knotx-fragments/tree/master/handler/engine#fragments-log) 
+Subtasks node appends a single [fragment's log](https://github.com/Knotx/knotx-fragments/tree/master/engine#fragments-log) 
 entry when all subgraphs are processed:
 
 | Task       | Node identifier | Node status | Transition | Node Log        |
@@ -404,7 +403,7 @@ At least one condition has to be configured, otherwise the consumer will be not 
 # Actions
 Action is a simple function that converts a fragment to the new one and responds with the
 [transition](#transition). Its contract is the same as the
-[node](https://github.com/Knotx/knotx-fragments/tree/master/handler/engine#node)'s one. So an 
+[node](https://github.com/Knotx/knotx-fragments/tree/master/engine#node)'s one. So an 
 action defines a fragment's processing logic. Actions implement the 
 [Action](https://github.com/Knotx/knotx-fragments/blob/master/handler/api/src/main/java/io/knotx/fragments/handler/api/Action.java) 
 interface.
