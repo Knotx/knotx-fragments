@@ -15,10 +15,10 @@
  */
 package io.knotx.fragments.task;
 
-import io.knotx.fragments.engine.FragmentEventContext;
+import io.knotx.fragments.engine.api.FragmentEventContext;
 import io.knotx.fragments.engine.api.Task;
-import io.knotx.fragments.engine.TaskMetadata;
-import io.knotx.fragments.engine.TaskWithMetadata;
+import io.knotx.fragments.handler.api.metadata.TaskMetadata;
+import io.knotx.fragments.handler.api.metadata.TaskWithMetadata;
 import io.knotx.fragments.engine.api.node.Node;
 import io.knotx.fragments.handler.FragmentsHandlerOptions;
 import io.knotx.fragments.handler.api.exception.ConfigurationException;

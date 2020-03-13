@@ -18,6 +18,8 @@ package io.knotx.fragments.engine;
 import static io.knotx.reactivex.fragments.api.FragmentOperation.newInstance;
 
 import io.knotx.fragments.api.FragmentResult;
+import io.knotx.fragments.engine.api.FragmentEvent;
+import io.knotx.fragments.engine.api.FragmentEventContext;
 import io.knotx.fragments.engine.api.node.Node;
 import io.knotx.fragments.engine.api.node.NodeType;
 import io.knotx.fragments.engine.api.node.composite.CompositeNode;

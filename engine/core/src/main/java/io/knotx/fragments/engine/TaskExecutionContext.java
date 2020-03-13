@@ -19,7 +19,10 @@ import static io.knotx.fragments.api.FragmentResult.ERROR_TRANSITION;
 import static io.knotx.fragments.api.FragmentResult.SUCCESS_TRANSITION;
 
 import io.knotx.fragments.api.Fragment;
-import io.knotx.fragments.engine.FragmentEvent.Status;
+import io.knotx.fragments.engine.api.EventLogEntry;
+import io.knotx.fragments.engine.api.FragmentEvent;
+import io.knotx.fragments.engine.api.FragmentEvent.Status;
+import io.knotx.fragments.engine.api.FragmentEventContext;
 import io.knotx.fragments.engine.api.node.Node;
 import io.knotx.fragments.api.FragmentContext;
 import io.knotx.fragments.api.FragmentResult;

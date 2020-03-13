@@ -17,10 +17,10 @@ package io.knotx.fragments.task.factory.node.subtasks;
 
 import static io.knotx.fragments.api.FragmentResult.ERROR_TRANSITION;
 import static io.knotx.fragments.api.FragmentResult.SUCCESS_TRANSITION;
-import static io.knotx.fragments.engine.NodeMetadata.composite;
+import static io.knotx.fragments.handler.api.metadata.NodeMetadata.composite;
 
-import io.knotx.fragments.engine.NodeMetadata;
-import io.knotx.fragments.engine.OperationMetadata;
+import io.knotx.fragments.handler.api.metadata.NodeMetadata;
+import io.knotx.fragments.handler.api.metadata.OperationMetadata;
 import io.knotx.fragments.engine.api.node.Node;
 import io.knotx.fragments.engine.api.node.composite.CompositeNode;
 import io.knotx.fragments.task.factory.GraphNodeOptions;

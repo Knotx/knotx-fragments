@@ -15,7 +15,9 @@
  */
 package io.knotx.fragments.engine;
 
-import io.knotx.fragments.engine.FragmentEvent.Status;
+import io.knotx.fragments.engine.api.FragmentEvent;
+import io.knotx.fragments.engine.api.FragmentEvent.Status;
+import io.knotx.fragments.engine.api.FragmentEventContextTaskAware;
 import io.knotx.fragments.engine.api.node.Node;
 import io.reactivex.Flowable;
 import io.reactivex.Single;

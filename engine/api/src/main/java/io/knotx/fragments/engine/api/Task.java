@@ -20,6 +20,8 @@ import java.util.Optional;
 
 public class Task {
 
+  public static final String UNDEFINED_TASK = "_NOT_DEFINED";
+
   private final String name;
   private final Node rootNode;
 
