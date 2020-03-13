@@ -31,8 +31,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.knotx.fragments.api.Fragment;
-import io.knotx.fragments.engine.FragmentEvent.Status;
+import io.knotx.fragments.engine.api.FragmentEvent;
+import io.knotx.fragments.engine.api.FragmentEvent.Status;
 import io.knotx.fragments.engine.FragmentEventLogVerifier.Operation;
+import io.knotx.fragments.engine.api.FragmentEventContext;
 import io.knotx.fragments.engine.api.node.Node;
 import io.knotx.server.api.context.ClientRequest;
 import io.reactivex.Single;

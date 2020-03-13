@@ -106,21 +106,6 @@ The factory name.
 +++
 |===
 
-[[FragmentExecutionLog]]
-== FragmentExecutionLog
-
-
-[cols=">25%,25%,50%"]
-[frame="topbot"]
-|===
-^|Name | Type ^| Description
-|[[finishTime]]`@finishTime`|`Number (long)`|-
-|[[fragment]]`@fragment`|`link:dataobjects.html#Fragment[Fragment]`|-
-|[[graph]]`@graph`|`link:dataobjects.html#GraphNodeExecutionLog[GraphNodeExecutionLog]`|-
-|[[startTime]]`@startTime`|`Number (long)`|-
-|[[status]]`@status`|`link:enums.html#Status[Status]`|-
-|===
-
 [[FragmentsHandlerOptions]]
 == FragmentsHandlerOptions
 
@@ -140,36 +125,6 @@ The array/list of consumer factory options.
 The array/list of task factory options defines factories taking part in the creation of tasks.
  First items on the list have the highest priority.
 +++
-|===
-
-[[GraphNodeExecutionLog]]
-== GraphNodeExecutionLog
-
-
-[cols=">25%,25%,50%"]
-[frame="topbot"]
-|===
-^|Name | Type ^| Description
-|[[id]]`@id`|`String`|-
-|[[label]]`@label`|`String`|-
-|[[on]]`@on`|`link:dataobjects.html#GraphNodeExecutionLog[GraphNodeExecutionLog]`|-
-|[[operation]]`@operation`|`link:dataobjects.html#GraphNodeOperationLog[GraphNodeOperationLog]`|-
-|[[response]]`@response`|`link:dataobjects.html#GraphNodeResponseLog[GraphNodeResponseLog]`|-
-|[[status]]`@status`|`link:enums.html#LoggedNodeStatus[LoggedNodeStatus]`|-
-|[[subtasks]]`@subtasks`|`Array of link:dataobjects.html#GraphNodeExecutionLog[GraphNodeExecutionLog]`|-
-|[[type]]`@type`|`link:enums.html#NodeType[NodeType]`|-
-|===
-
-[[GraphNodeOperationLog]]
-== GraphNodeOperationLog
-
-
-[cols=">25%,25%,50%"]
-[frame="topbot"]
-|===
-^|Name | Type ^| Description
-|[[data]]`@data`|`Json object`|-
-|[[factory]]`@factory`|`String`|-
 |===
 
 [[GraphNodeOptions]]
@@ -200,18 +155,6 @@ The outgoing graph node edges, called transitions. A transition is named graph e
 |[[subtasks]]`@subtasks`|`Array of link:dataobjects.html#GraphNodeOptions[GraphNodeOptions]`|+++
 Sets a node factory name to <code>SubtasksNodeFactory.NAME</code> and configures subgraphs.
 +++
-|===
-
-[[GraphNodeResponseLog]]
-== GraphNodeResponseLog
-
-
-[cols=">25%,25%,50%"]
-[frame="topbot"]
-|===
-^|Name | Type ^| Description
-|[[invocations]]`@invocations`|`Json array`|-
-|[[transition]]`@transition`|`String`|-
 |===
 
 [[LogLevelConfig]]

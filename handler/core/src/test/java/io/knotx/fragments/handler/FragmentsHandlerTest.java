@@ -25,8 +25,8 @@ import static org.mockito.Mockito.when;
 import io.knotx.fragments.handler.api.exception.ConfigurationException;
 import io.knotx.fragments.HoconLoader;
 import io.knotx.fragments.api.Fragment;
-import io.knotx.fragments.engine.FragmentEvent;
-import io.knotx.fragments.engine.FragmentEvent.Status;
+import io.knotx.fragments.engine.api.FragmentEvent;
+import io.knotx.fragments.engine.api.FragmentEvent.Status;
 import io.knotx.fragments.task.factory.DefaultTaskFactoryConfig;
 import io.knotx.server.api.context.ClientRequest;
 import io.knotx.server.api.context.RequestContext;
@@ -100,35 +100,6 @@ class FragmentsHandlerTest {
       underTest.handle(routingContext);
 
       // then verified as correct (assertion inside HoconLoader::verify)
-    }, testContext, vertx);
-  }
-
-  @Test
-  @DisplayName("Expect marked fragment when HTML fragment body writer configured.")
-  void snippetFragmentWithHtmlConsumer(Vertx vertx, VertxTestContext testContext)
-      throws Throwable {
-    HoconLoader.verify("handler/fragmentWithHtmlConsumer.conf", config -> {
-      //given
-      Fragment fragment = new Fragment("snippet",
-          new JsonObject().put(DefaultTaskFactoryConfig.DEFAULT_TASK_NAME_KEY, "success-task"),
-          EMPTY_BODY);
-
-      // when
-      FragmentsHandler handler = new FragmentsHandler(vertx, config);
-      Single<List<FragmentEvent>> rxDoHandle = handler
-          .doHandle(handler.createExecutionPlan(Collections.singletonList(fragment), new ClientRequest()));
-
-      rxDoHandle.subscribe(
-          result -> testContext.verify(() -> {
-            // then
-            Optional<FragmentEvent> event = result.stream().findFirst();
-            assertTrue(event.isPresent());
-            String body = event.get().getFragment().getBody();
-            assertTrue(body.contains("<!-- data-knotx-id="));
-            testContext.completeNow();
-          }),
-          testContext::failNow
-      );
     }, testContext, vertx);
   }
 
@@ -277,6 +248,35 @@ class FragmentsHandlerTest {
         assertTrue(e.getMessage().contains("Consumer factory"));
         testContext.completed();
       }
+    }, testContext, vertx);
+  }
+
+  @Test
+  @DisplayName("Expect changes in body when test consumer configured.")
+  void consumerFactoryFound(Vertx vertx, VertxTestContext testContext)
+      throws Throwable {
+    HoconLoader.verify("handler/consumerFactoryFound.conf", config -> {
+      //given
+      Fragment fragment = new Fragment("snippet",
+          new JsonObject().put(DefaultTaskFactoryConfig.DEFAULT_TASK_NAME_KEY, "success-task"),
+          EMPTY_BODY);
+
+      // when
+      FragmentsHandler handler = new FragmentsHandler(vertx, config);
+      Single<List<FragmentEvent>> rxDoHandle = handler
+          .doHandle(handler.createExecutionPlan(Collections.singletonList(fragment), new ClientRequest()));
+
+      rxDoHandle.subscribe(
+          result -> testContext.verify(() -> {
+            // then
+            Optional<FragmentEvent> event = result.stream().findFirst();
+            assertTrue(event.isPresent());
+            String body = event.get().getFragment().getBody();
+            assertTrue(body.contains("testConsumer"));
+            testContext.completeNow();
+          }),
+          testContext::failNow
+      );
     }, testContext, vertx);
   }
 

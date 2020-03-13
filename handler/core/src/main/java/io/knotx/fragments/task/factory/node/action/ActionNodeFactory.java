@@ -15,12 +15,12 @@
  */
 package io.knotx.fragments.task.factory.node.action;
 
-import static io.knotx.fragments.engine.NodeMetadata.single;
+import static io.knotx.fragments.handler.api.metadata.NodeMetadata.single;
 
 import io.knotx.fragments.api.FragmentContext;
 import io.knotx.fragments.api.FragmentResult;
-import io.knotx.fragments.engine.NodeMetadata;
-import io.knotx.fragments.engine.OperationMetadata;
+import io.knotx.fragments.handler.api.metadata.NodeMetadata;
+import io.knotx.fragments.handler.api.metadata.OperationMetadata;
 import io.knotx.fragments.engine.api.node.Node;
 import io.knotx.fragments.engine.api.node.single.SingleNode;
 import io.knotx.fragments.handler.api.Action;

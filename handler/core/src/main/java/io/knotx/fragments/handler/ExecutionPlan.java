@@ -15,9 +15,15 @@
  */
 package io.knotx.fragments.handler;
 
+import static io.knotx.fragments.engine.api.Task.UNDEFINED_TASK;
+
 import io.knotx.fragments.api.Fragment;
-import io.knotx.fragments.engine.*;
+import io.knotx.fragments.engine.api.FragmentEvent;
+import io.knotx.fragments.engine.api.FragmentEventContext;
 import io.knotx.fragments.engine.api.Task;
+import io.knotx.fragments.handler.api.metadata.TaskMetadata;
+import io.knotx.fragments.handler.api.metadata.TaskWithMetadata;
+import io.knotx.fragments.handler.api.metadata.TasksMetadata;
 import io.knotx.server.api.context.ClientRequest;
 
 import java.util.LinkedHashMap;
@@ -27,8 +33,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class ExecutionPlan {
-
-  public static final String UNDEFINED_TASK = "_NOT_DEFINED";
 
   private final TaskProvider taskProvider;
   private final Map<FragmentEventContext, TaskWithMetadata> plan;

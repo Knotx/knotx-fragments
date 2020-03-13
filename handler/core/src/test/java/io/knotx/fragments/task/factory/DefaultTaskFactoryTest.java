@@ -26,12 +26,12 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.knotx.fragments.api.Fragment;
-import io.knotx.fragments.engine.FragmentEvent;
-import io.knotx.fragments.engine.FragmentEventContext;
-import io.knotx.fragments.engine.NodeMetadata;
-import io.knotx.fragments.engine.OperationMetadata;
-import io.knotx.fragments.engine.TaskMetadata;
-import io.knotx.fragments.engine.TaskWithMetadata;
+import io.knotx.fragments.engine.api.FragmentEvent;
+import io.knotx.fragments.engine.api.FragmentEventContext;
+import io.knotx.fragments.handler.api.metadata.NodeMetadata;
+import io.knotx.fragments.handler.api.metadata.OperationMetadata;
+import io.knotx.fragments.handler.api.metadata.TaskMetadata;
+import io.knotx.fragments.handler.api.metadata.TaskWithMetadata;
 import io.knotx.fragments.engine.api.node.Node;
 import io.knotx.fragments.engine.api.node.NodeType;
 import io.knotx.fragments.engine.api.node.composite.CompositeNode;

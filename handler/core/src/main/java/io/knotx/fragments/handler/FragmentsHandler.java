@@ -19,7 +19,10 @@ package io.knotx.fragments.handler;
 
 import io.knotx.fragments.api.Fragment;
 import io.knotx.fragments.engine.*;
-import io.knotx.fragments.engine.FragmentEvent.Status;
+import io.knotx.fragments.engine.api.FragmentEvent;
+import io.knotx.fragments.engine.api.FragmentEvent.Status;
+import io.knotx.fragments.engine.api.FragmentEventContextTaskAware;
+import io.knotx.fragments.handler.api.metadata.TasksMetadata;
 import io.knotx.fragments.handler.consumer.FragmentEventsConsumerProvider;
 import io.knotx.server.api.context.ClientRequest;
 import io.knotx.server.api.context.RequestContext;
