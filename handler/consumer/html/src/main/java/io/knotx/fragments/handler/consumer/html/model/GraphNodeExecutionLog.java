@@ -25,6 +25,17 @@ import java.util.Map;
 import java.util.Objects;
 import org.apache.commons.lang3.StringUtils;
 
+/**
+ * It represents a root node data. It contains details about the node factory and node operation
+ * result. A root node points to the next ones, so it allows traversing the whole graph. This data
+ * can be used to visualize the graph processing flow.
+ *
+ * @see io.knotx.fragments.engine.api.Task
+ * @see io.knotx.fragments.engine.api.node.Node
+ * @see io.knotx.fragments.engine.api.node.single.SingleNode
+ * @see io.knotx.fragments.engine.api.node.composite.CompositeNode
+ * @see io.knotx.fragments.handler.api.metadata.TaskMetadata
+ */
 @DataObject(generateConverter = true)
 public class GraphNodeExecutionLog {
 
@@ -70,6 +81,12 @@ public class GraphNodeExecutionLog {
     return result;
   }
 
+  /**
+   * Unique node id. In most cases, it is randomly generated value and can differ in subsequent
+   * requests.
+   *
+   * @return unique node identifier
+   */
   public String getId() {
     return id;
   }
@@ -79,6 +96,13 @@ public class GraphNodeExecutionLog {
     return this;
   }
 
+  /**
+   * Node type value: <code>SINGLE</code> or <code>COMPOSITE</code> .
+   *
+   * @return node type value
+   * @see io.knotx.fragments.engine.api.node.composite.CompositeNode
+   * @see io.knotx.fragments.engine.api.node.single.SingleNode
+   */
   public NodeType getType() {
     return type;
   }
@@ -88,6 +112,11 @@ public class GraphNodeExecutionLog {
     return this;
   }
 
+  /**
+   * Node label.
+   *
+   * @return node label
+   */
   public String getLabel() {
     return label;
   }
@@ -97,6 +126,12 @@ public class GraphNodeExecutionLog {
     return this;
   }
 
+  /**
+   * List of composite node subgraphs.  Each item on the list represents the subgraph root node.  It
+   * is valid only when @type is <code>COMPOSITE</code>.
+   *
+   * @return list of root subgraph nodes
+   */
   public List<GraphNodeExecutionLog> getSubtasks() {
     return subtasks;
   }
@@ -107,6 +142,12 @@ public class GraphNodeExecutionLog {
     return this;
   }
 
+  /**
+   * Node metadata details. This value is initialized based on
+   * <code>io.knotx.fragments.handler.api.metadata.NodeMetadata#getOperation()</code> data.
+   *
+   * @return operation metadata
+   */
   public GraphNodeOperationLog getOperation() {
     return operation;
   }
@@ -117,6 +158,11 @@ public class GraphNodeExecutionLog {
     return this;
   }
 
+  /**
+   * Map with a <a href="https://github.com/Knotx/knotx-fragments/tree/master/engine#transition">transition</a>
+   * key and consequent <a href="https://github.com/Knotx/knotx-fragments/tree/master/engine#node">node</a>
+   * as a value.
+   */
   public Map<String, GraphNodeExecutionLog> getOn() {
     return on;
   }
@@ -126,6 +172,10 @@ public class GraphNodeExecutionLog {
     return this;
   }
 
+  /**
+   * Node status that is calculated based on node response. See <a href="https://github.com/Knotx/knotx-fragments/blob/feature/html-consumer-docuemntation-update/handler/consumer/html/src/main/java/io/knotx/fragments/handler/consumer/html/model/LoggedNodeStatus.java">LoggedNodeStatus</a>
+   * for more details.
+   */
   public LoggedNodeStatus getStatus() {
     return status;
   }
@@ -135,6 +185,12 @@ public class GraphNodeExecutionLog {
     return this;
   }
 
+  /**
+   * It represents node execution data. It contains response data such as a transition and list of
+   * invocations.
+   *
+   * @return node execution data
+   */
   public GraphNodeResponseLog getResponse() {
     return response;
   }

@@ -49,11 +49,11 @@ class NodeExecutionData {
       this.invocations = invocations;
     }
 
-    public String getTransition() {
+    String getTransition() {
       return transition;
     }
 
-    public JsonArray getInvocations() {
+    JsonArray getInvocations() {
       return invocations;
     }
   }

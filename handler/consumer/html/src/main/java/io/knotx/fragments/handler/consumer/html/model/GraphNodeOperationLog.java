@@ -20,6 +20,9 @@ import io.vertx.core.json.JsonObject;
 import java.util.Objects;
 import org.apache.commons.lang3.StringUtils;
 
+/**
+ * It represents node metadata.
+ */
 @DataObject(generateConverter = true)
 public class GraphNodeOperationLog {
 
@@ -49,6 +52,11 @@ public class GraphNodeOperationLog {
     return json;
   }
 
+  /**
+   * Node factory name.
+   *
+   * @return node factory
+   */
   public String getFactory() {
     return factory;
   }
@@ -58,6 +66,11 @@ public class GraphNodeOperationLog {
     return this;
   }
 
+  /**
+   * Unstructured node factory metadata.
+   *
+   * @return node factory metadata
+   */
   public JsonObject getData() {
     return data;
   }

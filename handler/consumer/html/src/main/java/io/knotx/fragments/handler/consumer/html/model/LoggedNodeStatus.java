@@ -25,6 +25,10 @@ import java.util.Arrays;
 import org.apache.commons.lang3.StringUtils;
 
 public enum LoggedNodeStatus {
+
+  /**
+   * Node ends with the <code>`_success`</code> <a href="https://github.com/Knotx/knotx-fragments/tree/master/engine#transition">transition</a>.
+   */
   SUCCESS {
     @Override
     protected boolean isEquivalent(NodeStatus status, String transition) {
@@ -32,6 +36,10 @@ public enum LoggedNodeStatus {
     }
   },
 
+  /**
+   * Node ends with the <code>_error</code> <a href="https://github.com/Knotx/knotx-fragments/tree/master/engine#transition">transition</a>
+   * or timeout occurs.
+   */
   ERROR {
     @Override
     protected boolean isEquivalent(NodeStatus status, String transition) {
@@ -39,6 +47,10 @@ public enum LoggedNodeStatus {
     }
   },
 
+  /**
+   * Node ends with a custom <a href="https://github.com/Knotx/knotx-fragments/tree/master/engine#transition">transition</a>
+   * that is declared in a task definition.
+   */
   OTHER {
     @Override
     protected boolean isEquivalent(NodeStatus status, String transition) {
@@ -47,6 +59,10 @@ public enum LoggedNodeStatus {
     }
   },
 
+  /**
+   * See the <a href="https://github.com/Knotx/knotx-fragments/tree/feature/html-consumer-docuemntation-update/handler/consumer/html#missing-nodes">missing</a>
+   * node documentation.
+   */
   MISSING {
     @Override
     protected boolean isEquivalent(NodeStatus status, String transition) {
@@ -54,6 +70,9 @@ public enum LoggedNodeStatus {
     }
   },
 
+  /**
+   * Previous node has ended with transition pointing to a different node.
+   */
   UNPROCESSED {
     @Override
     protected boolean isEquivalent(NodeStatus status, String transition) {
