@@ -20,6 +20,9 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import java.util.Objects;
 
+/**
+ * Node response details.
+ */
 @DataObject(generateConverter = true)
 public class GraphNodeResponseLog {
 
@@ -47,6 +50,11 @@ public class GraphNodeResponseLog {
     return result;
   }
 
+  /**
+   * Node response transition.
+   *
+   * @return node response transition.
+   */
   public String getTransition() {
     return transition;
   }
@@ -56,6 +64,10 @@ public class GraphNodeResponseLog {
     return this;
   }
 
+  /**
+   * List of node invocation(s) logs. See <a href="https://github.com/Knotx/knotx-fragments/tree/master/engine#node-log">node
+   * log</a> for more details.
+   */
   public JsonArray getInvocations() {
     return invocations;
   }

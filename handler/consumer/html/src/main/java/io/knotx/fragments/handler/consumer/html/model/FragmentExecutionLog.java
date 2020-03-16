@@ -21,6 +21,9 @@ import io.knotx.fragments.engine.api.FragmentEvent.Status;
 import io.vertx.codegen.annotations.DataObject;
 import io.vertx.core.json.JsonObject;
 
+/**
+ * Contains detailed information about fragment processing.
+ */
 @DataObject(generateConverter = true)
 public class FragmentExecutionLog {
 
@@ -58,6 +61,12 @@ public class FragmentExecutionLog {
     return json;
   }
 
+  /**
+   * <a href="https://github.com/Knotx/knotx-fragments/blob/master/api/docs/asciidoc/dataobjects.adoc#fragment">Fragment</a>
+   * details.
+   *
+   * @return fragment
+   */
   public Fragment getFragment() {
     return fragment;
   }
@@ -67,6 +76,12 @@ public class FragmentExecutionLog {
     return this;
   }
 
+  /**
+   * Fragment processing <a href="https://github.com/Knotx/knotx-fragments/blob/master/engine/api/src/main/java/io/knotx/fragments/engine/api/FragmentEvent.java">status</a>.
+   * Possible values: <code>UNPROCESSED</code>, <code>SUCCESS</code> and <code>FAILURE</code>.
+   *
+   * @return fragment status.
+   */
   public Status getStatus() {
     return status;
   }
@@ -76,6 +91,11 @@ public class FragmentExecutionLog {
     return this;
   }
 
+  /**
+   * Node processing start time. It is timestamp value.
+   *
+   * @return node processing start time
+   */
   public long getStartTime() {
     return startTime;
   }
@@ -85,6 +105,11 @@ public class FragmentExecutionLog {
     return this;
   }
 
+  /**
+   * Node processing finish time. It is timestamp value.
+   *
+   * @return node processing finish time
+   */
   public long getFinishTime() {
     return finishTime;
   }
@@ -94,6 +119,11 @@ public class FragmentExecutionLog {
     return this;
   }
 
+  /**
+   * Task evaluation details.
+   *
+   * @return processing details of the root graph node
+   */
   public GraphNodeExecutionLog getGraph() {
     return graph;
   }
