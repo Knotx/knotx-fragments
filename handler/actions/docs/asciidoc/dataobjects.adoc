@@ -68,7 +68,10 @@ Sets the HTTP <code>port</code> the external service
 |[[endpointOptions]]`@endpointOptions`|`link:dataobjects.html#EndpointOptions[EndpointOptions]`|+++
 Set the details of the remote http endpoint location.
 +++
-|[[httpMethod]]`@httpMethod`|`String`|-
+|[[httpMethod]]`@httpMethod`|`String`|+++
+Set the <code>HttpMethod</code> used for performing the request.
+ At the moment only HTTP GET method is supported.
++++
 |[[logLevel]]`@logLevel`|`String`|+++
 Set level of action logs.
 +++
@@ -78,7 +81,11 @@ Configures the amount of time in milliseconds after which if the request does no
  the timeout. By default it is set to <code>0</code>.
 +++
 |[[responseOptions]]`@responseOptions`|`link:dataobjects.html#ResponseOptions[ResponseOptions]`|-
-|[[webClientOptions]]`@webClientOptions`|`link:dataobjects.html#WebClientOptions[WebClientOptions]`|-
+|[[webClientOptions]]`@webClientOptions`|`link:dataobjects.html#WebClientOptions[WebClientOptions]`|+++
+Set the <code>WebClientOptions</code> used by the HTTP client to communicate with remote http
+ endpoint. See https://vertx.io/docs/vertx-web-client/dataobjects.html#WebClientOptions for the
+ details what can be configured.
++++
 |===
 
 [[ResponseOptions]]

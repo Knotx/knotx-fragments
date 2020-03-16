@@ -53,7 +53,7 @@ public class HttpActionOptions {
    * @param httpMethod HTTP method
    * @return a reference to this, so the API can be used fluently
    */
-  HttpActionOptions setHttpMethod(String httpMethod) {
+  public HttpActionOptions setHttpMethod(String httpMethod) {
     this.httpMethod = httpMethod;
     return this;
   }
@@ -70,7 +70,7 @@ public class HttpActionOptions {
    * @param webClientOptions {@link WebClientOptions} object
    * @return a reference to this, so the API can be used fluently
    */
-  HttpActionOptions setWebClientOptions(WebClientOptions webClientOptions) {
+  public HttpActionOptions setWebClientOptions(WebClientOptions webClientOptions) {
     this.webClientOptions = webClientOptions;
     return this;
   }
