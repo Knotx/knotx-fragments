@@ -15,6 +15,13 @@
 trigger:
   - master
 
+# auto cancel false
+pr:
+  autoCancel: false
+  branches:
+    include:
+      - master
+
 pool:
   vmImage: 'ubuntu-latest'
 
