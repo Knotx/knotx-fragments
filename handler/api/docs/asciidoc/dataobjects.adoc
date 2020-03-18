@@ -1,52 +1,23 @@
 = Cheatsheets
 
-[[ActionPayload]]
-== ActionPayload
+[[TaskFactoryOptions]]
+== TaskFactoryOptions
 
-
-[cols=">25%,25%,50%"]
-[frame="topbot"]
-|===
-^|Name | Type ^| Description
-|[[request]]`@request`|`link:dataobjects.html#ActionRequest[ActionRequest]`|-
-|[[response]]`@response`|`link:dataobjects.html#ActionResponse[ActionResponse]`|-
-|===
-
-[[ActionRequest]]
-== ActionRequest
-
+++++
+ Task Factory options model. It specifies task factory by its name and provides task factory
+ config.
+++++
+'''
 
 [cols=">25%,25%,50%"]
 [frame="topbot"]
 |===
 ^|Name | Type ^| Description
-|[[metadata]]`@metadata`|`Json object`|-
-|[[source]]`@source`|`String`|-
-|[[type]]`@type`|`String`|-
-|===
-
-[[ActionResponse]]
-== ActionResponse
-
-
-[cols=">25%,25%,50%"]
-[frame="topbot"]
-|===
-^|Name | Type ^| Description
-|[[error]]`@error`|`link:dataobjects.html#ActionResponseError[ActionResponseError]`|-
-|[[metadata]]`@metadata`|`Json object`|-
-|[[success]]`@success`|`Boolean`|-
-|===
-
-[[ActionResponseError]]
-== ActionResponseError
-
-
-[cols=">25%,25%,50%"]
-[frame="topbot"]
-|===
-^|Name | Type ^| Description
-|[[code]]`@code`|`String`|-
-|[[message]]`@message`|`String`|-
+|[[config]]`@config`|`Json object`|+++
+The JSON object that contains task factory configuration entries.
++++
+|[[factory]]`@factory`|`String`|+++
+The task factory name that identifies <code>TaskFactory</code> implementation.
++++
 |===
 

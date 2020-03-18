@@ -17,15 +17,15 @@ package io.knotx.fragments.task.factory.node.action;
 
 import static io.knotx.fragments.handler.api.metadata.NodeMetadata.single;
 
+import io.knotx.fragments.action.ActionFactoryOptions;
+import io.knotx.fragments.action.ActionProvider;
+import io.knotx.fragments.action.api.Action;
 import io.knotx.fragments.api.FragmentContext;
 import io.knotx.fragments.api.FragmentResult;
-import io.knotx.fragments.handler.api.metadata.NodeMetadata;
-import io.knotx.fragments.handler.api.metadata.OperationMetadata;
 import io.knotx.fragments.engine.api.node.Node;
 import io.knotx.fragments.engine.api.node.single.SingleNode;
-import io.knotx.fragments.handler.api.Action;
-import io.knotx.fragments.handler.api.ActionFactory;
-import io.knotx.fragments.task.factory.ActionFactoryOptions;
+import io.knotx.fragments.handler.api.metadata.NodeMetadata;
+import io.knotx.fragments.handler.api.metadata.OperationMetadata;
 import io.knotx.fragments.task.factory.GraphNodeOptions;
 import io.knotx.fragments.task.factory.NodeProvider;
 import io.knotx.fragments.task.factory.node.NodeFactory;
@@ -35,12 +35,9 @@ import io.vertx.core.Handler;
 import io.vertx.core.json.JsonObject;
 import io.vertx.reactivex.core.Vertx;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.Optional;
-import java.util.ServiceLoader;
 import java.util.UUID;
-import java.util.function.Supplier;
 
 public class ActionNodeFactory implements NodeFactory {
 
@@ -59,7 +56,7 @@ public class ActionNodeFactory implements NodeFactory {
   @Override
   public ActionNodeFactory configure(JsonObject config, Vertx vertx) {
     this.actionNameToOptions = new ActionNodeFactoryConfig(config).getActions();
-    actionProvider = new ActionProvider(supplyFactories(), actionNameToOptions, vertx);
+    actionProvider = new ActionProvider(actionNameToOptions, vertx);
     return this;
   }
 
@@ -114,13 +111,5 @@ public class ActionNodeFactory implements NodeFactory {
         .put(METADATA_ALIAS, config.getAction())
         .put(METADATA_ACTION_FACTORY, actionConfig.getFactory())
         .put(METADATA_ACTION_CONFIG, actionConfig.getConfig()));
-  }
-
-  private Supplier<Iterator<ActionFactory>> supplyFactories() {
-    return () -> {
-      ServiceLoader<ActionFactory> factories = ServiceLoader
-          .load(ActionFactory.class);
-      return factories.iterator();
-    };
   }
 }

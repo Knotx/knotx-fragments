@@ -36,7 +36,7 @@ import io.knotx.fragments.engine.api.node.NodeType;
 import io.knotx.fragments.api.FragmentContext;
 import io.knotx.fragments.api.FragmentResult;
 import io.knotx.fragments.engine.api.node.single.SingleNode;
-import io.knotx.fragments.task.factory.ActionFactoryOptions;
+import io.knotx.fragments.action.ActionFactoryOptions;
 import io.knotx.fragments.task.factory.GraphNodeOptions;
 import io.knotx.fragments.task.factory.NodeProvider;
 import io.knotx.fragments.task.factory.node.NodeOptions;

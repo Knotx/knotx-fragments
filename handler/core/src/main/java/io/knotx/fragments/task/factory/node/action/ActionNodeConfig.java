@@ -15,6 +15,7 @@
  */
 package io.knotx.fragments.task.factory.node.action;
 
+import io.knotx.fragments.action.api.Action;
 import io.knotx.fragments.task.factory.node.NodeOptions;
 import io.vertx.codegen.annotations.DataObject;
 import io.vertx.core.json.JsonObject;
@@ -53,7 +54,7 @@ public class ActionNodeConfig {
 
 
   /**
-   * {@link io.knotx.fragments.handler.api.Action} name
+   * {@link Action} name
    *
    * @return Action name
    */
@@ -62,7 +63,7 @@ public class ActionNodeConfig {
   }
 
   /**
-   * Sets {@link io.knotx.fragments.handler.api.Action} name. The specified Action is executed
+   * Sets {@link Action} name. The specified Action is executed
    * during processing of given graph node.
    *
    * @param action action name

@@ -18,8 +18,8 @@ package io.knotx.fragments.handler;
 import static io.vertx.core.Future.succeededFuture;
 
 import io.knotx.fragments.api.Fragment;
-import io.knotx.fragments.handler.api.Action;
-import io.knotx.fragments.handler.api.ActionFactory;
+import io.knotx.fragments.action.api.Action;
+import io.knotx.fragments.action.api.ActionFactory;
 import io.knotx.fragments.api.FragmentResult;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
