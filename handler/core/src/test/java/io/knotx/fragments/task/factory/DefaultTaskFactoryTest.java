@@ -25,6 +25,7 @@ import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import io.knotx.fragments.action.ActionFactoryOptions;
 import io.knotx.fragments.api.Fragment;
 import io.knotx.fragments.engine.api.FragmentEvent;
 import io.knotx.fragments.engine.api.FragmentEventContext;
@@ -36,7 +37,7 @@ import io.knotx.fragments.engine.api.node.Node;
 import io.knotx.fragments.engine.api.node.NodeType;
 import io.knotx.fragments.engine.api.node.composite.CompositeNode;
 import io.knotx.fragments.engine.api.node.single.SingleNode;
-import io.knotx.fragments.handler.api.actionlog.ActionLogLevel;
+import io.knotx.fragments.action.api.log.ActionLogLevel;
 import io.knotx.fragments.handler.api.exception.ConfigurationException;
 import io.knotx.fragments.task.factory.node.NodeFactoryOptions;
 import io.knotx.fragments.task.factory.node.action.ActionNodeFactory;
@@ -401,7 +402,7 @@ class DefaultTaskFactoryTest {
   private JsonObject actionNodeFactoryConfig(String... actionNames) {
     Map<String, ActionFactoryOptions> actionToOptions = new HashMap<>();
     asList(actionNames).forEach(actionName -> actionToOptions.put(actionName,
-        new ActionFactoryOptions(TEST_ACTION_FACTORY)
+        new ActionFactoryOptions(TEST_ACTION_FACTORY, new JsonObject(), null)
             .setConfig(new JsonObject().put("transition", SUCCESS_TRANSITION))));
     return new ActionNodeFactoryConfig(actionToOptions).toJson();
   }

@@ -15,7 +15,7 @@
  */
 package io.knotx.fragments.task.factory;
 
-import static io.knotx.fragments.handler.api.actionlog.ActionLogLevel.ERROR;
+import static io.knotx.fragments.action.api.log.ActionLogLevel.ERROR;
 
 import io.vertx.codegen.annotations.DataObject;
 import io.vertx.core.json.JsonObject;

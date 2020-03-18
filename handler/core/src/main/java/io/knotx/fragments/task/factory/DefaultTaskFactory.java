@@ -23,7 +23,7 @@ import io.knotx.fragments.handler.api.metadata.TaskWithMetadata;
 import io.knotx.fragments.engine.api.Task;
 import io.knotx.fragments.engine.api.node.Node;
 import io.knotx.fragments.handler.api.exception.ConfigurationException;
-import io.knotx.fragments.task.TaskFactory;
+import io.knotx.fragments.handler.api.task.TaskFactory;
 import io.knotx.fragments.task.exception.NodeFactoryNotFoundException;
 import io.knotx.fragments.task.factory.node.NodeFactory;
 import io.vertx.core.json.JsonObject;

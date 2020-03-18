@@ -30,18 +30,15 @@ dependencies {
 
     api(project(":knotx-fragments-api"))
     api(project(":knotx-fragments-engine-api"))
-    api("io.knotx:knotx-server-http-api:${project.version}")
 
     implementation(group = "io.vertx", name = "vertx-core")
-    implementation(group = "io.vertx", name = "vertx-service-proxy")
     implementation(group = "io.vertx", name = "vertx-rx-java2")
-    implementation(group = "io.vertx", name = "vertx-circuit-breaker")
     implementation(group = "org.apache.commons", name = "commons-lang3")
 }
 
 tasks {
     named<RatTask>("rat") {
-        excludes.addAll(listOf("*.yml", "*.md", "**/*.md", "**/build/*", "**/out/*", "**/generated/*", "**/*.adoc"))
+        excludes.addAll(listOf("*.md", "**/build/*", "**/out/*", "**/generated/*", "**/*.adoc"))
     }
     getByName("build").dependsOn("rat")
 }

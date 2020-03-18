@@ -28,11 +28,13 @@ dependencies {
     implementation(platform("io.knotx:knotx-dependencies:${project.version}"))
 
     api(project(":knotx-fragments-handler-api"))
+    implementation("io.knotx:knotx-commons:${project.version}")
+    implementation("io.knotx:knotx-server-http-common-placeholders:${project.version}")
+    implementation(project(":knotx-fragments-action-api"))
+    implementation(project(":knotx-fragments-action-core"))
     implementation(project(":knotx-fragments-engine-api"))
     implementation(project(":knotx-fragments-engine-core"))
 
-    implementation("io.knotx:knotx-server-http-common-placeholders:${project.version}")
-    implementation("io.knotx:knotx-commons:${project.version}")
     implementation(group = "io.vertx", name = "vertx-circuit-breaker")
     implementation(group = "io.vertx", name = "vertx-core")
     implementation(group = "io.vertx", name = "vertx-service-proxy")

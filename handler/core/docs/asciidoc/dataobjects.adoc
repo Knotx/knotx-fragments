@@ -1,24 +1,5 @@
 = Cheatsheets
 
-[[ActionFactoryOptions]]
-== ActionFactoryOptions
-
-
-[cols=">25%,25%,50%"]
-[frame="topbot"]
-|===
-^|Name | Type ^| Description
-|[[config]]`@config`|`Json object`|+++
-Sets <code>Action</code> configuration that is passed to Action.
-+++
-|[[doAction]]`@doAction`|`String`|+++
-Sets the name of the base <code>Action</code> that will be triggered while creating current <code>Action</code>. In not set (<code>null</code>), given action will have no base actions.
-+++
-|[[factory]]`@factory`|`String`|+++
-Sets <code>Action</code> factory name.
-+++
-|===
-
 [[ActionNodeConfig]]
 == ActionNodeConfig
 
@@ -41,7 +22,7 @@ Sets <code>Action</code> factory name.
 |===
 ^|Name | Type ^| Description
 |[[action]]`@action`|`String`|+++
-Sets link name. The specified Action is executed
+Sets  name. The specified Action is executed
  during processing of given graph node.
 +++
 |===
@@ -222,27 +203,6 @@ Sets node factory name
 ^|Name | Type ^| Description
 |[[subtasks]]`@subtasks`|`Array of link:dataobjects.html#GraphNodeOptions[GraphNodeOptions]`|+++
 The array/list of subgraphs/subtasks that can be executed in parallel.
-+++
-|===
-
-[[TaskFactoryOptions]]
-== TaskFactoryOptions
-
-++++
- Task Factory options model. It specifies task factory by its name and provides task factory
- config.
-++++
-'''
-
-[cols=">25%,25%,50%"]
-[frame="topbot"]
-|===
-^|Name | Type ^| Description
-|[[config]]`@config`|`Json object`|+++
-The JSON object that contains task factory configuration entries.
-+++
-|[[factory]]`@factory`|`String`|+++
-The task factory name that identifies <code>TaskFactory</code> implementation.
 +++
 |===
 

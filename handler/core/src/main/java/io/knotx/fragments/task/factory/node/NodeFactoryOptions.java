@@ -15,7 +15,6 @@
  */
 package io.knotx.fragments.task.factory.node;
 
-import io.knotx.fragments.task.factory.node.action.ActionProvider;
 import io.vertx.codegen.annotations.DataObject;
 import io.vertx.core.json.JsonObject;
 import java.util.Objects;
