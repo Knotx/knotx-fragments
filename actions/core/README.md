@@ -141,13 +141,27 @@ The table below presents expected entries in node log on particular log levels d
 Currently Knot.x supports `GET`, `POST`, `PUT`, `PATCH`, `DELETE` and `HEAD` HTTP methods.
 This is specified using `httpMethod` option under `config` node of HttpAction (defaults to `GET`).
 
-For `POST`, `PUT` and `PATCH` methods, request body is send. 
+For `POST`, `PUT` and `PATCH` methods, request body is sent. 
 Body can be specified either as String or as a JSON, using `body` and `bodyJson` parameters under `endpointOptions`.
-In both cases, it is possible to perform interpolation based on the original request, Fragment's configuration or Fragment's payload.
+It is possible to perform interpolation using values from  original request, Fragment's configuration or Fragment's payload.
 For details, see [Knot.x Server Common Placeholders](https://github.com/Knotx/knotx-server-http/tree/master/common/placeholders#available-request-placeholders-support).
-Please note that unlike for path, placeholder values put into body are not URL-encoded.
+Please note that unlike for path, placeholders in body will not be URL-encoded.
  
 To enable body interpolation, set `interpolateBody` flag under `endpointOptions` to `true`.
+
+#### Encoding
+
+Currently only placeholders in path are URL-encoded. Any other value is passed as-is, i.e.:
+- path schema
+- body schema + resolved placeholders
+- custom header
+- client's header allowed to be passed on
+
+Therefore, all configuration-based values (path schema, body schema, headers) **must** be encoded in configuration.
+
+Values used for path interpolation **must not** be encoded (otherwise a double encoding might occur).
+
+Client request's values used for interpolation are already in a raw form (when decoded by Knot.x HTTP Server).
 
 #### Detailed configuration
 All configuration options are explained in details in the [Config Options Cheetsheet](https://github.com/Knotx/knotx-fragments/tree/master/handler/core/docs/asciidoc/dataobjects.adoc).
