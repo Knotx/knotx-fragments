@@ -16,6 +16,7 @@ import org.gradle.kotlin.dsl.apply
  * limitations under the License.
  */
 
+
 plugins {
     java
     id("io.knotx.publish-all-composite") version "0.1.4"
