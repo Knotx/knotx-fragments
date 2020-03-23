@@ -22,8 +22,7 @@ import io.knotx.fragments.engine.*;
 import io.knotx.fragments.engine.api.FragmentEvent;
 import io.knotx.fragments.engine.api.FragmentEvent.Status;
 import io.knotx.fragments.engine.api.FragmentEventContextTaskAware;
-import io.knotx.fragments.handler.api.metadata.TasksMetadata;
-import io.knotx.fragments.handler.consumer.FragmentEventsConsumerProvider;
+import io.knotx.fragments.handler.consumer.FragmentExecutionLogConsumersNotifier;
 import io.knotx.server.api.context.ClientRequest;
 import io.knotx.server.api.context.RequestContext;
 import io.knotx.server.api.context.RequestEvent;
@@ -51,14 +50,14 @@ public class FragmentsHandler implements Handler<RoutingContext> {
 
   private final FragmentsEngine engine;
   private final TaskProvider taskProvider;
-  private final FragmentEventsConsumerProvider fragmentEventsConsumerProvider;
+  private final FragmentExecutionLogConsumersNotifier consumerNotifier;
 
   FragmentsHandler(Vertx vertx, JsonObject options) {
     FragmentsHandlerOptions handlerOptions = new FragmentsHandlerOptions(options);
     taskProvider = new TaskProvider(handlerOptions.getTaskFactories(), vertx);
     engine = new FragmentsEngine(vertx);
     requestContextEngine = new DefaultRequestContextEngine(getClass().getSimpleName());
-    fragmentEventsConsumerProvider = new FragmentEventsConsumerProvider(
+    consumerNotifier = new FragmentExecutionLogConsumersNotifier(
         handlerOptions.getConsumerFactories());
   }
 
@@ -73,7 +72,7 @@ public class FragmentsHandler implements Handler<RoutingContext> {
     doHandle(executionPlan)
         .doOnError(e -> LOGGER.error("Fragments not processed correctly!", e))
         .doOnSuccess(events -> putFragments(routingContext, events))
-        .doOnSuccess(events -> enrichWithEventConsumers(clientRequest, events, executionPlan))
+        .doOnSuccess(events -> consumerNotifier.notify(clientRequest, events, executionPlan))
         .map(events -> toHandlerResult(events, requestContext))
         .subscribe(
             result -> requestContextEngine
@@ -92,13 +91,6 @@ public class FragmentsHandler implements Handler<RoutingContext> {
         .map(entry -> new FragmentEventContextTaskAware(entry.getTaskWithMetadata().getTask(),
             entry.getContext()))
         .collect(Collectors.toList()));
-  }
-
-  private void enrichWithEventConsumers(ClientRequest clientRequest, List<FragmentEvent> events,
-      ExecutionPlan executionPlan) {
-    TasksMetadata tasksMetadata = executionPlan.getTasksMetadata();
-    fragmentEventsConsumerProvider.provide()
-        .forEach(consumer -> consumer.accept(clientRequest, events, tasksMetadata));
   }
 
   private void putFragments(RoutingContext routingContext, List<FragmentEvent> events) {

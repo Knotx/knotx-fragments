@@ -43,10 +43,14 @@ project(":knotx-fragments-action-core").projectDir = file("actions/core")
 // Handler
 include("knotx-fragments-handler-api")
 include("knotx-fragments-handler-core")
+include("knotx-fragments-handler-consumer-api")
 include("knotx-fragments-handler-consumer-html")
+include("knotx-fragments-handler-consumer-json")
 project(":knotx-fragments-handler-api").projectDir = file("handler/api")
 project(":knotx-fragments-handler-core").projectDir = file("handler/core")
+project(":knotx-fragments-handler-consumer-api").projectDir = file("handler/consumer/api")
 project(":knotx-fragments-handler-consumer-html").projectDir = file("handler/consumer/html")
+project(":knotx-fragments-handler-consumer-json").projectDir = file("handler/consumer/json")
 
 // Engine
 include("knotx-fragments-engine-api")

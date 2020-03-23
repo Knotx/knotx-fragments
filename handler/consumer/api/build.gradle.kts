@@ -13,49 +13,33 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 import org.nosphere.apache.rat.RatTask
 
 plugins {
     id("io.knotx.java-library")
     id("io.knotx.codegen")
-    id("io.knotx.unit-test")
     id("io.knotx.maven-publish")
     id("io.knotx.jacoco")
+    id("io.knotx.unit-test")
     id("org.nosphere.apache.rat") version "0.6.0"
 }
 
 dependencies {
     implementation(platform("io.knotx:knotx-dependencies:${project.version}"))
 
+    api(project(":knotx-fragments-api"))
     api(project(":knotx-fragments-handler-api"))
-    api(project(":knotx-fragments-handler-consumer-api"))
-    implementation("io.knotx:knotx-commons:${project.version}")
-    implementation("io.knotx:knotx-server-http-common-placeholders:${project.version}")
-    implementation(project(":knotx-fragments-action-api"))
-    implementation(project(":knotx-fragments-action-core"))
-    implementation(project(":knotx-fragments-engine-api"))
-    implementation(project(":knotx-fragments-engine-core"))
 
-    implementation(group = "io.vertx", name = "vertx-circuit-breaker")
     implementation(group = "io.vertx", name = "vertx-core")
-    implementation(group = "io.vertx", name = "vertx-service-proxy")
     implementation(group = "io.vertx", name = "vertx-rx-java2")
-    implementation(group = "io.vertx", name = "vertx-web-client")
     implementation(group = "org.apache.commons", name = "commons-lang3")
     implementation(group = "com.google.guava", name = "guava")
-
-    testImplementation(group = "org.mockito", name = "mockito-core")
-    testImplementation(group = "org.mockito", name = "mockito-junit-jupiter")
-    testImplementation(group = "io.vertx", name = "vertx-web-client")
-    testImplementation(group = "io.vertx", name = "vertx-rx-java2")
-    testImplementation(group = "io.vertx", name = "vertx-config-hocon")
-    testImplementation("org.junit.jupiter:junit-jupiter-params")
-    testImplementation(group = "com.github.tomakehurst", name = "wiremock")
 }
 
 tasks {
     named<RatTask>("rat") {
-        excludes.addAll(listOf("*.yml", "*.md", "**/*.md", "**/build/*", "**/out/*", "**/generated/*", "**/*.adoc", "**/*.json", "**/*.conf"))
+        excludes.addAll(listOf("*.md", "**/build/*", "**/out/*", "**/generated/*", "**/*.adoc"))
     }
     getByName("build").dependsOn("rat")
 }
