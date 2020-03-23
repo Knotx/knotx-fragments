@@ -13,22 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.knotx.fragments.handler.consumer;
+package io.knotx.fragments.handler.consumer.api;
 
-import io.knotx.fragments.handler.consumer.api.FragmentExecutionLogConsumer;
-import io.knotx.fragments.handler.consumer.api.FragmentExecutionLogConsumerFactory;
 import io.vertx.core.json.JsonObject;
 
-public class TestConsumer implements FragmentExecutionLogConsumerFactory {
+/**
+ * The {@link FragmentExecutionLogConsumer} factory interface that enables dynamic implementation binding
+ * using SPI.
+ */
+public interface FragmentExecutionLogConsumerFactory {
 
-  @Override
-  public String getName() {
-    return "testConsumer";
-  }
+  /**
+   * @return factory name
+   */
+  String getName();
 
-  @Override
-  public FragmentExecutionLogConsumer create(JsonObject config) {
-    return (clientRequest, executionLogs) -> executionLogs
-        .forEach(log -> log.getFragment().setBody("testConsumer"));
-  }
+  /**
+   * Creates a {@link FragmentExecutionLogConsumer} instance.
+   *
+   * @param config - factory JSON configuration
+   * @return a fragment execution log consumer
+   */
+  FragmentExecutionLogConsumer create(JsonObject config);
+
 }

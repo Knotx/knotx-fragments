@@ -35,9 +35,8 @@ from `taskFactories` that can create a task
 - task factory constructs a task (DAG - directed acyclic graph)
 - [Fragment Engine](https://github.com/Knotx/knotx-fragments/tree/master/engine) continues 
 further fragment's processing
-- when fragments processing ends it notifies all [consumers](#fragment-event-consumer) about 
+- when fragments processing ends it notifies all [consumers](#fragment-execution-log-consumer) about 
 processed fragments, consumers are registered with factories defined in `consumerFactories`
-
 
 Detailed description of each configuration option is described in the next subsection.
 
@@ -350,16 +349,11 @@ configured in the future when business agrees on the fallback logic.
 Fragments Handler takes fragments from the request context and wraps them into fragment events. 
 Fragment event contains a fragment, task status and task log.
 
-### Fragment Event Consumer
-Fragment event consumer receives fragment event when task evaluation ends. It can share this 
-information with some external tools or add fragment event to the response.
+### Fragment Execution Log Consumer
+Fragment Execution Log Consumer receives fragment execution data when task evaluation ends. It can share this 
+information with some external tools.
 
-All consumers provide [factories](https://github.com/Knotx/knotx-fragments/blob/master/handler/core/src/main/java/io/knotx/fragments/handler/consumer/FragmentEventsConsumerFactory.java) 
-that are registered using a simple service-provider loading facility - 
-[Service Loader](https://docs.oracle.com/javase/8/docs/api/java/util/ServiceLoader.html).
-
-Default consumers:
-- [Fragment HTML Body Writer](https://github.com/Knotx/knotx-fragments/blob/master/handler/consumer/html)
+You can read more about consumers [here](https://github.com/Knotx/knotx-fragments/tree/master/handler/consumer).
 
 # Actions
 Action is a simple function that converts a fragment to the new one and responds with the
