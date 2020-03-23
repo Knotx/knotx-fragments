@@ -62,11 +62,15 @@ public class SubtasksNodeFactory implements NodeFactory {
   @Override
   public Node initNode(NodeOptions nodeOptions, Map<String, Node> edges, NodeProvider nodeProvider, Map<String, NodeMetadata> nodesMetadata) {
     SubtasksNodeConfig config = new SubtasksNodeConfig(nodeOptions.getConfig());
+    final String nodeId = UUID.randomUUID().toString();
+
     List<Node> nodes = config.getSubtasks().stream()
         .map(subTaskConfig -> nodeProvider.initNode(subTaskConfig, nodesMetadata))
         .collect(Collectors.toList());
-    final String nodeId = UUID.randomUUID().toString();
-    nodesMetadata.put(nodeId, createSubTaskNodeMetadata(nodeId, edges, nodes));
+
+    NodeMetadata metadata = createSubTaskNodeMetadata(nodeId, edges, nodes);
+    nodesMetadata.put(nodeId, metadata);
+
     return new CompositeNode() {
       @Override
       public String getId() {

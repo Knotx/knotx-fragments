@@ -42,6 +42,8 @@ public class GraphNodeExecutionLog {
   private String id;
   private NodeType type = NodeType.SINGLE;
   private String label = StringUtils.EMPTY;
+  private long started;
+  private long finished;
   private List<GraphNodeExecutionLog> subtasks = new ArrayList<>();
   private GraphNodeOperationLog operation = GraphNodeOperationLog.empty();
   private Map<String, GraphNodeExecutionLog> on = new HashMap<>();
@@ -54,13 +56,15 @@ public class GraphNodeExecutionLog {
     return new GraphNodeExecutionLog().setId(id);
   }
 
-  public static GraphNodeExecutionLog newInstance(String id, NodeType type, String label,
+  public static GraphNodeExecutionLog newInstance(String id, NodeType type, String label, long started, long finished,
       List<GraphNodeExecutionLog> subtasks, GraphNodeOperationLog operation,
       Map<String, GraphNodeExecutionLog> on) {
     return new GraphNodeExecutionLog()
         .setId(id)
         .setType(type)
         .setLabel(label)
+        .setStarted(started)
+        .setFinished(finished)
         .setSubtasks(subtasks)
         .setOperation(operation)
         .setOn(on)
@@ -123,6 +127,34 @@ public class GraphNodeExecutionLog {
 
   public GraphNodeExecutionLog setLabel(String label) {
     this.label = label;
+    return this;
+  }
+
+  /**
+   * Processing start timestamp
+   *
+   * @return start timestamp
+   */
+  public long getStarted() {
+    return started;
+  }
+
+  public GraphNodeExecutionLog setStarted(long started) {
+    this.started = started;
+    return this;
+  }
+
+  /**
+   * Processing end timestamp
+   *
+   * @return end timestamp
+   */
+  public long getFinished() {
+    return finished;
+  }
+
+  public GraphNodeExecutionLog setFinished(long finished) {
+    this.finished = finished;
     return this;
   }
 

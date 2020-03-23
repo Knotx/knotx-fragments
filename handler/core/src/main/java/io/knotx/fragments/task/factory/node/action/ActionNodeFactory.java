@@ -71,10 +71,14 @@ public class ActionNodeFactory implements NodeFactory {
   public Node initNode(NodeOptions nodeOptions, Map<String, Node> edges, NodeProvider nodeProvider,
       Map<String, NodeMetadata> nodesMetadata) {
     ActionNodeConfig config = new ActionNodeConfig(nodeOptions.getConfig());
-    Action action = actionProvider.get(config.getAction()).orElseThrow(
-        () -> new ActionNotFoundException(config.getAction()));
     final String actionNodeId = UUID.randomUUID().toString();
-    nodesMetadata.put(actionNodeId, createActionNodeMetadata(actionNodeId, edges, config));
+
+    Action action = actionProvider.get(config.getAction())
+        .orElseThrow(() -> new ActionNotFoundException(config.getAction()));
+
+    NodeMetadata metadata = createActionNodeMetadata(actionNodeId, edges, config);
+    nodesMetadata.put(actionNodeId, metadata);
+
     return new SingleNode() {
       @Override
       public String getId() {
@@ -88,7 +92,13 @@ public class ActionNodeFactory implements NodeFactory {
 
       @Override
       public void apply(FragmentContext fragmentContext, Handler<AsyncResult<FragmentResult>> handler) {
-        action.apply(fragmentContext, handler);
+        metadata.markProcessingStart();
+
+        action.apply(fragmentContext, result -> {
+          metadata.markProcessingEnd();
+
+          handler.handle(result);
+        });
       }
     };
   }
