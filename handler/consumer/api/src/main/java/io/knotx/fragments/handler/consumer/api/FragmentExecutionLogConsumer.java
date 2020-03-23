@@ -28,7 +28,7 @@ public interface FragmentExecutionLogConsumer {
   /**
    * Gets a list of processed and unprocessed fragments (execution logs).
    *
-   * @param request - original request data
+   * @param request    - original request data
    * @param executions - list of fragment execution logs
    */
   void accept(ClientRequest request, List<FragmentExecutionLog> executions);
