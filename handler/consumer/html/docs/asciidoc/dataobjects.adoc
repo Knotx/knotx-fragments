@@ -45,6 +45,9 @@ Fragment processing <a href="https://github.com/Knotx/knotx-fragments/blob/maste
 [frame="topbot"]
 |===
 ^|Name | Type ^| Description
+|[[finished]]`@finished`|`Number (long)`|+++
+Processing end timestamp
++++
 |[[id]]`@id`|`String`|+++
 Unique node id. In most cases, it is randomly generated value and can differ in subsequent
  requests.
@@ -64,6 +67,9 @@ Node metadata details. This value is initialized based on
 |[[response]]`@response`|`link:dataobjects.html#GraphNodeResponseLog[GraphNodeResponseLog]`|+++
 It represents node execution data. It contains response data such as a transition and list of
  invocations.
++++
+|[[started]]`@started`|`Number (long)`|+++
+Processing start timestamp
 +++
 |[[status]]`@status`|`link:enums.html#LoggedNodeStatus[LoggedNodeStatus]`|+++
 Node status that is calculated based on node response. See <a href="https://github.com/Knotx/knotx-fragments/blob/feature/html-consumer-docuemntation-update/handler/consumer/html/src/main/java/io/knotx/fragments/handler/consumer/html/model/LoggedNodeStatus.java">LoggedNodeStatus</a>

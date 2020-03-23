@@ -17,14 +17,20 @@ package io.knotx.fragments.handler.api.metadata;
 
 import io.knotx.fragments.engine.api.node.NodeType;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class NodeMetadata {
 
   private String nodeId;
   private String label;
   private NodeType type;
+  private long processingStartTimestamp;
+  private long processingEndTimestamp;
   private Map<String, String> transitions;
   private List<String> nestedNodes;
   private OperationMetadata operation;
@@ -60,6 +66,14 @@ public class NodeMetadata {
     return type;
   }
 
+  public long getProcessingStartTimestamp() {
+    return processingStartTimestamp;
+  }
+
+  public long getProcessingEndTimestamp() {
+    return processingEndTimestamp;
+  }
+
   /**
    * @return transition name to node id map
    */
@@ -76,6 +90,44 @@ public class NodeMetadata {
 
   public OperationMetadata getOperation() {
     return operation;
+  }
+
+  public void markProcessingStart() {
+    processingStartTimestamp = System.currentTimeMillis();
+  }
+
+  public void markProcessingEnd() {
+    processingEndTimestamp = System.currentTimeMillis();
+  }
+
+  public void calculateTimestampsBasedOnSubtasks(Map<String, NodeMetadata> nodes) {
+    if (type == NodeType.COMPOSITE) {
+      List<NodeMetadata> nestedMetadata = nestedNodes.stream()
+          .map(nodes::get)
+          .collect(Collectors.toList());
+
+      nestedMetadata.forEach(nodeMetadata -> nodeMetadata.calculateTimestampsBasedOnSubtasks(nodes));
+
+      processingStartTimestamp = nestedMetadata.stream()
+          .map(NodeMetadata::getProcessingStartTimestamp)
+          .min(Comparator.naturalOrder())
+          .orElse((long) 0);
+
+      processingEndTimestamp = getLatestNestedTime(nodes);
+    }
+  }
+
+  private long getLatestNestedTime(Map<String, NodeMetadata> nodes) {
+    List<NodeMetadata> metadata = transitions.values().stream()
+        .map(nodes::get)
+        .collect(Collectors.toList());
+
+    return metadata.isEmpty()
+        ? getProcessingEndTimestamp()
+        : metadata.stream()
+            .map(nodeMetadata -> nodeMetadata.getLatestNestedTime(nodes))
+            .max(Comparator.naturalOrder())
+            .orElse((long) 0);
   }
 
   @Override
