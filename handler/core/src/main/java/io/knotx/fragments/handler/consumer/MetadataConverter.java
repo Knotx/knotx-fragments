@@ -80,7 +80,6 @@ class MetadataConverter {
         .setOperation(null)
         .setOn(Collections.emptyMap())
         .setStatus(LoggedNodeStatus.MISSING);
-
     graphLog.getOn().put(graphLog.getResponse().getTransition(), missingNode);
   }
 
