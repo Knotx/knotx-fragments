@@ -15,24 +15,21 @@
  */
 package io.knotx.fragments.handler.consumer;
 
-import static io.knotx.fragments.api.FragmentResult.SUCCESS_TRANSITION;
-
 import io.knotx.fragments.engine.api.FragmentEvent;
+import io.knotx.fragments.engine.api.node.NodeType;
 import io.knotx.fragments.handler.api.metadata.NodeMetadata;
 import io.knotx.fragments.handler.api.metadata.OperationMetadata;
 import io.knotx.fragments.handler.api.metadata.TaskMetadata;
-import io.knotx.fragments.engine.api.node.NodeType;
 import io.knotx.fragments.handler.consumer.NodeExecutionData.Response;
 import io.knotx.fragments.handler.consumer.api.model.GraphNodeExecutionLog;
 import io.knotx.fragments.handler.consumer.api.model.GraphNodeOperationLog;
 import io.knotx.fragments.handler.consumer.api.model.GraphNodeResponseLog;
 import io.knotx.fragments.handler.consumer.api.model.LoggedNodeStatus;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+
+import java.util.*;
 import java.util.stream.Collectors;
+
+import static io.knotx.fragments.api.FragmentResult.SUCCESS_TRANSITION;
 
 class MetadataConverter {
 
@@ -74,27 +71,33 @@ class MetadataConverter {
   }
 
   private void addMissingNode(GraphNodeExecutionLog graphLog) {
-    GraphNodeExecutionLog missingNode = GraphNodeExecutionLog
-        .newInstance(UUID.randomUUID().toString(),
-            NodeType.SINGLE,
-            "!",
-            Collections.emptyList(),
-            null,
-            Collections.emptyMap())
+    GraphNodeExecutionLog missingNode = GraphNodeExecutionLog.newInstance(UUID.randomUUID().toString())
+        .setType(NodeType.SINGLE)
+        .setLabel("!")
+        .setStarted(0)
+        .setFinished(0)
+        .setSubtasks(Collections.emptyList())
+        .setOperation(null)
+        .setOn(Collections.emptyMap())
         .setStatus(LoggedNodeStatus.MISSING);
+
     graphLog.getOn().put(graphLog.getResponse().getTransition(), missingNode);
   }
 
   private GraphNodeExecutionLog fromMetadata(String id) {
     if (nodes.containsKey(id)) {
       NodeMetadata metadata = nodes.get(id);
-      return GraphNodeExecutionLog
-          .newInstance(metadata.getNodeId(),
-              metadata.getType(),
-              metadata.getLabel(),
-              getSubTasks(metadata.getNestedNodes()),
-              getOperationLog(metadata),
-              getTransitions(metadata.getTransitions()));
+
+      metadata.calculateTimestampsBasedOnSubtasks(nodes);
+
+      return GraphNodeExecutionLog.newInstance(metadata.getNodeId())
+          .setType(metadata.getType())
+          .setLabel(metadata.getLabel())
+          .setStarted(metadata.getProcessingStartTimestamp())
+          .setFinished(metadata.getProcessingEndTimestamp())
+          .setSubtasks(getSubTasks(metadata.getNestedNodes()))
+          .setOperation(getOperationLog(metadata))
+          .setOn(getTransitions(metadata.getTransitions()));
     } else {
       return GraphNodeExecutionLog.newInstance(id);
     }
