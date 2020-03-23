@@ -46,7 +46,7 @@ public class GraphNodeExecutionLog {
   private GraphNodeOperationLog operation = GraphNodeOperationLog.empty();
   private Map<String, GraphNodeExecutionLog> on = new HashMap<>();
 
-  private LoggedNodeStatus status = LoggedNodeStatus.SUCCESS;
+  private LoggedNodeStatus status = LoggedNodeStatus.UNPROCESSED;
   private GraphNodeResponseLog response = new GraphNodeResponseLog();
 
 

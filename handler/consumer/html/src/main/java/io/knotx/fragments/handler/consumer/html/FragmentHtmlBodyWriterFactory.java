@@ -45,19 +45,22 @@ public class FragmentHtmlBodyWriterFactory implements FragmentExecutionLogConsum
   @Override
   public FragmentExecutionLogConsumer create(JsonObject config) {
     return new FragmentExecutionLogConsumer() {
-      @Override
-      public void accept(ClientRequest request, List<FragmentExecutionLog> executions) {
-        executions.stream()
-            .filter(this::isSupported)
-            .forEach(this::wrapFragmentBodyWithMetadata);
-      }
 
       private Set<String> supportedTypes = getSupportedTypes(config);
       private String requestHeader = getConditionHeader(config);
       private String requestParam = getConditionParam(config);
 
+      @Override
+      public void accept(ClientRequest request, List<FragmentExecutionLog> executions) {
+        if (containsHeader(request) || containsParam(request)) {
+          executions.stream()
+              .filter(this::isSupported)
+              .forEach(this::wrapFragmentBodyWithMetadata);
+        }
+      }
+
       private void wrapFragmentBodyWithMetadata(FragmentExecutionLog executionData) {
-        wrapFragmentBody(executionData.getFragment(), executionData.getGraph().toJson());
+        wrapFragmentBody(executionData.getFragment(), executionData.toJson());
       }
 
       private void wrapFragmentBody(Fragment fragment, JsonObject log) {
