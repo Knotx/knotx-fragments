@@ -13,22 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.knotx.fragments.handler.consumer;
+package io.knotx.fragments.handler.consumer.json;
 
 import io.knotx.fragments.handler.consumer.api.FragmentExecutionLogConsumer;
 import io.knotx.fragments.handler.consumer.api.FragmentExecutionLogConsumerFactory;
 import io.vertx.core.json.JsonObject;
 
-public class TestConsumer implements FragmentExecutionLogConsumerFactory {
+// TODO fix #134
+public class JsonFragmentsHandlerConsumerFactory implements FragmentExecutionLogConsumerFactory {
 
   @Override
   public String getName() {
-    return "testConsumer";
+    return "json";
   }
 
   @Override
   public FragmentExecutionLogConsumer create(JsonObject config) {
-    return (clientRequest, executionLogs) -> executionLogs
-        .forEach(log -> log.getFragment().setBody("testConsumer"));
+    return null;
   }
 }

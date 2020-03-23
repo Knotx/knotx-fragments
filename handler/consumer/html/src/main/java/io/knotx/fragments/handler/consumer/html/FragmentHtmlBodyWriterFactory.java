@@ -16,11 +16,9 @@
 package io.knotx.fragments.handler.consumer.html;
 
 import io.knotx.fragments.api.Fragment;
-import io.knotx.fragments.engine.api.FragmentEvent;
-import io.knotx.fragments.handler.api.consumer.FragmentEventsConsumer;
-import io.knotx.fragments.handler.api.consumer.FragmentEventsConsumerFactory;
-import io.knotx.fragments.handler.api.metadata.TasksMetadata;
-import io.knotx.fragments.handler.consumer.html.model.FragmentExecutionLog;
+import io.knotx.fragments.handler.consumer.api.FragmentExecutionLogConsumer;
+import io.knotx.fragments.handler.consumer.api.FragmentExecutionLogConsumerFactory;
+import io.knotx.fragments.handler.consumer.api.model.FragmentExecutionLog;
 import io.knotx.server.api.context.ClientRequest;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -31,7 +29,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
-public class FragmentHtmlBodyWriterFactory implements FragmentEventsConsumerFactory {
+public class FragmentHtmlBodyWriterFactory implements FragmentExecutionLogConsumerFactory {
 
   static final String FRAGMENT_TYPES_OPTIONS = "fragmentTypes";
   static final String CONDITION_OPTION = "condition";
@@ -45,31 +43,21 @@ public class FragmentHtmlBodyWriterFactory implements FragmentEventsConsumerFact
   }
 
   @Override
-  public FragmentEventsConsumer create(JsonObject config) {
-    return new FragmentEventsConsumer() {
+  public FragmentExecutionLogConsumer create(JsonObject config) {
+    return new FragmentExecutionLogConsumer() {
+      @Override
+      public void accept(ClientRequest request, List<FragmentExecutionLog> executions) {
+        executions.stream()
+            .filter(this::isSupported)
+            .forEach(this::wrapFragmentBodyWithMetadata);
+      }
+
       private Set<String> supportedTypes = getSupportedTypes(config);
       private String requestHeader = getConditionHeader(config);
       private String requestParam = getConditionParam(config);
 
-      @Override
-      public void accept(ClientRequest request, List<FragmentEvent> events,
-          TasksMetadata tasksMetadata) {
-        if (containsHeader(request) || containsParam(request)) {
-          events.stream()
-              .filter(this::isSupported)
-              .forEach(event -> wrapFragmentBodyWithMetadata(event, tasksMetadata));
-        }
-      }
-
-      private void wrapFragmentBodyWithMetadata(FragmentEvent event, TasksMetadata tasksMetadata) {
-        FragmentExecutionLog executionLog =
-            Optional.ofNullable(tasksMetadata.get(event.getFragment().getId()))
-                .map(metadata -> new MetadataConverter(event, metadata))
-                .map(MetadataConverter::getExecutionLog)
-                .map(graphLog -> FragmentExecutionLog.newInstance(event, graphLog))
-                .orElseGet(()-> FragmentExecutionLog.newInstance(event));
-
-        wrapFragmentBody(event.getFragment(), executionLog.toJson());
+      private void wrapFragmentBodyWithMetadata(FragmentExecutionLog executionData) {
+        wrapFragmentBody(executionData.getFragment(), executionData.getGraph().toJson());
       }
 
       private void wrapFragmentBody(Fragment fragment, JsonObject log) {
@@ -98,8 +86,8 @@ public class FragmentHtmlBodyWriterFactory implements FragmentEventsConsumerFact
             .orElse(Boolean.FALSE);
       }
 
-      private boolean isSupported(FragmentEvent fragmentEvent) {
-        return supportedTypes.contains(fragmentEvent.getFragment().getType());
+      private boolean isSupported(FragmentExecutionLog executionData) {
+        return supportedTypes.contains(executionData.getFragment().getType());
       }
     };
   }
