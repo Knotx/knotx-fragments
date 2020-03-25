@@ -133,8 +133,11 @@ The table below presents expected entries in node log on particular log levels d
 | `_success`                                 | ERROR      |                                            |
 | exception occurs and `_error`              | INFO       | REQUEST_DATA, LIST_OF_ERRORS               |
 | exception occurs and `_error`              | ERROR      | REQUEST_DATA, LIST_OF_ERRORS               |
-| `_error` (e.g service responds with `500`) | INFO       | REQUEST_DATA, RESPONSE_DATA, RESPONSE_BODY |
-| `_error` (e.g service responds with `500`) | INFO       | REQUEST_DATA, RESPONSE_DATA                |
+| `_error` (e.g service responds with `500`) | INFO       | REQUEST_DATA, RESPONSE_DATA, RESPONSE_BODY, LIST_OF_ERRORS |
+| `_error` (e.g service responds with `500`) | ERROR       | REQUEST_DATA, RESPONSE_DATA, LIST_OF_ERRORS                |
+| request composition fails and `_error`     | INFO, ERROR | LIST_OF_ERRORS                |
+
+The HTTP Action always calls the handler with a succeeded future. The future always has a `_success` or an `_error` transition and contains a node log. 
 
 #### Supported HTTP methods
 
