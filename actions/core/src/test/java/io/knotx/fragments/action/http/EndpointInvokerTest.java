@@ -119,7 +119,8 @@ class EndpointInvokerTest {
     when(request.putHeaders(any())).thenReturn(request);
 
     lenient().when(request.rxSend()).thenReturn(Single.just(response));
-    lenient().when(request.rxSendBuffer(Buffer.buffer(expectedBody))).thenReturn(Single.just(response));
+    lenient().when(request.rxSendBuffer(Buffer.buffer(expectedBody)))
+        .thenReturn(Single.just(response));
   }
 
 }
