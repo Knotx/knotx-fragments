@@ -22,7 +22,7 @@ plugins {
     id("io.knotx.maven-publish")
     id("io.knotx.jacoco")
     id("io.knotx.unit-test")
-    id("org.nosphere.apache.rat") version "0.6.0"
+    id("org.nosphere.apache.rat")
 }
 
 dependencies {

@@ -19,7 +19,7 @@ plugins {
     id("io.knotx.java-library")
     id("io.knotx.unit-test")
     id("io.knotx.jacoco")
-    id("org.nosphere.apache.rat") version "0.6.0"
+    id("org.nosphere.apache.rat")
 }
 
 dependencies {
@@ -35,6 +35,7 @@ dependencies {
     // logging
     testRuntimeOnly("io.knotx:knotx-launcher:${project.version}")
     // handler dependencies
+    testImplementation("io.knotx:knotx-junit5:${project.version}")
     testImplementation(project(":knotx-fragments-task-handler"))
     testImplementation(project(":knotx-fragments-task-factory-default"))
     testRuntimeOnly(project(":knotx-fragments-task-handler-log-html"))

@@ -22,7 +22,7 @@ plugins {
     id("io.knotx.maven-publish")
     id("io.knotx.jacoco")
     id("io.knotx.unit-test")
-    id("org.nosphere.apache.rat") version "0.6.0"
+    id("org.nosphere.apache.rat")
 }
 
 dependencies {
@@ -40,6 +40,7 @@ dependencies {
     implementation(group = "org.apache.commons", name = "commons-lang3")
     implementation(group = "com.google.guava", name = "guava")
 
+    testImplementation("io.knotx:knotx-junit5:${project.version}")
     testImplementation(group = "org.mockito", name = "mockito-core")
     testImplementation(group = "org.mockito", name = "mockito-junit-jupiter")
 }
