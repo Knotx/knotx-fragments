@@ -21,7 +21,7 @@ plugins {
     id("io.knotx.unit-test")
     id("io.knotx.maven-publish")
     id("io.knotx.jacoco")
-    id("org.nosphere.apache.rat") version "0.6.0"
+    id("org.nosphere.apache.rat")
 }
 
 dependencies {
@@ -32,6 +32,7 @@ dependencies {
     implementation(group = "io.vertx", name = "vertx-service-proxy")
     implementation(group = "io.vertx", name = "vertx-rx-java2")
 
+    testImplementation("io.knotx:knotx-junit5:${project.version}")
     testImplementation(group = "org.mockito", name = "mockito-core")
     testImplementation(group = "org.mockito", name = "mockito-junit-jupiter")
 }

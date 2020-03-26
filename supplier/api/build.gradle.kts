@@ -19,7 +19,7 @@ import org.nosphere.apache.rat.RatTask
 plugins {
     id("io.knotx.java-library")
     id("io.knotx.maven-publish")
-    id("org.nosphere.apache.rat") version "0.6.0"
+    id("org.nosphere.apache.rat")
 }
 
 dependencies {
