@@ -18,8 +18,8 @@ package io.knotx.fragments.handler.consumer.api;
 import io.vertx.core.json.JsonObject;
 
 /**
- * The {@link FragmentExecutionLogConsumer} factory interface that enables dynamic implementation binding
- * using SPI.
+ * The {@link FragmentExecutionLogConsumer} factory interface that enables dynamic implementation
+ * binding using SPI.
  */
 public interface FragmentExecutionLogConsumerFactory {
 
