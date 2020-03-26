@@ -21,14 +21,13 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import io.knotx.fragments.api.Fragment;
-import io.knotx.fragments.engine.api.EventLogEntry;
 import io.knotx.fragments.api.FragmentResult;
+import io.knotx.fragments.engine.api.EventLogEntry;
 import io.knotx.fragments.handler.consumer.api.model.LoggedNodeStatus;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import java.util.Arrays;
 import java.util.Collections;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -44,7 +43,7 @@ class EventLogConverterTest {
 
     NodeExecutionData result = tested.getExecutionData(NODE_ID);
 
-    Assertions.assertEquals(LoggedNodeStatus.UNPROCESSED, result.getStatus());
+    assertEquals(LoggedNodeStatus.UNPROCESSED, result.getStatus());
   }
 
   @Test
@@ -56,7 +55,7 @@ class EventLogConverterTest {
 
     NodeExecutionData result = tested.getExecutionData(NODE_ID);
 
-    Assertions.assertEquals(LoggedNodeStatus.UNPROCESSED, result.getStatus());
+    assertEquals(LoggedNodeStatus.UNPROCESSED, result.getStatus());
   }
 
   @Test
@@ -71,10 +70,10 @@ class EventLogConverterTest {
 
     NodeExecutionData result = tested.getExecutionData(NODE_ID);
 
-    Assertions.assertEquals(LoggedNodeStatus.SUCCESS, result.getStatus());
-    Assertions.assertNotNull(result.getResponse());
-    Assertions.assertEquals(SUCCESS_TRANSITION, result.getResponse().getTransition());
-    Assertions.assertEquals(new JsonArray().add(nodeLog()), result.getResponse().getInvocations());
+    assertEquals(LoggedNodeStatus.SUCCESS, result.getStatus());
+    assertNotNull(result.getResponse());
+    assertEquals(SUCCESS_TRANSITION, result.getResponse().getTransition());
+    assertEquals(new JsonArray().add(nodeLog()), result.getResponse().getInvocations());
   }
 
   @Test
@@ -89,10 +88,10 @@ class EventLogConverterTest {
 
     NodeExecutionData result = tested.getExecutionData(NODE_ID);
 
-    Assertions.assertEquals(LoggedNodeStatus.ERROR, result.getStatus());
-    Assertions.assertNotNull(result.getResponse());
-    Assertions.assertEquals(ERROR_TRANSITION, result.getResponse().getTransition());
-    Assertions.assertEquals(new JsonArray(), result.getResponse().getInvocations());
+    assertEquals(LoggedNodeStatus.ERROR, result.getStatus());
+    assertNotNull(result.getResponse());
+    assertEquals(ERROR_TRANSITION, result.getResponse().getTransition());
+    assertEquals(new JsonArray(), result.getResponse().getInvocations());
   }
 
   @Test
@@ -107,10 +106,10 @@ class EventLogConverterTest {
 
     NodeExecutionData result = tested.getExecutionData(NODE_ID);
 
-    Assertions.assertEquals(LoggedNodeStatus.OTHER, result.getStatus());
-    Assertions.assertNotNull(result.getResponse());
-    Assertions.assertEquals("custom", result.getResponse().getTransition());
-    Assertions.assertEquals(new JsonArray().add(nodeLog()), result.getResponse().getInvocations());
+    assertEquals(LoggedNodeStatus.OTHER, result.getStatus());
+    assertNotNull(result.getResponse());
+    assertEquals("custom", result.getResponse().getTransition());
+    assertEquals(new JsonArray().add(nodeLog()), result.getResponse().getInvocations());
   }
 
   @Test
@@ -126,10 +125,10 @@ class EventLogConverterTest {
 
     NodeExecutionData result = tested.getExecutionData(NODE_ID);
 
-    Assertions.assertEquals(LoggedNodeStatus.SUCCESS, result.getStatus());
-    Assertions.assertNotNull(result.getResponse());
-    Assertions.assertEquals(SUCCESS_TRANSITION, result.getResponse().getTransition());
-    Assertions.assertEquals(new JsonArray().add(nodeLog()), result.getResponse().getInvocations());
+    assertEquals(LoggedNodeStatus.SUCCESS, result.getStatus());
+    assertNotNull(result.getResponse());
+    assertEquals(SUCCESS_TRANSITION, result.getResponse().getTransition());
+    assertEquals(new JsonArray().add(nodeLog()), result.getResponse().getInvocations());
   }
 
   @Test
@@ -145,10 +144,10 @@ class EventLogConverterTest {
 
     NodeExecutionData result = tested.getExecutionData(NODE_ID);
 
-    Assertions.assertEquals(LoggedNodeStatus.ERROR, result.getStatus());
-    Assertions.assertNotNull(result.getResponse());
-    Assertions.assertEquals(ERROR_TRANSITION, result.getResponse().getTransition());
-    Assertions.assertEquals(new JsonArray(), result.getResponse().getInvocations());
+    assertEquals(LoggedNodeStatus.ERROR, result.getStatus());
+    assertNotNull(result.getResponse());
+    assertEquals(ERROR_TRANSITION, result.getResponse().getTransition());
+    assertEquals(new JsonArray(), result.getResponse().getInvocations());
   }
 
   EventLogConverter givenEmptyLogConverter() {

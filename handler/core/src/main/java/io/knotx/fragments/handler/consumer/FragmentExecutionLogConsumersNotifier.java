@@ -42,19 +42,25 @@ public class FragmentExecutionLogConsumersNotifier {
 
   private final List<FragmentExecutionLogConsumer> consumers;
 
-  public FragmentExecutionLogConsumersNotifier(List<FactoryOptions> options) {
+  public FragmentExecutionLogConsumersNotifier(List<FactoryOptions> consumerOptionsList) {
     ServiceLoader<FragmentExecutionLogConsumerFactory> loader = ServiceLoader
         .load(FragmentExecutionLogConsumerFactory.class);
-    this.consumers = options.stream()
-        .map(o -> StreamSupport.stream(loader.spliterator(), false)
-            .filter(f -> f.getName().equals(o.getFactory()))
-            .peek(f -> LOGGER.info("Registering fragment event consumer [{}]", f.getName()))
-            .map(f -> f.create(o.getConfig()))
-            .findFirst()
-            .orElseThrow(() -> new ConfigurationException(
-                "Consumer factory [" + o.getFactory() + "] not configured!")))
+    this.consumers = consumerOptionsList.stream()
+        .map(consumerOptions -> initConsumer(loader, consumerOptions))
         .collect(toList());
   }
+
+  private FragmentExecutionLogConsumer initConsumer(
+      ServiceLoader<FragmentExecutionLogConsumerFactory> loader, FactoryOptions consumerOptions) {
+    return StreamSupport.stream(loader.spliterator(), false)
+        .filter(f -> f.getName().equals(consumerOptions.getFactory()))
+        .peek(f -> LOGGER.info("Registering fragment event consumer [{}]", f.getName()))
+        .map(f -> f.create(consumerOptions.getConfig()))
+        .findFirst()
+        .orElseThrow(() -> new ConfigurationException(
+            "Consumer factory [" + consumerOptions.getFactory() + "] not configured!"));
+  }
+
 
   public void notify(ClientRequest clientRequest, List<FragmentEvent> events,
       ExecutionPlan executionPlan) {

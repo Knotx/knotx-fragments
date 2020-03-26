@@ -14,7 +14,7 @@ where:
   HTTP request
   - `FRAGMENT_EXECUTION_LOG` is a JSON, which contains fragment processing details
 
-`FRAGMENT_EXECUTION_LOG` is described [here](#what-processing-details-are-exposed).
+`FRAGMENT_EXECUTION_LOG` is described [here](https://github.com/Knotx/knotx-fragments/tree/master/handler/consumer#what-is-the-execution-log).
 
 ## How to start?
 - Configure consumer in handler
@@ -49,57 +49,3 @@ It runs when any of the following conditions are met:
  - `header` - condition is analogous, but the value comes from the request header.
  
 If no condition is configured, the consumer is not triggered.
-
-## What processing details are exposed?
-
-[Fragment execution log](https://github.com/Knotx/knotx-fragments/blob/master/handler/consumer/html/docs/asciidoc/dataobjects.adoc#fragmentexecutionlog) (`FRAGMENT_EXECUTION_LOG`) 
-is a JSON that contains both [fragment](https://github.com/Knotx/knotx-fragments/blob/master/api/docs/asciidoc/dataobjects.adoc#fragment) 
-data and [graph node execution log](https://github.com/Knotx/knotx-fragments/blob/master/handler/consumer/html/docs/asciidoc/dataobjects.adoc#graphnodeexecutionlog).
-  
-The graph node execution log ([Task](https://github.com/Knotx/knotx-fragments/tree/master/engine#task) 
-evaluation details) contains data about the processing of the root node and allows you to traverse 
-the entire graph.
-
-### Graph Node Execution Log
-Graph node execution log represents a root node execution data. It combines knowledge from sources:
-- [Task definition](https://github.com/Knotx/knotx-fragments/tree/master/engine#task)
-- [Task metadata](https://github.com/Knotx/knotx-fragments/blob/master/handler/api/src/main/java/io/knotx/fragments/handler/api/metadata/TaskMetadata.java)
-- [Fragment's log](https://github.com/Knotx/knotx-fragments/tree/master/engine#fragments-log)
-
-#### Missing nodes
-The main difference between a Task definition and graph node execution log are missing nodes.
-When graph or subgraph processing ends with a [transition](https://github.com/Knotx/knotx-fragments/tree/master/engine#transition) 
-other than `_success` then a missing node is added. 
-
-See the scenarios below:
-- [single node](https://github.com/Knotx/knotx-fragments/tree/master/engine#single-node) responds 
-  with the `_error` transition that is not configured
-
-  ![Task](assets/images/missing-single-error.png)
-
-- [single node](https://github.com/Knotx/knotx-fragments/tree/master/engine#single-node) responds 
-  with the custom transition that is not configured
-  
-  ![Task](assets/images/missing-single-custom.png)
-  
-- one of the subgraphs in the [composite node](https://github.com/Knotx/knotx-fragments/tree/master/engine#composite-node) 
-  ends with `_error` transition that is not configured as a node output
-
-  ![Task](assets/images/missing-composite-error.png)
-
-- one of the subgraphs in the [composite node](https://github.com/Knotx/knotx-fragments/tree/master/engine#composite-node) 
-  ends with `_error` transition and the `_error` node output is configured 
-
-  ![Task](assets/images/missing-composite-custom-with-custom.png)
-
-- one of the subgraphs in the [composite node](https://github.com/Knotx/knotx-fragments/tree/master/engine#composite-node) 
-  ends with a custom transition that is not configured as a node output
-
-  ![Task](assets/images/missing-composite-custom.png)
-
-- one of the subgraphs in the [composite node](https://github.com/Knotx/knotx-fragments/tree/master/engine#composite-node) ends with custom `fallback` transition and `fallback` transition is configured for the composite node
-
-  ![Task](assets/images/missing-composite-custom-with-error.png)
-  
-Green nodes end with `_success` transition, red nodes with `_error` and blue nodes with custom. Nodes 
-with exclamation mark are missing nodes. 

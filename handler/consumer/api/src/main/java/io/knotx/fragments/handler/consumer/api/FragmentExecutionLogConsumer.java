@@ -15,8 +15,6 @@
  */
 package io.knotx.fragments.handler.consumer.api;
 
-import io.knotx.fragments.engine.api.FragmentEvent;
-import io.knotx.fragments.handler.api.metadata.TasksMetadata;
 import io.knotx.fragments.handler.consumer.api.model.FragmentExecutionLog;
 import io.knotx.server.api.context.ClientRequest;
 import java.util.List;
@@ -30,7 +28,7 @@ public interface FragmentExecutionLogConsumer {
   /**
    * Gets a list of processed and unprocessed fragments (execution logs).
    *
-   * @param request - original request data
+   * @param request    - original request data
    * @param executions - list of fragment execution logs
    */
   void accept(ClientRequest request, List<FragmentExecutionLog> executions);
