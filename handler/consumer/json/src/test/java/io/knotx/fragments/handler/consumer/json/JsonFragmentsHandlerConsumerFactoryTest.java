@@ -15,9 +15,197 @@
  */
 package io.knotx.fragments.handler.consumer.json;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static io.knotx.fragments.engine.api.EventLogEntry.NodeStatus.UNPROCESSED;
+import static io.knotx.fragments.handler.consumer.json.JsonFragmentsHandlerConsumerFactory.CONDITION_OPTION;
+import static io.knotx.fragments.handler.consumer.json.JsonFragmentsHandlerConsumerFactory.FRAGMENT_TYPES_OPTIONS;
+import static io.knotx.fragments.handler.consumer.json.JsonFragmentsHandlerConsumerFactory.HEADER_OPTION;
+import static io.knotx.junit5.assertions.KnotxAssertions.assertJsonEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-// TODO fix #134
+import com.google.common.collect.ImmutableList;
+import io.knotx.fragments.api.Fragment;
+import io.knotx.fragments.engine.api.FragmentEvent;
+import io.knotx.fragments.handler.consumer.api.FragmentExecutionLogConsumer;
+import io.knotx.fragments.handler.consumer.api.model.FragmentExecutionLog;
+import io.knotx.server.api.context.ClientRequest;
+import io.vertx.core.json.JsonArray;
+import io.vertx.core.json.JsonObject;
+import io.vertx.reactivex.core.MultiMap;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+
 class JsonFragmentsHandlerConsumerFactoryTest {
 
+  private static final String EXPECTED_FRAGMENT_TYPE = "snippet";
+  private static final String EXPECTED_HEADER = "x-knotx-debug";
+  private static final String EXPECTED_PARAM = "debug";
+  private static final String PARAM_OPTION = "param";
+  private static final String HTML_TYPE = "html";
+  private static final String FRAGMENT_BODY_JSON = "{\"user\": \"admin\"}";
+  private static final String FRAGMENT_BODY_HTML = "\"<div>body</div>\"";
+  private static final String USER_KEY = "user";
+  private static final String KNOTX_FRAGMENT_KEY = "_knotx_fragment";
+
+  @Test
+  @DisplayName("Fragment body should not be modified when condition not configured")
+  void expectFragmentBodyNotModifiedWhenConditionNotConfigured() {
+    //given
+    FragmentEvent original = new FragmentEvent(
+        new Fragment(EXPECTED_FRAGMENT_TYPE, new JsonObject(), FRAGMENT_BODY_JSON));
+    FragmentEvent copy = new FragmentEvent(original.toJson());
+
+    //when
+    FragmentExecutionLogConsumer tested = new JsonFragmentsHandlerConsumerFactory()
+        .create(new JsonObject()
+            .put(CONDITION_OPTION, new JsonObject().put(HEADER_OPTION, EXPECTED_HEADER)));
+    tested.accept(new ClientRequest()
+            .setHeaders(MultiMap.caseInsensitiveMultiMap().add(EXPECTED_HEADER, "true")),
+        ImmutableList.of(FragmentExecutionLog.newInstance(original)));
+
+    //then
+    assertEquals(copy, original);
+  }
+
+  @Test
+  @DisplayName("Fragment body should not be modified when supported fragments do not contain fragment type")
+  void expectFragmentBodyNotModifiedWhenSupportedFragmentsDoNotContainFragmentType() {
+    //given
+    FragmentEvent original = new FragmentEvent(
+        new Fragment(HTML_TYPE, new JsonObject(), FRAGMENT_BODY_HTML));
+    FragmentEvent copy = new FragmentEvent(original.toJson());
+
+    //when
+    FragmentExecutionLogConsumer tested = new JsonFragmentsHandlerConsumerFactory()
+        .create(new JsonObject()
+            .put(CONDITION_OPTION, new JsonObject().put(PARAM_OPTION, EXPECTED_PARAM)));
+    tested.accept(new ClientRequest()
+            .setParams(MultiMap.caseInsensitiveMultiMap().add(EXPECTED_HEADER, "true")),
+        ImmutableList.of(FragmentExecutionLog.newInstance(original)));
+
+    //then
+    assertEquals(copy, original);
+  }
+
+  @Test
+  @DisplayName("Fragment should not be modified when supported fragments do not contain fragment type")
+  void expectFragmentNotModifiedWhenSupportedFragmentsDoNotContainFragmentType() {
+    //given
+    FragmentEvent original = new FragmentEvent(
+        new Fragment(HTML_TYPE, new JsonObject(), FRAGMENT_BODY_JSON));
+    FragmentEvent copy = new FragmentEvent(original.toJson());
+
+    //when
+    FragmentExecutionLogConsumer tested = new JsonFragmentsHandlerConsumerFactory()
+        .create(new JsonObject()
+            .put(FRAGMENT_TYPES_OPTIONS, new JsonArray().add(EXPECTED_FRAGMENT_TYPE))
+            .put(CONDITION_OPTION, new JsonObject().put(HEADER_OPTION, EXPECTED_HEADER)));
+    tested.accept(new ClientRequest()
+            .setHeaders(MultiMap.caseInsensitiveMultiMap().add(EXPECTED_HEADER, "true")),
+        ImmutableList.of(FragmentExecutionLog.newInstance(original)));
+    //then
+    assertEquals(copy, original);
+  }
+
+  @Test
+  @DisplayName("Fragment should be modified when header condition and supported types configured")
+  void expectFragmentModifiedWhenHederConditionAndSupportedTypedConfigured() {
+    //given
+    FragmentEvent original = new FragmentEvent(
+        new Fragment(EXPECTED_FRAGMENT_TYPE, new JsonObject(), FRAGMENT_BODY_JSON));
+    FragmentEvent copy = new FragmentEvent(original.toJson());
+
+    //when
+    FragmentExecutionLogConsumer tested = new JsonFragmentsHandlerConsumerFactory()
+        .create(new JsonObject()
+            .put(FRAGMENT_TYPES_OPTIONS, new JsonArray().add(EXPECTED_FRAGMENT_TYPE))
+            .put(CONDITION_OPTION, new JsonObject().put(HEADER_OPTION, EXPECTED_HEADER)));
+    tested.accept(new ClientRequest()
+            .setHeaders(MultiMap.caseInsensitiveMultiMap().add(EXPECTED_HEADER, "true")),
+        ImmutableList.of(FragmentExecutionLog.newInstance(original)));
+
+    //then
+    assertNotEquals(copy, original);
+  }
+
+  @Test
+  @DisplayName("Fragment should be modified when param condition and supported types configured")
+  void expectFragmentModifiedWhenParamConditionAndSupportedTypesConfigured() {
+    //given
+    FragmentEvent original = new FragmentEvent(
+        new Fragment(EXPECTED_FRAGMENT_TYPE, new JsonObject(), FRAGMENT_BODY_JSON));
+    FragmentEvent copy = new FragmentEvent(original.toJson());
+
+    //when
+    FragmentExecutionLogConsumer tested = new JsonFragmentsHandlerConsumerFactory()
+        .create(new JsonObject()
+            .put(FRAGMENT_TYPES_OPTIONS, new JsonArray().add(EXPECTED_FRAGMENT_TYPE))
+            .put(CONDITION_OPTION, new JsonObject().put(PARAM_OPTION, EXPECTED_PARAM)));
+    tested.accept(new ClientRequest()
+            .setParams(MultiMap.caseInsensitiveMultiMap().add(EXPECTED_PARAM, "true")),
+        ImmutableList.of(FragmentExecutionLog.newInstance(original)));
+
+    //then
+    assertNotEquals(copy, original);
+  }
+
+  @Test
+  @DisplayName("Execution log entry should be properly merged into existing fragment body")
+  void expectExecutionLogEntryProperlyMergedIntoFragmentBody() {
+    //given
+    FragmentEvent original = new FragmentEvent(
+        new Fragment(EXPECTED_FRAGMENT_TYPE, new JsonObject(), FRAGMENT_BODY_JSON));
+    FragmentEvent copy = new FragmentEvent(original.toJson());
+
+    //when
+    FragmentExecutionLogConsumer tested = new JsonFragmentsHandlerConsumerFactory()
+        .create(new JsonObject()
+            .put(FRAGMENT_TYPES_OPTIONS, new JsonArray().add(EXPECTED_FRAGMENT_TYPE))
+            .put(CONDITION_OPTION, new JsonObject().put(PARAM_OPTION, EXPECTED_PARAM)));
+    tested.accept(new ClientRequest()
+            .setParams(MultiMap.caseInsensitiveMultiMap().add(EXPECTED_PARAM, "true")),
+        ImmutableList.of(FragmentExecutionLog.newInstance(original)));
+
+    //then
+    assertNotEquals(copy, original);
+    JsonObject fragmentBody = new JsonObject(original.getFragment().getBody());
+    assertTrue(fragmentBody.containsKey(USER_KEY));
+    assertTrue(fragmentBody.containsKey(KNOTX_FRAGMENT_KEY));
+  }
+
+  @Test
+  @DisplayName("Execution log entry should contain proper fragment details")
+  void expectFragmentDetailsInExecutionLogEntry() {
+    //given
+    FragmentEvent original = new FragmentEvent(
+        new Fragment(EXPECTED_FRAGMENT_TYPE, new JsonObject(), FRAGMENT_BODY_JSON));
+    FragmentEvent copy = new FragmentEvent(original.toJson());
+
+    JsonObject expectedLog = new JsonObject()
+        .put("startTime", 0)
+        .put("finishTime", 0)
+        .put("status", UNPROCESSED)
+        .put("fragment", new JsonObject()
+            .put("id", original.getFragment().getId())
+            .put("type", "snippet")
+            .put("body", FRAGMENT_BODY_JSON))
+        .put("graph", new JsonObject());
+
+    //when
+    FragmentExecutionLogConsumer tested = new JsonFragmentsHandlerConsumerFactory()
+        .create(new JsonObject()
+            .put(FRAGMENT_TYPES_OPTIONS, new JsonArray().add(EXPECTED_FRAGMENT_TYPE))
+            .put(CONDITION_OPTION, new JsonObject().put(PARAM_OPTION, EXPECTED_PARAM)));
+    tested.accept(new ClientRequest()
+            .setParams(MultiMap.caseInsensitiveMultiMap().add(EXPECTED_PARAM, "true")),
+        ImmutableList.of(FragmentExecutionLog.newInstance(original)));
+
+    //then
+    assertNotEquals(copy, original);
+    JsonObject fragmentBody = new JsonObject(original.getFragment().getBody());
+    assertJsonEquals(expectedLog, fragmentBody.getJsonObject(KNOTX_FRAGMENT_KEY));
+    assertEquals(new JsonObject(FRAGMENT_BODY_JSON).getString(USER_KEY),
+        fragmentBody.getString(USER_KEY));
+  }
 }

@@ -20,7 +20,6 @@ import io.knotx.fragments.handler.consumer.api.FragmentExecutionLogConsumer;
 import io.knotx.fragments.handler.consumer.api.FragmentExecutionLogConsumerFactory;
 import io.knotx.fragments.handler.consumer.api.model.FragmentExecutionLog;
 import io.knotx.server.api.context.ClientRequest;
-import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import java.util.Collections;
 import java.util.List;
@@ -96,14 +95,11 @@ public class FragmentHtmlBodyWriterFactory implements FragmentExecutionLogConsum
   }
 
   private Set<String> getSupportedTypes(JsonObject config) {
-    if (config.containsKey(FRAGMENT_TYPES_OPTIONS)) {
-      JsonArray fragmentTypes = config.getJsonArray(FRAGMENT_TYPES_OPTIONS);
-      return StreamSupport.stream(fragmentTypes.spliterator(), false)
-          .map(Object::toString)
-          .collect(Collectors.toSet());
-    } else {
-      return Collections.emptySet();
-    }
+    return Optional.ofNullable(config.getJsonArray(FRAGMENT_TYPES_OPTIONS))
+        .map(fragmentTypes -> StreamSupport.stream(fragmentTypes.spliterator(), false)
+            .map(Object::toString)
+            .collect(Collectors.toSet()))
+        .orElse(Collections.emptySet());
   }
 
   private String getConditionHeader(JsonObject config) {
