@@ -13,12 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.knotx.fragments.handler.action.cache;
+package io.knotx.fragments.action.cache;
 
-
-import io.knotx.fragments.handler.api.Action;
-import io.knotx.fragments.handler.api.ActionFactory;
-import io.knotx.fragments.handler.api.Cacheable;
+import io.knotx.fragments.action.api.Action;
+import io.knotx.fragments.action.api.ActionFactory;
+import io.knotx.fragments.action.api.Cacheable;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
 

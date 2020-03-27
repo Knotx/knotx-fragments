@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.knotx.fragments.handler.action.cache;
+package io.knotx.fragments.action.cache;
 
 import io.reactivex.Maybe;
 

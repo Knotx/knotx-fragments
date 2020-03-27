@@ -13,15 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.knotx.fragments.handler.action.cache;
+package io.knotx.fragments.action.cache;
 
-import io.knotx.fragments.handler.api.Action;
-import io.knotx.fragments.handler.api.ActionFactory;
+import io.knotx.fragments.action.api.Action;
+import io.knotx.fragments.action.api.ActionFactory;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
 
 /**
- * Action factory for caching fragment payload values on Redis server. Can be initialized with a configuration:
+ * Action factory for caching fragment payload values on Redis server. Can be initialized with a
+ * configuration:
  * <pre>
  *   productDetails {
  *     factory = redis-cache
