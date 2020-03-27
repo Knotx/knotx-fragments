@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.knotx.fragments.handler.action.cache;
+package io.knotx.fragments.action.cache;
 
+import io.knotx.fragments.action.api.Action;
 import io.knotx.fragments.api.Fragment;
-import io.knotx.fragments.handler.api.Action;
-import io.knotx.fragments.handler.api.domain.FragmentContext;
-import io.knotx.fragments.handler.api.domain.FragmentResult;
+import io.knotx.fragments.api.FragmentContext;
+import io.knotx.fragments.api.FragmentResult;
 import io.knotx.server.api.context.ClientRequest;
 import io.knotx.server.common.placeholders.PlaceholdersResolver;
 import io.knotx.server.common.placeholders.SourceDefinitions;
@@ -42,7 +42,7 @@ public class CacheAction implements Action {
 
   private final Cache cache;
 
-  public CacheAction(Action doAction, JsonObject config,
+  CacheAction(Action doAction, JsonObject config,
       Cache cache) {
     this.doAction = doAction;
     this.config = config;
@@ -51,7 +51,8 @@ public class CacheAction implements Action {
   }
 
   @Override
-  public void apply(FragmentContext fragmentContext, Handler<AsyncResult<FragmentResult>> resultHandler) {
+  public void apply(FragmentContext fragmentContext,
+      Handler<AsyncResult<FragmentResult>> resultHandler) {
     String cacheKey = getCacheKey(config, fragmentContext.getClientRequest());
     cache.get(cacheKey)
         .subscribe(cachedValue -> {

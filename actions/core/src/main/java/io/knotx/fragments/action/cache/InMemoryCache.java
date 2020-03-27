@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.knotx.fragments.handler.action.cache;
+package io.knotx.fragments.action.cache;
 
 
 import io.reactivex.Maybe;
@@ -31,7 +31,7 @@ public class InMemoryCache implements Cache {
 
   private final com.google.common.cache.Cache cache;
 
-  public InMemoryCache(JsonObject config) {
+  InMemoryCache(JsonObject config) {
     cache = createCache(config);
   }
 
