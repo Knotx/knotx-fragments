@@ -35,9 +35,9 @@ public class FragmentResult {
   private static final String TRANSITION_KEY = "transition";
   private static final String LOG_KEY = "log";
 
-  private final Fragment fragment;
-  private final String transition;
-  private final JsonObject log;
+  private Fragment fragment;
+  private String transition;
+  private JsonObject log;
 
   public FragmentResult(Fragment fragment, String transition, JsonObject log) {
     this.fragment = fragment;
@@ -92,6 +92,17 @@ public class FragmentResult {
    */
   public JsonObject getLog() {
     return log;
+  }
+
+  /**
+   * Set log data produced by {@link FragmentOperation}. It is a JSON-based value specific to the
+   * operation.
+   *
+   * @return a reference to this FragmentResult for fluent usage
+   */
+  public FragmentResult setLog(JsonObject log) {
+    this.log = log;
+    return this;
   }
 
   @Override

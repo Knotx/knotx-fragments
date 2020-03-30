@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package io.knotx.fragments.action.library.http;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;

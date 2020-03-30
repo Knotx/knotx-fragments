@@ -13,11 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.knotx.fragments.action.library.http.request;
+package io.knotx.fragments.action.helper;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import io.knotx.fragments.action.helper.FragmentContextPlaceholderResolver;
 import io.knotx.fragments.api.Fragment;
 import io.knotx.fragments.api.FragmentContext;
 import io.knotx.server.api.context.ClientRequest;
@@ -28,7 +29,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-class EndpointPlaceholdersResolverTest {
+class FragmentContextPlaceholderResolverTest {
 
   private static final String HOST_HEADER = "domain.com";
   private static final String REFINED_QUERY_PARAM = "someComplexValue";
@@ -88,7 +89,7 @@ class EndpointPlaceholdersResolverTest {
           .put("ElementA", "")
           .put("ElementB", ""));
 
-  private EndpointPlaceholdersResolver tested;
+  private FragmentContextPlaceholderResolver tested;
 
   @Test
   @DisplayName("Expect unchanged plaintext when no placeholders present and none provided")
@@ -200,7 +201,7 @@ class EndpointPlaceholdersResolverTest {
   }
 
   private void givenResolverFor(FragmentContext fragmentContext) {
-    tested = new EndpointPlaceholdersResolver(fragmentContext);
+    tested = new FragmentContextPlaceholderResolver(fragmentContext);
   }
 
   private FragmentContext emptyFragmentContext() {

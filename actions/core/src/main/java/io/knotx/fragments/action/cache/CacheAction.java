@@ -16,106 +16,169 @@
 package io.knotx.fragments.action.cache;
 
 import io.knotx.fragments.action.api.Action;
+import io.knotx.fragments.action.api.log.ActionLogLevel;
+import io.knotx.fragments.action.api.log.ActionLogger;
+import io.knotx.fragments.action.helper.FragmentContextPlaceholderResolver;
+import io.knotx.fragments.action.helper.TimeCalculator;
 import io.knotx.fragments.api.Fragment;
 import io.knotx.fragments.api.FragmentContext;
 import io.knotx.fragments.api.FragmentResult;
-import io.knotx.server.api.context.ClientRequest;
-import io.knotx.server.common.placeholders.PlaceholdersResolver;
-import io.knotx.server.common.placeholders.SourceDefinitions;
+import io.knotx.reactivex.fragments.api.FragmentOperation;
+import io.reactivex.Maybe;
+import io.reactivex.Single;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.json.JsonObject;
-import io.vertx.core.logging.Logger;
-import io.vertx.core.logging.LoggerFactory;
+import java.time.Instant;
 import org.apache.commons.lang3.StringUtils;
 
 public class CacheAction implements Action {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(CacheAction.class);
+  private static final String CACHE_KEY = "cache_key";
+  private static final String CACHED_VALUE = "cached_value";
+  private static final String COMPUTED_VALUE = "computed_value";
+  private static final String CACHE_MISS = "cache_miss";
+  private static final String CACHE_HIT = "cache_hit";
+  private static final String CACHE_PASS = "cache_pass";
+
+  private final String alias;
 
   private final Action doAction;
 
   private final String payloadKey;
 
-  private final JsonObject config;
+  private final String cacheKeySchema;
 
   private final Cache cache;
 
-  CacheAction(Action doAction, JsonObject config,
+  private ActionLogLevel logLevel;
+
+  public CacheAction(String alias, Action doAction, CacheOptions options,
       Cache cache) {
+    this.alias = alias;
     this.doAction = doAction;
-    this.config = config;
-    this.payloadKey = getPayloadKey(config);
     this.cache = cache;
+    this.payloadKey = notEmptyPayloadKey(options);
+    this.cacheKeySchema = notEmptyCacheKey(options);
+    this.logLevel = ActionLogLevel.fromConfig(options.getLogLevel());
   }
 
   @Override
   public void apply(FragmentContext fragmentContext,
       Handler<AsyncResult<FragmentResult>> resultHandler) {
-    String cacheKey = getCacheKey(config, fragmentContext.getClientRequest());
-    cache.get(cacheKey)
-        .subscribe(cachedValue -> {
-          LOGGER.trace("Cache responsed with value: {}", cachedValue);
-          Fragment fragment = fragmentContext.getFragment();
-          fragment.appendPayload(payloadKey, cachedValue);
-          FragmentResult result = new FragmentResult(fragment, FragmentResult.SUCCESS_TRANSITION);
-          Future.succeededFuture(result)
-              .setHandler(resultHandler);
-        }, error -> {
-          LOGGER.error("Could not fetch data from cache. {}", error);
-          Fragment fragment = fragmentContext.getFragment();
-          FragmentResult result = new FragmentResult(fragment, FragmentResult.ERROR_TRANSITION);
-          Future.succeededFuture(result)
-              .setHandler(resultHandler);
-        }, () -> {
-          LOGGER.trace("Cache didn't return value.");
-          callDoActionAndCache(fragmentContext, resultHandler, cacheKey);
-        });
+    ActionLogger actionLogger = ActionLogger.create(alias, logLevel);
+    process(fragmentContext, actionLogger)
+        .doOnError(actionLogger::error)
+        .onErrorReturn(error -> toErrorTransition(fragmentContext))
+        .map(result -> result.setLog(actionLogger.toLog().toJson()))
+        .map(Future::succeededFuture)
+        .doOnSuccess(future -> future.setHandler(resultHandler))
+        .subscribe();
   }
 
-  private void callDoActionAndCache(FragmentContext fragmentContext,
-      Handler<AsyncResult<FragmentResult>> resultHandler, String cacheKey) {
-    doAction.apply(fragmentContext, asyncResult -> {
-      if (asyncResult.succeeded()) {
-        FragmentResult fragmentResult = asyncResult.result();
-        if (FragmentResult.SUCCESS_TRANSITION.equals(fragmentResult.getTransition())
-            && fragmentResult.getFragment()
-            .getPayload()
-            .containsKey(payloadKey)) {
-          JsonObject resultPayload = fragmentResult.getFragment()
-              .getPayload();
-          cache.put(cacheKey, resultPayload.getMap()
-              .get(payloadKey));
-        }
-        Future.succeededFuture(fragmentResult)
-            .setHandler(resultHandler);
-      } else {
-        Future.<FragmentResult>failedFuture(asyncResult.cause()).setHandler(resultHandler);
-      }
-    });
+  private Single<FragmentResult> process(FragmentContext fragmentContext,
+      ActionLogger actionLogger) {
+    String cacheKey = computeCacheKey(fragmentContext);
+    return lookupInCache(cacheKey, fragmentContext, actionLogger)
+        .switchIfEmpty(callDoAction(fragmentContext, actionLogger)
+            .doOnSuccess(fr -> savePayloadToCache(actionLogger, cacheKey, fr)));
   }
 
-  private static String getPayloadKey(JsonObject config) {
-    String result = config.getString("payloadKey");
-    if (StringUtils.isBlank(result)) {
-      throw new IllegalArgumentException(
-          "Action requires payloadKey value in configuration.");
+  private Maybe<FragmentResult> lookupInCache(String cacheKey, FragmentContext fragmentContext,
+      ActionLogger actionLogger) {
+    return cache.get(cacheKey)
+        .doOnSuccess(cachedValue -> logCacheHit(actionLogger, cacheKey, cachedValue))
+        .map(cachedValue -> fragmentContext.getFragment().appendPayload(payloadKey, cachedValue))
+        .map(this::toSuccessTransition);
+    // TODO: handle cache failure
+  }
+
+  private Single<FragmentResult> callDoAction(FragmentContext fragmentContext,
+      ActionLogger actionLogger) {
+    long startTime = Instant.now().toEpochMilli();
+    return FragmentOperation.newInstance(doAction)
+        .rxApply(fragmentContext)
+        .doOnSuccess(fr -> logDoAction(actionLogger, startTime, fr));
+  }
+
+  private void savePayloadToCache(ActionLogger actionLogger, String cacheKey,
+      FragmentResult fragmentResult) {
+    if (isCacheable(fragmentResult)) {
+      Object resultPayload = getAppendedPayload(fragmentResult);
+      cache.put(cacheKey, resultPayload);
+      logCacheMiss(actionLogger, cacheKey, resultPayload);
+    } else {
+      logCachePass(actionLogger, cacheKey);
     }
-    return result;
   }
 
-  private static String getCacheKey(JsonObject config, ClientRequest clientRequest) {
-    String key = config.getString("cacheKey");
+  private boolean isCacheable(FragmentResult fragmentResult) {
+    return isSuccessTransition(fragmentResult)
+        && fragmentResult.getFragment()
+        .getPayload()
+        .containsKey(payloadKey);
+  }
+
+  private Object getAppendedPayload(FragmentResult fragmentResult) {
+    return fragmentResult.getFragment()
+        .getPayload().getMap().get(payloadKey);
+  }
+
+  private FragmentResult toSuccessTransition(Fragment fragment) {
+    return new FragmentResult(fragment, FragmentResult.SUCCESS_TRANSITION);
+  }
+
+  private FragmentResult toErrorTransition(FragmentContext fragmentContext) {
+    return new FragmentResult(fragmentContext.getFragment(), FragmentResult.ERROR_TRANSITION);
+  }
+
+  private String notEmptyPayloadKey(CacheOptions options) {
+    String key = options.getPayloadKey();
+    if (StringUtils.isBlank(key)) {
+      throw new IllegalArgumentException("Action requires payloadKey value in configuration.");
+    }
+    return key;
+  }
+
+  private String notEmptyCacheKey(CacheOptions options) {
+    String key = options.getCacheKey();
     if (StringUtils.isBlank(key)) {
       throw new IllegalArgumentException("Action requires cacheKey value in configuration.");
     }
-    return PlaceholdersResolver.resolve(key, buildSourceDefinitions(clientRequest));
+    return key;
   }
 
-  private static SourceDefinitions buildSourceDefinitions(ClientRequest clientRequest) {
-    return SourceDefinitions.builder()
-        .addClientRequestSource(clientRequest)
-        .build();
+  private String computeCacheKey(FragmentContext fragmentContext) {
+    return new FragmentContextPlaceholderResolver(fragmentContext).resolve(cacheKeySchema);
+  }
+
+  private static boolean isSuccessTransition(FragmentResult fragmentResult) {
+    return FragmentResult.SUCCESS_TRANSITION.equals(fragmentResult.getTransition());
+  }
+
+  private static void logDoAction(ActionLogger actionLogger, long startTime,
+      FragmentResult fragmentResult) {
+    long executionTime = TimeCalculator.executionTime(startTime);
+    if (isSuccessTransition(fragmentResult)) {
+      actionLogger.doActionLog(executionTime, fragmentResult.getLog());
+    } else {
+      actionLogger.failureDoActionLog(executionTime, fragmentResult.getLog());
+    }
+  }
+
+  private static void logCacheHit(ActionLogger actionLogger, String cacheKey, Object cachedValue) {
+    actionLogger.info(CACHE_HIT,
+        new JsonObject().put(CACHE_KEY, cacheKey).put(CACHED_VALUE, cachedValue));
+  }
+
+  private static void logCacheMiss(ActionLogger actionLogger, String cacheKey,
+      Object computedValue) {
+    actionLogger.info(CACHE_MISS,
+        new JsonObject().put(CACHE_KEY, cacheKey).put(COMPUTED_VALUE, computedValue));
+  }
+
+  private static void logCachePass(ActionLogger actionLogger, String cacheKey) {
+    actionLogger.error(CACHE_PASS, new JsonObject().put(CACHE_KEY, cacheKey));
   }
 }

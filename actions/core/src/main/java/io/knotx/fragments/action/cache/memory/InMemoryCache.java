@@ -13,26 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.knotx.fragments.action.cache;
+package io.knotx.fragments.action.cache.memory;
 
 
+import com.google.common.cache.CacheBuilder;
+import io.knotx.fragments.action.cache.Cache;
 import io.reactivex.Maybe;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
-import com.google.common.cache.CacheBuilder;
-
-import io.vertx.core.json.JsonObject;
-
 public class InMemoryCache implements Cache {
 
-  private static final long DEFAULT_MAXIMUM_SIZE = 1000;
-  private static final long DEFAULT_TTL = 5000;
+  private final com.google.common.cache.Cache<String, Object> cache;
 
-  private final com.google.common.cache.Cache cache;
-
-  InMemoryCache(JsonObject config) {
-    cache = createCache(config);
+  InMemoryCache(InMemoryCacheOptions options) {
+    cache = createCache(options);
   }
 
   @Override
@@ -47,14 +42,18 @@ public class InMemoryCache implements Cache {
     cache.put(key, value);
   }
 
-  private static com.google.common.cache.Cache createCache(JsonObject config) {
-    JsonObject cache = config.getJsonObject("cache");
-    long maxSize =
-        cache == null ? DEFAULT_MAXIMUM_SIZE : cache.getLong("maximumSize", DEFAULT_MAXIMUM_SIZE);
-    long ttl = cache == null ? DEFAULT_TTL : cache.getLong("ttl", DEFAULT_TTL);
-    return CacheBuilder.newBuilder()
-        .maximumSize(maxSize)
-        .expireAfterWrite(ttl, TimeUnit.MILLISECONDS)
-        .build();
+  private static com.google.common.cache.Cache<String, Object> createCache(
+      InMemoryCacheOptions options) {
+    CacheBuilder<Object, Object> builder = CacheBuilder.newBuilder();
+    if (options.getMaximumSize() != null) {
+      builder.maximumSize(options.getMaximumSize());
+    }
+    if (options.getTtl() != null) {
+      builder.expireAfterWrite(options.getTtl(), TimeUnit.MILLISECONDS);
+    }
+    if (options.getTtlAfterAccess() != null) {
+      builder.expireAfterAccess(options.getTtlAfterAccess(), TimeUnit.MILLISECONDS);
+    }
+    return builder.build();
   }
 }

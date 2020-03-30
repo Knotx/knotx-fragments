@@ -50,6 +50,33 @@
 |[[message]]`@message`|`String`|-
 |===
 
+[[CacheOptions]]
+== CacheOptions
+
+
+[cols=">25%,25%,50%"]
+[frame="topbot"]
+|===
+^|Name | Type ^| Description
+|[[cache]]`@cache`|`Json object`|+++
+Sets the implementation-specific options for the underlying cache
++++
+|[[cacheKey]]`@cacheKey`|`String`|+++
+Sets the cache key schema, possibly containing <a href="https://github.com/Knotx/knotx-server-http/tree/master/common/placeholders">Knot.x
+ Server Common Placeholders</a>. The placeholders will be evaluated using FragmentContext's data
+ and used to generate the actual key. With this key the cache will be polled. In case of a cache
+ miss, it will be used to store the computed value (when computation succeeds).
++++
+|[[logLevel]]`@logLevel`|`String`|+++
+Set level of action logs.
++++
+|[[payloadKey]]`@payloadKey`|`String`|+++
+Sets the Fragment payload's key under which the cached data is to be placed. In case of a cache
+ miss, the value to be cached will be fetched from the computed Fragment's playload using this
+ key.
++++
+|===
+
 [[CircuitBreakerActionFactoryOptions]]
 == CircuitBreakerActionFactoryOptions
 
@@ -172,6 +199,40 @@ Set the <code>WebClientOptions</code> used by the HTTP client to communicate wit
  endpoint. See https://vertx.io/docs/vertx-web-client/dataobjects.html#WebClientOptions for the
  details what can be configured.
 +++
+|===
+
+[[InMemoryCacheOptions]]
+== InMemoryCacheOptions
+
+
+[cols=">25%,25%,50%"]
+[frame="topbot"]
+|===
+^|Name | Type ^| Description
+|[[maximumSize]]`@maximumSize`|`Number (Integer)`|+++
+Sets the maximum cache size (maximum number of entries in cache). Defaults to 1000. If set to
+ null, cache will not be configured to use this option.
++++
+|[[ttl]]`@ttl`|`Number (Integer)`|+++
+Sets the expire-after-write time in milliseconds. Defaults to 5000ms. If set to null, cache
+ will not be configured to use this option.
++++
+|[[ttlAfterAccess]]`@ttlAfterAccess`|`Number (Integer)`|+++
+Sets the expire-after-access time in milliseconds. Defaults to null. If set to null, cache will
+ not be configured to use this option.
++++
+|===
+
+[[RedisCacheOptions]]
+== RedisCacheOptions
+
+
+[cols=">25%,25%,50%"]
+[frame="topbot"]
+|===
+^|Name | Type ^| Description
+|[[redis]]`@redis`|`link:dataobjects.html#RedisOptions[RedisOptions]`|-
+|[[ttl]]`@ttl`|`Number (Long)`|-
 |===
 
 [[ResponseOptions]]

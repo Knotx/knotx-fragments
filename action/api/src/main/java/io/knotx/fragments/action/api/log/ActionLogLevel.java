@@ -19,7 +19,6 @@ import static java.lang.String.format;
 
 import io.vertx.core.json.JsonObject;
 import java.util.Arrays;
-import java.util.Objects;
 import org.apache.commons.lang3.StringUtils;
 
 public enum ActionLogLevel {
@@ -55,7 +54,7 @@ public enum ActionLogLevel {
 
   public static ActionLogLevel fromConfig(String level) {
     return Arrays.stream(ActionLogLevel.values())
-        .filter(al -> Objects.equals(level, al.getLevel()))
+        .filter(al -> al.getLevel().equalsIgnoreCase(level))
         .findAny()
         .orElseThrow(() -> new IllegalArgumentException(
             format("Incorrect action log level: %s", level)));

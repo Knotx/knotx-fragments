@@ -62,7 +62,7 @@ Type of a Fragment. Different types of Fragments can be processed in separate wa
 A <code>Fragment</code> transformed or updated during applying the link.
 +++
 |[[log]]`@log`|`Json object`|+++
-Log data produced by link. It is a JSON-based value specific to the
+Set log data produced by link. It is a JSON-based value specific to the
  operation.
 +++
 |[[transition]]`@transition`|`String`|+++
