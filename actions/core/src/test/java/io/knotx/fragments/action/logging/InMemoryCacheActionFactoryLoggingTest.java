@@ -24,12 +24,12 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import io.knotx.fragments.action.api.Action;
+import io.knotx.fragments.action.api.log.ActionLogger;
+import io.knotx.fragments.action.cache.memory.InMemoryCacheActionFactory;
 import io.knotx.fragments.api.Fragment;
 import io.knotx.fragments.api.FragmentContext;
 import io.knotx.fragments.api.FragmentResult;
-import io.knotx.fragments.action.InMemoryCacheActionFactory;
-import io.knotx.fragments.action.api.Action;
-import io.knotx.fragments.action.api.log.ActionLogger;
 import io.knotx.junit5.KnotxExtension;
 import io.knotx.server.api.context.ClientRequest;
 import io.vertx.core.Future;
@@ -285,7 +285,7 @@ class InMemoryCacheActionFactoryLoggingTest {
   @MethodSource("provideAllLogLevelConfigurations")
   @DisplayName("Should preserve action logs when doAction has ended with failure")
   void callActionCausingFailure(JsonObject configuration, boolean isLogLevelInfo,
-      VertxTestContext testContext) throws Throwable {
+      VertxTestContext testContext) {
     Action doAction = (fragmentContext, resultHandler) -> Future
         .<FragmentResult>failedFuture(new IllegalStateException("Application failed!"))
         .setHandler(resultHandler);
@@ -293,20 +293,20 @@ class InMemoryCacheActionFactoryLoggingTest {
     Action tested = new InMemoryCacheActionFactory()
         .create(ACTION_ALIAS, configuration, null, doAction);
 
-    tested.apply(new FragmentContext(firstFragment, new ClientRequest()), result -> {
-      testContext.verify(() -> {
-        JsonObject nodeLog = result.result().getLog();
-        assertNotNull(nodeLog);
-        JsonArray errors = nodeLog.getJsonObject("logs").getJsonArray("errors");
-        JsonObject doActionError = errors.getJsonObject(0);
-        assertEquals(EMPTY_JSON_ARRAY, nodeLog.getJsonArray("doActionLogs"));
-        assertEquals(1, errors.getList().size());
-        assertEquals(IllegalStateException.class.getCanonicalName(),
-            doActionError.getString("className"));
-        assertEquals("Application failed!", doActionError.getString("message"));
-        testContext.completeNow();
-      });
-    });
+    tested.apply(new FragmentContext(firstFragment, new ClientRequest()), result ->
+        testContext.verify(() -> {
+          JsonObject nodeLog = result.result().getLog();
+          assertNotNull(nodeLog);
+          JsonArray errors = nodeLog.getJsonObject("logs").getJsonArray("errors");
+          JsonObject doActionError = errors.getJsonObject(0);
+          assertEquals(EMPTY_JSON_ARRAY, nodeLog.getJsonArray("doActionLogs"));
+          assertEquals(1, errors.getList().size());
+          assertEquals(IllegalStateException.class.getCanonicalName(),
+              doActionError.getString("className"));
+          assertEquals("Application failed!", doActionError.getString("message"));
+          testContext.completeNow();
+        })
+    );
   }
 
   private static Stream<Arguments> provideAllLogLevelConfigurations() {

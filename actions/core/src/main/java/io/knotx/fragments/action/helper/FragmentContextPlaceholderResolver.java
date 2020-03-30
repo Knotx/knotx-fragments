@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.knotx.fragments.action.http.request;
+package io.knotx.fragments.action.helper;
 
 import io.knotx.fragments.api.FragmentContext;
 import io.knotx.server.common.placeholders.PlaceholdersResolver;
@@ -25,28 +25,29 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 
-class EndpointPlaceholdersResolver {
+public class FragmentContextPlaceholderResolver {
 
   private static final String PLACEHOLDER_PREFIX_PAYLOAD = "payload";
   private static final String PLACEHOLDER_PREFIX_CONFIG = "config";
 
   private final SourceDefinitions sourceDefinitions;
 
-  EndpointPlaceholdersResolver(FragmentContext fragmentContext) {
+  public FragmentContextPlaceholderResolver(FragmentContext fragmentContext) {
     sourceDefinitions = buildSourceDefinitions(fragmentContext);
   }
 
-  String resolve(String input) {
+  public String resolve(String input) {
     return PlaceholdersResolver.resolve(input, sourceDefinitions);
   }
 
-  JsonObject resolve(JsonObject input) {
+  public JsonObject resolve(JsonObject input) {
     JsonObject output = new JsonObject();
-    input.forEach(entry -> output.put(resolveNotEmpty(entry.getKey()), resolveInternal(entry.getValue())));
+    input.forEach(
+        entry -> output.put(resolveNotEmpty(entry.getKey()), resolveInternal(entry.getValue())));
     return output;
   }
 
-  String resolveAndEncode(String input) {
+  public String resolveAndEncode(String input) {
     return PlaceholdersResolver.resolveAndEncode(input, sourceDefinitions);
   }
 

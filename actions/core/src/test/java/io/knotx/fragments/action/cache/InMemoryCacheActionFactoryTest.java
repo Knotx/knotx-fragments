@@ -13,13 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.knotx.fragments.action;
+package io.knotx.fragments.action.cache;
 
 import static io.knotx.fragments.api.FragmentResult.ERROR_TRANSITION;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import io.knotx.fragments.action.cache.memory.InMemoryCacheActionFactory;
 import io.knotx.fragments.api.Fragment;
 import io.knotx.fragments.action.api.Action;
 import io.knotx.fragments.api.FragmentContext;
@@ -109,7 +110,7 @@ class InMemoryCacheActionFactoryTest {
     }
   }
 
-  @DisplayName("Failed result when doAction throws an exception")
+  @DisplayName("_error transition when doAction returns failed Future")
   @Test
   void callActionThatThrowsException(VertxTestContext testContext) throws Throwable {
     // given

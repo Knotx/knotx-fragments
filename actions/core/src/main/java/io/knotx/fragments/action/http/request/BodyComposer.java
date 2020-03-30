@@ -15,6 +15,7 @@
  */
 package io.knotx.fragments.action.http.request;
 
+import io.knotx.fragments.action.helper.FragmentContextPlaceholderResolver;
 import io.knotx.fragments.action.http.options.EndpointOptions;
 import io.vertx.core.json.JsonObject;
 import org.apache.commons.lang3.StringUtils;
@@ -39,7 +40,7 @@ class BodyComposer {
     }
   }
 
-  String getBody(EndpointPlaceholdersResolver resolver) {
+  String getBody(FragmentContextPlaceholderResolver resolver) {
     if (interpolateBody) {
       return getInterpolatedBody(resolver);
     } else {
@@ -51,7 +52,7 @@ class BodyComposer {
     return !bodyJson.isEmpty();
   }
 
-  private String getInterpolatedBody(EndpointPlaceholdersResolver resolver) {
+  private String getInterpolatedBody(FragmentContextPlaceholderResolver resolver) {
     if (shouldUseJsonBody()) {
       return resolver.resolve(bodyJson).toString();
     } else {
