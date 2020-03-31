@@ -15,7 +15,6 @@
  */
 package io.knotx.fragments.action.cache.memory;
 
-
 import com.google.common.cache.CacheBuilder;
 import io.knotx.fragments.action.cache.Cache;
 import io.reactivex.Maybe;
@@ -45,13 +44,13 @@ public class InMemoryCache implements Cache {
   private static com.google.common.cache.Cache<String, Object> createCache(
       InMemoryCacheOptions options) {
     CacheBuilder<Object, Object> builder = CacheBuilder.newBuilder();
-    if (options.getMaximumSize() != null) {
+    if (options.isEnableMaximumSize()) {
       builder.maximumSize(options.getMaximumSize());
     }
-    if (options.getTtl() != null) {
+    if (options.isEnableTtl()) {
       builder.expireAfterWrite(options.getTtl(), TimeUnit.MILLISECONDS);
     }
-    if (options.getTtlAfterAccess() != null) {
+    if (options.isEnableTtlAfterAccess()) {
       builder.expireAfterAccess(options.getTtlAfterAccess(), TimeUnit.MILLISECONDS);
     }
     return builder.build();

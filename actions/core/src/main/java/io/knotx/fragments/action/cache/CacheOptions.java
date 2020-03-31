@@ -52,7 +52,7 @@ public class CacheOptions {
 
   /**
    * Sets the Fragment payload's key under which the cached data is to be placed. In case of a cache
-   * miss, the value to be cached will be fetched from the computed Fragment's playload using this
+   * miss, the value to be cached will be fetched from the computed Fragment's payload using this
    * key.
    *
    * @param payloadKey Fragment payload's key to cache

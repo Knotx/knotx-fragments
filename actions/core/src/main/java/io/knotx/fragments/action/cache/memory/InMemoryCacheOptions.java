@@ -22,9 +22,13 @@ import java.util.Objects;
 @DataObject(generateConverter = true)
 public class InMemoryCacheOptions {
 
-  private Integer maximumSize = 1000;
-  private Integer ttl = 5000;
-  private Integer ttlAfterAccess;
+  private boolean enableMaximumSize = true;
+  private boolean enableTtl = true;
+  private boolean enableTtlAfterAccess = false;
+
+  private int maximumSize = 1000;
+  private int ttl = 5000;
+  private int ttlAfterAccess = 5000;
 
   public InMemoryCacheOptions() {
   }
@@ -40,20 +44,82 @@ public class InMemoryCacheOptions {
   }
 
   /**
+   * @return true if maximumSize option is used, false otherwise
+   */
+  public boolean isEnableMaximumSize() {
+    return enableMaximumSize;
+  }
+
+  /**
+   * Enables/disables limiting number of allowed entries in cache.
+   *
+   * Defaults to true.
+   *
+   * @param enableMaximumSize true if maximumSize option is used, false otherwise
+   * @return a reference to this, so the API can be used fluently
+   */
+  public InMemoryCacheOptions setEnableMaximumSize(boolean enableMaximumSize) {
+    this.enableMaximumSize = enableMaximumSize;
+    return this;
+  }
+
+  /**
+   * @return true if ttl (after write) option is used, false otherwise
+   */
+  public boolean isEnableTtl() {
+    return enableTtl;
+  }
+
+  /**
+   * Enables/disables automatic cache entry expiration after write (TTL).
+   *
+   * Defaults to true.
+   *
+   * @param enableTtl true if ttl (after write) option is used, false otherwise
+   * @return a reference to this, so the API can be used fluently
+   */
+  public InMemoryCacheOptions setEnableTtl(boolean enableTtl) {
+    this.enableTtl = enableTtl;
+    return this;
+  }
+
+  /**
+   * @return true if ttlAfterAccess option is used, false otherwise
+   */
+  public boolean isEnableTtlAfterAccess() {
+    return enableTtlAfterAccess;
+  }
+
+  /**
+   * Enables/disables automatic cache entry expiration after access (TTL)
+   *
+   * Defaults to true.
+   *
+   * @param enableTtlAfterAccess true if enableTtlAfterAccess option is used, false otherwise
+   * @return a reference to this, so the API can be used fluently
+   */
+  public InMemoryCacheOptions setEnableTtlAfterAccess(boolean enableTtlAfterAccess) {
+    this.enableTtlAfterAccess = enableTtlAfterAccess;
+    return this;
+  }
+
+  /**
    * @return maximum number of entries present in cache
    */
-  public Integer getMaximumSize() {
+  public int getMaximumSize() {
     return maximumSize;
   }
 
   /**
-   * Sets the maximum cache size (maximum number of entries in cache). Defaults to 1000. If set to
-   * null, cache will not be configured to use this option.
+   * Sets the maximum cache size (maximum number of entries in cache). This option is used only if
+   * {@link InMemoryCacheOptions#enableMaximumSize} flag is set.
+   *
+   * Defaults to 1000.
    *
    * @param maximumSize maximum number of entries present in cache
    * @return a reference to this, so the API can be used fluently
    */
-  public InMemoryCacheOptions setMaximumSize(Integer maximumSize) {
+  public InMemoryCacheOptions setMaximumSize(int maximumSize) {
     this.maximumSize = maximumSize;
     return this;
   }
@@ -61,34 +127,38 @@ public class InMemoryCacheOptions {
   /**
    * @return expire-after-write time in milliseconds
    */
-  public Integer getTtl() {
+  public int getTtl() {
     return ttl;
   }
 
   /**
-   * Sets the expire-after-write time in milliseconds. Defaults to 5000ms. If set to null, cache
-   * will not be configured to use this option.
+   * Sets the expire-after-write time in milliseconds. This option is used only if {@link
+   * InMemoryCacheOptions#enableTtl} flag is set.
+   *
+   * Defaults to 5000ms.
    *
    * @param ttl expire-after-write time in milliseconds
    * @return a reference to this, so the API can be used fluently
    */
-  public InMemoryCacheOptions setTtl(Integer ttl) {
+  public InMemoryCacheOptions setTtl(int ttl) {
     this.ttl = ttl;
     return this;
   }
 
-  public Integer getTtlAfterAccess() {
+  public int getTtlAfterAccess() {
     return ttlAfterAccess;
   }
 
   /**
-   * Sets the expire-after-access time in milliseconds. Defaults to null. If set to null, cache will
-   * not be configured to use this option.
+   * Sets the expire-after-access time in milliseconds. This option is used only if {@link
+   * InMemoryCacheOptions#enableTtlAfterAccess} flag is set.
+   *
+   * Defaults to 5000ms.
    *
    * @param ttlAfterAccess expire-after-access time in milliseconds
    * @return a reference to this, so the API can be used fluently
    */
-  public InMemoryCacheOptions setTtlAfterAccess(Integer ttlAfterAccess) {
+  public InMemoryCacheOptions setTtlAfterAccess(int ttlAfterAccess) {
     this.ttlAfterAccess = ttlAfterAccess;
     return this;
   }
@@ -102,20 +172,27 @@ public class InMemoryCacheOptions {
       return false;
     }
     InMemoryCacheOptions that = (InMemoryCacheOptions) o;
-    return Objects.equals(maximumSize, that.maximumSize) &&
-        Objects.equals(ttl, that.ttl) &&
-        Objects.equals(ttlAfterAccess, that.ttlAfterAccess);
+    return enableMaximumSize == that.enableMaximumSize &&
+        enableTtl == that.enableTtl &&
+        enableTtlAfterAccess == that.enableTtlAfterAccess &&
+        maximumSize == that.maximumSize &&
+        ttl == that.ttl &&
+        ttlAfterAccess == that.ttlAfterAccess;
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(maximumSize, ttl, ttlAfterAccess);
+    return Objects
+        .hash(enableMaximumSize, enableTtl, enableTtlAfterAccess, maximumSize, ttl, ttlAfterAccess);
   }
 
   @Override
   public String toString() {
     return "InMemoryCacheOptions{" +
-        "maximumSize=" + maximumSize +
+        "enableMaximumSize=" + enableMaximumSize +
+        ", enableTtl=" + enableTtl +
+        ", enableTtlAfterAccess=" + enableTtlAfterAccess +
+        ", maximumSize=" + maximumSize +
         ", ttl=" + ttl +
         ", ttlAfterAccess=" + ttlAfterAccess +
         '}';

@@ -108,7 +108,7 @@ Set level of action logs.
 +++
 |[[payloadKey]]`@payloadKey`|`String`|+++
 Sets the Fragment payload's key under which the cached data is to be placed. In case of a cache
- miss, the value to be cached will be fetched from the computed Fragment's playload using this
+ miss, the value to be cached will be fetched from the computed Fragment's payload using this
  key.
 +++
 |===
@@ -245,17 +245,36 @@ Set the <code>WebClientOptions</code> used by the HTTP client to communicate wit
 [frame="topbot"]
 |===
 ^|Name | Type ^| Description
-|[[maximumSize]]`@maximumSize`|`Number (Integer)`|+++
-Sets the maximum cache size (maximum number of entries in cache). Defaults to 1000. If set to
- null, cache will not be configured to use this option.
+|[[enableMaximumSize]]`@enableMaximumSize`|`Boolean`|+++
+Enables/disables limiting number of allowed entries in cache.
+
+ Defaults to true.
 +++
-|[[ttl]]`@ttl`|`Number (Integer)`|+++
-Sets the expire-after-write time in milliseconds. Defaults to 5000ms. If set to null, cache
- will not be configured to use this option.
+|[[enableTtl]]`@enableTtl`|`Boolean`|+++
+Enables/disables automatic cache entry expiration after write (TTL).
+
+ Defaults to true.
 +++
-|[[ttlAfterAccess]]`@ttlAfterAccess`|`Number (Integer)`|+++
-Sets the expire-after-access time in milliseconds. Defaults to null. If set to null, cache will
- not be configured to use this option.
+|[[enableTtlAfterAccess]]`@enableTtlAfterAccess`|`Boolean`|+++
+Enables/disables automatic cache entry expiration after access (TTL)
+
+ Defaults to true.
++++
+|[[maximumSize]]`@maximumSize`|`Number (int)`|+++
+Sets the maximum cache size (maximum number of entries in cache). This option is used only if
+ link flag is set.
+
+ Defaults to 1000.
++++
+|[[ttl]]`@ttl`|`Number (int)`|+++
+Sets the expire-after-write time in milliseconds. This option is used only if link flag is set.
+
+ Defaults to 5000ms.
++++
+|[[ttlAfterAccess]]`@ttlAfterAccess`|`Number (int)`|+++
+Sets the expire-after-access time in milliseconds. This option is used only if link flag is set.
+
+ Defaults to 5000ms.
 +++
 |===
 
