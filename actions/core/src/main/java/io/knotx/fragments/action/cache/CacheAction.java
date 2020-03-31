@@ -31,6 +31,7 @@ import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.json.JsonObject;
 import java.time.Instant;
+import java.util.Objects;
 import org.apache.commons.lang3.StringUtils;
 
 public class CacheAction implements Action {
@@ -41,6 +42,8 @@ public class CacheAction implements Action {
   private static final String CACHE_MISS = "cache_miss";
   private static final String CACHE_HIT = "cache_hit";
   private static final String CACHE_PASS = "cache_pass";
+  private static final String CACHE_GET_FAILURE = "cache_get_failure";
+  private static final String CACHE_PUT_FAILURE = "cache_put_failure";
 
   private final String alias;
 
@@ -49,6 +52,10 @@ public class CacheAction implements Action {
   private final String payloadKey;
 
   private final String cacheKeySchema;
+
+  private final boolean failWhenCacheGetFails;
+
+  private final boolean failWhenCachePutFails;
 
   private final Cache cache;
 
@@ -61,6 +68,8 @@ public class CacheAction implements Action {
     this.cache = cache;
     this.payloadKey = notEmptyPayloadKey(options);
     this.cacheKeySchema = notEmptyCacheKey(options);
+    this.failWhenCacheGetFails = options.isFailWhenCacheGetFails();
+    this.failWhenCachePutFails = options.isFailWhenCachePutFails();
     this.logLevel = ActionLogLevel.fromConfig(options.getLogLevel());
   }
 
@@ -82,16 +91,25 @@ public class CacheAction implements Action {
     String cacheKey = computeCacheKey(fragmentContext);
     return lookupInCache(cacheKey, fragmentContext, actionLogger)
         .switchIfEmpty(callDoAction(fragmentContext, actionLogger)
-            .doOnSuccess(fr -> savePayloadToCache(actionLogger, cacheKey, fr)));
+            .doOnSuccess(fr -> savePayloadToCache(cacheKey, fr, actionLogger)));
   }
 
   private Maybe<FragmentResult> lookupInCache(String cacheKey, FragmentContext fragmentContext,
       ActionLogger actionLogger) {
-    return cache.get(cacheKey)
+    return safeGet(cacheKey)
         .doOnSuccess(cachedValue -> logCacheHit(actionLogger, cacheKey, cachedValue))
         .map(cachedValue -> fragmentContext.getFragment().appendPayload(payloadKey, cachedValue))
-        .map(this::toSuccessTransition);
-    // TODO: handle cache failure
+        .map(this::toSuccessTransition)
+        .doOnError(e -> logCacheGetFailure(actionLogger, cacheKey, e))
+        .onErrorResumeNext(e -> failWhenCacheGetFails ? Maybe.error(e) : Maybe.empty());
+  }
+
+  private Maybe<Object> safeGet(String cacheKey) {
+    try {
+      return Objects.requireNonNull(cache.get(cacheKey));
+    } catch (Exception e) {
+      return Maybe.error(e);
+    }
   }
 
   private Single<FragmentResult> callDoAction(FragmentContext fragmentContext,
@@ -102,14 +120,25 @@ public class CacheAction implements Action {
         .doOnSuccess(fr -> logDoAction(actionLogger, startTime, fr));
   }
 
-  private void savePayloadToCache(ActionLogger actionLogger, String cacheKey,
-      FragmentResult fragmentResult) {
+  private void savePayloadToCache(String cacheKey, FragmentResult fragmentResult,
+      ActionLogger actionLogger) {
     if (isCacheable(fragmentResult)) {
       Object resultPayload = getAppendedPayload(fragmentResult);
-      cache.put(cacheKey, resultPayload);
       logCacheMiss(actionLogger, cacheKey, resultPayload);
+      tryToPutInCache(cacheKey, resultPayload, actionLogger);
     } else {
       logCachePass(actionLogger, cacheKey);
+    }
+  }
+
+  private void tryToPutInCache(String cacheKey, Object resultPayload, ActionLogger actionLogger) {
+    try {
+      cache.put(cacheKey, resultPayload);
+    } catch (Exception e) {
+      logCachePutFailure(actionLogger, cacheKey, resultPayload, e);
+      if (failWhenCachePutFails) {
+        throw e;
+      }
     }
   }
 
@@ -180,5 +209,17 @@ public class CacheAction implements Action {
 
   private static void logCachePass(ActionLogger actionLogger, String cacheKey) {
     actionLogger.error(CACHE_PASS, new JsonObject().put(CACHE_KEY, cacheKey));
+  }
+
+  private static void logCacheGetFailure(ActionLogger actionLogger, String cacheKey, Throwable e) {
+    actionLogger.error(CACHE_GET_FAILURE, new JsonObject().put(CACHE_KEY, cacheKey));
+    actionLogger.error(e);
+  }
+
+  private static void logCachePutFailure(ActionLogger actionLogger, String cacheKey,
+      Object computedValue, Throwable e) {
+    actionLogger.error(CACHE_PUT_FAILURE,
+        new JsonObject().put(CACHE_KEY, cacheKey).put(COMPUTED_VALUE, computedValue));
+    actionLogger.error(e);
   }
 }

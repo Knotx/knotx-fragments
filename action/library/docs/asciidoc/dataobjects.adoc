@@ -67,6 +67,22 @@ Sets the cache key schema, possibly containing <a href="https://github.com/Knotx
  and used to generate the actual key. With this key the cache will be polled. In case of a cache
  miss, it will be used to store the computed value (when computation succeeds).
 +++
+|[[failWhenCacheGetFails]]`@failWhenCacheGetFails`|`Boolean`|+++
+Sets flag indicating the behaviour in case of cache get failure. If set, cache get failure will
+ result in skipping doAction call and returning an _error transition. When not set, cache get
+ failure will be treated as a cache miss.
+
+ Please note that setting this flag to false may result in an increased traffic to the service
+ handled by doAction in case of permanent cache unavailability.
+
+ Defaults to true.
++++
+|[[failWhenCachePutFails]]`@failWhenCachePutFails`|`Boolean`|+++
+Sets flag indicating the behaviour in case of cache put failure. If set, cache put failure will
+ result in returning an _error transition. When not set, cache put failure will be ignored.
+
+ Defaults to false.
++++
 |[[logLevel]]`@logLevel`|`String`|+++
 Set level of action logs.
 +++
