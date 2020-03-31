@@ -25,6 +25,8 @@ public class CacheOptions {
 
   private String payloadKey;
   private String cacheKey;
+  private boolean failWhenCacheGetFails = true;
+  private boolean failWhenCachePutFails = false;
   private JsonObject cache = new JsonObject();
   private String logLevel = ActionLogLevel.ERROR.name();
 
@@ -83,6 +85,56 @@ public class CacheOptions {
   }
 
   /**
+   * @return flag indicating whether action should fail with _error transition or continue
+   * processing when cache get fails
+   */
+  public boolean isFailWhenCacheGetFails() {
+    return failWhenCacheGetFails;
+  }
+
+  /**
+   * Sets flag indicating the behaviour in case of cache get failure. If set, cache get failure will
+   * result in skipping doAction call and returning an _error transition. When not set, cache get
+   * failure will be treated as a cache miss.
+   *
+   * Please note that setting this flag to false may result in an increased traffic to the service
+   * handled by doAction in case of permanent cache unavailability.
+   *
+   * Defaults to true.
+   *
+   * @param failWhenCacheGetFails flag indicating whether action should fail with _error transition
+   * or continue processing when cache get fails
+   * @return a reference to this, so the API can be used fluently
+   */
+  public CacheOptions setFailWhenCacheGetFails(boolean failWhenCacheGetFails) {
+    this.failWhenCacheGetFails = failWhenCacheGetFails;
+    return this;
+  }
+
+  /**
+   * @return flag indicating whether action should fail with _error transition or continue
+   * processing when cache put fails
+   */
+  public boolean isFailWhenCachePutFails() {
+    return failWhenCachePutFails;
+  }
+
+  /**
+   * Sets flag indicating the behaviour in case of cache put failure. If set, cache put failure will
+   * result in returning an _error transition. When not set, cache put failure will be ignored.
+   *
+   * Defaults to false.
+   *
+   * @param failWhenCachePutFails flag indicating whether action should fail with _error transition
+   * or continue processing when cache put fails
+   * @return a reference to this, so the API can be used fluently
+   */
+  public CacheOptions setFailWhenCachePutFails(boolean failWhenCachePutFails) {
+    this.failWhenCachePutFails = failWhenCachePutFails;
+    return this;
+  }
+
+  /**
    * @return implementation-specific options for the underlying cache
    */
   public JsonObject getCache() {
@@ -123,16 +175,19 @@ public class CacheOptions {
     if (o == null || getClass() != o.getClass()) {
       return false;
     }
-    CacheOptions that = (CacheOptions) o;
-    return Objects.equals(payloadKey, that.payloadKey) &&
-        Objects.equals(cacheKey, that.cacheKey) &&
-        Objects.equals(cache, that.cache) &&
-        Objects.equals(logLevel, that.logLevel);
+    CacheOptions options = (CacheOptions) o;
+    return failWhenCacheGetFails == options.failWhenCacheGetFails &&
+        failWhenCachePutFails == options.failWhenCachePutFails &&
+        Objects.equals(payloadKey, options.payloadKey) &&
+        Objects.equals(cacheKey, options.cacheKey) &&
+        Objects.equals(cache, options.cache) &&
+        Objects.equals(logLevel, options.logLevel);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(payloadKey, cacheKey, cache, logLevel);
+    return Objects
+        .hash(payloadKey, cacheKey, failWhenCacheGetFails, failWhenCachePutFails, cache, logLevel);
   }
 
   @Override
@@ -140,6 +195,8 @@ public class CacheOptions {
     return "CacheOptions{" +
         "payloadKey='" + payloadKey + '\'' +
         ", cacheKey='" + cacheKey + '\'' +
+        ", failWhenCacheGetFails=" + failWhenCacheGetFails +
+        ", failWhenCachePutFails=" + failWhenCachePutFails +
         ", cache=" + cache +
         ", logLevel='" + logLevel + '\'' +
         '}';
