@@ -20,9 +20,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Function;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class NodeMetadata {
 
@@ -113,11 +111,14 @@ public class NodeMetadata {
           .min(Comparator.naturalOrder())
           .orElse((long) 0);
 
-      processingEndTimestamp = getLatestNestedTime(nodes);
+      processingEndTimestamp = nestedMetadata.stream()
+          .map(subtask -> getLatestTimeInTransitions(subtask.transitions, nodes))
+          .max(Comparator.naturalOrder())
+          .orElse((long) 0);
     }
   }
 
-  private long getLatestNestedTime(Map<String, NodeMetadata> nodes) {
+  private long getLatestTimeInTransitions(Map<String, String> transitions, Map<String, NodeMetadata> nodes) {
     List<NodeMetadata> metadata = transitions.values().stream()
         .map(nodes::get)
         .collect(Collectors.toList());
@@ -125,7 +126,7 @@ public class NodeMetadata {
     return metadata.isEmpty()
         ? getProcessingEndTimestamp()
         : metadata.stream()
-            .map(nodeMetadata -> nodeMetadata.getLatestNestedTime(nodes))
+            .map(nodeMetadata -> nodeMetadata.getLatestTimeInTransitions(nodeMetadata.transitions, nodes))
             .max(Comparator.naturalOrder())
             .orElse((long) 0);
   }

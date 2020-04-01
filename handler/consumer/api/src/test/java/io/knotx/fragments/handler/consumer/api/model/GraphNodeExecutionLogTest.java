@@ -63,7 +63,7 @@ class GraphNodeExecutionLogTest {
         .singletonMap(FragmentResult.SUCCESS_TRANSITION, GraphNodeExecutionLog.newInstance("B"));
 
     GraphNodeExecutionLog executionLog = GraphNodeExecutionLog
-        .newInstance(nodeId, type, label, subtasks, operation, on);
+        .newInstance(nodeId, type, label, 0, 0, subtasks, operation, on);
 
     // when
     GraphNodeExecutionLog result = new GraphNodeExecutionLog(executionLog.toJson());

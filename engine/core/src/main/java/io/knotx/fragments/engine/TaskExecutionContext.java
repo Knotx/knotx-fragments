@@ -15,17 +15,14 @@
  */
 package io.knotx.fragments.engine;
 
-import static io.knotx.fragments.api.FragmentResult.ERROR_TRANSITION;
-import static io.knotx.fragments.api.FragmentResult.SUCCESS_TRANSITION;
-
 import io.knotx.fragments.api.Fragment;
+import io.knotx.fragments.api.FragmentContext;
+import io.knotx.fragments.api.FragmentResult;
 import io.knotx.fragments.engine.api.EventLogEntry;
 import io.knotx.fragments.engine.api.FragmentEvent;
 import io.knotx.fragments.engine.api.FragmentEvent.Status;
 import io.knotx.fragments.engine.api.FragmentEventContext;
 import io.knotx.fragments.engine.api.node.Node;
-import io.knotx.fragments.api.FragmentContext;
-import io.knotx.fragments.api.FragmentResult;
 import io.knotx.fragments.engine.exception.NodeFatalException;
 import io.knotx.server.api.context.ClientRequest;
 import io.reactivex.Single;
@@ -36,6 +33,9 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 
+import static io.knotx.fragments.api.FragmentResult.ERROR_TRANSITION;
+import static io.knotx.fragments.api.FragmentResult.SUCCESS_TRANSITION;
+
 class TaskExecutionContext {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(TaskExecutionContext.class);
@@ -44,8 +44,7 @@ class TaskExecutionContext {
   private final FragmentEventContext fragmentEventContext;
   private Node currentNode;
 
-  TaskExecutionContext(String taskName, Node graphRoot,
-      FragmentEventContext fragmentEventContext) {
+  TaskExecutionContext(String taskName, Node graphRoot, FragmentEventContext fragmentEventContext) {
     this.taskName = taskName;
     this.currentNode = graphRoot;
     this.fragmentEventContext = fragmentEventContext;
