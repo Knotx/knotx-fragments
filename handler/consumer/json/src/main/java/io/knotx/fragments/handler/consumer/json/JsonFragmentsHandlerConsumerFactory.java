@@ -21,6 +21,7 @@ import io.knotx.fragments.handler.consumer.api.FragmentExecutionLogConsumer;
 import io.knotx.fragments.handler.consumer.api.FragmentExecutionLogConsumerFactory;
 import io.knotx.fragments.handler.consumer.api.model.FragmentExecutionLog;
 import io.knotx.server.api.context.ClientRequest;
+import io.vertx.core.json.DecodeException;
 import io.vertx.core.json.JsonObject;
 import java.util.Collections;
 import java.util.List;
@@ -60,6 +61,11 @@ public class JsonFragmentsHandlerConsumerFactory implements FragmentExecutionLog
       }
 
       private boolean isSupported(FragmentExecutionLog executionData) {
+        try {
+          new JsonObject(executionData.getFragment().getBody());
+        } catch (DecodeException e) {
+          return false;
+        }
         return supportedTypes.contains(executionData.getFragment().getType());
       }
 

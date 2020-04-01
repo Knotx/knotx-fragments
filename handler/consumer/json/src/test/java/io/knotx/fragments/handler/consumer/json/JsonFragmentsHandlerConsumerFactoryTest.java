@@ -33,8 +33,12 @@ import io.knotx.server.api.context.ClientRequest;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.reactivex.core.MultiMap;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 class JsonFragmentsHandlerConsumerFactoryTest {
 
@@ -48,15 +52,24 @@ class JsonFragmentsHandlerConsumerFactoryTest {
   private static final String USER_KEY = "user";
   private static final String KNOTX_FRAGMENT_KEY = "_knotx_fragment";
 
-  @Test
-  @DisplayName("Fragment body should not be modified when condition not configured")
-  void expectFragmentBodyNotModifiedWhenConditionNotConfigured() {
-    //given
+  private static Stream<Arguments> provideFragmentConsumerConfiguration() {
+    return Stream.of(
+        Arguments.of(EXPECTED_FRAGMENT_TYPE, FRAGMENT_BODY_JSON),
+        Arguments.of(HTML_TYPE, FRAGMENT_BODY_HTML),
+        Arguments.of(EXPECTED_FRAGMENT_TYPE, FRAGMENT_BODY_HTML),
+        Arguments.of(HTML_TYPE, FRAGMENT_BODY_JSON)
+    );
+  }
+
+  @ParameterizedTest
+  @MethodSource("provideFragmentConsumerConfiguration")
+  @DisplayName("Fragment body should not be modified when invalid configuration provided")
+  void fragmentBodyShouldNotBeModifiedWhenInvalidConfigurationProvided(String fragmentType,
+      String fragmentBody) {
     FragmentEvent original = new FragmentEvent(
-        new Fragment(EXPECTED_FRAGMENT_TYPE, new JsonObject(), FRAGMENT_BODY_JSON));
+        new Fragment(fragmentType, new JsonObject(), fragmentBody));
     FragmentEvent copy = new FragmentEvent(original.toJson());
 
-    //when
     FragmentExecutionLogConsumer tested = new JsonFragmentsHandlerConsumerFactory()
         .create(new JsonObject()
             .put(CONDITION_OPTION, new JsonObject().put(HEADER_OPTION, EXPECTED_HEADER)));
@@ -64,27 +77,6 @@ class JsonFragmentsHandlerConsumerFactoryTest {
             .setHeaders(MultiMap.caseInsensitiveMultiMap().add(EXPECTED_HEADER, "true")),
         ImmutableList.of(FragmentExecutionLog.newInstance(original)));
 
-    //then
-    assertEquals(copy, original);
-  }
-
-  @Test
-  @DisplayName("Fragment body should not be modified when supported fragments do not contain fragment type")
-  void expectFragmentBodyNotModifiedWhenSupportedFragmentsDoNotContainFragmentType() {
-    //given
-    FragmentEvent original = new FragmentEvent(
-        new Fragment(HTML_TYPE, new JsonObject(), FRAGMENT_BODY_HTML));
-    FragmentEvent copy = new FragmentEvent(original.toJson());
-
-    //when
-    FragmentExecutionLogConsumer tested = new JsonFragmentsHandlerConsumerFactory()
-        .create(new JsonObject()
-            .put(CONDITION_OPTION, new JsonObject().put(PARAM_OPTION, EXPECTED_PARAM)));
-    tested.accept(new ClientRequest()
-            .setParams(MultiMap.caseInsensitiveMultiMap().add(EXPECTED_HEADER, "true")),
-        ImmutableList.of(FragmentExecutionLog.newInstance(original)));
-
-    //then
     assertEquals(copy, original);
   }
 
@@ -109,7 +101,7 @@ class JsonFragmentsHandlerConsumerFactoryTest {
   }
 
   @Test
-  @DisplayName("Fragment should be modified when header condition and supported types configured")
+  @DisplayName("Fragment should be modified when header condition and fragment type match")
   void expectFragmentModifiedWhenHederConditionAndSupportedTypedConfigured() {
     //given
     FragmentEvent original = new FragmentEvent(
@@ -130,7 +122,7 @@ class JsonFragmentsHandlerConsumerFactoryTest {
   }
 
   @Test
-  @DisplayName("Fragment should be modified when param condition and supported types configured")
+  @DisplayName("Fragment should be modified when param condition and fragment type match")
   void expectFragmentModifiedWhenParamConditionAndSupportedTypesConfigured() {
     //given
     FragmentEvent original = new FragmentEvent(

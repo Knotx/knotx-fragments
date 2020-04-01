@@ -31,7 +31,6 @@ import io.knotx.fragments.handler.api.metadata.OperationMetadata;
 import io.knotx.fragments.handler.api.metadata.TaskMetadata;
 import io.knotx.fragments.handler.consumer.api.model.GraphNodeOperationLog;
 import io.knotx.fragments.handler.consumer.api.model.LoggedNodeStatus;
-import io.knotx.junit5.assertions.KnotxAssertions;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import java.util.Arrays;
@@ -59,7 +58,7 @@ class MetadataConverterTest {
 
     JsonObject output = tested.getExecutionLog().toJson();
 
-    KnotxAssertions.assertJsonEquals(new JsonObject(), output);
+    assertJsonEquals(new JsonObject(), output);
   }
 
   @Test
@@ -71,7 +70,7 @@ class MetadataConverterTest {
 
     JsonObject expected = jsonForNotDescribedNode(ROOT_NODE);
 
-    KnotxAssertions.assertJsonEquals(expected, output);
+    assertJsonEquals(expected, output);
   }
 
   @Test
@@ -83,7 +82,7 @@ class MetadataConverterTest {
 
     JsonObject expected = jsonForNode(ROOT_NODE, "custom");
 
-    KnotxAssertions.assertJsonEquals(expected, output);
+    assertJsonEquals(expected, output);
   }
 
   @Test
@@ -95,7 +94,7 @@ class MetadataConverterTest {
 
     JsonObject expected = jsonForActionNode(ROOT_NODE);
 
-    KnotxAssertions.assertJsonEquals(expected, output);
+    assertJsonEquals(expected, output);
   }
 
   @Test
@@ -112,7 +111,7 @@ class MetadataConverterTest {
         .put("on", new JsonObject()
             .put(SUCCESS_TRANSITION, jsonForNode("node-A", "factory-A")));
 
-    KnotxAssertions.assertJsonEquals(expected, output);
+    assertJsonEquals(expected, output);
   }
 
   @Test
@@ -142,7 +141,7 @@ class MetadataConverterTest {
             .put("transition", ERROR_TRANSITION)
             .put("invocations", new JsonArray()));
 
-    KnotxAssertions.assertJsonEquals(expected, output);
+    assertJsonEquals(expected, output);
   }
 
   @Test
@@ -165,7 +164,7 @@ class MetadataConverterTest {
             .put("transition", SUCCESS_TRANSITION)
             .put("invocations", wrap(simpleNodeLog())));
 
-    KnotxAssertions.assertJsonEquals(expected, output);
+    assertJsonEquals(expected, output);
   }
 
   @Test
@@ -189,7 +188,7 @@ class MetadataConverterTest {
             jsonForNode("node-C", "factory-C")
         )));
 
-    KnotxAssertions.assertJsonEquals(expected, output);
+    assertJsonEquals(expected, output);
   }
 
   @Test
@@ -213,7 +212,7 @@ class MetadataConverterTest {
             jsonForNotDescribedNode("node-C")
         )));
 
-    KnotxAssertions.assertJsonEquals(expected, output);
+    assertJsonEquals(expected, output);
   }
 
   @Test
@@ -260,7 +259,7 @@ class MetadataConverterTest {
                 )))
             ));
 
-    KnotxAssertions.assertJsonEquals(expected, output);
+    assertJsonEquals(expected, output);
   }
 
   @Test
@@ -342,7 +341,7 @@ class MetadataConverterTest {
                 )))
             ));
 
-    KnotxAssertions.assertJsonEquals(expected, output);
+    assertJsonEquals(expected, output);
   }
 
   private EventLog createEventLog(EventLogEntry... entries) {
