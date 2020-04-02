@@ -18,7 +18,7 @@
 package io.knotx.fragments.handler;
 
 import io.knotx.fragments.api.Fragment;
-import io.knotx.fragments.engine.*;
+import io.knotx.fragments.engine.FragmentsEngine;
 import io.knotx.fragments.engine.api.FragmentEvent;
 import io.knotx.fragments.engine.api.FragmentEvent.Status;
 import io.knotx.fragments.engine.api.FragmentEventContextTaskAware;
@@ -36,7 +36,6 @@ import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import io.vertx.reactivex.core.Vertx;
 import io.vertx.reactivex.ext.web.RoutingContext;
-import org.apache.commons.lang3.StringUtils;
 
 import java.util.List;
 import java.util.function.Predicate;
@@ -59,7 +58,8 @@ public class FragmentsHandler implements Handler<RoutingContext> {
     taskProvider = new TaskProvider(handlerOptions.getTaskFactories(), vertx);
     engine = new FragmentsEngine(vertx);
     requestContextEngine = new DefaultRequestContextEngine(getClass().getSimpleName());
-    consumerNotifier = new FragmentExecutionLogConsumersNotifier(handlerOptions.getConsumerFactories());
+    consumerNotifier = new FragmentExecutionLogConsumersNotifier(
+        handlerOptions.getConsumerFactories());
   }
 
   @Override
@@ -99,9 +99,10 @@ public class FragmentsHandler implements Handler<RoutingContext> {
   }
 
   private RequestEventHandlerResult toHandlerResult(List<FragmentEvent> events,
-      RequestContext requestContext) {
+                                                    RequestContext requestContext) {
 
-    List<Fragment> failedFragments = retrieveFragments(events, e -> e.getStatus() == Status.FAILURE);
+    List<Fragment> failedFragments = retrieveFragments(events,
+        e -> e.getStatus() == Status.FAILURE);
 
     if (!failedFragments.isEmpty() && !shouldPassInvalidFragments(requestContext)) {
       return RequestEventHandlerResult.fail(buildErrorMessage(failedFragments));
@@ -125,7 +126,7 @@ public class FragmentsHandler implements Handler<RoutingContext> {
   }
 
   private List<Fragment> retrieveFragments(List<FragmentEvent> events,
-      Predicate<FragmentEvent> predicate) {
+                                           Predicate<FragmentEvent> predicate) {
     return events.stream()
         .filter(predicate)
         .map(FragmentEvent::getFragment)
@@ -137,6 +138,6 @@ public class FragmentsHandler implements Handler<RoutingContext> {
     String param = request.getParams().get(handlerOptions.getAllowInvalidFragmentsParam());
     String header = request.getHeaders().get(handlerOptions.getAllowInvalidFragmentsHeader());
 
-    return "true".equals(param) || "true".equals(header);
+    return Boolean.parseBoolean(param) || Boolean.parseBoolean(header);
   }
 }
