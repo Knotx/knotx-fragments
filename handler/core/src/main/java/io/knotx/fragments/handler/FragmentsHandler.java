@@ -36,6 +36,7 @@ import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import io.vertx.reactivex.core.Vertx;
 import io.vertx.reactivex.ext.web.RoutingContext;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.List;
 import java.util.function.Predicate;
@@ -50,15 +51,15 @@ public class FragmentsHandler implements Handler<RoutingContext> {
 
   private final FragmentsEngine engine;
   private final TaskProvider taskProvider;
+  private final FragmentsHandlerOptions handlerOptions;
   private final FragmentExecutionLogConsumersNotifier consumerNotifier;
 
   FragmentsHandler(Vertx vertx, JsonObject options) {
-    FragmentsHandlerOptions handlerOptions = new FragmentsHandlerOptions(options);
+    handlerOptions = new FragmentsHandlerOptions(options);
     taskProvider = new TaskProvider(handlerOptions.getTaskFactories(), vertx);
     engine = new FragmentsEngine(vertx);
     requestContextEngine = new DefaultRequestContextEngine(getClass().getSimpleName());
-    consumerNotifier = new FragmentExecutionLogConsumersNotifier(
-        handlerOptions.getConsumerFactories());
+    consumerNotifier = new FragmentExecutionLogConsumersNotifier(handlerOptions.getConsumerFactories());
   }
 
   @Override
@@ -100,10 +101,9 @@ public class FragmentsHandler implements Handler<RoutingContext> {
   private RequestEventHandlerResult toHandlerResult(List<FragmentEvent> events,
       RequestContext requestContext) {
 
-    List<Fragment> failedFragments = retrieveFragments(events,
-        e -> e.getStatus() == Status.FAILURE);
+    List<Fragment> failedFragments = retrieveFragments(events, e -> e.getStatus() == Status.FAILURE);
 
-    if (!failedFragments.isEmpty()) {
+    if (!failedFragments.isEmpty() && !shouldPassInvalidFragments(requestContext)) {
       return RequestEventHandlerResult.fail(buildErrorMessage(failedFragments));
     }
 
@@ -130,5 +130,13 @@ public class FragmentsHandler implements Handler<RoutingContext> {
         .filter(predicate)
         .map(FragmentEvent::getFragment)
         .collect(Collectors.toList());
+  }
+
+  private boolean shouldPassInvalidFragments(RequestContext requestContext) {
+    ClientRequest request = requestContext.getRequestEvent().getClientRequest();
+    String param = request.getParams().get(handlerOptions.getAllowInvalidFragmentsParam());
+    String header = request.getHeaders().get(handlerOptions.getAllowInvalidFragmentsHeader());
+
+    return "true".equals(param) || "true".equals(header);
   }
 }

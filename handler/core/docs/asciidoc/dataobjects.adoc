@@ -99,6 +99,14 @@ The factory name.
 [frame="topbot"]
 |===
 ^|Name | Type ^| Description
+|[[allowInvalidFragmentsHeader]]`@allowInvalidFragmentsHeader`|`String`|+++
+Name of the http header that, when set to "true" in the request, will force Fragments Handler to succeed even if some fragments failed.
+ This is mainly so that the data can be inspected in debug mode.
++++
+|[[allowInvalidFragmentsParam]]`@allowInvalidFragmentsParam`|`String`|+++
+Name of the query parameter that, when set to "true" in the request, will force Fragments Handler to succeed even if some fragments failed.
+ This is mainly so that the data can be inspected in debug mode.
++++
 |[[consumerFactories]]`@consumerFactories`|`Array of link:dataobjects.html#FactoryOptions[FactoryOptions]`|+++
 The array/list of consumer factory options.
 +++
