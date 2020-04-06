@@ -51,28 +51,39 @@ class JsonFragmentsHandlerConsumerFactoryTest {
   private static final String FRAGMENT_BODY_HTML = "\"<div>body</div>\"";
   private static final String USER_KEY = "user";
   private static final String KNOTX_FRAGMENT_KEY = "_knotx_fragment";
+  private static final String FRAGMENT_TYPES = "fragmentTypes";
+  private static final String UNSUPPORTED = "unsupported";
 
-  private static Stream<Arguments> provideFragmentConsumerConfiguration() {
-    return Stream.of(
-        Arguments.of(EXPECTED_FRAGMENT_TYPE, FRAGMENT_BODY_JSON),
-        Arguments.of(HTML_TYPE, FRAGMENT_BODY_HTML),
-        Arguments.of(EXPECTED_FRAGMENT_TYPE, FRAGMENT_BODY_HTML),
-        Arguments.of(HTML_TYPE, FRAGMENT_BODY_JSON)
+  private static Stream<Arguments> provideFragmentTypeAndBody() {
+    return Stream.of( //fragmentType, fragmentBody, supportedTypes
+        Arguments.of(EXPECTED_FRAGMENT_TYPE, FRAGMENT_BODY_JSON, new JsonArray()),
+        Arguments.of(HTML_TYPE, FRAGMENT_BODY_HTML, new JsonArray()),
+        Arguments.of(EXPECTED_FRAGMENT_TYPE, FRAGMENT_BODY_HTML, new JsonArray()),
+        Arguments.of(HTML_TYPE, FRAGMENT_BODY_JSON, new JsonArray()),
+        Arguments.of(HTML_TYPE, FRAGMENT_BODY_HTML, new JsonArray().add(EXPECTED_FRAGMENT_TYPE)),
+        Arguments.of(EXPECTED_FRAGMENT_TYPE, FRAGMENT_BODY_HTML,
+            new JsonArray().add(EXPECTED_FRAGMENT_TYPE)),
+        Arguments.of(HTML_TYPE, FRAGMENT_BODY_JSON, new JsonArray().add(EXPECTED_FRAGMENT_TYPE)),
+        Arguments.of(EXPECTED_FRAGMENT_TYPE, FRAGMENT_BODY_JSON, new JsonArray().add(UNSUPPORTED)),
+        Arguments.of(HTML_TYPE, FRAGMENT_BODY_HTML, new JsonArray().add(UNSUPPORTED)),
+        Arguments.of(EXPECTED_FRAGMENT_TYPE, FRAGMENT_BODY_HTML, new JsonArray().add(UNSUPPORTED)),
+        Arguments.of(HTML_TYPE, FRAGMENT_BODY_JSON, new JsonArray().add(UNSUPPORTED))
     );
   }
 
   @ParameterizedTest
-  @MethodSource("provideFragmentConsumerConfiguration")
-  @DisplayName("Fragment body should not be modified when invalid configuration provided")
+  @MethodSource("provideFragmentTypeAndBody")
+  @DisplayName("Fragment body should not be modified when no supported methods specified in configuration")
   void fragmentBodyShouldNotBeModifiedWhenInvalidConfigurationProvided(String fragmentType,
-      String fragmentBody) {
+      String fragmentBody, JsonArray supportedTypes) {
     FragmentEvent original = new FragmentEvent(
         new Fragment(fragmentType, new JsonObject(), fragmentBody));
     FragmentEvent copy = new FragmentEvent(original.toJson());
 
     FragmentExecutionLogConsumer tested = new JsonFragmentsHandlerConsumerFactory()
         .create(new JsonObject()
-            .put(CONDITION_OPTION, new JsonObject().put(HEADER_OPTION, EXPECTED_HEADER)));
+            .put(CONDITION_OPTION, new JsonObject().put(HEADER_OPTION, EXPECTED_HEADER))
+            .put(FRAGMENT_TYPES, supportedTypes));
     tested.accept(new ClientRequest()
             .setHeaders(MultiMap.caseInsensitiveMultiMap().add(EXPECTED_HEADER, "true")),
         ImmutableList.of(FragmentExecutionLog.newInstance(original)));
