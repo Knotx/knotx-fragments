@@ -17,8 +17,7 @@ package io.knotx.fragments.task.factory;
 
 import static io.knotx.fragments.HoconLoader.verify;
 import static io.knotx.fragments.api.FragmentResult.SUCCESS_TRANSITION;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 import io.knotx.fragments.task.factory.node.action.ActionNodeConfig;
 import io.knotx.fragments.task.factory.node.action.ActionNodeFactory;
@@ -27,6 +26,8 @@ import io.knotx.fragments.task.factory.node.subtasks.SubtasksNodeFactory;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.VertxExtension;
+
+import java.util.Map;
 import java.util.Optional;
 import java.util.function.Consumer;
 import org.junit.jupiter.api.DisplayName;
@@ -86,6 +87,16 @@ class GraphNodeOptionsTest {
     }, vertx);
   }
 
+  @Test
+  @DisplayName("Expect 'on' to alias 'onTransitions'")
+  void expectAssignedTransitions(Vertx vertx) throws Throwable {
+    verify("task/factory/taskWithTransitions-alias.conf", config -> {
+      GraphNodeOptions graphNodeOptions = new GraphNodeOptions(config);
+      Map<String, GraphNodeOptions> transitions = graphNodeOptions.getOnTransitions();
+
+      assertFalse(transitions.isEmpty());
+    }, vertx);
+  }
 
   private Consumer<JsonObject> validateActionNode() {
     return config -> {
