@@ -54,6 +54,8 @@ class GraphNodeExecutionLogTest {
     String nodeId = "A";
     NodeType type = NodeType.COMPOSITE;
     String label = "A Label";
+    long startTime = 0;
+    long endTime = 2;
 
     List<GraphNodeExecutionLog> subtasks = Collections
         .singletonList(GraphNodeExecutionLog.newInstance("AA"));
@@ -63,7 +65,7 @@ class GraphNodeExecutionLogTest {
         .singletonMap(FragmentResult.SUCCESS_TRANSITION, GraphNodeExecutionLog.newInstance("B"));
 
     GraphNodeExecutionLog executionLog = GraphNodeExecutionLog
-        .newInstance(nodeId, type, label, subtasks, operation, on);
+        .newInstance(nodeId, type, label, startTime, endTime, subtasks, operation, on);
 
     // when
     GraphNodeExecutionLog result = new GraphNodeExecutionLog(executionLog.toJson());
@@ -72,6 +74,8 @@ class GraphNodeExecutionLogTest {
     assertEquals(nodeId, result.getId());
     assertEquals(type, result.getType());
     assertEquals(label, result.getLabel());
+    assertEquals(startTime, result.getStarted());
+    assertEquals(endTime, result.getFinished());
     assertEquals(subtasks, result.getSubtasks());
     assertEquals(operation, result.getOperation());
     assertEquals(on, result.getOn());
