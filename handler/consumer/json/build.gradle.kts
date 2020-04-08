@@ -37,6 +37,7 @@ dependencies {
     implementation(group = "org.apache.commons", name = "commons-lang3")
     implementation(group = "com.google.guava", name = "guava")
 
+    testImplementation("org.junit.jupiter:junit-jupiter-params")
     testImplementation(group = "org.mockito", name = "mockito-core")
     testImplementation(group = "org.mockito", name = "mockito-junit-jupiter")
 }
