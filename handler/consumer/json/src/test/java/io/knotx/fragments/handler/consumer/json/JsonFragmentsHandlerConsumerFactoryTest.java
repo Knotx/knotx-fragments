@@ -19,6 +19,7 @@ import static io.knotx.fragments.engine.api.EventLogEntry.NodeStatus.UNPROCESSED
 import static io.knotx.fragments.handler.consumer.json.JsonFragmentsHandlerConsumerFactory.CONDITION_OPTION;
 import static io.knotx.fragments.handler.consumer.json.JsonFragmentsHandlerConsumerFactory.FRAGMENT_TYPES_OPTIONS;
 import static io.knotx.fragments.handler.consumer.json.JsonFragmentsHandlerConsumerFactory.HEADER_OPTION;
+import static io.knotx.fragments.handler.consumer.json.JsonFragmentsHandlerConsumerFactory.KNOTX_FRAGMENT;
 import static io.knotx.junit5.assertions.KnotxAssertions.assertJsonEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
@@ -42,37 +43,35 @@ import org.junit.jupiter.params.provider.MethodSource;
 
 class JsonFragmentsHandlerConsumerFactoryTest {
 
-  private static final String EXPECTED_FRAGMENT_TYPE = "snippet";
+  private static final String EXPECTED_FRAGMENT_TYPE = "json";
   private static final String EXPECTED_HEADER = "x-knotx-debug";
   private static final String EXPECTED_PARAM = "debug";
   private static final String PARAM_OPTION = "param";
-  private static final String HTML_TYPE = "html";
+  private static final String OTHER_TYPE = "other";
   private static final String FRAGMENT_BODY_JSON = "{\"user\": \"admin\"}";
-  private static final String FRAGMENT_BODY_HTML = "\"<div>body</div>\"";
+  private static final String FRAGMENT_BODY_OTHER = "\"simple text value\"";
   private static final String USER_KEY = "user";
-  private static final String KNOTX_FRAGMENT_KEY = "_knotx_fragment";
-  private static final String FRAGMENT_TYPES = "fragmentTypes";
   private static final String UNSUPPORTED = "unsupported";
 
-  private static Stream<Arguments> provideFragmentTypeAndBody() {
+  private static Stream<Arguments> unfulfilledConditions() {
     return Stream.of( //fragmentType, fragmentBody, supportedTypes
         Arguments.of(EXPECTED_FRAGMENT_TYPE, FRAGMENT_BODY_JSON, new JsonArray()),
-        Arguments.of(HTML_TYPE, FRAGMENT_BODY_HTML, new JsonArray()),
-        Arguments.of(EXPECTED_FRAGMENT_TYPE, FRAGMENT_BODY_HTML, new JsonArray()),
-        Arguments.of(HTML_TYPE, FRAGMENT_BODY_JSON, new JsonArray()),
-        Arguments.of(HTML_TYPE, FRAGMENT_BODY_HTML, new JsonArray().add(EXPECTED_FRAGMENT_TYPE)),
-        Arguments.of(EXPECTED_FRAGMENT_TYPE, FRAGMENT_BODY_HTML,
+        Arguments.of(OTHER_TYPE, FRAGMENT_BODY_OTHER, new JsonArray()),
+        Arguments.of(EXPECTED_FRAGMENT_TYPE, FRAGMENT_BODY_OTHER, new JsonArray()),
+        Arguments.of(OTHER_TYPE, FRAGMENT_BODY_JSON, new JsonArray()),
+        Arguments.of(OTHER_TYPE, FRAGMENT_BODY_OTHER, new JsonArray().add(EXPECTED_FRAGMENT_TYPE)),
+        Arguments.of(EXPECTED_FRAGMENT_TYPE, FRAGMENT_BODY_OTHER,
             new JsonArray().add(EXPECTED_FRAGMENT_TYPE)),
-        Arguments.of(HTML_TYPE, FRAGMENT_BODY_JSON, new JsonArray().add(EXPECTED_FRAGMENT_TYPE)),
+        Arguments.of(OTHER_TYPE, FRAGMENT_BODY_JSON, new JsonArray().add(EXPECTED_FRAGMENT_TYPE)),
         Arguments.of(EXPECTED_FRAGMENT_TYPE, FRAGMENT_BODY_JSON, new JsonArray().add(UNSUPPORTED)),
-        Arguments.of(HTML_TYPE, FRAGMENT_BODY_HTML, new JsonArray().add(UNSUPPORTED)),
-        Arguments.of(EXPECTED_FRAGMENT_TYPE, FRAGMENT_BODY_HTML, new JsonArray().add(UNSUPPORTED)),
-        Arguments.of(HTML_TYPE, FRAGMENT_BODY_JSON, new JsonArray().add(UNSUPPORTED))
+        Arguments.of(OTHER_TYPE, FRAGMENT_BODY_OTHER, new JsonArray().add(UNSUPPORTED)),
+        Arguments.of(EXPECTED_FRAGMENT_TYPE, FRAGMENT_BODY_OTHER, new JsonArray().add(UNSUPPORTED)),
+        Arguments.of(OTHER_TYPE, FRAGMENT_BODY_JSON, new JsonArray().add(UNSUPPORTED))
     );
   }
 
   @ParameterizedTest
-  @MethodSource("provideFragmentTypeAndBody")
+  @MethodSource("unfulfilledConditions")
   @DisplayName("Fragment body should not be modified when no supported methods specified in configuration")
   void fragmentBodyShouldNotBeModifiedWhenInvalidConfigurationProvided(String fragmentType,
       String fragmentBody, JsonArray supportedTypes) {
@@ -83,37 +82,17 @@ class JsonFragmentsHandlerConsumerFactoryTest {
     FragmentExecutionLogConsumer tested = new JsonFragmentsHandlerConsumerFactory()
         .create(new JsonObject()
             .put(CONDITION_OPTION, new JsonObject().put(HEADER_OPTION, EXPECTED_HEADER))
-            .put(FRAGMENT_TYPES, supportedTypes));
+            .put(FRAGMENT_TYPES_OPTIONS, supportedTypes));
     tested.accept(new ClientRequest()
             .setHeaders(MultiMap.caseInsensitiveMultiMap().add(EXPECTED_HEADER, "true")),
         ImmutableList.of(FragmentExecutionLog.newInstance(original)));
 
-    assertEquals(copy, original);
-  }
-
-  @Test
-  @DisplayName("Fragment should not be modified when supported fragments do not contain fragment type")
-  void expectFragmentNotModifiedWhenSupportedFragmentsDoNotContainFragmentType() {
-    //given
-    FragmentEvent original = new FragmentEvent(
-        new Fragment(HTML_TYPE, new JsonObject(), FRAGMENT_BODY_JSON));
-    FragmentEvent copy = new FragmentEvent(original.toJson());
-
-    //when
-    FragmentExecutionLogConsumer tested = new JsonFragmentsHandlerConsumerFactory()
-        .create(new JsonObject()
-            .put(FRAGMENT_TYPES_OPTIONS, new JsonArray().add(EXPECTED_FRAGMENT_TYPE))
-            .put(CONDITION_OPTION, new JsonObject().put(HEADER_OPTION, EXPECTED_HEADER)));
-    tested.accept(new ClientRequest()
-            .setHeaders(MultiMap.caseInsensitiveMultiMap().add(EXPECTED_HEADER, "true")),
-        ImmutableList.of(FragmentExecutionLog.newInstance(original)));
-    //then
     assertEquals(copy, original);
   }
 
   @Test
   @DisplayName("Fragment should be modified when header condition and fragment type match")
-  void expectFragmentModifiedWhenHederConditionAndSupportedTypedConfigured() {
+  void expectFragmentModifiedWhenHeaderConditionAndSupportedTypedConfigured() {
     //given
     FragmentEvent original = new FragmentEvent(
         new Fragment(EXPECTED_FRAGMENT_TYPE, new JsonObject(), FRAGMENT_BODY_JSON));
@@ -174,7 +153,7 @@ class JsonFragmentsHandlerConsumerFactoryTest {
     assertNotEquals(copy, original);
     JsonObject fragmentBody = new JsonObject(original.getFragment().getBody());
     assertTrue(fragmentBody.containsKey(USER_KEY));
-    assertTrue(fragmentBody.containsKey(KNOTX_FRAGMENT_KEY));
+    assertTrue(fragmentBody.containsKey(KNOTX_FRAGMENT));
   }
 
   @Test
@@ -185,15 +164,7 @@ class JsonFragmentsHandlerConsumerFactoryTest {
         new Fragment(EXPECTED_FRAGMENT_TYPE, new JsonObject(), FRAGMENT_BODY_JSON));
     FragmentEvent copy = new FragmentEvent(original.toJson());
 
-    JsonObject expectedLog = new JsonObject()
-        .put("startTime", 0)
-        .put("finishTime", 0)
-        .put("status", UNPROCESSED)
-        .put("fragment", new JsonObject()
-            .put("id", original.getFragment().getId())
-            .put("type", "snippet")
-            .put("body", FRAGMENT_BODY_JSON))
-        .put("graph", new JsonObject());
+    JsonObject expectedLog = FragmentExecutionLog.newInstance(original).toJson();
 
     //when
     FragmentExecutionLogConsumer tested = new JsonFragmentsHandlerConsumerFactory()
@@ -207,7 +178,8 @@ class JsonFragmentsHandlerConsumerFactoryTest {
     //then
     assertNotEquals(copy, original);
     JsonObject fragmentBody = new JsonObject(original.getFragment().getBody());
-    assertJsonEquals(expectedLog, fragmentBody.getJsonObject(KNOTX_FRAGMENT_KEY));
+    assertJsonEquals(expectedLog,
+        new FragmentExecutionLog(fragmentBody.getJsonObject(KNOTX_FRAGMENT)).toJson());
     assertEquals(new JsonObject(FRAGMENT_BODY_JSON).getString(USER_KEY),
         fragmentBody.getString(USER_KEY));
   }

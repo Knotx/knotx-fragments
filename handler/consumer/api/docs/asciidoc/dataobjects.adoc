@@ -12,7 +12,7 @@
 [frame="topbot"]
 |===
 ^|Name | Type ^| Description
-|[[finishTime]]`@finishTime`|`Number (long)`|+++
+|[[finishTime]]`@finishTime`|`Number (Long)`|+++
 Node processing finish time. It is timestamp value.
 +++
 |[[fragment]]`@fragment`|`link:dataobjects.html#Fragment[Fragment]`|+++
@@ -22,7 +22,7 @@ Node processing finish time. It is timestamp value.
 |[[graph]]`@graph`|`link:dataobjects.html#GraphNodeExecutionLog[GraphNodeExecutionLog]`|+++
 Task evaluation details.
 +++
-|[[startTime]]`@startTime`|`Number (long)`|+++
+|[[startTime]]`@startTime`|`Number (Long)`|+++
 Node processing start time. It is timestamp value.
 +++
 |[[status]]`@status`|`link:enums.html#Status[Status]`|+++

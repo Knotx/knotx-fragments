@@ -33,7 +33,7 @@ import java.util.stream.StreamSupport;
 public class JsonFragmentsHandlerConsumerFactory implements FragmentExecutionLogConsumerFactory {
 
   private static final String PARAM_OPTION = "param";
-  private static final String KNOTX_FRAGMENT = "_knotx_fragment";
+  static final String KNOTX_FRAGMENT = "_knotx_fragment";
   static final String FRAGMENT_TYPES_OPTIONS = "fragmentTypes";
   static final String HEADER_OPTION = "header";
   static final String CONDITION_OPTION = "condition";
@@ -61,12 +61,15 @@ public class JsonFragmentsHandlerConsumerFactory implements FragmentExecutionLog
       }
 
       private boolean isSupported(FragmentExecutionLog executionData) {
-        try {
-          new JsonObject(executionData.getFragment().getBody());
-        } catch (DecodeException e) {
-          return false;
+        if (supportedTypes.contains(executionData.getFragment().getType())) {
+          try {
+            new JsonObject(executionData.getFragment().getBody());
+            return true;
+          } catch (DecodeException e) {
+            return false;
+          }
         }
-        return supportedTypes.contains(executionData.getFragment().getType());
+        return false;
       }
 
       private boolean containsHeader(ClientRequest request) {
@@ -84,7 +87,7 @@ public class JsonFragmentsHandlerConsumerFactory implements FragmentExecutionLog
       private void appendExecutionDataToFragmentBody(FragmentExecutionLog executionData) {
         JsonObject fragmentBody = new JsonObject().put(KNOTX_FRAGMENT, executionData.toJson())
             .mergeIn(new JsonObject(executionData.getFragment().getBody()));
-        executionData.getFragment().setBody(fragmentBody.toString());
+        executionData.getFragment().setBody(fragmentBody.encodePrettily());
       }
     };
   }
