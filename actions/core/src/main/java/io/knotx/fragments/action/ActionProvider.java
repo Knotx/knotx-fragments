@@ -22,16 +22,10 @@ import io.knotx.fragments.action.api.Cacheable;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import io.vertx.reactivex.core.Vertx;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Optional;
-import java.util.ServiceLoader;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Function;
-import java.util.function.Supplier;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.concurrent.ConcurrentException;
+
+import java.util.*;
+import java.util.function.Supplier;
 
 /**
  * Action provider initializes {@link Action}, combines actions with behaviours and caches stateful
@@ -55,7 +49,7 @@ public class ActionProvider {
     this.aliasToOptions = aliasToOptions;
     this.vertx = vertx;
     this.factories = loadFactories(supplier);
-    this.cache = new ConcurrentHashMap<>();
+    this.cache = new HashMap<>();
   }
 
   /**
