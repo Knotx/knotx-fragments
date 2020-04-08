@@ -1,5 +1,5 @@
 # Fragment JSON Consumer
-When configured, it appends debug data to `Fragment` body under `_knotx_fragment` key, existing body remains unchanged.
+When configured, it appends debug data to `Fragment` body under `_knotx_fragment` key, the existing body remains unchanged.
 Appended entry will contain data provided by [FragmentExecutionLog](https://github.com/Knotx/knotx-fragments/blob/master/handler/consumer/api/src/main/java/io/knotx/fragments/handler/consumer/api/model/FragmentExecutionLog.java).
 ```
 {
@@ -38,7 +38,7 @@ condition {
   param = debug
   # header = x-knotx-debug
 }
-fragmentTypes = [ "snippet" ]
+fragmentTypes = [ "json" ]
 ```
 It runs when any of the following conditions are met:
  - `param` - an original request contains a parameter with the *given name* (e.g. by configuring 
