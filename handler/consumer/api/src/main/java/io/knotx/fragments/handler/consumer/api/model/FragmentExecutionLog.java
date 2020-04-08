@@ -29,8 +29,8 @@ public class FragmentExecutionLog {
 
   private Fragment fragment;
   private FragmentEvent.Status status = Status.UNPROCESSED;
-  private Long startTime = 0L;
-  private Long finishTime = 0L;
+  private long startTime = 0;
+  private long finishTime = 0;
   private GraphNodeExecutionLog graph = null;
 
   public static FragmentExecutionLog newInstance(FragmentEvent fragmentEvent,
@@ -96,11 +96,11 @@ public class FragmentExecutionLog {
    *
    * @return node processing start time
    */
-  public Long getStartTime() {
+  public long getStartTime() {
     return startTime;
   }
 
-  public FragmentExecutionLog setStartTime(Long startTime) {
+  public FragmentExecutionLog setStartTime(long startTime) {
     this.startTime = startTime;
     return this;
   }
@@ -110,11 +110,11 @@ public class FragmentExecutionLog {
    *
    * @return node processing finish time
    */
-  public Long getFinishTime() {
+  public long getFinishTime() {
     return finishTime;
   }
 
-  public FragmentExecutionLog setFinishTime(Long finishTime) {
+  public FragmentExecutionLog setFinishTime(long finishTime) {
     this.finishTime = finishTime;
     return this;
   }
