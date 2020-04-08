@@ -15,18 +15,17 @@
  */
 package io.knotx.fragments.handler.consumer.api.model;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
-import io.knotx.fragments.engine.api.node.NodeType;
 import io.knotx.fragments.api.FragmentResult;
-import io.knotx.fragments.handler.consumer.api.model.GraphNodeExecutionLog;
-import io.knotx.fragments.handler.consumer.api.model.GraphNodeOperationLog;
+import io.knotx.fragments.engine.api.node.NodeType;
 import io.vertx.core.json.JsonObject;
+import org.junit.jupiter.api.Test;
+
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class GraphNodeExecutionLogTest {
 
@@ -54,6 +53,8 @@ class GraphNodeExecutionLogTest {
     String nodeId = "A";
     NodeType type = NodeType.COMPOSITE;
     String label = "A Label";
+    long startTime = 1;
+    long endTime = 2;
 
     List<GraphNodeExecutionLog> subtasks = Collections
         .singletonList(GraphNodeExecutionLog.newInstance("AA"));
@@ -63,7 +64,7 @@ class GraphNodeExecutionLogTest {
         .singletonMap(FragmentResult.SUCCESS_TRANSITION, GraphNodeExecutionLog.newInstance("B"));
 
     GraphNodeExecutionLog executionLog = GraphNodeExecutionLog
-        .newInstance(nodeId, type, label, 0, 0, subtasks, operation, on);
+        .newInstance(nodeId, type, label, startTime, endTime, subtasks, operation, on);
 
     // when
     GraphNodeExecutionLog result = new GraphNodeExecutionLog(executionLog.toJson());
@@ -72,6 +73,8 @@ class GraphNodeExecutionLogTest {
     assertEquals(nodeId, result.getId());
     assertEquals(type, result.getType());
     assertEquals(label, result.getLabel());
+    assertEquals(startTime, result.getStarted());
+    assertEquals(endTime, result.getFinished());
     assertEquals(subtasks, result.getSubtasks());
     assertEquals(operation, result.getOperation());
     assertEquals(on, result.getOn());

@@ -16,6 +16,7 @@
 package io.knotx.fragments.handler.api.metadata;
 
 import io.knotx.fragments.engine.api.node.NodeType;
+
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -126,9 +127,9 @@ public class NodeMetadata {
     return metadata.isEmpty()
         ? getProcessingEndTimestamp()
         : metadata.stream()
-            .map(nodeMetadata -> nodeMetadata.getLatestTimeInTransitions(nodeMetadata.transitions, nodes))
-            .max(Comparator.naturalOrder())
-            .orElse((long) 0);
+        .map(nodeMetadata -> nodeMetadata.getLatestTimeInTransitions(nodeMetadata.transitions, nodes))
+        .max(Comparator.naturalOrder())
+        .orElse((long) 0);
   }
 
   @Override
