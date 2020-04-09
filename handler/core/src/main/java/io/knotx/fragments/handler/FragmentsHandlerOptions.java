@@ -31,6 +31,10 @@ public class FragmentsHandlerOptions {
 
   private List<FactoryOptions> consumerFactories = Collections.emptyList();
 
+  private String allowInvalidFragmentsHeader;
+
+  private String allowInvalidFragmentsParam;
+
   public FragmentsHandlerOptions(JsonObject json) {
     FragmentsHandlerOptionsConverter.fromJson(json, this);
   }
@@ -43,6 +47,38 @@ public class FragmentsHandlerOptions {
 
   public List<FactoryOptions> getTaskFactories() {
     return taskFactories;
+  }
+
+  public String getAllowInvalidFragmentsHeader() {
+    return allowInvalidFragmentsHeader;
+  }
+
+  /**
+   * Name of the http header that, when set to "true" in the request, will force Fragments Handler to succeed even if some fragments failed.
+   * This is mainly so that the data can be inspected in debug mode.
+   *
+   * @param allowInvalidFragmentsHeader name of the http header
+   * @return reference to this, so the API can be used fluently
+   */
+  public FragmentsHandlerOptions setAllowInvalidFragmentsHeader(String allowInvalidFragmentsHeader) {
+    this.allowInvalidFragmentsHeader = allowInvalidFragmentsHeader;
+    return this;
+  }
+
+  public String getAllowInvalidFragmentsParam() {
+    return allowInvalidFragmentsParam;
+  }
+
+  /**
+   * Name of the query parameter that, when set to "true" in the request, will force Fragments Handler to succeed even if some fragments failed.
+   * This is mainly so that the data can be inspected in debug mode.
+   *
+   * @param allowInvalidFragmentsParam name of the query parameter
+   * @return reference to this, so the API can be used fluently
+   */
+  public FragmentsHandlerOptions setAllowInvalidFragmentsParam(String allowInvalidFragmentsParam) {
+    this.allowInvalidFragmentsParam = allowInvalidFragmentsParam;
+    return this;
   }
 
   /**

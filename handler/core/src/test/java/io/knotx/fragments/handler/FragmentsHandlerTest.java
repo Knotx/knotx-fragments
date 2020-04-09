@@ -35,11 +35,13 @@ import io.reactivex.Single;
 import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
+import io.vertx.reactivex.core.MultiMap;
 import io.vertx.reactivex.core.Vertx;
 import io.vertx.reactivex.ext.web.RoutingContext;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import org.junit.jupiter.api.DisplayName;
@@ -280,9 +282,117 @@ class FragmentsHandlerTest {
     }, testContext, vertx);
   }
 
+  @Test
+  @DisplayName("Expect invalid fragments header to have no effect when not configured")
+  void invalidFragmentsHeaderNotConfigured(Vertx vertx, VertxTestContext testContext) throws Throwable {
+    HoconLoader.verify("handler/singleTaskFactoryWithFailingTask.conf", config -> {
+      //given
+      Map<String, String> headers = Collections.singletonMap("Allow-Invalid-Fragments", "true");
+      RoutingContext routingContext = mockRoutingContext("failing-task", headers, Collections.emptyMap());
+
+      FragmentsHandler underTest = new FragmentsHandler(vertx, config);
+
+      // when
+      doAnswer(invocation -> {
+        testContext.completeNow();
+        return null;
+      })
+          .when(routingContext)
+          .fail(500);
+
+      underTest.handle(routingContext);
+
+      // then verified as correct (assertion inside HoconLoader::verify)
+    }, testContext, vertx);
+  }
+
+  @Test
+  @DisplayName("Expect invalid fragments to pass when the header is configured and provided")
+  void invalidFragmentsHeaderProvided(Vertx vertx, VertxTestContext testContext) throws Throwable {
+    HoconLoader.verify("handler/taskFactoryWithInvalidFragmentsAllowed.conf", config -> {
+      //given
+      Map<String, String> headers = Collections.singletonMap("Allow-Invalid-Fragments", "true");
+      RoutingContext routingContext = mockRoutingContext("failing-task", headers, Collections.emptyMap());
+
+      FragmentsHandler underTest = new FragmentsHandler(vertx, config);
+
+      //when
+      underTest.handle(routingContext);
+
+      //then
+      doAnswer(invocation -> {
+        testContext.completeNow();
+        return null;
+      })
+          .when(routingContext)
+          .next();
+    }, testContext, vertx);
+  }
+
+  @Test
+  @DisplayName("Expect invalid fragments parameter to have no effect when not configured")
+  void invalidFragmentsParamNotConfigured(Vertx vertx, VertxTestContext testContext) throws Throwable {
+    HoconLoader.verify("handler/singleTaskFactoryWithFailingTask.conf", config -> {
+      //given
+      Map<String, String> params = Collections.singletonMap("allowInvalidFragments", "true");
+      RoutingContext routingContext = mockRoutingContext("failing-task", Collections.emptyMap(), params);
+
+      FragmentsHandler underTest = new FragmentsHandler(vertx, config);
+
+      // when
+      doAnswer(invocation -> {
+        testContext.completeNow();
+        return null;
+      })
+          .when(routingContext)
+          .fail(500);
+
+      underTest.handle(routingContext);
+
+      // then verified as correct (assertion inside HoconLoader::verify)
+    }, testContext, vertx);
+  }
+
+  @Test
+  @DisplayName("Expect invalid fragments to pass when the parameter is configured and provided")
+  void invalidFragmentsParamProvided(Vertx vertx, VertxTestContext testContext) throws Throwable {
+    HoconLoader.verify("handler/taskFactoryWithInvalidFragmentsAllowed.conf", config -> {
+      //given
+      Map<String, String> params = Collections.singletonMap("allowInvalidFragments", "true");
+      RoutingContext routingContext = mockRoutingContext("failing-task", Collections.emptyMap(), params);
+
+      FragmentsHandler underTest = new FragmentsHandler(vertx, config);
+
+      //when
+      underTest.handle(routingContext);
+
+      //then
+      doAnswer(invocation -> {
+        testContext.completeNow();
+        return null;
+      })
+          .when(routingContext)
+          .next();
+    }, testContext, vertx);
+  }
+
   private RoutingContext mockRoutingContext(String task) {
+    return mockRoutingContext(task, Collections.emptyMap(), Collections.emptyMap());
+  }
+
+  private RoutingContext mockRoutingContext(String task, Map<String, String> headers, Map<String, String> params) {
+    ClientRequest clientRequest = new ClientRequest();
+
+    MultiMap paramsMultiMap = MultiMap.caseInsensitiveMultiMap();
+    paramsMultiMap.addAll(params);
+    clientRequest.setParams(paramsMultiMap);
+
     RequestContext requestContext = new RequestContext(
-        new RequestEvent(new ClientRequest(), new JsonObject()));
+        new RequestEvent(clientRequest, new JsonObject()));
+
+    MultiMap headersMultiMap = MultiMap.caseInsensitiveMultiMap();
+    headersMultiMap.addAll(headers);
+    requestContext.setHeaders(headersMultiMap);
 
     RoutingContext routingContext = Mockito.mock(RoutingContext.class);
 
