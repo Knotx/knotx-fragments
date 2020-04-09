@@ -352,6 +352,9 @@ Fragment event contains a fragment, task status and task log.
 ### Fragment Execution Log Consumer
 Fragment Execution Log Consumer receives fragment execution data when task evaluation ends. It can share this 
 information with some external tools.
+By default it receives data only if given fragment ends with success. 
+This can be changed by setting either `allowInvalidFragmentsHeader` or `allowInvalidFragmentsParam` option and
+providing HTTP header or query parameter in the request respectively.
 
 You can read more about consumers [here](https://github.com/Knotx/knotx-fragments/tree/master/handler/consumer).
 

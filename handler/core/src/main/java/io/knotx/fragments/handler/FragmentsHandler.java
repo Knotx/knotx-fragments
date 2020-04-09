@@ -99,7 +99,7 @@ public class FragmentsHandler implements Handler<RoutingContext> {
   }
 
   private RequestEventHandlerResult toHandlerResult(List<FragmentEvent> events,
-                                                    RequestContext requestContext) {
+        RequestContext requestContext) {
 
     List<Fragment> failedFragments = retrieveFragments(events,
         e -> e.getStatus() == Status.FAILURE);
