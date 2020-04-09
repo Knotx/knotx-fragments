@@ -154,6 +154,11 @@ class TaskExecutionContext {
         });
   }
 
+  void handleStarted() {
+    FragmentEvent fragmentEvent = fragmentEventContext.getFragmentEvent();
+    fragmentEvent.log(EventLogEntry.started(taskName, currentNode.getId()));
+  }
+
   void handleSuccess(FragmentResult fragmentResult) {
     FragmentEvent fragmentEvent = fragmentEventContext.getFragmentEvent();
     fragmentEvent.setStatus(Status.SUCCESS);

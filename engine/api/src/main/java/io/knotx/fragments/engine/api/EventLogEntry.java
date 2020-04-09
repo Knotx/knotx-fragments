@@ -36,6 +36,10 @@ public class EventLogEntry {
   private final long timestamp;
   private final JsonObject nodeLog;
 
+  public static EventLogEntry started(String task, String node) {
+    return new EventLogEntry(task, node, NodeStatus.UNPROCESSED, null, null);
+  }
+
   public static EventLogEntry success(String task, String node, FragmentResult fragmentResult) {
     return new EventLogEntry(task, node, NodeStatus.SUCCESS, fragmentResult.getTransition(), fragmentResult.getLog());
   }
@@ -50,10 +54,6 @@ public class EventLogEntry {
 
   public static EventLogEntry error(String task, String node, String transition) {
     return new EventLogEntry(task, node, NodeStatus.ERROR, transition,null);
-  }
-
-  public static EventLogEntry unprocessed(String task, String node) {
-    return new EventLogEntry(task, node, NodeStatus.UNPROCESSED, null, null);
   }
 
   public static EventLogEntry timeout(String task, String node) {

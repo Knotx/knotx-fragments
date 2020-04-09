@@ -85,10 +85,10 @@ class LoggedNodeStatusTest {
   }
 
   @Test
-  @DisplayName("Unprocessed entry matches UNPROCESSED status")
-  void unprocessedEntryMatchesUnprocessedStatus() {
+  @DisplayName("Started entry matches UNPROCESSED status")
+  void startedEntryMatchesUnprocessedStatus() {
     // given
-    EventLogEntry entry = EventLogEntry.unprocessed(TASK_NAME, ROOT_NODE);
+    EventLogEntry entry = EventLogEntry.started(TASK_NAME, ROOT_NODE);
 
     // when
     LoggedNodeStatus status = LoggedNodeStatus.from(entry);
