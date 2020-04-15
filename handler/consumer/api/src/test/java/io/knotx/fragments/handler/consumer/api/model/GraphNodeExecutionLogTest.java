@@ -53,7 +53,7 @@ class GraphNodeExecutionLogTest {
     String nodeId = "A";
     NodeType type = NodeType.COMPOSITE;
     String label = "A Label";
-    long startTime = 1;
+    long startTime = 0;
     long endTime = 2;
 
     List<GraphNodeExecutionLog> subtasks = Collections

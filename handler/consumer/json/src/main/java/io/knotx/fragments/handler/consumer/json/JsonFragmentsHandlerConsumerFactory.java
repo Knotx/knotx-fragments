@@ -15,20 +15,96 @@
  */
 package io.knotx.fragments.handler.consumer.json;
 
+import static java.lang.Boolean.FALSE;
+
 import io.knotx.fragments.handler.consumer.api.FragmentExecutionLogConsumer;
 import io.knotx.fragments.handler.consumer.api.FragmentExecutionLogConsumerFactory;
+import io.knotx.fragments.handler.consumer.api.model.FragmentExecutionLog;
+import io.knotx.server.api.context.ClientRequest;
+import io.vertx.core.json.DecodeException;
 import io.vertx.core.json.JsonObject;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
-// TODO fix #134
 public class JsonFragmentsHandlerConsumerFactory implements FragmentExecutionLogConsumerFactory {
+
+  private static final String PARAM_OPTION = "param";
+  static final String KNOTX_FRAGMENT = "_knotx_fragment";
+  static final String FRAGMENT_TYPES_OPTIONS = "fragmentTypes";
+  static final String HEADER_OPTION = "header";
+  static final String CONDITION_OPTION = "condition";
 
   @Override
   public String getName() {
-    return "json";
+    return "fragmentJsonBodyWriter";
   }
 
   @Override
   public FragmentExecutionLogConsumer create(JsonObject config) {
-    return null;
+    return new FragmentExecutionLogConsumer() {
+
+      private Set<String> supportedTypes = getSupportedTypes(config);
+      private String requestHeader = getConditionHeader(config);
+      private String requestParam = getConditionParam(config);
+
+      @Override
+      public void accept(ClientRequest request, List<FragmentExecutionLog> executions) {
+        if (containsHeader(request) || containsParam(request)) {
+          executions.stream()
+              .filter(this::isSupported)
+              .forEach(this::appendExecutionDataToFragmentBody);
+        }
+      }
+
+      private boolean isSupported(FragmentExecutionLog executionData) {
+        if (supportedTypes.contains(executionData.getFragment().getType())) {
+          try {
+            new JsonObject(executionData.getFragment().getBody());
+            return true;
+          } catch (DecodeException e) {
+            return false;
+          }
+        }
+        return false;
+      }
+
+      private boolean containsHeader(ClientRequest request) {
+        return Optional.ofNullable(requestHeader)
+            .map(header -> request.getHeaders().contains(header))
+            .orElse(FALSE);
+      }
+
+      private boolean containsParam(ClientRequest request) {
+        return Optional.ofNullable(requestParam)
+            .map(param -> request.getParams().contains(param))
+            .orElse(FALSE);
+      }
+
+      private void appendExecutionDataToFragmentBody(FragmentExecutionLog executionData) {
+        JsonObject fragmentBody = new JsonObject().put(KNOTX_FRAGMENT, executionData.toJson())
+            .mergeIn(new JsonObject(executionData.getFragment().getBody()));
+        executionData.getFragment().setBody(fragmentBody.encodePrettily());
+      }
+    };
+  }
+
+  private Set<String> getSupportedTypes(JsonObject config) {
+    return Optional.ofNullable(config.getJsonArray(FRAGMENT_TYPES_OPTIONS))
+        .map(fragmentTypes -> StreamSupport.stream(fragmentTypes.spliterator(), false)
+            .map(Object::toString)
+            .collect(Collectors.toSet()))
+        .orElse(Collections.emptySet());
+  }
+
+  private String getConditionHeader(JsonObject config) {
+    return config.getJsonObject(CONDITION_OPTION, new JsonObject()).getString(HEADER_OPTION);
+  }
+
+  private String getConditionParam(JsonObject config) {
+    return config.getJsonObject(CONDITION_OPTION, new JsonObject()).getString(PARAM_OPTION);
   }
 }

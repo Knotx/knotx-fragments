@@ -183,14 +183,7 @@ class FragmentHtmlBodyWriterFactoryTest {
     Fragment fragment = new Fragment("snippet", new JsonObject(), body);
     FragmentEvent event = new FragmentEvent(fragment);
 
-    JsonObject expectedLog = new JsonObject()
-        .put("startTime", 0)
-        .put("finishTime", 0)
-        .put("status", "UNPROCESSED")
-        .put("fragment", new JsonObject()
-            .put("id", fragment.getId())
-            .put("type", "snippet"))
-        .put("graph", new JsonObject());
+    JsonObject expectedLog = FragmentExecutionLog.newInstance(event).toJson();
 
     String scriptRegexp =
         "<script data-knotx-debug=\"log\" data-knotx-id=\"" + event.getFragment().getId()
@@ -209,7 +202,8 @@ class FragmentHtmlBodyWriterFactoryTest {
     // then
     Matcher matcher = scriptPattern.matcher(event.getFragment().getBody());
     assertTrue(matcher.find());
-    assertJsonEquals(expectedLog, new JsonObject(matcher.group("fragmentEventJson")));
+    assertJsonEquals(expectedLog,
+        new FragmentExecutionLog(new JsonObject(matcher.group("fragmentEventJson"))).toJson());
   }
 
   @Test

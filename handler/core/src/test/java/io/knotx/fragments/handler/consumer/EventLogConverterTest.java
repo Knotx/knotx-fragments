@@ -21,14 +21,13 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import io.knotx.fragments.api.Fragment;
-import io.knotx.fragments.engine.api.EventLogEntry;
 import io.knotx.fragments.api.FragmentResult;
+import io.knotx.fragments.engine.api.EventLogEntry;
 import io.knotx.fragments.handler.consumer.api.model.LoggedNodeStatus;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import java.util.Arrays;
 import java.util.Collections;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -44,7 +43,6 @@ class EventLogConverterTest {
 
     NodeExecutionData result = tested.getExecutionData(NODE_ID);
 
-    assertEquals(LoggedNodeStatus.UNPROCESSED, result.getStatus());
     assertEquals(LoggedNodeStatus.UNPROCESSED, result.getStatus());
   }
 

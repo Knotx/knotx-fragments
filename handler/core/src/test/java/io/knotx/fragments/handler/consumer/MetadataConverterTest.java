@@ -31,7 +31,6 @@ import io.knotx.fragments.handler.api.metadata.OperationMetadata;
 import io.knotx.fragments.handler.api.metadata.TaskMetadata;
 import io.knotx.fragments.handler.consumer.api.model.GraphNodeOperationLog;
 import io.knotx.fragments.handler.consumer.api.model.LoggedNodeStatus;
-import io.knotx.junit5.assertions.KnotxAssertions;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import java.util.Arrays;
