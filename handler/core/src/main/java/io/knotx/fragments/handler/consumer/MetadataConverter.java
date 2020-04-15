@@ -50,17 +50,27 @@ class MetadataConverter {
   private GraphNodeExecutionLog getExecutionLog(String nodeId) {
     GraphNodeExecutionLog graphLog = fromMetadata(nodeId);
     NodeExecutionData nodeExecutionData = eventLogConverter.getExecutionData(nodeId);
-    graphLog.setStatus(nodeExecutionData.getStatus());
-    Response metadataResponse = nodeExecutionData.getResponse();
+
+    setGraphLogPropertiesFrom(graphLog, nodeExecutionData);
+
+    if (containsUnsupportedTransitions(graphLog)) {
+      addMissingNode(graphLog);
+    }
+
+    return graphLog;
+  }
+
+  private void setGraphLogPropertiesFrom(GraphNodeExecutionLog graphLog, NodeExecutionData executionData) {
+    graphLog.setStatus(executionData.getStatus());
+    graphLog.setStarted(executionData.getStarted());
+    graphLog.setFinished(executionData.getFinished());
+
+    Response metadataResponse = executionData.getResponse();
     if (metadataResponse != null) {
       graphLog
           .setResponse(GraphNodeResponseLog.newInstance(metadataResponse.getTransition(),
               metadataResponse.getInvocations()));
     }
-    if (containsUnsupportedTransitions(graphLog)) {
-      addMissingNode(graphLog);
-    }
-    return graphLog;
   }
 
   private boolean containsUnsupportedTransitions(GraphNodeExecutionLog graphLog) {
@@ -88,13 +98,9 @@ class MetadataConverter {
     if (nodes.containsKey(id)) {
       NodeMetadata metadata = nodes.get(id);
 
-      metadata.calculateTimestampsBasedOnSubtasks(nodes);
-
       return GraphNodeExecutionLog.newInstance(metadata.getNodeId())
           .setType(metadata.getType())
           .setLabel(metadata.getLabel())
-          .setStarted(metadata.getProcessingStartTimestamp())
-          .setFinished(metadata.getProcessingEndTimestamp())
           .setSubtasks(getSubTasks(metadata.getNestedNodes()))
           .setOperation(getOperationLog(metadata))
           .setOn(getTransitions(metadata.getTransitions()));

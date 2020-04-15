@@ -92,13 +92,7 @@ public class ActionNodeFactory implements NodeFactory {
 
       @Override
       public void apply(FragmentContext fragmentContext, Handler<AsyncResult<FragmentResult>> handler) {
-        metadata.markProcessingStart();
-
-        action.apply(fragmentContext, result -> {
-          metadata.markProcessingEnd();
-
-          handler.handle(result);
-        });
+        action.apply(fragmentContext, handler);
       }
     };
   }

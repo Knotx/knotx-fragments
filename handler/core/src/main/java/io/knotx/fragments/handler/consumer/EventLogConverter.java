@@ -42,7 +42,23 @@ class EventLogConverter {
     if (transition != null) {
       result.setResponse(transition, inJsonArray(getNodeLog(logs)));
     }
+
+    result.setStarted(getStartTimestamp(logs));
+    result.setFinished(getFinishTimestamp(logs));
+
     return result;
+  }
+
+  private long getStartTimestamp(List<EventLogEntry> logs) {
+    return getLogForStart(logs)
+        .map(EventLogEntry::getTimestamp)
+        .orElse(0L);
+  }
+
+  private long getFinishTimestamp(List<EventLogEntry> logs) {
+    return getLogForExecution(logs)
+        .map(EventLogEntry::getTimestamp)
+        .orElse(0L);
   }
 
   private LoggedNodeStatus getLoggedNodesStatus(List<EventLogEntry> logs) {
@@ -71,8 +87,18 @@ class EventLogConverter {
 
   private Optional<EventLogEntry> getLogForExecution(List<EventLogEntry> logs) {
     return logs.stream()
-        .filter(log -> !NodeStatus.UNSUPPORTED_TRANSITION.equals(log.getStatus()))
+        .filter(this::hasCorrectTransition)
+        .reduce((previous, current) -> current);
+  }
+
+  private Optional<EventLogEntry> getLogForStart(List<EventLogEntry> logs) {
+    return logs.stream()
+        .filter(this::hasCorrectTransition)
         .findFirst();
+  }
+
+  private boolean hasCorrectTransition(EventLogEntry log) {
+    return !NodeStatus.UNSUPPORTED_TRANSITION.equals(log.getStatus());
   }
 
   private JsonArray inJsonArray(JsonObject instance) {
