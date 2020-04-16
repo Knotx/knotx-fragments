@@ -119,10 +119,14 @@ class TaskEngineCompositeNodeTest {
     // then
     verifyExecution(result, testContext,
         event -> verifyAllLogEntries(event.getLogAsJson(),
-            Operation.range("task", "action", "SUCCESS", 0, 2, successNodeLog),
-            Operation.range("task", "action1", "SUCCESS", 0, 2),
-            Operation.range("task", "action2", "SUCCESS", 0, 2, successNode2Log),
-            Operation.exact("task", COMPOSITE_NODE_ID, "SUCCESS", 3)
+            Operation.exact("task", COMPOSITE_NODE_ID, "UNPROCESSED", 0),
+            Operation.range("task", "action", "UNPROCESSED", 1, 3),
+            Operation.range("task", "action1", "UNPROCESSED", 1, 6),
+            Operation.range("task", "action2", "UNPROCESSED", 1, 6),
+            Operation.range("task", "action", "SUCCESS", 2, 6, successNodeLog),
+            Operation.range("task", "action1", "SUCCESS", 2, 6),
+            Operation.range("task", "action2", "SUCCESS", 2, 6, successNode2Log),
+            Operation.exact("task", COMPOSITE_NODE_ID, "SUCCESS", 7)
         ));
   }
 
@@ -161,7 +165,7 @@ class TaskEngineCompositeNodeTest {
     // then
     verifyExecution(result, testContext,
         fragmentEvent -> verifyLogEntries(fragmentEvent.getLogAsJson(),
-            Operation.exact("task", COMPOSITE_NODE_ID, "ERROR", 2)
+            Operation.exact("task", COMPOSITE_NODE_ID, "ERROR", 4)
         ));
   }
 
@@ -179,7 +183,7 @@ class TaskEngineCompositeNodeTest {
     // then
     verifyExecution(result, testContext,
         event -> verifyLogEntries(event.getLogAsJson(),
-            Operation.exact("task", COMPOSITE_NODE_ID, "UNSUPPORTED_TRANSITION", 3)
+            Operation.exact("task", COMPOSITE_NODE_ID, "UNSUPPORTED_TRANSITION", 5)
         ));
   }
 
@@ -313,11 +317,14 @@ class TaskEngineCompositeNodeTest {
     // then
     verifyExecution(result, testContext,
         event -> verifyAllLogEntries(event.getLogAsJson(),
-            Operation.range("task", "success", "SUCCESS", 0, 3),
-            Operation.range("task", "failing", "ERROR", 0, 3),
-            Operation.range("task", "failing", "UNSUPPORTED_TRANSITION", 0, 3),
-            Operation.exact("task", COMPOSITE_NODE_ID, "ERROR", 3),
-            Operation.exact("task", COMPOSITE_NODE_ID, "UNSUPPORTED_TRANSITION", 4)
+            Operation.exact("task", COMPOSITE_NODE_ID, "UNPROCESSED", 0),
+            Operation.range("task", "success", "UNPROCESSED", 1, 3),
+            Operation.range("task", "failing", "UNPROCESSED", 1, 3),
+            Operation.range("task", "success", "SUCCESS", 1, 4),
+            Operation.range("task", "failing", "ERROR", 1, 4),
+            Operation.range("task", "failing", "UNSUPPORTED_TRANSITION", 2, 5),
+            Operation.exact("task", COMPOSITE_NODE_ID, "ERROR", 6),
+            Operation.exact("task", COMPOSITE_NODE_ID, "UNSUPPORTED_TRANSITION", 7)
         ));
   }
 
@@ -338,7 +345,7 @@ class TaskEngineCompositeNodeTest {
     // then
     verifyExecution(result, testContext,
         event -> verifyLogEntries(event.getLogAsJson(),
-            Operation.exact("task", INNER_COMPOSITE_NODE_ID, "SUCCESS", 1)
+            Operation.exact("task", INNER_COMPOSITE_NODE_ID, "SUCCESS", 4)
         ));
   }
 
