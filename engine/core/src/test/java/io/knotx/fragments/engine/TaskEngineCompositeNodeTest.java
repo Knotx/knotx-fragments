@@ -318,11 +318,11 @@ class TaskEngineCompositeNodeTest {
     verifyExecution(result, testContext,
         event -> verifyAllLogEntries(event.getLogAsJson(),
             Operation.exact("task", COMPOSITE_NODE_ID, "UNPROCESSED", 0),
-            Operation.range("task", "success", "UNPROCESSED", 1, 3),
-            Operation.range("task", "failing", "UNPROCESSED", 1, 3),
-            Operation.range("task", "success", "SUCCESS", 1, 4),
-            Operation.range("task", "failing", "ERROR", 1, 4),
-            Operation.range("task", "failing", "UNSUPPORTED_TRANSITION", 2, 5),
+            Operation.range("task", "success", "UNPROCESSED", 1, 4),
+            Operation.range("task", "failing", "UNPROCESSED", 1, 4),
+            Operation.range("task", "success", "SUCCESS", 1, 5),
+            Operation.range("task", "failing", "ERROR", 1, 5),
+            Operation.range("task", "failing", "UNSUPPORTED_TRANSITION", 2, 6),
             Operation.exact("task", COMPOSITE_NODE_ID, "ERROR", 6),
             Operation.exact("task", COMPOSITE_NODE_ID, "UNSUPPORTED_TRANSITION", 7)
         ));
