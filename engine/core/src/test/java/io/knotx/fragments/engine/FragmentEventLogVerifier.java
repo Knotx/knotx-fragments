@@ -27,14 +27,15 @@ import io.vertx.core.json.JsonObject;
 class FragmentEventLogVerifier {
 
   private static final String ASSERTION_NOT_MATCH = "Log entries does not match!!\nExpected:\n%s,\ncurrent:\n%s";
-  private static final String ASSERTION_DIFFERENT_SIZE = "Log entries does not have the same size!\nExpected:\n%s,\ncurrent:\n%s";
+  private static final String ASSERTION_DIFFERENT_SIZE = "Log entries does not have the same size! (expected: %s, current: %s)\nExpected:\n%s,\ncurrent:\n%s";
 
 
   static void verifyAllLogEntries(JsonObject log, Operation... expectedOperations) {
     JsonArray logArray = log.getJsonArray("operations", new JsonArray());
     if (logArray.size() != expectedOperations.length) {
       throw new AssertionError(
-          String.format(ASSERTION_DIFFERENT_SIZE, Arrays.toString(expectedOperations), logArray));
+          String.format(ASSERTION_DIFFERENT_SIZE, expectedOperations.length, logArray.size(),
+              Arrays.toString(expectedOperations), logArray));
     }
     for (Operation expectedOperation : expectedOperations) {
       Position position = expectedOperation.getPosition();
@@ -148,6 +149,13 @@ class FragmentEventLogVerifier {
     public int to() {
       return currentPosition;
     }
+
+    @Override
+    public String toString() {
+      return "ExactPosition{" +
+          "currentPosition=" + currentPosition +
+          '}';
+    }
   }
 
   static class RangePosition implements Position {
@@ -168,6 +176,14 @@ class FragmentEventLogVerifier {
     @Override
     public int to() {
       return to;
+    }
+
+    @Override
+    public String toString() {
+      return "RangePosition{" +
+          "from=" + from +
+          ", to=" + to +
+          '}';
     }
   }
 

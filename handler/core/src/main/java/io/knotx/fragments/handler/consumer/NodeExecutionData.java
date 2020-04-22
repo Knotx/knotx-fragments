@@ -22,6 +22,8 @@ class NodeExecutionData {
 
   private final LoggedNodeStatus status;
   private Response response;
+  private long started;
+  private long finished;
 
   NodeExecutionData(LoggedNodeStatus status) {
     this.status = status;
@@ -29,6 +31,22 @@ class NodeExecutionData {
 
   LoggedNodeStatus getStatus() {
     return status;
+  }
+
+  public long getStarted() {
+    return started;
+  }
+
+  public void setStarted(long started) {
+    this.started = started;
+  }
+
+  public long getFinished() {
+    return finished;
+  }
+
+  public void setFinished(long finished) {
+    this.finished = finished;
   }
 
   Response getResponse() {

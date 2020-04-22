@@ -16,9 +16,12 @@
 package io.knotx.fragments.handler.api.metadata;
 
 import io.knotx.fragments.engine.api.node.NodeType;
+
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 public class NodeMetadata {
 

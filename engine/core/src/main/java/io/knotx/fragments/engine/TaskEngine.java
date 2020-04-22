@@ -73,13 +73,25 @@ class TaskEngine {
     return Single.just(context.getCurrentNode())
         .map(SingleNode.class::cast)
         .observeOn(RxHelper.blockingScheduler(vertx))
-        .flatMap(gn -> newInstance(gn).rxApply(context.fragmentContextInstance()))
+        .flatMap(operation -> invokeOperation(operation, context))
         .doOnSuccess(context::handleSuccess)
         .onErrorResumeNext(context::handleError);
   }
 
+  private Single<FragmentResult> invokeOperation(SingleNode operation, TaskExecutionContext context) {
+    return Single.just(context)
+        .doOnSuccess(this::operationStarted)
+        .flatMap(c -> newInstance(operation).rxApply(c.fragmentContextInstance()));
+  }
+
+  private void operationStarted(TaskExecutionContext taskExecutionContext) {
+    taskExecutionContext.handleStarted();
+  }
+
   private Single<FragmentResult> mapReduce(TaskExecutionContext context) {
     CompositeNode node = (CompositeNode) context.getCurrentNode();
+    operationStarted(context);
+
     return Observable.fromIterable(node.getNodes())
         .flatMap(graphNode -> processTask(context, graphNode).toObservable())
         .reduce(context, TaskExecutionContext::merge)

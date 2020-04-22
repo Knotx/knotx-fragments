@@ -203,7 +203,8 @@ class TaskEngineSingleOperationTest {
     // then
     verifyExecution(result, testContext,
         event -> verifyAllLogEntries(event.getLogAsJson(),
-            Operation.exact("task", "first", "SUCCESS", 0)
+            Operation.exact("task", "first", "UNPROCESSED", 0),
+            Operation.exact("task", "first", "SUCCESS", 1)
         ));
   }
 
@@ -220,8 +221,9 @@ class TaskEngineSingleOperationTest {
     // then
     verifyExecution(result, testContext,
         event -> FragmentEventLogVerifier.verifyAllLogEntries(event.getLogAsJson(),
-            Operation.exact("task", "first", "ERROR", 0),
-            Operation.exact("task", "first", "UNSUPPORTED_TRANSITION", 1)
+            Operation.exact("task", "first", "UNPROCESSED", 0),
+            Operation.exact("task", "first", "ERROR", 1),
+            Operation.exact("task", "first", "UNSUPPORTED_TRANSITION", 2)
         ));
   }
 
@@ -241,8 +243,9 @@ class TaskEngineSingleOperationTest {
     // then
     verifyExecution(result, testContext,
         event -> FragmentEventLogVerifier.verifyAllLogEntries(event.getLogAsJson(),
-            Operation.exact("task", "first", "SUCCESS", 0),
-            Operation.exact("task", "first", "UNSUPPORTED_TRANSITION", 1)
+            Operation.exact("task", "first", "UNPROCESSED", 0),
+            Operation.exact("task", "first", "SUCCESS", 1),
+            Operation.exact("task", "first", "UNSUPPORTED_TRANSITION", 2)
         ));
   }
 
@@ -260,8 +263,10 @@ class TaskEngineSingleOperationTest {
     // then
     verifyExecution(result, testContext,
         event -> FragmentEventLogVerifier.verifyAllLogEntries(event.getLogAsJson(),
-            Operation.exact("task", "first", "ERROR", 0),
-            Operation.exact("task", "second", "SUCCESS", 1)
+            Operation.exact("task", "first", "UNPROCESSED", 0),
+            Operation.exact("task", "first", "ERROR", 1),
+            Operation.exact("task", "second", "UNPROCESSED", 2),
+            Operation.exact("task", "second", "SUCCESS", 3)
         ));
   }
 
@@ -280,8 +285,10 @@ class TaskEngineSingleOperationTest {
     // then
     verifyExecution(result, testContext,
         event -> FragmentEventLogVerifier.verifyAllLogEntries(event.getLogAsJson(),
-            Operation.exact("task", "first", "SUCCESS", 0, successNodeLog),
-            Operation.exact("task", "second", "SUCCESS", 1)
+            Operation.exact("task", "first", "UNPROCESSED", 0),
+            Operation.exact("task", "first", "SUCCESS", 1, successNodeLog),
+            Operation.exact("task", "second", "UNPROCESSED", 2),
+            Operation.exact("task", "second", "SUCCESS", 3)
         ));
   }
 
@@ -300,8 +307,10 @@ class TaskEngineSingleOperationTest {
     // then
     verifyExecution(result, testContext,
         event -> FragmentEventLogVerifier.verifyAllLogEntries(event.getLogAsJson(),
-            Operation.exact("task", "first", "SUCCESS", 0, errorNodeLog),
-            Operation.exact("task", "second", "SUCCESS", 1)
+            Operation.exact("task", "first", "UNPROCESSED", 0),
+            Operation.exact("task", "first", "SUCCESS", 1, errorNodeLog),
+            Operation.exact("task", "second", "UNPROCESSED", 2),
+            Operation.exact("task", "second", "SUCCESS", 3)
         ));
   }
 
