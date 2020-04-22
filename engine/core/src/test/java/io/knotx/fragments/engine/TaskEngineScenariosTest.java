@@ -137,7 +137,7 @@ class TaskEngineScenariosTest {
   }
 
   /*
-   * scenario: scenario: first -> parallel[A1 -> A2 -error-> A3(fallback), B] -> middle -> parallel[X, Y1 -> Y2] -> last
+   * scenario: scenario: first -> parallelA-B[A1 -> A2 -error-> A3(fallback), B] -> middle -> parallelX-Y[X, Y1 -> Y2] -> last
    */
   @Test
   @DisplayName("Expect logs in order after complex processing")
@@ -145,14 +145,14 @@ class TaskEngineScenariosTest {
     // given
     Node rootNode = single("first", success(),
         onSuccess(
-            composite(COMPOSITE_NODE_ID,
+            composite("parallelA-B",
                 parallel(
                     single("A1", success(), onSuccess(
                         single("A2", failure(), onError(
                             single("A3-fallback", success()))))),
                     single("B", success())),
                 single("middle", success(), onSuccess(
-                    composite(COMPOSITE_NODE_ID,
+                    composite("parallelX-Y",
                         parallel(
                             single("X", success()),
                             single("Y1", success(), onSuccess(
@@ -168,7 +168,7 @@ class TaskEngineScenariosTest {
           verifyAllLogEntries(fragmentEvent.getLogAsJson(),
               Operation.exact("task", "first", "UNPROCESSED", 0),
               Operation.exact("task", "first", "SUCCESS", 1),
-              Operation.exact("task",  COMPOSITE_NODE_ID, "UNPROCESSED", 2),
+              Operation.exact("task",  "parallelA-B", "UNPROCESSED", 2),
               Operation.range("task", "A1", "UNPROCESSED", 3, 9),
               Operation.range("task", "A2", "UNPROCESSED", 3, 9),
               Operation.range("task", "A3-fallback", "UNPROCESSED", 3, 9),
@@ -177,17 +177,17 @@ class TaskEngineScenariosTest {
               Operation.range("task", "A2", "ERROR", 4, 10),
               Operation.range("task", "A3-fallback", "SUCCESS", 4, 10),
               Operation.range("task", "B", "SUCCESS", 4, 10),
-              Operation.exact("task", COMPOSITE_NODE_ID, "SUCCESS", 11),
+              Operation.exact("task", "parallelA-B", "SUCCESS", 11),
               Operation.exact("task", "middle", "UNPROCESSED", 12),
               Operation.exact("task", "middle", "SUCCESS", 13),
-              Operation.exact("task", COMPOSITE_NODE_ID, "UNPROCESSED", 14),
+              Operation.exact("task", "parallelX-Y", "UNPROCESSED", 14),
               Operation.range("task", "X", "UNPROCESSED", 15, 19),
               Operation.range("task", "Y1", "UNPROCESSED", 15, 19),
               Operation.range("task", "Y2", "UNPROCESSED", 15, 19),
               Operation.range("task", "X", "SUCCESS", 16, 20),
               Operation.range("task", "Y1", "SUCCESS", 16, 20),
               Operation.range("task", "Y2", "SUCCESS", 16, 20),
-              Operation.exact("task", COMPOSITE_NODE_ID, "SUCCESS", 21),
+              Operation.exact("task", "parallelX-Y", "SUCCESS", 21),
               Operation.exact("task", "last", "UNPROCESSED", 22),
               Operation.exact("task", "last", "SUCCESS", 23)
           );
