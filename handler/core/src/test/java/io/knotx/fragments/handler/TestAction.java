@@ -40,7 +40,7 @@ public class TestAction implements ActionFactory {
       Fragment fragment = fragmentContext.getFragment();
       if (config.containsKey("jsonBody")) {
         fragment.setBody(config.getJsonObject("jsonBody", new JsonObject()).toString());
-      } else {
+      } else if (config.containsKey("body")) {
         fragment.setBody(config.getString("body", "any"));
       }
 

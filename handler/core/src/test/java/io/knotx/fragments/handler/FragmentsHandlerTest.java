@@ -38,8 +38,6 @@ import io.vertx.reactivex.ext.web.RoutingContext;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -318,7 +316,7 @@ class FragmentsHandlerTest {
   @Test
   @DisplayName("Expect invalid fragments to pass when the header is configured and provided")
   void invalidFragmentsHeaderProvided(Vertx vertx, VertxTestContext testContext) throws Throwable {
-    HoconLoader.verifyAsync("handler/taskFactoryWithInvalidFragmentsAllowed.conf", config -> {
+    HoconLoader.verifyAsync("handler/taskFactoryWithHeaderInvalidFragmentsAllowed.conf", config -> {
       //given
       Map<String, String> headers = Collections.singletonMap("Allow-Invalid-Fragments", "true");
       RoutingContext routingContext = mockRoutingContext("failing-task", headers,
@@ -365,7 +363,7 @@ class FragmentsHandlerTest {
   @Test
   @DisplayName("Expect invalid fragments to pass when the parameter is configured and provided")
   void invalidFragmentsParamProvided(Vertx vertx, VertxTestContext testContext) throws Throwable {
-    HoconLoader.verifyAsync("handler/taskFactoryWithInvalidFragmentsAllowed.conf", config -> {
+    HoconLoader.verifyAsync("handler/taskFactoryWithParamInvalidFragmentsAllowed.conf", config -> {
       //given
       Map<String, String> params = Collections.singletonMap("allowInvalidFragments", "true");
       RoutingContext routingContext = mockRoutingContext("failing-task", Collections.emptyMap(),

@@ -22,10 +22,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.doAnswer;
 
 import io.knotx.fragments.api.Fragment;
-import io.knotx.fragments.engine.api.FragmentEvent;
 import io.knotx.fragments.engine.api.FragmentEvent.Status;
 import io.knotx.fragments.handler.FragmentsHandlerFactory;
-import io.knotx.fragments.handler.consumer.api.FragmentExecutionLogConsumer;
 import io.knotx.fragments.handler.consumer.api.model.FragmentExecutionLog;
 import io.knotx.fragments.handler.consumer.api.model.GraphNodeExecutionLog;
 import io.knotx.fragments.handler.consumer.api.model.LoggedNodeStatus;
@@ -41,7 +39,8 @@ import io.vertx.reactivex.core.Vertx;
 import io.vertx.reactivex.ext.web.RoutingContext;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
+import java.util.function.Consumer;
+import java.util.function.Function;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -55,19 +54,77 @@ import org.mockito.quality.Strictness;
 @MockitoSettings(strictness = Strictness.LENIENT)
 class ConsumerAcceptsInvalidFragmentTest {
 
+  private static final Function<String, FragmentExecutionLog> JSON_BODY_TO_EXECUTION_LOG = fragmentBody -> {
+    assertTrue(new JsonObject(fragmentBody).containsKey("_knotx_fragment"));
+    JsonObject debugData = new JsonObject(fragmentBody).getJsonObject("_knotx_fragment");
+    FragmentExecutionLog executionLog = new FragmentExecutionLog(debugData);
+    assertEquals(Status.FAILURE, executionLog.getStatus());
+    assertNotEquals(0, executionLog.getStartTime(),
+        "Fragment processing start time should be set.");
+    assertNotEquals(0, executionLog.getFinishTime(),
+        "Fragment processing end time should be set.");
+    GraphNodeExecutionLog graphRootNode = executionLog.getGraph();
+    assertNotNull(graphRootNode);
+    assertEquals(LoggedNodeStatus.ERROR, graphRootNode.getStatus());
+    return executionLog;
+  };
+
   @Test
-  @DisplayName("Expect invalid JSON fragment with debug data.")
-  void invalidJsonFragmentWithDebugData(Vertx vertx, VertxTestContext testContext) throws Throwable {
-    HoconLoader.verifyAsync("conf/invalid-json-fragment-with-consumer.conf", config -> {
+  @DisplayName("Expect invalid JSON fragment with single node task contains debug data.")
+  void invalidJsonFragmentWithSingleNodeTask(Vertx vertx, VertxTestContext testContext)
+      throws Throwable {
+    String configFile = "conf/invalid-single-node-task-with-consumer.conf";
+    Fragment fragment = fragment("json", "failing-single-node-task", "{}");
+    Consumer<FragmentExecutionLog> assertions = executionLog -> {
+      GraphNodeExecutionLog graphRootNode = executionLog.getGraph();
+      checkTimelines(graphRootNode);
+      checkMissingNode(graphRootNode);
+    };
+
+    verifyDebugData(configFile, fragment, JSON_BODY_TO_EXECUTION_LOG, assertions, vertx,
+        testContext);
+  }
+
+  @Test
+  @DisplayName("Expect invalid JSON fragment with composite node task contains debug data.")
+  void invalidJsonFragmentWithCompositeNodeTask(Vertx vertx, VertxTestContext testContext)
+      throws Throwable {
+    String configFile = "conf/invalid-composite-node-task-with-consumer.conf";
+    Fragment fragment = fragment("json", "failing-composite-node-task", "{}");
+    Consumer<FragmentExecutionLog> assertions = executionLog -> {
+      GraphNodeExecutionLog graphRootNode = executionLog.getGraph();
+
+      assertEquals(2, graphRootNode.getSubtasks().size());
+      GraphNodeExecutionLog successSubtask = graphRootNode.getSubtask("success-action")
+          .orElseThrow(() -> new AssertionError("Subtask node not found!"));
+      checkTimelines(successSubtask);
+      assertEquals(LoggedNodeStatus.SUCCESS, successSubtask.getStatus());
+
+      GraphNodeExecutionLog failingSubtask = graphRootNode.getSubtask("failing-action")
+          .orElseThrow(() -> new AssertionError("Subtask node not found!"));
+      checkTimelines(failingSubtask);
+      assertEquals(LoggedNodeStatus.ERROR, failingSubtask.getStatus());
+
+      checkMissingNode(graphRootNode);
+    };
+
+    verifyDebugData(configFile, fragment, JSON_BODY_TO_EXECUTION_LOG, assertions, vertx,
+        testContext);
+  }
+
+  private void verifyDebugData(String configFile, Fragment fragment,
+      Function<String, FragmentExecutionLog> toExecutionLog,
+      Consumer<FragmentExecutionLog> assertions,
+      Vertx vertx, VertxTestContext testContext) throws Throwable {
+    HoconLoader.verifyAsync(configFile, loadedConfig -> {
       // checkpoints
       Checkpoint updateFragmentCheckpoint = testContext.checkpoint();
       Checkpoint callNextHandlerCheckpoint = testContext.checkpoint();
 
       //given
-      Fragment fragment = fragment("json", "failing-task", "{}");
-
-      RoutingContext routingContextMock = RoutingContextMock.create(fragment, Collections.emptyMap(),
-          Collections.singletonMap("debug", "true"));
+      RoutingContext routingContextMock = RoutingContextMock
+          .create(fragment, Collections.singletonMap("Allow-Invalid-Fragments", "true"),
+              Collections.singletonMap("debug", "true"));
 
       doAnswer(invocation -> {
         String key = invocation.getArgument(0);
@@ -78,27 +135,8 @@ class ConsumerAcceptsInvalidFragmentTest {
           assertEquals(1, fragmentList.size());
           String fragmentBody = fragmentList.get(0).getBody();
           assertNotNull(fragmentBody);
-          assertTrue(new JsonObject(fragmentBody).containsKey("_knotx_fragment"));
-          JsonObject debugData = new JsonObject(fragmentBody).getJsonObject("_knotx_fragment");
-
-          // verify node fragment processing
-          FragmentExecutionLog executionLog = new FragmentExecutionLog(debugData);
-          assertNotEquals(0, executionLog.getStartTime(), "Fragment processing start time should be set.");
-          assertNotEquals(0, executionLog.getFinishTime(), "Fragment processing end time should be set.");
-          assertEquals(Status.FAILURE, executionLog.getStatus());
-
-          // verify node processing
-          GraphNodeExecutionLog graphRootNode = executionLog.getGraph();
-          assertNotNull(graphRootNode);
-          assertNotEquals(0, graphRootNode.getStarted(), "Node processing start time should be set.");
-          assertNotEquals(0, graphRootNode.getFinished(), "Node processing end time should be set.");
-          assertEquals(LoggedNodeStatus.ERROR, graphRootNode.getStatus());
-
-          // verify missing node
-          assertTrue(graphRootNode.getOn().containsKey("_error"), "Missing node exists");
-          GraphNodeExecutionLog missingNode = graphRootNode.getOn().get("_error");
-          assertEquals(LoggedNodeStatus.MISSING, missingNode.getStatus());
-
+          FragmentExecutionLog executionLog = toExecutionLog.apply(fragmentBody);
+          assertions.accept(executionLog);
           updateFragmentCheckpoint.flag();
         }
         return routingContextMock;
@@ -114,11 +152,24 @@ class ConsumerAcceptsInvalidFragmentTest {
           .next();
 
       Handler<RoutingContext> underTest = new FragmentsHandlerFactory()
-          .create(vertx, config);
+          .create(vertx, loadedConfig);
 
       //when
       underTest.handle(routingContextMock);
     }, testContext, vertx);
+  }
+
+  private void checkTimelines(GraphNodeExecutionLog graphNode) {
+    assertNotEquals(0, graphNode.getStarted(),
+        "Node processing start time should be set.");
+    assertNotEquals(0, graphNode.getFinished(),
+        "Node processing end time should be set.");
+  }
+
+  private void checkMissingNode(GraphNodeExecutionLog graphNode) {
+    assertTrue(graphNode.getOn().containsKey("_error"), "Missing node exists");
+    GraphNodeExecutionLog missingNode = graphNode.getOn().get("_error");
+    assertEquals(LoggedNodeStatus.MISSING, missingNode.getStatus());
   }
 
   private Fragment fragment(String type, String task, String body) {

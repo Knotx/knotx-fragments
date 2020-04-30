@@ -50,7 +50,7 @@ public class FragmentsHandlerOptions {
   }
 
   public String getAllowInvalidFragmentsHeader() {
-    return allowInvalidFragmentsHeader;
+    return allowInvalidFragmentsHeader == null ? "" : allowInvalidFragmentsHeader;
   }
 
   /**
@@ -66,7 +66,7 @@ public class FragmentsHandlerOptions {
   }
 
   public String getAllowInvalidFragmentsParam() {
-    return allowInvalidFragmentsParam;
+    return allowInvalidFragmentsParam == null ? "" : allowInvalidFragmentsParam;
   }
 
   /**
