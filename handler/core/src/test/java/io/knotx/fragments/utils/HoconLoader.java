@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.knotx.fragments;
+package io.knotx.fragments.utils;
 
 import io.vertx.config.ConfigRetriever;
 import io.vertx.config.ConfigRetrieverOptions;
@@ -30,29 +30,38 @@ import org.junit.jupiter.api.Assertions;
 public class HoconLoader {
 
   public static void verify(String fileName, Consumer<JsonObject> assertions,
-      io.vertx.reactivex.core.Vertx vertx)
-      throws Throwable {
-    verify(fileName, assertions, new VertxTestContext(), vertx.getDelegate());
-  }
-
-  public static void verify(String fileName, Consumer<JsonObject> assertions,
-      VertxTestContext testContext, io.vertx.reactivex.core.Vertx vertx)
-      throws Throwable {
-    verify(fileName, assertions, testContext, vertx.getDelegate());
+      io.vertx.reactivex.core.Vertx vertx) throws Throwable {
+    verify(fileName, assertions, vertx.getDelegate());
   }
 
   public static void verify(String fileName, Consumer<JsonObject> assertions, Vertx vertx)
       throws Throwable {
-    verify(fileName, assertions, new VertxTestContext(), vertx);
-  }
-
-  public static void verify(String fileName, Consumer<JsonObject> assertions,
-      VertxTestContext testContext, Vertx vertx)
-      throws Throwable {
+    VertxTestContext testContext = new VertxTestContext();
     Handler<AsyncResult<JsonObject>> configHandler = testContext
         .succeeding(config -> testContext.verify(() -> {
           assertions.accept(config);
           testContext.completeNow();
+        }));
+    fromHOCON(fileName, vertx, configHandler);
+
+    Assertions.assertTrue(testContext.awaitCompletion(5, TimeUnit.SECONDS));
+    if (testContext.failed()) {
+      throw testContext.causeOfFailure();
+    }
+  }
+
+  public static void verifyAsync(String fileName, Consumer<JsonObject> execution,
+      VertxTestContext testContext, io.vertx.reactivex.core.Vertx vertx)
+      throws Throwable {
+    verifyAsync(fileName, execution, testContext, vertx.getDelegate());
+  }
+
+  public static void verifyAsync(String fileName, Consumer<JsonObject> execution,
+      VertxTestContext testContext, Vertx vertx)
+      throws Throwable {
+    Handler<AsyncResult<JsonObject>> configHandler = testContext
+        .succeeding(config -> testContext.verify(() -> {
+          execution.accept(config);
         }));
     fromHOCON(fileName, vertx, configHandler);
 

@@ -48,13 +48,16 @@ public class FragmentExecutionLogConsumersNotifier {
     this.consumers = consumerOptionsList.stream()
         .map(consumerOptions -> initConsumer(loader, consumerOptions))
         .collect(toList());
+    LOGGER.info("Registered consumers [{}]", consumers);
   }
 
   private FragmentExecutionLogConsumer initConsumer(
       ServiceLoader<FragmentExecutionLogConsumerFactory> loader, FactoryOptions consumerOptions) {
     return StreamSupport.stream(loader.spliterator(), false)
         .filter(f -> f.getName().equals(consumerOptions.getFactory()))
-        .peek(f -> LOGGER.info("Registering fragment event consumer [{}]", f.getName()))
+        .peek(f -> LOGGER
+            .info("Registering consumer [{}] with name [{}] with config [{}].", f.getClass(),
+                f.getName(), consumerOptions.getConfig()))
         .map(f -> f.create(consumerOptions.getConfig()))
         .findFirst()
         .orElseThrow(() -> new ConfigurationException(
@@ -68,6 +71,7 @@ public class FragmentExecutionLogConsumersNotifier {
     List<FragmentExecutionLog> executionDataList = events.stream()
         .map(e -> convert(e, tasksMetadata))
         .collect(Collectors.toList());
+    LOGGER.trace("Notify consumers with execution data [{}]", executionDataList);
     consumers
         .forEach(consumer -> consumer.accept(clientRequest, executionDataList));
   }

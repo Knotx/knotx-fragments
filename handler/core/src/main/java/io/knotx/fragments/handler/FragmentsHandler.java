@@ -72,8 +72,8 @@ public class FragmentsHandler implements Handler<RoutingContext> {
 
     doHandle(executionPlan)
         .doOnError(e -> LOGGER.error("Fragments not processed correctly!", e))
-        .doOnSuccess(events -> putFragments(routingContext, events))
         .doOnSuccess(events -> consumerNotifier.notify(clientRequest, events, executionPlan))
+        .doOnSuccess(events -> putFragments(routingContext, events))
         .map(events -> toHandlerResult(events, requestContext))
         .subscribe(
             result -> requestContextEngine

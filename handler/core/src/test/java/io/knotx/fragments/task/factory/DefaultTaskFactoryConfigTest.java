@@ -15,7 +15,7 @@
  */
 package io.knotx.fragments.task.factory;
 
-import static io.knotx.fragments.HoconLoader.verify;
+import static io.knotx.fragments.utils.HoconLoader.verify;
 
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
