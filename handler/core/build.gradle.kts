@@ -24,6 +24,16 @@ plugins {
     id("org.nosphere.apache.rat") version "0.6.0"
 }
 
+sourceSets {
+    register("integrationTest") {
+        compileClasspath += sourceSets.test.get().output.classesDirs
+        runtimeClasspath += sourceSets.test.get().output.classesDirs
+    }
+}
+
+val integrationTestImplementation: Configuration by configurations.getting { extendsFrom(configurations.named("testImplementation").get()) }
+val integrationTestRuntimeOnly: Configuration by configurations.getting { extendsFrom(configurations.named("testRuntimeOnly").get()) }
+
 dependencies {
     implementation(platform("io.knotx:knotx-dependencies:${project.version}"))
 
@@ -51,9 +61,27 @@ dependencies {
     testImplementation(group = "io.vertx", name = "vertx-config-hocon")
     testImplementation("org.junit.jupiter:junit-jupiter-params")
     testImplementation(group = "com.github.tomakehurst", name = "wiremock")
+
+    // logging
+    integrationTestRuntimeOnly("io.knotx:knotx-launcher:${project.version}")
+    // handler dependencies
+    integrationTestImplementation(project(":knotx-fragments-handler-core"))
+    integrationTestRuntimeOnly(project(":knotx-fragments-handler-consumer-html"))
+    integrationTestRuntimeOnly(project(":knotx-fragments-handler-consumer-json"))
 }
 
 tasks {
+    register<Test>("integrationTest") {
+        description = "Runs integration tests."
+        group = "verification"
+
+        classpath = sourceSets["integrationTest"].runtimeClasspath
+        testClassesDirs = sourceSets["integrationTest"].output.classesDirs
+
+        shouldRunAfter("test")
+    }
+
+    named("check") { dependsOn("integrationTest") }
     named<RatTask>("rat") {
         excludes.addAll(listOf("*.yml", "*.md", "**/*.md", "**/build/*", "**/out/*", "**/generated/*", "**/*.adoc", "**/*.json", "**/*.conf"))
     }

@@ -23,6 +23,8 @@ import io.knotx.fragments.handler.consumer.api.model.FragmentExecutionLog;
 import io.knotx.server.api.context.ClientRequest;
 import io.vertx.core.json.DecodeException;
 import io.vertx.core.json.JsonObject;
+import io.vertx.core.logging.Logger;
+import io.vertx.core.logging.LoggerFactory;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -32,8 +34,10 @@ import java.util.stream.StreamSupport;
 
 public class JsonFragmentsHandlerConsumerFactory implements FragmentExecutionLogConsumerFactory {
 
+  private static final Logger LOGGER = LoggerFactory.getLogger(JsonFragmentsHandlerConsumerFactory.class);
+
   private static final String PARAM_OPTION = "param";
-  static final String KNOTX_FRAGMENT = "_knotx_fragment";
+  public static final String KNOTX_FRAGMENT = "_knotx_fragment";
   static final String FRAGMENT_TYPES_OPTIONS = "fragmentTypes";
   static final String HEADER_OPTION = "header";
   static final String CONDITION_OPTION = "condition";
@@ -53,7 +57,9 @@ public class JsonFragmentsHandlerConsumerFactory implements FragmentExecutionLog
 
       @Override
       public void accept(ClientRequest request, List<FragmentExecutionLog> executions) {
+        LOGGER.trace("Validating request [{}] ...", request);
         if (containsHeader(request) || containsParam(request)) {
+          LOGGER.trace("Processing fragments [{}] ...", executions);
           executions.stream()
               .filter(this::isSupported)
               .forEach(this::appendExecutionDataToFragmentBody);
@@ -87,6 +93,7 @@ public class JsonFragmentsHandlerConsumerFactory implements FragmentExecutionLog
       private void appendExecutionDataToFragmentBody(FragmentExecutionLog executionData) {
         JsonObject fragmentBody = new JsonObject().put(KNOTX_FRAGMENT, executionData.toJson())
             .mergeIn(new JsonObject(executionData.getFragment().getBody()));
+        LOGGER.debug("Fragment [{}] body is updated [{}]", executionData.getFragment().getId(), fragmentBody);
         executionData.getFragment().setBody(fragmentBody.encodePrettily());
       }
     };

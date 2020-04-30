@@ -12,18 +12,20 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * The code comes from https://github.com/tomaszmichalak/vertx-rx-map-reduce.
  */
 package io.knotx.fragments.handler;
 
 import io.knotx.server.api.handler.RoutingHandlerFactory;
 import io.vertx.core.Handler;
 import io.vertx.core.json.JsonObject;
+import io.vertx.core.logging.Logger;
+import io.vertx.core.logging.LoggerFactory;
 import io.vertx.reactivex.core.Vertx;
 import io.vertx.reactivex.ext.web.RoutingContext;
 
 public class FragmentsHandlerFactory implements RoutingHandlerFactory {
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(FragmentsHandler.class);
 
   @Override
   public String getName() {
@@ -32,6 +34,9 @@ public class FragmentsHandlerFactory implements RoutingHandlerFactory {
 
   @Override
   public Handler<RoutingContext> create(Vertx vertx, JsonObject config) {
-    return new FragmentsHandler(vertx, config);
+    LOGGER.info("Creating Handler [{}] with options [{}].", getName(), config);
+    FragmentsHandler fragmentsHandler = new FragmentsHandler(vertx, config);
+    LOGGER.info("Handler [{}] created.", getName(), config );
+    return fragmentsHandler;
   }
 }

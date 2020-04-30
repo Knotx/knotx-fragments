@@ -17,9 +17,9 @@ package io.knotx.fragments.handler;
 
 import static io.vertx.core.Future.succeededFuture;
 
-import io.knotx.fragments.api.Fragment;
 import io.knotx.fragments.action.api.Action;
 import io.knotx.fragments.action.api.ActionFactory;
+import io.knotx.fragments.api.Fragment;
 import io.knotx.fragments.api.FragmentResult;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
@@ -38,9 +38,14 @@ public class TestAction implements ActionFactory {
 
     return (fragmentContext, resultHandler) -> {
       Fragment fragment = fragmentContext.getFragment();
-      fragment.setBody(config.getString("body", "any"));
+      if (config.containsKey("jsonBody")) {
+        fragment.setBody(config.getJsonObject("jsonBody", new JsonObject()).toString());
+      } else {
+        fragment.setBody(config.getString("body", "any"));
+      }
 
-      Future<FragmentResult> resultFuture = succeededFuture(new FragmentResult(fragment, transition));
+      Future<FragmentResult> resultFuture = succeededFuture(
+          new FragmentResult(fragment, transition));
       resultFuture.setHandler(resultHandler);
     };
   }

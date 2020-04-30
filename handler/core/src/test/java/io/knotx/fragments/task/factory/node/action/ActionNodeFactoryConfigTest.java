@@ -15,7 +15,7 @@
  */
 package io.knotx.fragments.task.factory.node.action;
 
-import static io.knotx.fragments.HoconLoader.verify;
+import static io.knotx.fragments.utils.HoconLoader.verify;
 
 import io.knotx.fragments.task.factory.LogLevelConfig;
 import io.vertx.core.Vertx;
