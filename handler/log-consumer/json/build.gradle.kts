@@ -30,13 +30,14 @@ dependencies {
 
     api(project(":knotx-fragments-api"))
     api(project(":knotx-fragments-handler-api"))
-    api(project(":knotx-fragments-handler-consumer-api"))
+    api(project(":knotx-fragments-execution-log-api"))
 
     implementation(group = "io.vertx", name = "vertx-core")
     implementation(group = "io.vertx", name = "vertx-rx-java2")
     implementation(group = "org.apache.commons", name = "commons-lang3")
     implementation(group = "com.google.guava", name = "guava")
 
+    testImplementation("org.junit.jupiter:junit-jupiter-params")
     testImplementation(group = "org.mockito", name = "mockito-core")
     testImplementation(group = "org.mockito", name = "mockito-junit-jupiter")
 }

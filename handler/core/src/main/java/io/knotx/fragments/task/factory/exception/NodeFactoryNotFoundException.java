@@ -13,7 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-@ModuleGen(name = "knotx-fragments-handler-api", groupPackage = "io.knotx")
-package io.knotx.fragments.handler.api;
+package io.knotx.fragments.task.factory.exception;
 
-import io.vertx.codegen.annotations.ModuleGen;
+import io.knotx.fragments.handler.api.exception.ConfigurationException;
+
+public class NodeFactoryNotFoundException extends ConfigurationException {
+
+  private String factory;
+
+  public NodeFactoryNotFoundException(String factory) {
+    super("Node factory not registered for [" + factory + "]");
+    this.factory = factory;
+  }
+
+  public String getFactory() {
+    return factory;
+  }
+}

@@ -34,7 +34,7 @@ import io.knotx.fragments.handler.api.metadata.NodeMetadata;
 import io.knotx.fragments.engine.api.node.Node;
 import io.knotx.fragments.engine.api.node.NodeType;
 import io.knotx.fragments.engine.api.node.composite.CompositeNode;
-import io.knotx.fragments.task.exception.NodeFactoryNotFoundException;
+import io.knotx.fragments.task.factory.exception.NodeFactoryNotFoundException;
 import io.knotx.fragments.task.factory.GraphNodeOptions;
 import io.knotx.fragments.task.factory.NodeProvider;
 import io.knotx.fragments.task.factory.node.NodeOptions;

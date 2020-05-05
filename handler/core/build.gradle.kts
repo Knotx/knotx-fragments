@@ -38,12 +38,13 @@ dependencies {
     implementation(platform("io.knotx:knotx-dependencies:${project.version}"))
 
     api(project(":knotx-fragments-handler-api"))
-    api(project(":knotx-fragments-handler-consumer-api"))
+    api(project(":knotx-fragments-execution-log-api"))
+    api(project(":knotx-fragments-task-factory-api"))
     implementation("io.knotx:knotx-commons:${project.version}")
     implementation("io.knotx:knotx-server-http-common-placeholders:${project.version}")
-    implementation(project(":knotx-fragments-action-api"))
+    api(project(":knotx-fragments-action-api"))
     implementation(project(":knotx-fragments-action-core"))
-    implementation(project(":knotx-fragments-engine-api"))
+    api(project(":knotx-fragments-engine-api"))
     implementation(project(":knotx-fragments-engine-core"))
 
     implementation(group = "io.vertx", name = "vertx-circuit-breaker")
@@ -66,8 +67,8 @@ dependencies {
     integrationTestRuntimeOnly("io.knotx:knotx-launcher:${project.version}")
     // handler dependencies
     integrationTestImplementation(project(":knotx-fragments-handler-core"))
-    integrationTestRuntimeOnly(project(":knotx-fragments-handler-consumer-html"))
-    integrationTestRuntimeOnly(project(":knotx-fragments-handler-consumer-json"))
+    integrationTestRuntimeOnly(project(":knotx-fragments-execution-log-html"))
+    integrationTestRuntimeOnly(project(":knotx-fragments-execution-log-json"))
 }
 
 tasks {
