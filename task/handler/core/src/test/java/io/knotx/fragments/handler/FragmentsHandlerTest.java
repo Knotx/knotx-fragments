@@ -22,8 +22,8 @@ import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.Mockito.doAnswer;
 
 import io.knotx.fragments.api.Fragment;
-import io.knotx.fragments.engine.api.FragmentEvent;
-import io.knotx.fragments.engine.api.FragmentEvent.Status;
+import io.knotx.fragments.engine.FragmentEvent;
+import io.knotx.fragments.engine.FragmentEvent.Status;
 import io.knotx.fragments.handler.exception.ConfigurationException;
 import io.knotx.fragments.handler.utils.RoutingContextStub;
 import io.knotx.junit5.util.HoconLoader;
@@ -56,7 +56,7 @@ class FragmentsHandlerTest {
   @DisplayName("Expect no exception when task factories and execution log consumers not configured.")
   void tasksAndConsumersNotFound(Vertx vertx)
       throws Throwable {
-    HoconLoader.verify("handler/factoriesNotFound.conf", config -> {
+    HoconLoader.verify("handler/factoriesNotDefined.conf", config -> {
       //given
       new FragmentsHandler(vertx, config);
       // no exception

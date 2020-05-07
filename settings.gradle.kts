@@ -54,10 +54,8 @@ include("knotx-fragments-task-factory-config")
 project(":knotx-fragments-task-factory-api").projectDir = file("task/factory/api")
 project(":knotx-fragments-task-factory-config").projectDir = file("task/factory/config")
 
-include("knotx-fragments-engine-api")
-include("knotx-fragments-engine-core")
-project(":knotx-fragments-engine-api").projectDir = file("task/engine/api")
-project(":knotx-fragments-engine-core").projectDir = file("task/engine/core")
+include("knotx-fragments-task-engine")
+project(":knotx-fragments-task-engine").projectDir = file("task/engine")
 
 include("knotx-fragments-handler-core")
 include("knotx-fragments-execution-log-api")

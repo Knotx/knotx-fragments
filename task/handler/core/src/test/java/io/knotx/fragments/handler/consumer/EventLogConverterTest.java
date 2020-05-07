@@ -22,7 +22,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import io.knotx.fragments.api.Fragment;
 import io.knotx.fragments.api.FragmentResult;
-import io.knotx.fragments.engine.api.EventLogEntry;
+import io.knotx.fragments.engine.EventLogEntry;
 import io.knotx.fragments.handler.consumer.api.model.LoggedNodeStatus;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;

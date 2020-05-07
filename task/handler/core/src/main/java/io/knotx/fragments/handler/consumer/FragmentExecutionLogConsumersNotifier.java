@@ -18,8 +18,7 @@ package io.knotx.fragments.handler.consumer;
 import static io.knotx.fragments.handler.consumer.api.model.FragmentExecutionLog.newInstance;
 import static java.util.stream.Collectors.toList;
 
-import io.knotx.fragments.engine.api.FragmentEvent;
-import io.knotx.fragments.engine.api.FragmentEvent.Status;
+import io.knotx.fragments.engine.FragmentEvent;
 import io.knotx.fragments.handler.ExecutionPlan;
 import io.knotx.fragments.handler.consumer.api.model.FragmentExecutionLog.ExecutionStatus;
 import io.knotx.fragments.handler.exception.ConfigurationException;

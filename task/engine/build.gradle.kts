@@ -13,15 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 import org.nosphere.apache.rat.RatTask
 
 plugins {
     id("io.knotx.java-library")
-    id("io.knotx.codegen")
+    id("io.knotx.unit-test")
     id("io.knotx.maven-publish")
     id("io.knotx.jacoco")
-    id("io.knotx.unit-test")
     id("org.nosphere.apache.rat") version "0.6.0"
 }
 
@@ -32,14 +30,16 @@ dependencies {
     api(project(":knotx-fragments-task-api"))
 
     implementation(group = "io.vertx", name = "vertx-core")
+    implementation(group = "io.vertx", name = "vertx-service-proxy")
     implementation(group = "io.vertx", name = "vertx-rx-java2")
-    implementation(group = "org.apache.commons", name = "commons-lang3")
-    implementation(group = "com.google.guava", name = "guava")
+
+    testImplementation(group = "org.mockito", name = "mockito-core")
+    testImplementation(group = "org.mockito", name = "mockito-junit-jupiter")
 }
 
 tasks {
     named<RatTask>("rat") {
-        excludes.addAll(listOf("*.md", "**/build/*", "**/out/*", "**/generated/*", "**/*.adoc"))
+        excludes.addAll(listOf("*.yml", "*.md", "**/*.md", "**/build/*", "**/out/*", "**/generated/*", "**/*.adoc"))
     }
     getByName("build").dependsOn("rat")
 }

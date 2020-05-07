@@ -18,13 +18,11 @@ package io.knotx.fragments.handler.consumer;
 import static io.knotx.fragments.api.FragmentResult.ERROR_TRANSITION;
 import static io.knotx.fragments.api.FragmentResult.SUCCESS_TRANSITION;
 
-import io.knotx.fragments.engine.api.EventLogEntry;
-import io.knotx.fragments.engine.api.EventLogEntry.NodeStatus;
+import io.knotx.fragments.engine.EventLogEntry;
+import io.knotx.fragments.engine.EventLogEntry.NodeStatus;
 import io.knotx.fragments.handler.consumer.api.model.LoggedNodeStatus;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
-import java.util.Arrays;
-import java.util.function.Function;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.List;

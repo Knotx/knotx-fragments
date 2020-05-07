@@ -40,7 +40,7 @@ dependencies {
     api(project(":knotx-fragments-execution-log-api"))
 
     api(project(":knotx-fragments-task-factory-api"))
-    implementation(project(":knotx-fragments-engine-core"))
+    implementation(project(":knotx-fragments-task-engine"))
 
     implementation("io.knotx:knotx-commons:${project.version}")
     implementation("io.knotx:knotx-server-http-common-placeholders:${project.version}")

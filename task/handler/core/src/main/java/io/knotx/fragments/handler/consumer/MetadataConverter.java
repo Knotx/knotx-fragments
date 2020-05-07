@@ -15,7 +15,7 @@
  */
 package io.knotx.fragments.handler.consumer;
 
-import io.knotx.fragments.engine.api.FragmentEvent;
+import io.knotx.fragments.engine.FragmentEvent;
 import io.knotx.fragments.task.api.NodeType;
 import io.knotx.fragments.task.factory.api.metadata.NodeMetadata;
 import io.knotx.fragments.task.factory.api.metadata.OperationMetadata;

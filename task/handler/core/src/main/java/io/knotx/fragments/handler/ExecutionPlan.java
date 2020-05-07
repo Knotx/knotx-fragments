@@ -18,8 +18,8 @@ package io.knotx.fragments.handler;
 import static io.knotx.fragments.task.api.Task.UNDEFINED_TASK;
 
 import io.knotx.fragments.api.Fragment;
-import io.knotx.fragments.engine.api.FragmentEvent;
-import io.knotx.fragments.engine.api.FragmentEventContext;
+import io.knotx.fragments.engine.FragmentEvent;
+import io.knotx.fragments.engine.FragmentEventContext;
 import io.knotx.fragments.task.api.Task;
 import io.knotx.fragments.task.factory.api.metadata.TaskMetadata;
 import io.knotx.fragments.task.factory.api.metadata.TaskWithMetadata;

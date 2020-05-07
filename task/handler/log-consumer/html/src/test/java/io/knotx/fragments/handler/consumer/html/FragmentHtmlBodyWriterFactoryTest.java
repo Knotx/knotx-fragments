@@ -25,10 +25,10 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.common.collect.ImmutableList;
 import io.knotx.fragments.api.Fragment;
-import io.knotx.fragments.engine.api.EventLogEntry.NodeStatus;
 import io.knotx.fragments.handler.consumer.api.FragmentExecutionLogConsumer;
 import io.knotx.fragments.handler.consumer.api.model.FragmentExecutionLog;
 import io.knotx.fragments.handler.consumer.api.model.GraphNodeExecutionLog;
+import io.knotx.fragments.handler.consumer.api.model.LoggedNodeStatus;
 import io.knotx.server.api.context.ClientRequest;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -236,13 +236,13 @@ class FragmentHtmlBodyWriterFactoryTest {
     JsonObject expectedLog = new JsonObject()
         .put("startTime", 0)
         .put("finishTime", 0)
-        .put("status", NodeStatus.UNPROCESSED)
+        .put("status", LoggedNodeStatus.UNPROCESSED)
         .put("fragment", new JsonObject()
             .put("id", fragment.getId())
             .put("type", "snippet"))
         .put("graph", new JsonObject()
             .put("id", "root-node-id")
-            .put("status", NodeStatus.UNPROCESSED));
+            .put("status", LoggedNodeStatus.UNPROCESSED));
 
     // when
     FragmentExecutionLogConsumer tested = new FragmentHtmlBodyWriterFactory()
