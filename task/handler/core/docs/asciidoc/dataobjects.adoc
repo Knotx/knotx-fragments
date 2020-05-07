@@ -1,0 +1,47 @@
+= Cheatsheets
+
+[[FactoryOptions]]
+== FactoryOptions
+
+
+[cols=">25%,25%,50%"]
+[frame="topbot"]
+|===
+^|Name | Type ^| Description
+|[[config]]`@config`|`Json object`|+++
+The JSON object that contains factory configuration entries.
++++
+|[[factory]]`@factory`|`String`|+++
+The factory name.
++++
+|===
+
+[[FragmentsHandlerOptions]]
+== FragmentsHandlerOptions
+
+++++
+ Fragments Handler options model.
+++++
+'''
+
+[cols=">25%,25%,50%"]
+[frame="topbot"]
+|===
+^|Name | Type ^| Description
+|[[allowInvalidFragmentsHeader]]`@allowInvalidFragmentsHeader`|`String`|+++
+Name of the http header that, when set to "true" in the request, will force Fragments Handler to succeed even if some fragments failed.
+ This is mainly so that the data can be inspected in debug mode.
++++
+|[[allowInvalidFragmentsParam]]`@allowInvalidFragmentsParam`|`String`|+++
+Name of the query parameter that, when set to "true" in the request, will force Fragments Handler to succeed even if some fragments failed.
+ This is mainly so that the data can be inspected in debug mode.
++++
+|[[consumerFactories]]`@consumerFactories`|`Array of link:dataobjects.html#FactoryOptions[FactoryOptions]`|+++
+The array/list of consumer factory options.
++++
+|[[taskFactories]]`@taskFactories`|`Array of link:dataobjects.html#FactoryOptions[FactoryOptions]`|+++
+The array/list of task factory options defines factories taking part in the creation of tasks.
+ First items on the list have the highest priority.
++++
+|===
+

@@ -1,0 +1,192 @@
+= Cheatsheets
+
+[[ActionPayload]]
+== ActionPayload
+
+
+[cols=">25%,25%,50%"]
+[frame="topbot"]
+|===
+^|Name | Type ^| Description
+|[[request]]`@request`|`link:dataobjects.html#ActionRequest[ActionRequest]`|-
+|[[response]]`@response`|`link:dataobjects.html#ActionResponse[ActionResponse]`|-
+|===
+
+[[ActionRequest]]
+== ActionRequest
+
+
+[cols=">25%,25%,50%"]
+[frame="topbot"]
+|===
+^|Name | Type ^| Description
+|[[metadata]]`@metadata`|`Json object`|-
+|[[source]]`@source`|`String`|-
+|[[type]]`@type`|`String`|-
+|===
+
+[[ActionResponse]]
+== ActionResponse
+
+
+[cols=">25%,25%,50%"]
+[frame="topbot"]
+|===
+^|Name | Type ^| Description
+|[[error]]`@error`|`link:dataobjects.html#ActionResponseError[ActionResponseError]`|-
+|[[metadata]]`@metadata`|`Json object`|-
+|[[success]]`@success`|`Boolean`|-
+|===
+
+[[ActionResponseError]]
+== ActionResponseError
+
+
+[cols=">25%,25%,50%"]
+[frame="topbot"]
+|===
+^|Name | Type ^| Description
+|[[code]]`@code`|`String`|-
+|[[message]]`@message`|`String`|-
+|===
+
+[[CircuitBreakerActionFactoryOptions]]
+== CircuitBreakerActionFactoryOptions
+
+
+[cols=">25%,25%,50%"]
+[frame="topbot"]
+|===
+^|Name | Type ^| Description
+|[[circuitBreakerName]]`@circuitBreakerName`|`String`|+++
+Sets the circuit breaker name.
++++
+|[[circuitBreakerOptions]]`@circuitBreakerOptions`|`link:dataobjects.html#CircuitBreakerOptions[CircuitBreakerOptions]`|+++
+Sets the circuit breaker configuration options. Note that Knot.x enforce the fallback on error
+ strategy.
++++
+|[[errorTransitions]]`@errorTransitions`|`Array of String`|+++
+Sets error transitions.
++++
+|[[logLevel]]`@logLevel`|`String`|+++
+Sets the action node log level.
++++
+|===
+
+[[EndpointOptions]]
+== EndpointOptions
+
+++++
+ Describes a physical details of HTTP service endpoint that Action will connect to.
+++++
+'''
+
+[cols=">25%,25%,50%"]
+[frame="topbot"]
+|===
+^|Name | Type ^| Description
+|[[additionalHeaders]]`@additionalHeaders`|`Json object`|+++
+Sets the additional request headers (and values) to be send in each request
++++
+|[[allowedRequestHeaders]]`@allowedRequestHeaders`|`Array of String`|+++
+Sets the allowed requests headers that should be send to the service. The selected headers from
+ the original client HTTP request are being send.
++++
+|[[body]]`@body`|`String`|+++
+Sets the request body schema to be sent to the endpoint. The body may contain <a
+ href="https://github.com/Knotx/knotx-server-http/tree/master/common/placeholders">Knot.x Server
+ Common Placeholders</a> referencing ClientRequest, Fragment's configuration or Fragment's
+ payload, which will be interpolated if link flag is set.
+
+ Please note that request body is sent only in case of using PUT, POST or PATCH HTTP method.
+
+ This field is mutually exclusive with link.
++++
+|[[bodyJson]]`@bodyJson`|`Json object`|+++
+Sets the request body schema to be sent to the endpoint. The body may contain <a
+ href="https://github.com/Knotx/knotx-server-http/tree/master/common/placeholders">Knot.x Server
+ Common Placeholders</a> referencing ClientRequest, Fragment's configuration or Fragment's
+ payload, which will be interpolated if link flag is set.
+
+ Please note that request body is sent only in case of using PUT, POST or PATCH HTTP method.
+
+ This field is mutually exclusive with link.
++++
+|[[domain]]`@domain`|`String`|+++
+Sets the <code>domain</code> of the external service
++++
+|[[interpolateBody]]`@interpolateBody`|`Boolean`|+++
+Configures interpolation of link parameter. When set, the body will be
+ interpolated using <a href="https://github.com/Knotx/knotx-server-http/tree/master/common/placeholders">Knot.x
+ Server Common Placeholders</a> referencing ClientRequest, Fragment's configuration or
+ Fragment's payload.
++++
+|[[interpolatePath]]`@interpolatePath`|`Boolean`|+++
+Configures interpolation of link parameter. When set, the path will be
+ interpolated using <a href="https://github.com/Knotx/knotx-server-http/tree/master/common/placeholders">Knot.x
+ Server Common Placeholders</a> referencing ClientRequest, Fragment's configuration or
+ Fragment's payload.
++++
+|[[path]]`@path`|`String`|+++
+Sets the request path to the endpoint. The request path may contain <a
+ href="https://github.com/Knotx/knotx-server-http/tree/master/common/placeholders">Knot.x Server
+ Common Placeholders</a> referencing ClientRequest, Fragment's configuration or Fragment's
+ payload.
++++
+|[[port]]`@port`|`Number (int)`|+++
+Sets the HTTP <code>port</code> the external service
++++
+|===
+
+[[HttpActionOptions]]
+== HttpActionOptions
+
+++++
+ HTTP Action configuration
+++++
+'''
+
+[cols=">25%,25%,50%"]
+[frame="topbot"]
+|===
+^|Name | Type ^| Description
+|[[endpointOptions]]`@endpointOptions`|`link:dataobjects.html#EndpointOptions[EndpointOptions]`|+++
+Set the details of the remote http endpoint location.
++++
+|[[httpMethod]]`@httpMethod`|`String`|+++
+Set the <code>HttpMethod</code> used for performing the request.
+ Defaults to GET.
+ Supported methods are GET, POST, PATCH, PUT, DELETE and HEAD.
++++
+|[[logLevel]]`@logLevel`|`String`|+++
+Set level of action logs.
++++
+|[[requestTimeoutMs]]`@requestTimeoutMs`|`Number (long)`|+++
+Configures the amount of time in milliseconds after which if the request does not return any
+ data within, _timeout transition will be returned. Setting zero or a negative value disables
+ the timeout. By default it is set to <code>0</code>.
++++
+|[[responseOptions]]`@responseOptions`|`link:dataobjects.html#ResponseOptions[ResponseOptions]`|-
+|[[webClientOptions]]`@webClientOptions`|`link:dataobjects.html#WebClientOptions[WebClientOptions]`|+++
+Set the <code>WebClientOptions</code> used by the HTTP client to communicate with remote http
+ endpoint. See https://vertx.io/docs/vertx-web-client/dataobjects.html#WebClientOptions for the
+ details what can be configured.
++++
+|===
+
+[[ResponseOptions]]
+== ResponseOptions
+
+
+[cols=">25%,25%,50%"]
+[frame="topbot"]
+|===
+^|Name | Type ^| Description
+|[[forceJson]]`@forceJson`|`Boolean`|+++
+Sets forceJson - it determines if response body should be parsed as json
++++
+|[[predicates]]`@predicates`|`Array of String`|+++
+Sets Vert.x response predicates
++++
+|===
+

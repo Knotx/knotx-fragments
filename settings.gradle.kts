@@ -22,11 +22,18 @@ pluginManagement {
 
 rootProject.name = "knotx-fragments"
 
-// API
+// Fragment
+
 include("knotx-fragments-api")
 project(":knotx-fragments-api").projectDir = file("api")
 
-// Supplier
+include("knotx-fragments-action-api")
+include("knotx-fragments-action-core")
+include("knotx-fragments-action-library")
+project(":knotx-fragments-action-api").projectDir = file("action/api")
+project(":knotx-fragments-action-core").projectDir = file("action/core")
+project(":knotx-fragments-action-library").projectDir = file("action/library")
+
 include("knotx-fragments-supplier-api")
 include("knotx-fragments-supplier-single-fragment")
 include("knotx-fragments-supplier-html-splitter")
@@ -34,34 +41,29 @@ project(":knotx-fragments-supplier-api").projectDir = file("supplier/api")
 project(":knotx-fragments-supplier-single-fragment").projectDir = file("supplier/single-fragment")
 project(":knotx-fragments-supplier-html-splitter").projectDir = file("supplier/html-splitter")
 
-// Actions
-include("knotx-fragments-action-api")
-include("knotx-fragments-action-core")
-project(":knotx-fragments-action-api").projectDir = file("actions/api")
-project(":knotx-fragments-action-core").projectDir = file("actions/core")
+include("knotx-fragments-assembler")
+project(":knotx-fragments-assembler").projectDir = file("assembler")
 
-// Handler
-include("knotx-fragments-handler-api")
-include("knotx-fragments-handler-core")
+// Task
+
+include("knotx-fragments-task-api")
+project(":knotx-fragments-task-api").projectDir = file("task/api")
+
 include("knotx-fragments-task-factory-api")
-include("knotx-fragments-task-factory-default")
+include("knotx-fragments-task-factory-config")
+project(":knotx-fragments-task-factory-api").projectDir = file("task/factory/api")
+project(":knotx-fragments-task-factory-config").projectDir = file("task/factory/config")
+
+include("knotx-fragments-engine-api")
+include("knotx-fragments-engine-core")
+project(":knotx-fragments-engine-api").projectDir = file("task/engine/api")
+project(":knotx-fragments-engine-core").projectDir = file("task/engine/core")
+
+include("knotx-fragments-handler-core")
 include("knotx-fragments-execution-log-api")
 include("knotx-fragments-execution-log-html")
 include("knotx-fragments-execution-log-json")
-project(":knotx-fragments-handler-api").projectDir = file("handler/api")
-project(":knotx-fragments-handler-core").projectDir = file("handler/core")
-project(":knotx-fragments-task-factory-api").projectDir = file("handler/task-factory/api")
-project(":knotx-fragments-task-factory-default").projectDir = file("handler/task-factory/default")
-project(":knotx-fragments-execution-log-api").projectDir = file("handler/log-consumer/api")
-project(":knotx-fragments-execution-log-html").projectDir = file("handler/log-consumer/html")
-project(":knotx-fragments-execution-log-json").projectDir = file("handler/log-consumer/json")
-
-// Engine
-include("knotx-fragments-engine-api")
-include("knotx-fragments-engine-core")
-project(":knotx-fragments-engine-api").projectDir = file("engine/api")
-project(":knotx-fragments-engine-core").projectDir = file("engine/core")
-
-// Assembler
-include("knotx-fragments-assembler")
-project(":knotx-fragments-assembler").projectDir = file("assembler")
+project(":knotx-fragments-handler-core").projectDir = file("task/handler/core")
+project(":knotx-fragments-execution-log-api").projectDir = file("task/handler/log-consumer/api")
+project(":knotx-fragments-execution-log-html").projectDir = file("task/handler/log-consumer/html")
+project(":knotx-fragments-execution-log-json").projectDir = file("task/handler/log-consumer/json")
