@@ -29,7 +29,7 @@ dependencies {
     implementation(platform("io.knotx:knotx-dependencies:${project.version}"))
 
     api(project(":knotx-fragments-api"))
-    api(project(":knotx-fragments-execution-log-api"))
+    api(project(":knotx-fragments-task-handler-log-api"))
 
     implementation(group = "io.vertx", name = "vertx-core")
     implementation(group = "io.vertx", name = "vertx-rx-java2")

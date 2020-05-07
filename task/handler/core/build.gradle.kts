@@ -37,7 +37,7 @@ val integrationTestRuntimeOnly: Configuration by configurations.getting { extend
 dependencies {
     implementation(platform("io.knotx:knotx-dependencies:${project.version}"))
 
-    api(project(":knotx-fragments-execution-log-api"))
+    api(project(":knotx-fragments-task-handler-log-api"))
 
     api(project(":knotx-fragments-task-factory-api"))
     implementation(project(":knotx-fragments-task-engine"))
@@ -63,10 +63,10 @@ dependencies {
     // logging
     integrationTestRuntimeOnly("io.knotx:knotx-launcher:${project.version}")
     // handler dependencies
-    integrationTestImplementation(project(":knotx-fragments-handler-core"))
+    integrationTestImplementation(project(":knotx-fragments-task-handler"))
     integrationTestImplementation(project(":knotx-fragments-task-factory-config"))
-    integrationTestRuntimeOnly(project(":knotx-fragments-execution-log-html"))
-    integrationTestRuntimeOnly(project(":knotx-fragments-execution-log-json"))
+    integrationTestRuntimeOnly(project(":knotx-fragments-task-handler-log-html"))
+    integrationTestRuntimeOnly(project(":knotx-fragments-task-handler-log-json"))
 }
 
 tasks {
