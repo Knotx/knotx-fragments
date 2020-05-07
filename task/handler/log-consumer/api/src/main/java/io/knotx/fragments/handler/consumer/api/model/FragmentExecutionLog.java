@@ -16,8 +16,6 @@
 package io.knotx.fragments.handler.consumer.api.model;
 
 import io.knotx.fragments.api.Fragment;
-import io.knotx.fragments.engine.api.FragmentEvent;
-import io.knotx.fragments.engine.api.FragmentEvent.Status;
 import io.vertx.codegen.annotations.DataObject;
 import io.vertx.core.json.JsonObject;
 
@@ -28,23 +26,33 @@ import io.vertx.core.json.JsonObject;
 public class FragmentExecutionLog {
 
   private Fragment fragment;
-  private FragmentEvent.Status status = Status.UNPROCESSED;
+  private ExecutionStatus status = ExecutionStatus.UNPROCESSED;
   private long startTime = 0;
   private long finishTime = 0;
   private GraphNodeExecutionLog graph = null;
 
-  public static FragmentExecutionLog newInstance(FragmentEvent fragmentEvent,
-      GraphNodeExecutionLog graph) {
-    return newInstance(fragmentEvent)
-        .setGraph(graph);
+  public static FragmentExecutionLog newInstance(Fragment fragment) {
+    return newInstance(fragment, ExecutionStatus.UNPROCESSED, 0, 0);
   }
 
-  public static FragmentExecutionLog newInstance(FragmentEvent fragmentEvent) {
+  public static FragmentExecutionLog newInstance(Fragment fragment, GraphNodeExecutionLog graph) {
+    return newInstance(fragment, ExecutionStatus.UNPROCESSED, 0, 0, graph);
+  }
+
+  public static FragmentExecutionLog newInstance(Fragment fragment, ExecutionStatus status,
+      long startTime, long finishTime) {
+    return newInstance(fragment, status, startTime, finishTime, null);
+  }
+
+  public static FragmentExecutionLog newInstance(Fragment fragment, ExecutionStatus status,
+      long startTime, long finishTime,
+      GraphNodeExecutionLog graph) {
     return new FragmentExecutionLog()
-        .setFragment(fragmentEvent.getFragment())
-        .setStatus(fragmentEvent.getStatus())
-        .setStartTime(fragmentEvent.getLog().getEarliestTimestamp())
-        .setFinishTime(fragmentEvent.getLog().getLatestTimestamp());
+        .setFragment(fragment)
+        .setStatus(status)
+        .setStartTime(startTime)
+        .setFinishTime(finishTime)
+        .setGraph(graph);
   }
 
   public FragmentExecutionLog() {
@@ -77,16 +85,15 @@ public class FragmentExecutionLog {
   }
 
   /**
-   * Fragment processing <a href="https://github.com/Knotx/knotx-fragments/blob/master/engine/api/src/main/java/io/knotx/fragments/engine/api/FragmentEvent.java">status</a>.
    * Possible values: <code>UNPROCESSED</code>, <code>SUCCESS</code> and <code>FAILURE</code>.
    *
    * @return fragment status.
    */
-  public Status getStatus() {
+  public ExecutionStatus getStatus() {
     return status;
   }
 
-  public FragmentExecutionLog setStatus(Status status) {
+  public FragmentExecutionLog setStatus(ExecutionStatus status) {
     this.status = status;
     return this;
   }
@@ -143,5 +150,11 @@ public class FragmentExecutionLog {
         ", fragment=" + fragment +
         ", graph=" + graph +
         '}';
+  }
+
+  public enum ExecutionStatus {
+    UNPROCESSED,
+    SUCCESS,
+    FAILURE;
   }
 }

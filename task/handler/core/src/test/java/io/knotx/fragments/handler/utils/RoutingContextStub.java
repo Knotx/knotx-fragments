@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.knotx.fragments.utils;
+package io.knotx.fragments.handler.utils;
 
 import static com.google.common.collect.Lists.newArrayList;
 import static org.mockito.ArgumentMatchers.eq;
@@ -29,7 +29,7 @@ import io.vertx.reactivex.ext.web.RoutingContext;
 import java.util.Map;
 import org.mockito.Mockito;
 
-public final class RoutingContextMock {
+public final class RoutingContextStub {
 
   public static RoutingContext create(Fragment fragment, Map<String, String> headers,
       Map<String, String> params) {

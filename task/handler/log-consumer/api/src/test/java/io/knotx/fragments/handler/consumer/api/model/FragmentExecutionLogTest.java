@@ -19,32 +19,31 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 import io.knotx.fragments.api.Fragment;
-import io.knotx.fragments.engine.api.FragmentEvent;
-import io.knotx.fragments.engine.api.FragmentEvent.Status;
-import io.knotx.fragments.handler.consumer.api.model.FragmentExecutionLog;
-import io.knotx.fragments.handler.consumer.api.model.GraphNodeExecutionLog;
+import io.knotx.fragments.handler.consumer.api.model.FragmentExecutionLog.ExecutionStatus;
 import io.vertx.core.json.JsonObject;
 import org.junit.jupiter.api.Test;
 
-class FragmentExecutionLogTest {
+class xFragmentExecutionLogTest {
 
   @Test
   void validateSerialization() {
     // given
     Fragment fragment = new Fragment("snippet", new JsonObject(), "body");
-    Status eventStatus = Status.SUCCESS;
-    FragmentEvent fragmentEvent = new FragmentEvent(fragment).setStatus(eventStatus);
+    ExecutionStatus status = ExecutionStatus.SUCCESS;
+    int startTime = 123;
+    int finishTime = 456;
 
-    FragmentExecutionLog executionLog = FragmentExecutionLog.newInstance(fragmentEvent);
+    FragmentExecutionLog executionLog = FragmentExecutionLog.newInstance(fragment, status,
+        startTime, finishTime);
 
     // when
     FragmentExecutionLog result = new FragmentExecutionLog(executionLog.toJson());
 
     // then
-    assertEquals(eventStatus, result.getStatus());
     assertEquals(fragment, result.getFragment());
-    assertEquals(0, result.getStartTime());
-    assertEquals(0, result.getFinishTime());
+    assertEquals(status, result.getStatus());
+    assertEquals(startTime, result.getStartTime());
+    assertEquals(finishTime, result.getFinishTime());
     assertNull(result.getGraph());
   }
 
@@ -52,20 +51,22 @@ class FragmentExecutionLogTest {
   void validateSerializationWithGraph() {
     // given
     Fragment fragment = new Fragment("snippet", new JsonObject(), "body");
-    Status eventStatus = Status.SUCCESS;
-    FragmentEvent fragmentEvent = new FragmentEvent(fragment).setStatus(eventStatus);
+    ExecutionStatus status = ExecutionStatus.SUCCESS;
     GraphNodeExecutionLog graphLog = GraphNodeExecutionLog.newInstance("id");
+    int startTime = 123;
+    int finishTime = 456;
 
-    FragmentExecutionLog executionLog = FragmentExecutionLog.newInstance(fragmentEvent, graphLog);
+    FragmentExecutionLog executionLog = FragmentExecutionLog
+        .newInstance(fragment, status, startTime, finishTime, graphLog);
 
     // when
     FragmentExecutionLog result = new FragmentExecutionLog(executionLog.toJson());
 
     // then
-    assertEquals(eventStatus, result.getStatus());
     assertEquals(fragment, result.getFragment());
-    assertEquals(0, result.getStartTime());
-    assertEquals(0, result.getFinishTime());
+    assertEquals(status, result.getStatus());
+    assertEquals(startTime, result.getStartTime());
+    assertEquals(finishTime, result.getFinishTime());
     assertEquals(graphLog, result.getGraph());
   }
 

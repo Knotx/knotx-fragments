@@ -37,17 +37,14 @@ val integrationTestRuntimeOnly: Configuration by configurations.getting { extend
 dependencies {
     implementation(platform("io.knotx:knotx-dependencies:${project.version}"))
 
-
-    api(project(":knotx-fragments-task-factory-api"))
     api(project(":knotx-fragments-execution-log-api"))
 
-    implementation(project(":knotx-fragments-engine-api"))
+    api(project(":knotx-fragments-task-factory-api"))
     implementation(project(":knotx-fragments-engine-core"))
 
     implementation("io.knotx:knotx-commons:${project.version}")
     implementation("io.knotx:knotx-server-http-common-placeholders:${project.version}")
 
-    implementation(group = "io.vertx", name = "vertx-circuit-breaker")
     implementation(group = "io.vertx", name = "vertx-core")
     implementation(group = "io.vertx", name = "vertx-service-proxy")
     implementation(group = "io.vertx", name = "vertx-rx-java2")
@@ -67,7 +64,7 @@ dependencies {
     integrationTestRuntimeOnly("io.knotx:knotx-launcher:${project.version}")
     // handler dependencies
     integrationTestImplementation(project(":knotx-fragments-handler-core"))
-    integrationTestRuntimeOnly(project(":knotx-fragments-task-factory-config"))
+    integrationTestImplementation(project(":knotx-fragments-task-factory-config"))
     integrationTestRuntimeOnly(project(":knotx-fragments-execution-log-html"))
     integrationTestRuntimeOnly(project(":knotx-fragments-execution-log-json"))
 }

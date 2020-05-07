@@ -21,7 +21,7 @@ import java.util.List;
 
 /**
  * Fragment execution log consumer receives {@link FragmentExecutionLog} after the {@link
- * io.knotx.fragments.engine.api.Task} evaluation.
+ * io.knotx.fragments.task.api.Task} evaluation.
  */
 public interface FragmentExecutionLogConsumer {
 

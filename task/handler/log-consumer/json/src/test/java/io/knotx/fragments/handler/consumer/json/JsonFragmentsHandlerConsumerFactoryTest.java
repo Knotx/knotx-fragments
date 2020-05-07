@@ -15,7 +15,6 @@
  */
 package io.knotx.fragments.handler.consumer.json;
 
-import static io.knotx.fragments.engine.api.EventLogEntry.NodeStatus.UNPROCESSED;
 import static io.knotx.fragments.handler.consumer.json.JsonFragmentsHandlerConsumerFactory.CONDITION_OPTION;
 import static io.knotx.fragments.handler.consumer.json.JsonFragmentsHandlerConsumerFactory.FRAGMENT_TYPES_OPTIONS;
 import static io.knotx.fragments.handler.consumer.json.JsonFragmentsHandlerConsumerFactory.HEADER_OPTION;
@@ -27,7 +26,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.common.collect.ImmutableList;
 import io.knotx.fragments.api.Fragment;
-import io.knotx.fragments.engine.api.FragmentEvent;
 import io.knotx.fragments.handler.consumer.api.FragmentExecutionLogConsumer;
 import io.knotx.fragments.handler.consumer.api.model.FragmentExecutionLog;
 import io.knotx.server.api.context.ClientRequest;
@@ -75,9 +73,8 @@ class JsonFragmentsHandlerConsumerFactoryTest {
   @DisplayName("Fragment body should not be modified when no supported methods specified in configuration")
   void fragmentBodyShouldNotBeModifiedWhenInvalidConfigurationProvided(String fragmentType,
       String fragmentBody, JsonArray supportedTypes) {
-    FragmentEvent original = new FragmentEvent(
-        new Fragment(fragmentType, new JsonObject(), fragmentBody));
-    FragmentEvent copy = new FragmentEvent(original.toJson());
+    Fragment original = new Fragment(fragmentType, new JsonObject(), fragmentBody);
+    Fragment copy = new Fragment(original.toJson());
 
     FragmentExecutionLogConsumer tested = new JsonFragmentsHandlerConsumerFactory()
         .create(new JsonObject()
@@ -94,9 +91,8 @@ class JsonFragmentsHandlerConsumerFactoryTest {
   @DisplayName("Fragment should be modified when header condition and fragment type match")
   void expectFragmentModifiedWhenHeaderConditionAndSupportedTypedConfigured() {
     //given
-    FragmentEvent original = new FragmentEvent(
-        new Fragment(EXPECTED_FRAGMENT_TYPE, new JsonObject(), FRAGMENT_BODY_JSON));
-    FragmentEvent copy = new FragmentEvent(original.toJson());
+    Fragment original = new Fragment(EXPECTED_FRAGMENT_TYPE, new JsonObject(), FRAGMENT_BODY_JSON);
+    Fragment copy = new Fragment(original.toJson());
 
     //when
     FragmentExecutionLogConsumer tested = new JsonFragmentsHandlerConsumerFactory()
@@ -115,9 +111,8 @@ class JsonFragmentsHandlerConsumerFactoryTest {
   @DisplayName("Fragment should be modified when param condition and fragment type match")
   void expectFragmentModifiedWhenParamConditionAndSupportedTypesConfigured() {
     //given
-    FragmentEvent original = new FragmentEvent(
-        new Fragment(EXPECTED_FRAGMENT_TYPE, new JsonObject(), FRAGMENT_BODY_JSON));
-    FragmentEvent copy = new FragmentEvent(original.toJson());
+    Fragment original = new Fragment(EXPECTED_FRAGMENT_TYPE, new JsonObject(), FRAGMENT_BODY_JSON);
+    Fragment copy = new Fragment(original.toJson());
 
     //when
     FragmentExecutionLogConsumer tested = new JsonFragmentsHandlerConsumerFactory()
@@ -136,9 +131,8 @@ class JsonFragmentsHandlerConsumerFactoryTest {
   @DisplayName("Execution log entry should be properly merged into existing fragment body")
   void expectExecutionLogEntryProperlyMergedIntoFragmentBody() {
     //given
-    FragmentEvent original = new FragmentEvent(
-        new Fragment(EXPECTED_FRAGMENT_TYPE, new JsonObject(), FRAGMENT_BODY_JSON));
-    FragmentEvent copy = new FragmentEvent(original.toJson());
+    Fragment original = new Fragment(EXPECTED_FRAGMENT_TYPE, new JsonObject(), FRAGMENT_BODY_JSON);
+    Fragment copy = new Fragment(original.toJson());
 
     //when
     FragmentExecutionLogConsumer tested = new JsonFragmentsHandlerConsumerFactory()
@@ -151,7 +145,7 @@ class JsonFragmentsHandlerConsumerFactoryTest {
 
     //then
     assertNotEquals(copy, original);
-    JsonObject fragmentBody = new JsonObject(original.getFragment().getBody());
+    JsonObject fragmentBody = new JsonObject(original.getBody());
     assertTrue(fragmentBody.containsKey(USER_KEY));
     assertTrue(fragmentBody.containsKey(KNOTX_FRAGMENT));
   }
@@ -160,9 +154,8 @@ class JsonFragmentsHandlerConsumerFactoryTest {
   @DisplayName("Execution log entry should contain proper fragment details")
   void expectFragmentDetailsInExecutionLogEntry() {
     //given
-    FragmentEvent original = new FragmentEvent(
-        new Fragment(EXPECTED_FRAGMENT_TYPE, new JsonObject(), FRAGMENT_BODY_JSON));
-    FragmentEvent copy = new FragmentEvent(original.toJson());
+    Fragment original = new Fragment(EXPECTED_FRAGMENT_TYPE, new JsonObject(), FRAGMENT_BODY_JSON);
+    Fragment copy = new Fragment(original.toJson());
 
     JsonObject expectedLog = FragmentExecutionLog.newInstance(original).toJson();
 
@@ -177,7 +170,7 @@ class JsonFragmentsHandlerConsumerFactoryTest {
 
     //then
     assertNotEquals(copy, original);
-    JsonObject fragmentBody = new JsonObject(original.getFragment().getBody());
+    JsonObject fragmentBody = new JsonObject(original.getBody());
     assertJsonEquals(expectedLog,
         new FragmentExecutionLog(fragmentBody.getJsonObject(KNOTX_FRAGMENT)).toJson());
     assertEquals(new JsonObject(FRAGMENT_BODY_JSON).getString(USER_KEY),

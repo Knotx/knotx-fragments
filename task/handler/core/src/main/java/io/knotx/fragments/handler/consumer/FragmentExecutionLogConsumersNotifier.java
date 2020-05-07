@@ -19,7 +19,9 @@ import static io.knotx.fragments.handler.consumer.api.model.FragmentExecutionLog
 import static java.util.stream.Collectors.toList;
 
 import io.knotx.fragments.engine.api.FragmentEvent;
+import io.knotx.fragments.engine.api.FragmentEvent.Status;
 import io.knotx.fragments.handler.ExecutionPlan;
+import io.knotx.fragments.handler.consumer.api.model.FragmentExecutionLog.ExecutionStatus;
 import io.knotx.fragments.handler.exception.ConfigurationException;
 import io.knotx.fragments.task.factory.api.metadata.TasksMetadata;
 import io.knotx.fragments.handler.consumer.api.FragmentExecutionLogConsumer;
@@ -81,7 +83,15 @@ public class FragmentExecutionLogConsumersNotifier {
         Optional.ofNullable(tasksMetadata.get(event.getFragment().getId()))
             .map(metadata -> new MetadataConverter(event, metadata))
             .map(MetadataConverter::getExecutionLog)
-            .map(graphLog -> newInstance(event, graphLog))
-            .orElseGet(() -> newInstance(event));
+            .map(graphLog -> newInstance(event.getFragment(),
+                toExecutionStatus(event),
+                event.getLog().getEarliestTimestamp(),
+                event.getLog().getLatestTimestamp(),
+                graphLog))
+            .orElseGet(() -> newInstance(event.getFragment()));
+  }
+
+  private ExecutionStatus toExecutionStatus(FragmentEvent event) {
+    return ExecutionStatus.valueOf(event.getStatus().toString());
   }
 }

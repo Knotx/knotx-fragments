@@ -22,14 +22,14 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.doAnswer;
 
 import io.knotx.fragments.api.Fragment;
-import io.knotx.fragments.engine.api.FragmentEvent.Status;
 import io.knotx.fragments.handler.FragmentsHandlerFactory;
 import io.knotx.fragments.handler.consumer.api.model.FragmentExecutionLog;
+import io.knotx.fragments.handler.consumer.api.model.FragmentExecutionLog.ExecutionStatus;
 import io.knotx.fragments.handler.consumer.api.model.GraphNodeExecutionLog;
 import io.knotx.fragments.handler.consumer.api.model.LoggedNodeStatus;
 import io.knotx.fragments.task.factory.config.DefaultTaskFactoryConfig;
 import io.knotx.junit5.util.HoconLoader;
-import io.knotx.fragments.utils.RoutingContextMock;
+import io.knotx.fragments.handler.utils.RoutingContextStub;
 import io.vertx.core.Handler;
 import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.Checkpoint;
@@ -148,7 +148,7 @@ class ConsumerAcceptsInvalidFragmentTest {
   };
 
   private static final Consumer<FragmentExecutionLog> FRAGMENT_ASSERTIONS = executionLog -> {
-    assertEquals(Status.FAILURE, executionLog.getStatus());
+    assertEquals(ExecutionStatus.FAILURE, executionLog.getStatus());
     assertNotEquals(0, executionLog.getStartTime(),
         "Fragment processing start time should be set.");
     assertNotEquals(0, executionLog.getFinishTime(),
@@ -168,7 +168,7 @@ class ConsumerAcceptsInvalidFragmentTest {
       Checkpoint callNextHandlerCheckpoint = testContext.checkpoint();
 
       //given
-      RoutingContext routingContextMock = RoutingContextMock
+      RoutingContext routingContextMock = RoutingContextStub
           .create(fragment, Collections.singletonMap("Allow-Invalid-Fragments", "true"),
               Collections.singletonMap("debug", "true"));
 

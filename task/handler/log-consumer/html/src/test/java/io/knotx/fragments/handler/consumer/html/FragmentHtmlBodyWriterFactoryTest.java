@@ -26,7 +26,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.google.common.collect.ImmutableList;
 import io.knotx.fragments.api.Fragment;
 import io.knotx.fragments.engine.api.EventLogEntry.NodeStatus;
-import io.knotx.fragments.engine.api.FragmentEvent;
 import io.knotx.fragments.handler.consumer.api.FragmentExecutionLogConsumer;
 import io.knotx.fragments.handler.consumer.api.model.FragmentExecutionLog;
 import io.knotx.fragments.handler.consumer.api.model.GraphNodeExecutionLog;
@@ -50,10 +49,9 @@ class FragmentHtmlBodyWriterFactoryTest {
   @DisplayName("Expect fragment is not modified when condition not configured")
   void expectFragmentNotModifiedWhenConditionNotConfigured() {
     // given
-    FragmentEvent original = new FragmentEvent(
-        new Fragment(EXPECTED_FRAGMENT_TYPE, new JsonObject(),
-            "{ \"body\": \"<div>body</div>\" }"));
-    FragmentEvent copy = new FragmentEvent(original.toJson());
+    Fragment original = new Fragment(EXPECTED_FRAGMENT_TYPE, new JsonObject(),
+        "{ \"body\": \"<div>body</div>\" }");
+    Fragment copy = new Fragment(original.toJson());
 
     // when
     FragmentExecutionLogConsumer tested = new FragmentHtmlBodyWriterFactory()
@@ -70,10 +68,9 @@ class FragmentHtmlBodyWriterFactoryTest {
   @DisplayName("Expect fragment is not modified when supported fragments types not configured.")
   void expectFragmentNotModifiedWhenSupportedTypesNotConfigured() {
     // given
-    FragmentEvent original = new FragmentEvent(
-        new Fragment(EXPECTED_FRAGMENT_TYPE, new JsonObject(),
-            "{ \"body\": \"<div>body</div>\" }"));
-    FragmentEvent copy = new FragmentEvent(original.toJson());
+    Fragment original = new Fragment(EXPECTED_FRAGMENT_TYPE, new JsonObject(),
+        "{ \"body\": \"<div>body</div>\" }");
+    Fragment copy = new Fragment(original.toJson());
 
     // when
     FragmentExecutionLogConsumer tested = new FragmentHtmlBodyWriterFactory()
@@ -91,9 +88,9 @@ class FragmentHtmlBodyWriterFactoryTest {
   @DisplayName("Expect fragment is not modified when supported fragments does not contain fragment type.")
   void expectFragmentNotModifiedWhenOtherSupportedTypeConfigured() {
     // given
-    FragmentEvent original = new FragmentEvent(new Fragment("json", new JsonObject(),
-        "{ \"body\": \"<div>body</div>\" }"));
-    FragmentEvent copy = new FragmentEvent(original.toJson());
+    Fragment original = new Fragment("json", new JsonObject(),
+        "{ \"body\": \"<div>body</div>\" }");
+    Fragment copy = new Fragment(original.toJson());
 
     // when
     FragmentExecutionLogConsumer tested = new FragmentHtmlBodyWriterFactory()
@@ -112,10 +109,9 @@ class FragmentHtmlBodyWriterFactoryTest {
   @DisplayName("Expect fragment is modified when header condition and supported type configured.")
   void expectFragmentBodyModifiedWhenHeaderConditionConfigured() {
     // given
-    FragmentEvent original = new FragmentEvent(
-        new Fragment(EXPECTED_FRAGMENT_TYPE, new JsonObject(),
-            "{ \"body\": \"<div>body</div>\" }"));
-    FragmentEvent copy = new FragmentEvent(original.toJson());
+    Fragment original = new Fragment(EXPECTED_FRAGMENT_TYPE, new JsonObject(),
+        "{ \"body\": \"<div>body</div>\" }");
+    Fragment copy = new Fragment(original.toJson());
 
     // when
     FragmentExecutionLogConsumer tested = new FragmentHtmlBodyWriterFactory()
@@ -134,10 +130,9 @@ class FragmentHtmlBodyWriterFactoryTest {
   @DisplayName("Expect fragment is modified when param condition and supported type configured.")
   void expectFragmentBodyModifiedWhenParamConditionConfigured() {
     // given
-    FragmentEvent original = new FragmentEvent(
-        new Fragment(EXPECTED_FRAGMENT_TYPE, new JsonObject(),
-            "{ \"body\": \"<div>body</div>\" }"));
-    FragmentEvent copy = new FragmentEvent(original.toJson());
+    Fragment original = new Fragment(EXPECTED_FRAGMENT_TYPE, new JsonObject(),
+        "{ \"body\": \"<div>body</div>\" }");
+    Fragment copy = new Fragment(original.toJson());
 
     // when
     FragmentExecutionLogConsumer tested = new FragmentHtmlBodyWriterFactory()
@@ -157,7 +152,7 @@ class FragmentHtmlBodyWriterFactoryTest {
   void expectFragmentBodyWrappedByFragmentId() {
     // given
     String body = "<div>body</div>";
-    FragmentEvent event = new FragmentEvent(new Fragment("snippet", new JsonObject(), body));
+    Fragment fragment = new Fragment("snippet", new JsonObject(), body);
 
     // when
     FragmentExecutionLogConsumer tested = new FragmentHtmlBodyWriterFactory()
@@ -166,13 +161,13 @@ class FragmentHtmlBodyWriterFactoryTest {
             .put(CONDITION_OPTION, new JsonObject().put(PARAM_OPTION, EXPECTED_PARAM)));
     tested.accept(new ClientRequest()
             .setParams(MultiMap.caseInsensitiveMultiMap().add(EXPECTED_PARAM, "true")),
-        ImmutableList.of(FragmentExecutionLog.newInstance(event)));
+        ImmutableList.of(FragmentExecutionLog.newInstance(fragment)));
 
     // then
-    assertTrue(event.getFragment().getBody()
-        .startsWith("<!-- data-knotx-id=\"" + event.getFragment().getId() + "\" -->"));
-    assertTrue(event.getFragment().getBody()
-        .endsWith("<!-- data-knotx-id=\"" + event.getFragment().getId() + "\" -->"));
+    assertTrue(fragment.getBody()
+        .startsWith("<!-- data-knotx-id=\"" + fragment.getId() + "\" -->"));
+    assertTrue(fragment.getBody()
+        .endsWith("<!-- data-knotx-id=\"" + fragment.getId() + "\" -->"));
   }
 
   @Test
@@ -181,12 +176,11 @@ class FragmentHtmlBodyWriterFactoryTest {
     //given
     String body = "<div>body</div>";
     Fragment fragment = new Fragment("snippet", new JsonObject(), body);
-    FragmentEvent event = new FragmentEvent(fragment);
 
-    JsonObject expectedLog = FragmentExecutionLog.newInstance(event).toJson();
+    JsonObject expectedLog = FragmentExecutionLog.newInstance(fragment).toJson();
 
     String scriptRegexp =
-        "<script data-knotx-debug=\"log\" data-knotx-id=\"" + event.getFragment().getId()
+        "<script data-knotx-debug=\"log\" data-knotx-id=\"" + fragment.getId()
             + "\" type=\"application/json\">(?<fragmentEventJson>.*?)</script>";
     Pattern scriptPattern = Pattern.compile(scriptRegexp, Pattern.DOTALL);
 
@@ -197,10 +191,10 @@ class FragmentHtmlBodyWriterFactoryTest {
             .put(CONDITION_OPTION, new JsonObject().put(PARAM_OPTION, EXPECTED_PARAM)));
     tested.accept(new ClientRequest()
             .setParams(MultiMap.caseInsensitiveMultiMap().add(EXPECTED_PARAM, "true")),
-        ImmutableList.of(FragmentExecutionLog.newInstance(event)));
+        ImmutableList.of(FragmentExecutionLog.newInstance(fragment)));
 
     // then
-    Matcher matcher = scriptPattern.matcher(event.getFragment().getBody());
+    Matcher matcher = scriptPattern.matcher(fragment.getBody());
     assertTrue(matcher.find());
     assertJsonEquals(expectedLog,
         new FragmentExecutionLog(new JsonObject(matcher.group("fragmentEventJson"))).toJson());
@@ -211,7 +205,7 @@ class FragmentHtmlBodyWriterFactoryTest {
   void expectLogDebugScriptAfterComment() {
     //given
     String body = "<div>body</div>";
-    FragmentEvent event = new FragmentEvent(new Fragment("snippet", new JsonObject(), body));
+    Fragment fragment = new Fragment("snippet", new JsonObject(), body);
 
     // when
     FragmentExecutionLogConsumer tested = new FragmentHtmlBodyWriterFactory()
@@ -220,14 +214,14 @@ class FragmentHtmlBodyWriterFactoryTest {
             .put(CONDITION_OPTION, new JsonObject().put(PARAM_OPTION, EXPECTED_PARAM)));
     tested.accept(new ClientRequest()
             .setParams(MultiMap.caseInsensitiveMultiMap().add(EXPECTED_PARAM, "true")),
-        ImmutableList.of(FragmentExecutionLog.newInstance(event)));
+        ImmutableList.of(FragmentExecutionLog.newInstance(fragment)));
 
     // then
-    String bodyWithoutComments = event.getFragment().getBody()
-        .replaceAll("<!-- data-knotx-id=\"" + event.getFragment().getId() + "\" -->", "");
+    String bodyWithoutComments = fragment.getBody()
+        .replaceAll("<!-- data-knotx-id=\"" + fragment.getId() + "\" -->", "");
     assertTrue(
         bodyWithoutComments.startsWith(
-            "<script data-knotx-debug=\"log\" data-knotx-id=\"" + event.getFragment().getId()
+            "<script data-knotx-debug=\"log\" data-knotx-id=\"" + fragment.getId()
                 + "\" type=\"application/json\">"));
   }
 
@@ -237,7 +231,6 @@ class FragmentHtmlBodyWriterFactoryTest {
     //given
     String body = "<div>body</div>";
     Fragment fragment = new Fragment("snippet", new JsonObject(), body);
-    FragmentEvent event = new FragmentEvent(fragment);
     GraphNodeExecutionLog graphNodeExecutionLog = new GraphNodeExecutionLog().setId("root-node-id");
 
     JsonObject expectedLog = new JsonObject()
@@ -258,15 +251,14 @@ class FragmentHtmlBodyWriterFactoryTest {
             .put(CONDITION_OPTION, new JsonObject().put(PARAM_OPTION, EXPECTED_PARAM)));
     tested.accept(new ClientRequest()
             .setParams(MultiMap.caseInsensitiveMultiMap().add(EXPECTED_PARAM, "true")),
-        ImmutableList.of(FragmentExecutionLog.newInstance(event, graphNodeExecutionLog)));
+        ImmutableList.of(FragmentExecutionLog.newInstance(fragment, graphNodeExecutionLog)));
 
     // then
-    String bodyWithoutComments = event.getFragment().getBody()
-        .replaceAll("<!-- data-knotx-id=\"" + event.getFragment().getId() + "\" -->", "");
+    String bodyWithoutComments = fragment.getBody()
+        .replaceAll("<!-- data-knotx-id=\"" + fragment.getId() + "\" -->", "");
 
     Pattern secondTagsContent = Pattern.compile(
-        "<script data-knotx-debug=\"log\" data-knotx-id=\"" + event
-            .getFragment().getId()
+        "<script data-knotx-debug=\"log\" data-knotx-id=\"" + fragment.getId()
             + "\" type=\"application/json\">(.*)</script>.*", Pattern.DOTALL);
 
     Matcher matcher = secondTagsContent.matcher(bodyWithoutComments);

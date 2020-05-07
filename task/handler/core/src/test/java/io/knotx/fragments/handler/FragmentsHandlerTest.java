@@ -25,9 +25,8 @@ import io.knotx.fragments.api.Fragment;
 import io.knotx.fragments.engine.api.FragmentEvent;
 import io.knotx.fragments.engine.api.FragmentEvent.Status;
 import io.knotx.fragments.handler.exception.ConfigurationException;
-import io.knotx.fragments.task.factory.config.DefaultTaskFactoryConfig;
+import io.knotx.fragments.handler.utils.RoutingContextStub;
 import io.knotx.junit5.util.HoconLoader;
-import io.knotx.fragments.utils.RoutingContextMock;
 import io.knotx.server.api.context.ClientRequest;
 import io.reactivex.Single;
 import io.vertx.core.json.JsonObject;
@@ -51,65 +50,45 @@ import org.mockito.quality.Strictness;
 @MockitoSettings(strictness = Strictness.LENIENT)
 class FragmentsHandlerTest {
 
-  private static final String CUSTOM_TASK_NAME_KEY = "task";
   private static final String EMPTY_BODY = "";
 
   @Test
-  @DisplayName("Expect continuing processing next handler when no fragment is failed.")
-  void shouldSuccess(Vertx vertx, VertxTestContext testContext)
+  @DisplayName("Expect no exception when task factories and execution log consumers not configured.")
+  void tasksAndConsumersNotFound(Vertx vertx)
       throws Throwable {
-    HoconLoader.verifyAsync("handler/singleTaskFactoryWithSuccessTask.conf", config -> {
+    HoconLoader.verify("handler/factoriesNotFound.conf", config -> {
       //given
-      RoutingContext routingContext = mockRoutingContext("success-task");
-      FragmentsHandler underTest = new FragmentsHandler(vertx, config);
-
-      //when
-      underTest.handle(routingContext);
-
-      //then
-      doAnswer(invocation -> {
-        testContext.completeNow();
-        return null;
-      })
-          .when(routingContext)
-          .next();
-    }, testContext, vertx);
+      new FragmentsHandler(vertx, config);
+      // no exception
+    }, vertx);
   }
 
   @Test
-  @DisplayName("Expect fail with Status Code 500 when any fragment is failed.")
-  void shouldFail(Vertx vertx, VertxTestContext testContext)
+  @DisplayName("Expect exception when task factory name is not defined")
+  void taskFactoryNameNotDefined(Vertx vertx)
       throws Throwable {
-    HoconLoader.verifyAsync("handler/singleTaskFactoryWithFailingTask.conf", config -> {
-      // given
-      RoutingContext routingContext = mockRoutingContext("failing-task");
-      FragmentsHandler underTest = new FragmentsHandler(vertx, config);
-
-      // when
-      doAnswer(invocation -> {
-        testContext.completeNow();
-        return null;
-      })
-          .when(routingContext)
-          .fail(500);
-
-      underTest.handle(routingContext);
-
-      // then verified as correct (assertion inside HoconLoader::verify)
-    }, testContext, vertx);
+    HoconLoader.verify("handler/taskFactoryNameNotDefined.conf", config -> {
+      //given
+      try {
+        new FragmentsHandler(vertx, config);
+        fail("Should throw an exception!");
+      } catch (ConfigurationException e) {
+        // expected
+      }
+    }, vertx);
   }
+
+
 
   @Test
   @DisplayName("Expect processed fragment when factory accepts fragment.")
   void taskFactoryWithTaskEndingWithSuccess(Vertx vertx, VertxTestContext testContext)
       throws Throwable {
-    HoconLoader.verifyAsync("handler/fragmentWithSuccessTask.conf", config -> {
+    HoconLoader.verifyAsync("handler/taskFactoryWithTaskEndingWithSuccess.conf", config -> {
       //given
       FragmentsHandler underTest = new FragmentsHandler(vertx, config);
-      Fragment fragment = new Fragment("type",
-          new JsonObject().put(DefaultTaskFactoryConfig.DEFAULT_TASK_NAME_KEY, "success-task"),
-          EMPTY_BODY);
-      String expectedBody = "success";
+      Fragment fragment = new Fragment("type", new JsonObject(), EMPTY_BODY);
+      String expectedBody = "_success";
 
       //when
       Single<List<FragmentEvent>> rxDoHandle = underTest
@@ -130,10 +109,34 @@ class FragmentsHandlerTest {
   }
 
   @Test
-  @DisplayName("Expect unprocessed fragment when all factories do not accept fragment.")
-  void singleFactoryNotAcceptingFragment(Vertx vertx, VertxTestContext testContext)
+  @DisplayName("Expect HTTP 500 when task ends with _error transition")
+  void invalidFragmentsHeaderNotConfigured(Vertx vertx, VertxTestContext testContext)
       throws Throwable {
-    HoconLoader.verifyAsync("handler/singleTaskFactoryWithSuccessTask.conf", config -> {
+    HoconLoader.verifyAsync("handler/taskFactoryWithTaskEndingWithError.conf", config -> {
+      //given
+      RoutingContext routingContext = RoutingContextStub
+          .create(emptyFragment(), Collections.emptyMap(), Collections.emptyMap());
+
+      FragmentsHandler underTest = new FragmentsHandler(vertx, config);
+
+      // when
+      doAnswer(invocation -> {
+        testContext.completeNow();
+        return null;
+      })
+          .when(routingContext)
+          .fail(500);
+
+      underTest.handle(routingContext);
+
+    }, testContext, vertx);
+  }
+
+  @Test
+  @DisplayName("Expect unprocessed fragment when all factories do not accept fragment.")
+  void noTaskFactoryAcceptsFragment(Vertx vertx, VertxTestContext testContext)
+      throws Throwable {
+    HoconLoader.verifyAsync("handler/noTaskFactoryAcceptsFragment.conf", config -> {
       //given
       FragmentsHandler underTest = new FragmentsHandler(vertx, config);
       Fragment fragment = new Fragment("type", new JsonObject(), EMPTY_BODY);
@@ -152,58 +155,6 @@ class FragmentsHandlerTest {
           testContext::failNow
       );
     }, testContext, vertx);
-  }
-
-  @Test
-  @DisplayName("Expect processed fragment when second factory accepts fragment.")
-  void twoFactoriesWithTheSameName(Vertx vertx, VertxTestContext testContext)
-      throws Throwable {
-    HoconLoader.verifyAsync("handler/manyTaskFactoriesWithTheSameName.conf", config -> {
-      //given
-      FragmentsHandler underTest = new FragmentsHandler(vertx, config);
-      Fragment fragment = new Fragment("type",
-          new JsonObject().put(CUSTOM_TASK_NAME_KEY, "success-task"), EMPTY_BODY);
-      String expectedBody = "custom";
-
-      //when
-      Single<List<FragmentEvent>> rxDoHandle = underTest
-          .doHandle(underTest
-              .createExecutionPlan(Collections.singletonList(fragment), new ClientRequest()));
-
-      rxDoHandle.subscribe(
-          result -> testContext.verify(() -> {
-            assertEquals(expectedBody, result.get(0).getFragment().getBody());
-            testContext.completeNow();
-          }),
-          testContext::failNow
-      );
-    }, testContext, vertx);
-  }
-
-  @Test
-  @DisplayName("Expect empty task factory and consumer factory when not configured.")
-  void tasksAndConsumersNotDefined(Vertx vertx)
-      throws Throwable {
-    HoconLoader.verify("handler/factoriesNotDefined.conf", config -> {
-      //given
-      new FragmentsHandler(vertx, config);
-      // no exception
-    }, vertx);
-  }
-
-  @Test
-  @DisplayName("Expect exception when task factory name is not defined")
-  void taskFactoryNameNotDefined(Vertx vertx)
-      throws Throwable {
-    HoconLoader.verify("handler/taskFactoryNameNotDefined.conf", config -> {
-      //given
-      try {
-        new FragmentsHandler(vertx, config);
-        fail("Should throw an exception!");
-      } catch (ConfigurationException e) {
-        // expected
-      }
-    }, vertx);
   }
 
   @Test
@@ -257,10 +208,8 @@ class FragmentsHandlerTest {
       throws Throwable {
     HoconLoader.verifyAsync("handler/consumerFactoryFound.conf", config -> {
       //given
-      Fragment fragment = new Fragment("snippet",
-          new JsonObject().put(DefaultTaskFactoryConfig.DEFAULT_TASK_NAME_KEY, "success-task"),
-          EMPTY_BODY);
-      RoutingContext routingContextMock = RoutingContextMock
+      Fragment fragment = new Fragment("snippet", new JsonObject(), EMPTY_BODY);
+      RoutingContext routingContextMock = RoutingContextStub
           .create(fragment, Collections.emptyMap(), Collections.emptyMap());
 
       FragmentsHandler underTest = new FragmentsHandler(vertx, config);
@@ -287,31 +236,6 @@ class FragmentsHandlerTest {
     }, testContext, vertx);
   }
 
-  @Test
-  @DisplayName("Expect invalid fragments header to have no effect when not configured")
-  void invalidFragmentsHeaderNotConfigured(Vertx vertx, VertxTestContext testContext)
-      throws Throwable {
-    HoconLoader.verifyAsync("handler/singleTaskFactoryWithFailingTask.conf", config -> {
-      //given
-      Map<String, String> headers = Collections.singletonMap("Allow-Invalid-Fragments", "true");
-      RoutingContext routingContext = mockRoutingContext("failing-task", headers,
-          Collections.emptyMap());
-
-      FragmentsHandler underTest = new FragmentsHandler(vertx, config);
-
-      // when
-      doAnswer(invocation -> {
-        testContext.completeNow();
-        return null;
-      })
-          .when(routingContext)
-          .fail(500);
-
-      underTest.handle(routingContext);
-
-      // then verified as correct (assertion inside HoconLoader::verify)
-    }, testContext, vertx);
-  }
 
   @Test
   @DisplayName("Expect invalid fragments to pass when the header is configured and provided")
@@ -319,7 +243,7 @@ class FragmentsHandlerTest {
     HoconLoader.verifyAsync("handler/taskFactoryWithHeaderInvalidFragmentsAllowed.conf", config -> {
       //given
       Map<String, String> headers = Collections.singletonMap("Allow-Invalid-Fragments", "true");
-      RoutingContext routingContext = mockRoutingContext("failing-task", headers,
+      RoutingContext routingContext = RoutingContextStub.create(emptyFragment(), headers,
           Collections.emptyMap());
       doAnswer(invocation -> {
         // then
@@ -336,29 +260,6 @@ class FragmentsHandlerTest {
     }, testContext, vertx);
   }
 
-  @Test
-  @DisplayName("Expect invalid fragments parameter to have no effect when not configured")
-  void invalidFragmentsParamNotConfigured(Vertx vertx, VertxTestContext testContext)
-      throws Throwable {
-    HoconLoader.verifyAsync("handler/singleTaskFactoryWithFailingTask.conf", config -> {
-      //given
-      Map<String, String> params = Collections.singletonMap("allowInvalidFragments", "true");
-      RoutingContext routingContext = mockRoutingContext("failing-task", Collections.emptyMap(),
-          params);
-      doAnswer(invocation -> {
-        // then
-        testContext.completeNow();
-        return routingContext;
-      })
-          .when(routingContext)
-          .fail(500);
-
-      FragmentsHandler underTest = new FragmentsHandler(vertx, config);
-
-      // when
-      underTest.handle(routingContext);
-    }, testContext, vertx);
-  }
 
   @Test
   @DisplayName("Expect invalid fragments to pass when the parameter is configured and provided")
@@ -366,8 +267,9 @@ class FragmentsHandlerTest {
     HoconLoader.verifyAsync("handler/taskFactoryWithParamInvalidFragmentsAllowed.conf", config -> {
       //given
       Map<String, String> params = Collections.singletonMap("allowInvalidFragments", "true");
-      RoutingContext routingContext = mockRoutingContext("failing-task", Collections.emptyMap(),
-          params);
+      RoutingContext routingContext = RoutingContextStub
+          .create(emptyFragment(), Collections.emptyMap(),
+              params);
       doAnswer(invocation -> {
         // then
         testContext.completeNow();
@@ -383,18 +285,7 @@ class FragmentsHandlerTest {
     }, testContext, vertx);
   }
 
-  private RoutingContext mockRoutingContext(String task) {
-    return RoutingContextMock
-        .create(fragment(task), Collections.emptyMap(), Collections.emptyMap());
-  }
-
-  private RoutingContext mockRoutingContext(String task, Map<String, String> headers,
-      Map<String, String> params) {
-    return RoutingContextMock.create(fragment(task), headers, params);
-  }
-
-  private Fragment fragment(String task) {
-    return new Fragment("type",
-        new JsonObject().put(DefaultTaskFactoryConfig.DEFAULT_TASK_NAME_KEY, task), "");
+  private Fragment emptyFragment() {
+    return new Fragment("type", new JsonObject(), "");
   }
 }

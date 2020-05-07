@@ -25,9 +25,8 @@ Task evaluation details.
 |[[startTime]]`@startTime`|`Number (long)`|+++
 Node processing start time. It is timestamp value.
 +++
-|[[status]]`@status`|`link:enums.html#Status[Status]`|+++
-Fragment processing <a href="https://github.com/Knotx/knotx-fragments/blob/master/engine/api/src/main/java/io/knotx/fragments/engine/api/FragmentEvent.java">status</a>.
- Possible values: <code>UNPROCESSED</code>, <code>SUCCESS</code> and <code>FAILURE</code>.
+|[[status]]`@status`|`link:enums.html#ExecutionStatus[ExecutionStatus]`|+++
+Possible values: <code>UNPROCESSED</code>, <code>SUCCESS</code> and <code>FAILURE</code>.
 +++
 |===
 

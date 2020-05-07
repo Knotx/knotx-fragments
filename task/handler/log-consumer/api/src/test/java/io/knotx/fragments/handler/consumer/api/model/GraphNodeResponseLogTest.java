@@ -18,7 +18,6 @@ package io.knotx.fragments.handler.consumer.api.model;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import io.knotx.fragments.api.FragmentResult;
-import io.knotx.fragments.handler.consumer.api.model.GraphNodeResponseLog;
 import io.vertx.core.json.JsonArray;
 import org.junit.jupiter.api.Test;
 

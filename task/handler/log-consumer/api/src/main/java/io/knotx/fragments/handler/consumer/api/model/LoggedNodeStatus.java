@@ -15,79 +15,34 @@
  */
 package io.knotx.fragments.handler.consumer.api.model;
 
-import static io.knotx.fragments.engine.api.EventLogEntry.NodeStatus;
-import static io.knotx.fragments.api.FragmentResult.ERROR_TRANSITION;
-import static io.knotx.fragments.api.FragmentResult.SUCCESS_TRANSITION;
-
-import io.knotx.fragments.engine.api.EventLogEntry;
-
-import java.util.Arrays;
-import org.apache.commons.lang3.StringUtils;
-
 public enum LoggedNodeStatus {
 
   /**
    * Node ends with the <code>`_success`</code> <a href="https://github.com/Knotx/knotx-fragments/tree/master/engine#transition">transition</a>.
    */
-  SUCCESS {
-    @Override
-    protected boolean isEquivalent(NodeStatus status, String transition) {
-      return SUCCESS_TRANSITION.equals(transition);
-    }
-  },
+  SUCCESS,
 
   /**
    * Node ends with the <code>_error</code> <a href="https://github.com/Knotx/knotx-fragments/tree/master/engine#transition">transition</a>
    * or timeout occurs.
    */
-  ERROR {
-    @Override
-    protected boolean isEquivalent(NodeStatus status, String transition) {
-      return ERROR_TRANSITION.equals(transition) || status == NodeStatus.TIMEOUT;
-    }
-  },
+  ERROR,
 
   /**
    * Node ends with a custom <a href="https://github.com/Knotx/knotx-fragments/tree/master/engine#transition">transition</a>
    * that is declared in a task definition.
    */
-  OTHER {
-    @Override
-    protected boolean isEquivalent(NodeStatus status, String transition) {
-      return StringUtils.isNotEmpty(transition) && !SUCCESS_TRANSITION.equals(transition)
-          && !ERROR_TRANSITION.equals(transition) && status != NodeStatus.UNSUPPORTED_TRANSITION;
-    }
-  },
+  OTHER,
 
   /**
    * See the <a href="https://github.com/Knotx/knotx-fragments/tree/feature/html-consumer-docuemntation-update/handler/consumer/html#missing-nodes">missing</a>
    * node documentation.
    */
-  MISSING {
-    @Override
-    protected boolean isEquivalent(NodeStatus status, String transition) {
-      return false;
-    }
-  },
+  MISSING,
 
   /**
    * Previous node has ended with transition pointing to a different node.
    */
-  UNPROCESSED {
-    @Override
-    protected boolean isEquivalent(NodeStatus status, String transition) {
-      return status == NodeStatus.UNPROCESSED;
-    }
-  };
+  UNPROCESSED;
 
-  public static LoggedNodeStatus from(EventLogEntry logEntry) {
-    return Arrays.stream(LoggedNodeStatus.values())
-        .filter(status -> status.isEquivalent(logEntry.getStatus(), logEntry.getTransition()))
-        .findAny()
-        .orElseThrow((() -> new IllegalArgumentException(
-            String.format("Cannot find LoggedNodeStatus for NodeStatus=%s and transition=%s",
-                logEntry.getStatus(), logEntry.getTransition()))));
-  }
-
-  protected abstract boolean isEquivalent(NodeStatus status, String transition);
 }
