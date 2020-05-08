@@ -43,7 +43,6 @@ import java.util.stream.Collectors;
 
 public class FragmentsHandler implements Handler<RoutingContext> {
 
-  // TODO add some logging here
   private static final Logger LOGGER = LoggerFactory.getLogger(FragmentsHandler.class);
 
   private final RequestContextEngine requestContextEngine;
@@ -55,11 +54,13 @@ public class FragmentsHandler implements Handler<RoutingContext> {
 
   FragmentsHandler(Vertx vertx, JsonObject options) {
     handlerOptions = new FragmentsHandlerOptions(options);
+    LOGGER.info("Initializing handler with options [{}]", options);
     taskProvider = new TaskProvider(handlerOptions.getTaskFactories(), vertx);
     engine = new FragmentsEngine(vertx);
     requestContextEngine = new DefaultRequestContextEngine(getClass().getSimpleName());
     consumerNotifier = new FragmentExecutionLogConsumersNotifier(
         handlerOptions.getConsumerFactories());
+    LOGGER.info("Handler initialized!!");
   }
 
   @Override
@@ -71,15 +72,16 @@ public class FragmentsHandler implements Handler<RoutingContext> {
     ExecutionPlan executionPlan = new ExecutionPlan(fragments, clientRequest, taskProvider);
 
     doHandle(executionPlan)
-        .doOnError(e -> LOGGER.error("Fragments not processed correctly!", e))
+        .doOnSuccess(events -> LOGGER.debug("Fragments [{}] processed by engine.", fragmentIds(fragments)))
+        .doOnError(e -> LOGGER.error("Fragments [{}] NOT processed correctly!", fragmentIds(fragments), e))
         .doOnSuccess(events -> consumerNotifier.notify(clientRequest, events, executionPlan))
         .doOnSuccess(events -> putFragments(routingContext, events))
+        .doOnSuccess(events -> LOGGER.trace("Fragments' events [{}] processed.", events))
         .map(events -> toHandlerResult(events, requestContext))
-        .subscribe(
-            result -> requestContextEngine
-                .processAndSaveResult(result, routingContext, requestContext),
-            error -> requestContextEngine.handleFatal(routingContext, requestContext, error)
-        );
+        .doOnSuccess(result -> requestContextEngine
+            .processAndSaveResult(result, routingContext, requestContext))
+        .doOnError(error -> requestContextEngine.handleFatal(routingContext, requestContext, error))
+        .subscribe();
   }
 
   public ExecutionPlan createExecutionPlan(List<Fragment> fragments, ClientRequest clientRequest) {
@@ -87,11 +89,15 @@ public class FragmentsHandler implements Handler<RoutingContext> {
   }
 
   protected Single<List<FragmentEvent>> doHandle(ExecutionPlan executionPlan) {
-    return engine.execute(executionPlan.getEntryStream()
-        .peek(entry -> LOGGER.info("Processing task [{}]", entry.getTaskWithMetadata()))
-        .map(entry -> new FragmentEventContextTaskAware(entry.getTaskWithMetadata().getTask(),
-            entry.getContext()))
-        .collect(Collectors.toList()));
+    return engine.execute(
+        executionPlan.getEntryStream()
+            .peek(entry -> LOGGER
+                .debug("Scheduling task [{}] for fragment [{}]", entry.getTaskWithMetadata(),
+                    entry.getContext().getFragmentEvent().getFragment().getId()))
+            .map(entry -> new FragmentEventContextTaskAware(entry.getTaskWithMetadata().getTask(),
+                entry.getContext()))
+            .collect(Collectors.toList())
+    );
   }
 
   private void putFragments(RoutingContext routingContext, List<FragmentEvent> events) {
@@ -99,7 +105,7 @@ public class FragmentsHandler implements Handler<RoutingContext> {
   }
 
   private RequestEventHandlerResult toHandlerResult(List<FragmentEvent> events,
-        RequestContext requestContext) {
+      RequestContext requestContext) {
 
     List<Fragment> failedFragments = retrieveFragments(events,
         e -> e.getStatus() == Status.FAILURE);
@@ -126,7 +132,7 @@ public class FragmentsHandler implements Handler<RoutingContext> {
   }
 
   private List<Fragment> retrieveFragments(List<FragmentEvent> events,
-                                           Predicate<FragmentEvent> predicate) {
+      Predicate<FragmentEvent> predicate) {
     return events.stream()
         .filter(predicate)
         .map(FragmentEvent::getFragment)
