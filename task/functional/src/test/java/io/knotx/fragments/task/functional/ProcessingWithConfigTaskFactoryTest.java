@@ -13,14 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.knotx.fragments.handler.integration;
+package io.knotx.fragments.task.functional;
 
 import static org.mockito.Mockito.doAnswer;
 
 import io.knotx.fragments.api.Fragment;
 import io.knotx.fragments.handler.FragmentsHandlerFactory;
 import io.knotx.fragments.task.factory.config.DefaultTaskFactoryConfig;
-import io.knotx.fragments.handler.utils.RoutingContextStub;
+import io.knotx.fragments.task.functional.utils.RoutingContextStub;
 import io.knotx.junit5.util.HoconLoader;
 import io.vertx.core.Handler;
 import io.vertx.core.json.JsonObject;
@@ -41,9 +41,6 @@ import org.mockito.quality.Strictness;
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
 public class ProcessingWithConfigTaskFactoryTest {
-
-  private static final String CUSTOM_TASK_NAME_KEY = "task";
-  private static final String EMPTY_BODY = "";
 
   @Test
   @DisplayName("Expect continuing processing next handler when no fragment is failed.")
@@ -93,11 +90,6 @@ public class ProcessingWithConfigTaskFactoryTest {
   private RoutingContext mockRoutingContext(String task) {
     return RoutingContextStub
         .create(fragment(task), Collections.emptyMap(), Collections.emptyMap());
-  }
-
-  private RoutingContext mockRoutingContext(String task, Map<String, String> headers,
-      Map<String, String> params) {
-    return RoutingContextStub.create(fragment(task), headers, params);
   }
 
   private Fragment fragment(String task) {

@@ -17,9 +17,7 @@ import org.nosphere.apache.rat.RatTask
 
 plugins {
     id("io.knotx.java-library")
-    id("io.knotx.codegen")
     id("io.knotx.unit-test")
-    id("io.knotx.maven-publish")
     id("io.knotx.jacoco")
     id("org.nosphere.apache.rat") version "0.6.0"
 }
@@ -27,43 +25,25 @@ plugins {
 dependencies {
     implementation(platform("io.knotx:knotx-dependencies:${project.version}"))
 
-    api(project(":knotx-fragments-task-handler-log-api"))
-
-    api(project(":knotx-fragments-task-factory-api"))
-    implementation(project(":knotx-fragments-task-engine"))
-
-    implementation("io.knotx:knotx-commons:${project.version}")
-    implementation("io.knotx:knotx-server-http-common-placeholders:${project.version}")
-
-    implementation(group = "io.vertx", name = "vertx-core")
-    implementation(group = "io.vertx", name = "vertx-service-proxy")
-    implementation(group = "io.vertx", name = "vertx-rx-java2")
-    implementation(group = "io.vertx", name = "vertx-web-client")
-    implementation(group = "org.apache.commons", name = "commons-lang3")
-    implementation(group = "com.google.guava", name = "guava")
-
     testImplementation(group = "org.mockito", name = "mockito-core")
     testImplementation(group = "org.mockito", name = "mockito-junit-jupiter")
     testImplementation(group = "io.vertx", name = "vertx-web-client")
     testImplementation(group = "io.vertx", name = "vertx-rx-java2")
     testImplementation(group = "io.vertx", name = "vertx-config-hocon")
-    testImplementation("org.junit.jupiter:junit-jupiter-params")
     testImplementation(group = "com.github.tomakehurst", name = "wiremock")
+
+    // logging
+    testRuntimeOnly("io.knotx:knotx-launcher:${project.version}")
+    // handler dependencies
+    testImplementation(project(":knotx-fragments-task-handler"))
+    testImplementation(project(":knotx-fragments-task-factory-config"))
+    testRuntimeOnly(project(":knotx-fragments-task-handler-log-html"))
+    testRuntimeOnly(project(":knotx-fragments-task-handler-log-json"))
 }
 
 tasks {
     named<RatTask>("rat") {
-        excludes.addAll(listOf("*.yml", "*.md", "**/*.md", "**/build/*", "**/out/*", "**/generated/*", "**/*.adoc", "**/*.json", "**/*.conf"))
+        excludes.addAll(listOf("**/build/*", "**/*.conf"))
     }
     getByName("build").dependsOn("rat")
-}
-
-publishing {
-    publications {
-        withType(MavenPublication::class) {
-            from(components["java"])
-            artifact(tasks["sourcesJar"])
-            artifact(tasks["javadocJar"])
-        }
-    }
 }

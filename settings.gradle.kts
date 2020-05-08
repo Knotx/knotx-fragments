@@ -65,3 +65,6 @@ project(":knotx-fragments-task-handler").projectDir = file("task/handler/core")
 project(":knotx-fragments-task-handler-log-api").projectDir = file("task/handler/log/api")
 project(":knotx-fragments-task-handler-log-html").projectDir = file("task/handler/log/html")
 project(":knotx-fragments-task-handler-log-json").projectDir = file("task/handler/log/json")
+
+include("knotx-fragments-task-functional-test")
+project(":knotx-fragments-task-functional-test").projectDir = file("task/functional")

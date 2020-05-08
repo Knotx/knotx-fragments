@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.knotx.fragments.handler.integration;
+package io.knotx.fragments.task.functional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
@@ -28,8 +28,8 @@ import io.knotx.fragments.handler.consumer.api.model.FragmentExecutionLog.Execut
 import io.knotx.fragments.handler.consumer.api.model.GraphNodeExecutionLog;
 import io.knotx.fragments.handler.consumer.api.model.LoggedNodeStatus;
 import io.knotx.fragments.task.factory.config.DefaultTaskFactoryConfig;
+import io.knotx.fragments.task.functional.utils.RoutingContextStub;
 import io.knotx.junit5.util.HoconLoader;
-import io.knotx.fragments.handler.utils.RoutingContextStub;
 import io.vertx.core.Handler;
 import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.Checkpoint;
