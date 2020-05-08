@@ -28,7 +28,7 @@ public interface NodeProvider {
 
   /**
    * Init a graph node based on provided options. If factory defined in {@link
-   * NodeOptions#getFactory()} is not found, then it throws {@link io.fragments.task.factory.config.exception.NodeFactoryNotFoundException}.
+   * NodeOptions#getFactory()} is not found, then it throws {@link IllegalStateException}.
    *
    * @param nodeOptions node options
    * @return {@link io.knotx.fragments.task.api.single.SingleNode} or {@link
@@ -40,10 +40,11 @@ public interface NodeProvider {
 
   /**
    * Init a graph node based on provided options. If factory defined in {@link
-   * NodeOptions#getFactory()} is not found, then it throws {@link io.fragments.task.factory.config.exception.NodeFactoryNotFoundException}.
+   * NodeOptions#getFactory()} is not found, then it throws {@link IllegalStateException}.
    * Additionally it adds node's metadata to nodesMetadata map.
    *
    * @param nodeOptions node options
+   * @param nodesMetadata nodes' metadata
    * @return {@link io.knotx.fragments.task.api.single.SingleNode} or {@link
    * io.knotx.fragments.task.api.composite.CompositeNode} instance
    */
