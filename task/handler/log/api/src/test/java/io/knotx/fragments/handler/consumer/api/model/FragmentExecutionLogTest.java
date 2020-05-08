@@ -23,7 +23,7 @@ import io.knotx.fragments.handler.consumer.api.model.FragmentExecutionLog.Execut
 import io.vertx.core.json.JsonObject;
 import org.junit.jupiter.api.Test;
 
-class xFragmentExecutionLogTest {
+class FragmentExecutionLogTest {
 
   @Test
   void validateSerialization() {

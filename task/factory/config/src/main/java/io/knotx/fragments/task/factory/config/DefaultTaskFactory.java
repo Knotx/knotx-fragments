@@ -92,15 +92,6 @@ public class DefaultTaskFactory implements TaskFactory, NodeProvider {
         .orElseThrow(() -> new NodeFactoryNotFoundException(nodeOptions.getNode().getFactory()));
   }
 
-  private Optional<NodeFactory> findNodeFactory(GraphNodeOptions nodeOptions) {
-    return Optional.ofNullable(nodeFactories.get(nodeOptions.getNode().getFactory()));
-  }
-
-  private boolean isTaskConfigured(Fragment fragment) {
-    String taskName = fragment.getConfiguration().getString(taskFactoryConfig.getTaskNameKey());
-    return taskFactoryConfig.getTasks().containsKey(taskName);
-  }
-
   private Map<String, Node> initTransitions(GraphNodeOptions nodeOptions,
       Map<String, NodeMetadata> nodesMetadata) {
     Map<String, GraphNodeOptions> transitions = nodeOptions.getOnTransitions();
@@ -119,6 +110,10 @@ public class DefaultTaskFactory implements TaskFactory, NodeProvider {
         }).collect(Collectors.toMap(NodeFactory::getName, f -> f));
   }
 
+  private Optional<NodeFactory> findNodeFactory(GraphNodeOptions nodeOptions) {
+    return Optional.ofNullable(nodeFactories.get(nodeOptions.getNode().getFactory()));
+  }
+
   private NodeFactory findNodeFactory(ServiceLoader<NodeFactory> factories, String factory) {
     Stream<NodeFactory> factoryStream = StreamSupport.stream(
         Spliterators.spliteratorUnknownSize(factories.iterator(), Spliterator.ORDERED),
@@ -128,5 +123,10 @@ public class DefaultTaskFactory implements TaskFactory, NodeProvider {
         .filter(f -> f.getName().equals(factory))
         .findFirst()
         .orElseThrow(() -> new IllegalStateException("Node not defined"));
+  }
+
+  private boolean isTaskConfigured(Fragment fragment) {
+    String taskName = fragment.getConfiguration().getString(taskFactoryConfig.getTaskNameKey());
+    return taskFactoryConfig.getTasks().containsKey(taskName);
   }
 }
