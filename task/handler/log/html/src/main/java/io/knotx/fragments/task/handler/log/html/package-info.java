@@ -14,6 +14,6 @@
  * limitations under the License.
  */
 @ModuleGen(name = "knotx-fragments-handler-consumer-html", groupPackage = "io.knotx")
-package io.knotx.fragments.handler.consumer.html;
+package io.knotx.fragments.task.handler.log.html;
 
 import io.vertx.codegen.annotations.ModuleGen;

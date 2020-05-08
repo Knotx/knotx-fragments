@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.knotx.fragments.task.factory.config.node.action;
+package io.knotx.fragments.task.factory.generic.node.action;
 
 import static io.knotx.fragments.task.factory.api.metadata.NodeMetadata.single;
 
@@ -26,10 +26,10 @@ import io.knotx.fragments.task.api.Node;
 import io.knotx.fragments.task.api.single.SingleNode;
 import io.knotx.fragments.task.factory.api.metadata.NodeMetadata;
 import io.knotx.fragments.task.factory.api.metadata.OperationMetadata;
-import io.knotx.fragments.task.factory.config.GraphNodeOptions;
-import io.knotx.fragments.task.factory.config.NodeProvider;
-import io.knotx.fragments.task.factory.config.node.NodeFactory;
-import io.knotx.fragments.task.factory.config.node.NodeOptions;
+import io.knotx.fragments.task.factory.generic.GraphNodeOptions;
+import io.knotx.fragments.task.factory.generic.NodeProvider;
+import io.knotx.fragments.task.factory.generic.node.NodeFactory;
+import io.knotx.fragments.task.factory.generic.node.NodeOptions;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.core.json.JsonObject;

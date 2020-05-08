@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.knotx.fragments.handler.consumer.json;
+package io.knotx.fragments.task.handler.log.json;
 
-import static io.knotx.fragments.handler.consumer.json.JsonFragmentsHandlerConsumerFactory.CONDITION_OPTION;
-import static io.knotx.fragments.handler.consumer.json.JsonFragmentsHandlerConsumerFactory.FRAGMENT_TYPES_OPTIONS;
-import static io.knotx.fragments.handler.consumer.json.JsonFragmentsHandlerConsumerFactory.HEADER_OPTION;
-import static io.knotx.fragments.handler.consumer.json.JsonFragmentsHandlerConsumerFactory.KNOTX_FRAGMENT;
+import static io.knotx.fragments.task.handler.log.json.JsonFragmentsHandlerConsumerFactory.CONDITION_OPTION;
+import static io.knotx.fragments.task.handler.log.json.JsonFragmentsHandlerConsumerFactory.FRAGMENT_TYPES_OPTIONS;
+import static io.knotx.fragments.task.handler.log.json.JsonFragmentsHandlerConsumerFactory.HEADER_OPTION;
+import static io.knotx.fragments.task.handler.log.json.JsonFragmentsHandlerConsumerFactory.KNOTX_FRAGMENT;
 import static io.knotx.junit5.assertions.KnotxAssertions.assertJsonEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
@@ -26,8 +26,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.common.collect.ImmutableList;
 import io.knotx.fragments.api.Fragment;
-import io.knotx.fragments.handler.consumer.api.FragmentExecutionLogConsumer;
-import io.knotx.fragments.handler.consumer.api.model.FragmentExecutionLog;
+import io.knotx.fragments.task.handler.log.api.FragmentExecutionLogConsumer;
+import io.knotx.fragments.task.handler.log.api.model.FragmentExecutionLog;
 import io.knotx.server.api.context.ClientRequest;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;

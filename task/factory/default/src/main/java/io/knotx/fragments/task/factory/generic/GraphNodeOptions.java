@@ -13,13 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.knotx.fragments.task.factory.config;
+package io.knotx.fragments.task.factory.generic;
 
-import io.knotx.fragments.task.factory.config.node.NodeOptions;
-import io.knotx.fragments.task.factory.config.node.action.ActionNodeConfig;
-import io.knotx.fragments.task.factory.config.node.action.ActionNodeFactory;
-import io.knotx.fragments.task.factory.config.node.subtasks.SubtasksNodeConfig;
-import io.knotx.fragments.task.factory.config.node.subtasks.SubtasksNodeFactory;
+import io.knotx.fragments.task.factory.generic.node.NodeOptions;
+import io.knotx.fragments.task.factory.generic.node.action.ActionNodeConfig;
+import io.knotx.fragments.task.factory.generic.node.action.ActionNodeFactory;
+import io.knotx.fragments.task.factory.generic.node.subtasks.SubtasksNodeConfig;
+import io.knotx.fragments.task.factory.generic.node.subtasks.SubtasksNodeFactory;
 import io.vertx.codegen.annotations.DataObject;
 import io.vertx.core.json.JsonObject;
 import java.util.Collections;

@@ -13,23 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.knotx.fragments.engine;
+package io.knotx.fragments.task.engine;
 
-import static io.knotx.fragments.engine.FragmentEventLogVerifier.verifyAllLogEntries;
-import static io.knotx.fragments.engine.Nodes.single;
-import static io.knotx.fragments.engine.TestFunction.appendBody;
-import static io.knotx.fragments.engine.TestFunction.errorWithNodeLog;
-import static io.knotx.fragments.engine.TestFunction.failure;
-import static io.knotx.fragments.engine.TestFunction.success;
-import static io.knotx.fragments.engine.TestFunction.successWithNodeLog;
-import static io.knotx.fragments.engine.Transitions.onError;
-import static io.knotx.fragments.engine.Transitions.onSuccess;
+import static io.knotx.fragments.task.engine.Nodes.single;
+import static io.knotx.fragments.task.engine.TestFunction.appendBody;
+import static io.knotx.fragments.task.engine.TestFunction.errorWithNodeLog;
+import static io.knotx.fragments.task.engine.TestFunction.failure;
+import static io.knotx.fragments.task.engine.TestFunction.success;
+import static io.knotx.fragments.task.engine.TestFunction.successWithNodeLog;
+import static io.knotx.fragments.task.engine.Transitions.onError;
+import static io.knotx.fragments.task.engine.Transitions.onSuccess;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import io.knotx.fragments.api.Fragment;
 import io.knotx.fragments.api.FragmentOperation;
-import io.knotx.fragments.engine.FragmentEvent.Status;
-import io.knotx.fragments.engine.FragmentEventLogVerifier.Operation;
+import io.knotx.fragments.task.engine.FragmentEvent.Status;
+import io.knotx.fragments.task.engine.FragmentEventLogVerifier.Operation;
 import io.knotx.fragments.task.api.Node;
 import io.knotx.fragments.task.api.single.SingleNode;
 import io.knotx.fragments.api.FragmentResult;
@@ -69,7 +68,7 @@ class TaskEngineSingleOperationTest {
   void expectEvaluatedFragment(VertxTestContext testContext, Vertx vertx)
       throws Throwable {
     // given
-    Node rootNode = single("first", appendBody(":updated"));
+    Node rootNode = Nodes.single("first", appendBody(":updated"));
 
     // when
     Single<FragmentEvent> result = new TaskEngine(vertx).start("task", rootNode, eventContext);
@@ -84,7 +83,7 @@ class TaskEngineSingleOperationTest {
   void expectInitialFragment(VertxTestContext testContext, Vertx vertx)
       throws Throwable {
     // given
-    SingleNode rootNode = single("first", failure());
+    SingleNode rootNode = Nodes.single("first", failure());
 
     // when
     Single<FragmentEvent> result = new TaskEngine(vertx).start("task", rootNode, eventContext);
@@ -99,8 +98,8 @@ class TaskEngineSingleOperationTest {
   void expectrootNodeOperations(VertxTestContext testContext, Vertx vertx)
       throws Throwable {
     // given
-    SingleNode rootNode = single("first", appendBody(":A"), onSuccess(
-        single("second", appendBody(":B"))));
+    SingleNode rootNode = Nodes.single("first", appendBody(":A"), onSuccess(
+        Nodes.single("second", appendBody(":B"))));
 
     // when
     Single<FragmentEvent> result = new TaskEngine(vertx).start("task", rootNode, eventContext);
@@ -118,13 +117,13 @@ class TaskEngineSingleOperationTest {
   void expectSuccessEventWhenOperationEnds(VertxTestContext testContext, Vertx vertx)
       throws Throwable {
     // given
-    SingleNode rootNode = single("first", success());
+    SingleNode rootNode = Nodes.single("first", success());
 
     // when
     Single<FragmentEvent> result = new TaskEngine(vertx).start("task", rootNode, eventContext);
 
     // then
-    verifyExecution(result, testContext, event -> assertEquals(Status.SUCCESS, event.getStatus()));
+    verifyExecution(result, testContext, event -> Assertions.assertEquals(Status.SUCCESS, event.getStatus()));
   }
 
   @Test
@@ -132,8 +131,8 @@ class TaskEngineSingleOperationTest {
   void expectSuccessEventWhenAllOperationsEnds(VertxTestContext testContext, Vertx vertx)
       throws Throwable {
     // given
-    SingleNode rootNode = single("first", success(), onSuccess(
-        single("second", success())));
+    SingleNode rootNode = Nodes.single("first", success(), onSuccess(
+        Nodes.single("second", success())));
 
     // when
     Single<FragmentEvent> result = new TaskEngine(vertx).start("task", rootNode, eventContext);
@@ -147,7 +146,7 @@ class TaskEngineSingleOperationTest {
   void expectFailureEventWhenUnhandledException(VertxTestContext testContext, Vertx vertx)
       throws Throwable {
     // given
-    SingleNode rootNode = single("first", failure());
+    SingleNode rootNode = Nodes.single("first", failure());
 
     // when
     Single<FragmentEvent> result = new TaskEngine(vertx).start("task", rootNode, eventContext);
@@ -161,8 +160,8 @@ class TaskEngineSingleOperationTest {
   void expectSuccessEventWhenExceptionHandled(VertxTestContext testContext, Vertx vertx)
       throws Throwable {
     // given
-    SingleNode rootNode = single("first", failure(), onError(
-        single("second", success())));
+    SingleNode rootNode = Nodes.single("first", failure(), onError(
+        Nodes.single("second", success())));
 
     // when
     Single<FragmentEvent> result = new TaskEngine(vertx).start("task", rootNode, eventContext);
@@ -179,7 +178,7 @@ class TaskEngineSingleOperationTest {
     FragmentOperation operation = (context, handler) -> Future
         .succeededFuture(new FragmentResult(context.getFragment(), "customTransition"))
         .setHandler(handler);
-    SingleNode rootNode = single("knotx.knot.successKnot", operation);
+    SingleNode rootNode = Nodes.single("knotx.knot.successKnot", operation);
 
     // when
     Single<FragmentEvent> result = new TaskEngine(vertx).start("task", rootNode, eventContext);
@@ -193,14 +192,14 @@ class TaskEngineSingleOperationTest {
   void expectSuccessEventLogEntry(VertxTestContext testContext, Vertx vertx)
       throws Throwable {
     // given
-    SingleNode rootNode = single("first", success());
+    SingleNode rootNode = Nodes.single("first", success());
 
     // when
     Single<FragmentEvent> result = new TaskEngine(vertx).start("task", rootNode, eventContext);
 
     // then
     verifyExecution(result, testContext,
-        event -> verifyAllLogEntries(event.getLogAsJson(),
+        event -> FragmentEventLogVerifier.verifyAllLogEntries(event.getLogAsJson(),
             Operation.exact("task", "first", "UNPROCESSED", 0),
             Operation.exact("task", "first", "SUCCESS", 1)
         ));
@@ -211,7 +210,7 @@ class TaskEngineSingleOperationTest {
   void expectUnsupportedEventLogEntryWhenError(VertxTestContext testContext, Vertx vertx)
       throws Throwable {
     // given
-    SingleNode rootNode = single("first", failure());
+    SingleNode rootNode = Nodes.single("first", failure());
 
     // when
     Single<FragmentEvent> result = new TaskEngine(vertx).start("task", rootNode, eventContext);
@@ -233,7 +232,7 @@ class TaskEngineSingleOperationTest {
     FragmentOperation operation = (context, handler) -> Future
         .succeededFuture(new FragmentResult(context.getFragment(), "customTransition"))
         .setHandler(handler);
-    SingleNode rootNode = single("first", operation);
+    SingleNode rootNode = Nodes.single("first", operation);
 
     // when
     Single<FragmentEvent> result = new TaskEngine(vertx).start("task", rootNode, eventContext);
@@ -252,8 +251,8 @@ class TaskEngineSingleOperationTest {
   void expectErrorAndSuccessEventLogEntries(VertxTestContext testContext, Vertx vertx)
       throws Throwable {
     // given
-    SingleNode rootNode = single("first", failure(), onError(
-        single("second", success())));
+    SingleNode rootNode = Nodes.single("first", failure(), onError(
+        Nodes.single("second", success())));
 
     // when
     Single<FragmentEvent> result = new TaskEngine(vertx).start("task", rootNode, eventContext);
@@ -274,8 +273,8 @@ class TaskEngineSingleOperationTest {
       throws Throwable {
     // given
     JsonObject successNodeLog = new JsonObject().put("debug", "success");
-    SingleNode rootNode = single("first", successWithNodeLog(successNodeLog), onSuccess(
-        single("second", success())));
+    SingleNode rootNode = Nodes.single("first", successWithNodeLog(successNodeLog), onSuccess(
+        Nodes.single("second", success())));
 
     // when
     Single<FragmentEvent> result = new TaskEngine(vertx).start("task", rootNode, eventContext);
@@ -296,8 +295,8 @@ class TaskEngineSingleOperationTest {
       throws Throwable {
     // given
     JsonObject errorNodeLog = new JsonObject().put("debug", "error");
-    SingleNode rootNode = single("first", errorWithNodeLog(errorNodeLog), onError(
-        single("second", success())));
+    SingleNode rootNode = Nodes.single("first", errorWithNodeLog(errorNodeLog), onError(
+        Nodes.single("second", success())));
 
     // when
     Single<FragmentEvent> result = new TaskEngine(vertx).start("task", rootNode, eventContext);

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.knotx.fragments.task.factory.config.node.subtasks;
+package io.knotx.fragments.task.factory.generic.node.subtasks;
 
 import static io.knotx.fragments.api.FragmentResult.ERROR_TRANSITION;
 import static io.knotx.fragments.api.FragmentResult.SUCCESS_TRANSITION;
@@ -23,10 +23,10 @@ import io.knotx.fragments.task.factory.api.metadata.NodeMetadata;
 import io.knotx.fragments.task.factory.api.metadata.OperationMetadata;
 import io.knotx.fragments.task.api.Node;
 import io.knotx.fragments.task.api.composite.CompositeNode;
-import io.knotx.fragments.task.factory.config.GraphNodeOptions;
-import io.knotx.fragments.task.factory.config.NodeProvider;
-import io.knotx.fragments.task.factory.config.node.NodeFactory;
-import io.knotx.fragments.task.factory.config.node.NodeOptions;
+import io.knotx.fragments.task.factory.generic.GraphNodeOptions;
+import io.knotx.fragments.task.factory.generic.NodeProvider;
+import io.knotx.fragments.task.factory.generic.node.NodeFactory;
+import io.knotx.fragments.task.factory.generic.node.NodeOptions;
 import io.vertx.core.json.JsonObject;
 import io.vertx.reactivex.core.Vertx;
 import java.util.HashMap;

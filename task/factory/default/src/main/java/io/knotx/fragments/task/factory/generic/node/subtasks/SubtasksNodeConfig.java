@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.knotx.fragments.task.factory.config.node.subtasks;
+package io.knotx.fragments.task.factory.generic.node.subtasks;
 
-import io.knotx.fragments.task.factory.config.GraphNodeOptions;
+import io.knotx.fragments.task.factory.generic.GraphNodeOptions;
 import io.vertx.codegen.annotations.DataObject;
 import io.vertx.core.json.JsonObject;
 import java.util.List;

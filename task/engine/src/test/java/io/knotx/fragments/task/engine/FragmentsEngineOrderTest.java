@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.knotx.fragments.engine;
+package io.knotx.fragments.task.engine;
 
-import static io.knotx.fragments.engine.Nodes.single;
+import static io.knotx.fragments.task.engine.Nodes.single;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -81,7 +81,7 @@ class FragmentsEngineOrderTest {
 
   private FragmentEventContextTaskAware initFragmentEventContextTaskAware(String fragmentBody,
       FragmentOperation operation) {
-    Node graphNode = single("id", operation);
+    Node graphNode = Nodes.single("id", operation);
     Fragment fragment = new Fragment("snippet", new JsonObject(), fragmentBody);
 
     return new FragmentEventContextTaskAware(new Task("task", graphNode),

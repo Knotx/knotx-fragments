@@ -15,8 +15,8 @@
  */
 package io.knotx.fragments.handler.consumer;
 
-import io.knotx.fragments.handler.consumer.api.FragmentExecutionLogConsumer;
-import io.knotx.fragments.handler.consumer.api.FragmentExecutionLogConsumerFactory;
+import io.knotx.fragments.task.handler.log.api.FragmentExecutionLogConsumer;
+import io.knotx.fragments.task.handler.log.api.FragmentExecutionLogConsumerFactory;
 import io.vertx.core.json.JsonObject;
 
 public class TestConsumer implements FragmentExecutionLogConsumerFactory {

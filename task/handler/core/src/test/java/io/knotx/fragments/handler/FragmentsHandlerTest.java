@@ -22,8 +22,8 @@ import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.Mockito.doAnswer;
 
 import io.knotx.fragments.api.Fragment;
-import io.knotx.fragments.engine.FragmentEvent;
-import io.knotx.fragments.engine.FragmentEvent.Status;
+import io.knotx.fragments.task.engine.FragmentEvent;
+import io.knotx.fragments.task.engine.FragmentEvent.Status;
 import io.knotx.fragments.handler.exception.ConfigurationException;
 import io.knotx.fragments.handler.utils.RoutingContextStub;
 import io.knotx.junit5.util.HoconLoader;

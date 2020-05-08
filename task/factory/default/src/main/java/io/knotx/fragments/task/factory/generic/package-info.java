@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-@ModuleGen(name = "knotx-fragments-task-handler-default", groupPackage = "io.knotx")
-package io.knotx.fragments.task.factory.default;
+@ModuleGen(name = "knotx-fragments-task-factory-default", groupPackage = "io.knotx")
+package io.knotx.fragments.task.factory.generic;
 
 import io.vertx.codegen.annotations.ModuleGen;

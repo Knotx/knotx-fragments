@@ -23,11 +23,11 @@ import static org.mockito.Mockito.doAnswer;
 
 import io.knotx.fragments.api.Fragment;
 import io.knotx.fragments.handler.FragmentsHandlerFactory;
-import io.knotx.fragments.handler.consumer.api.model.FragmentExecutionLog;
-import io.knotx.fragments.handler.consumer.api.model.FragmentExecutionLog.ExecutionStatus;
-import io.knotx.fragments.handler.consumer.api.model.GraphNodeExecutionLog;
-import io.knotx.fragments.handler.consumer.api.model.LoggedNodeStatus;
-import io.knotx.fragments.task.factory.config.DefaultTaskFactoryConfig;
+import io.knotx.fragments.task.handler.log.api.model.FragmentExecutionLog;
+import io.knotx.fragments.task.handler.log.api.model.FragmentExecutionLog.ExecutionStatus;
+import io.knotx.fragments.task.handler.log.api.model.GraphNodeExecutionLog;
+import io.knotx.fragments.task.handler.log.api.model.LoggedNodeStatus;
+import io.knotx.fragments.task.factory.generic.DefaultTaskFactoryConfig;
 import io.knotx.fragments.task.functional.utils.RoutingContextStub;
 import io.knotx.junit5.util.HoconLoader;
 import io.vertx.core.Handler;

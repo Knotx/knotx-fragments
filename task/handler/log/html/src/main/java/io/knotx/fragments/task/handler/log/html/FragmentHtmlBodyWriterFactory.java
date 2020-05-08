@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.knotx.fragments.handler.consumer.html;
+package io.knotx.fragments.task.handler.log.html;
 
 import io.knotx.fragments.api.Fragment;
-import io.knotx.fragments.handler.consumer.api.FragmentExecutionLogConsumer;
-import io.knotx.fragments.handler.consumer.api.FragmentExecutionLogConsumerFactory;
-import io.knotx.fragments.handler.consumer.api.model.FragmentExecutionLog;
+import io.knotx.fragments.task.handler.log.api.FragmentExecutionLogConsumer;
+import io.knotx.fragments.task.handler.log.api.FragmentExecutionLogConsumerFactory;
+import io.knotx.fragments.task.handler.log.api.model.FragmentExecutionLog;
 import io.knotx.server.api.context.ClientRequest;
 import io.vertx.core.json.JsonObject;
 import java.util.Collections;

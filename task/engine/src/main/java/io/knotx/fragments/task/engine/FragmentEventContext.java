@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.knotx.fragments.engine;
+package io.knotx.fragments.task.engine;
 
 import io.knotx.server.api.context.ClientRequest;
 import io.vertx.codegen.annotations.DataObject;

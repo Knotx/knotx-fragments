@@ -13,4 +13,4 @@
 #  limitations under the License.
 
 io.knotx.fragments.task.factory.generic.node.action.ActionNodeFactory
-io.knotx.fragments.task.factory.config.node.subtasks.SubtasksNodeFactory
+io.knotx.fragments.task.factory.generic.node.subtasks.SubtasksNodeFactory

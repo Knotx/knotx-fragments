@@ -13,13 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.knotx.fragments.handler.consumer.api.model;
+package io.knotx.fragments.task.handler.log.api.model;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 import io.knotx.fragments.api.Fragment;
-import io.knotx.fragments.handler.consumer.api.model.FragmentExecutionLog.ExecutionStatus;
+import io.knotx.fragments.task.handler.log.api.model.FragmentExecutionLog.ExecutionStatus;
 import io.vertx.core.json.JsonObject;
 import org.junit.jupiter.api.Test;
 

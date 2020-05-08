@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.knotx.fragments.engine;
+package io.knotx.fragments.task.engine;
 
 import static io.knotx.fragments.api.FragmentResult.ERROR_TRANSITION;
 import static io.knotx.fragments.api.FragmentResult.SUCCESS_TRANSITION;
@@ -21,7 +21,7 @@ import static io.knotx.fragments.api.FragmentResult.SUCCESS_TRANSITION;
 import io.knotx.fragments.api.Fragment;
 import io.knotx.fragments.api.FragmentOperation;
 import io.knotx.fragments.api.FragmentResult;
-import io.knotx.fragments.engine.exception.NodeFatalException;
+import io.knotx.fragments.task.engine.exception.NodeFatalException;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;

@@ -15,7 +15,7 @@
  */
 package io.knotx.fragments.handler.consumer;
 
-import io.knotx.fragments.handler.consumer.api.model.LoggedNodeStatus;
+import io.knotx.fragments.task.handler.log.api.model.LoggedNodeStatus;
 import io.vertx.core.json.JsonArray;
 
 class NodeExecutionData {

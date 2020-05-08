@@ -19,7 +19,7 @@ import static org.mockito.Mockito.doAnswer;
 
 import io.knotx.fragments.api.Fragment;
 import io.knotx.fragments.handler.FragmentsHandlerFactory;
-import io.knotx.fragments.task.factory.config.DefaultTaskFactoryConfig;
+import io.knotx.fragments.task.factory.generic.DefaultTaskFactoryConfig;
 import io.knotx.fragments.task.functional.utils.RoutingContextStub;
 import io.knotx.junit5.util.HoconLoader;
 import io.vertx.core.Handler;
@@ -29,7 +29,6 @@ import io.vertx.junit5.VertxTestContext;
 import io.vertx.reactivex.core.Vertx;
 import io.vertx.reactivex.ext.web.RoutingContext;
 import java.util.Collections;
-import java.util.Map;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

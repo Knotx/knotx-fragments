@@ -13,13 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.knotx.fragments.task.factory.config.node.action;
+package io.knotx.fragments.task.factory.generic.node.action;
 
 
 import io.knotx.fragments.action.api.log.ActionLogLevel;
 import io.knotx.fragments.action.core.ActionFactoryOptions;
 import io.knotx.fragments.action.core.ActionProvider;
-import io.knotx.fragments.task.factory.config.LogLevelConfig;
+import io.knotx.fragments.task.factory.generic.LogLevelConfig;
 import io.vertx.codegen.annotations.DataObject;
 import io.vertx.core.json.JsonObject;
 import java.util.HashMap;

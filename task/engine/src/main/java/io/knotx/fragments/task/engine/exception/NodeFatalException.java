@@ -15,7 +15,7 @@
  *
  * The code comes from https://github.com/tomaszmichalak/vertx-rx-map-reduce.
  */
-package io.knotx.fragments.engine.exception;
+package io.knotx.fragments.task.engine.exception;
 
 import io.knotx.fragments.api.Fragment;
 

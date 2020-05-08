@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.knotx.fragments.task.factory.config;
+package io.knotx.fragments.task.factory.generic;
 
 import io.knotx.fragments.api.Fragment;
 import io.knotx.fragments.task.api.Node;
@@ -22,8 +22,8 @@ import io.knotx.fragments.task.factory.api.TaskFactory;
 import io.knotx.fragments.task.factory.api.metadata.NodeMetadata;
 import io.knotx.fragments.task.factory.api.metadata.TaskMetadata;
 import io.knotx.fragments.task.factory.api.metadata.TaskWithMetadata;
-import io.knotx.fragments.task.factory.config.exception.NodeFactoryNotFoundException;
-import io.knotx.fragments.task.factory.config.node.NodeFactory;
+import io.knotx.fragments.task.factory.generic.exception.NodeFactoryNotFoundException;
+import io.knotx.fragments.task.factory.generic.node.NodeFactory;
 import io.knotx.server.api.context.ClientRequest;
 import io.vertx.core.json.JsonObject;
 import io.vertx.reactivex.core.Vertx;
@@ -38,11 +38,11 @@ import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 public class DefaultTaskFactory implements TaskFactory,
-    io.knotx.fragments.task.factory.config.NodeProvider {
+    NodeProvider {
 
   private static final String NAME = "default";
 
-  private io.knotx.fragments.task.factory.config.DefaultTaskFactoryConfig taskFactoryConfig;
+  private DefaultTaskFactoryConfig taskFactoryConfig;
   private Map<String, NodeFactory> nodeFactories;
 
   @Override
@@ -52,7 +52,7 @@ public class DefaultTaskFactory implements TaskFactory,
 
   @Override
   public DefaultTaskFactory configure(JsonObject taskFactoryConfig, Vertx vertx) {
-    this.taskFactoryConfig = new io.knotx.fragments.task.factory.config.DefaultTaskFactoryConfig(taskFactoryConfig);
+    this.taskFactoryConfig = new DefaultTaskFactoryConfig(taskFactoryConfig);
     nodeFactories = initFactories(vertx);
     return this;
   }
@@ -69,7 +69,7 @@ public class DefaultTaskFactory implements TaskFactory,
     String taskKey = taskFactoryConfig.getTaskNameKey();
     String taskName = fragment.getConfiguration().getString(taskKey);
 
-    Map<String, io.knotx.fragments.task.factory.config.GraphNodeOptions> tasks = taskFactoryConfig.getTasks();
+    Map<String, GraphNodeOptions> tasks = taskFactoryConfig.getTasks();
     return Optional.ofNullable(tasks.get(taskName))
         .map(rootGraphNodeOptions -> {
           Map<String, NodeMetadata> nodesMetadata = new HashMap<>();
@@ -81,12 +81,12 @@ public class DefaultTaskFactory implements TaskFactory,
   }
 
   @Override
-  public Node initNode(io.knotx.fragments.task.factory.config.GraphNodeOptions nodeOptions) {
+  public Node initNode(GraphNodeOptions nodeOptions) {
     return initNode(nodeOptions, new HashMap<>());
   }
 
   @Override
-  public Node initNode(io.knotx.fragments.task.factory.config.GraphNodeOptions nodeOptions, Map<String, NodeMetadata> nodesMetadata) {
+  public Node initNode(GraphNodeOptions nodeOptions, Map<String, NodeMetadata> nodesMetadata) {
     return findNodeFactory(nodeOptions)
         .map(f -> f.initNode(nodeOptions.getNode(), initTransitions(nodeOptions, nodesMetadata), this,
             nodesMetadata))
@@ -94,9 +94,9 @@ public class DefaultTaskFactory implements TaskFactory,
   }
 
   private Map<String, Node> initTransitions(
-      io.knotx.fragments.task.factory.config.GraphNodeOptions nodeOptions,
+      GraphNodeOptions nodeOptions,
       Map<String, NodeMetadata> nodesMetadata) {
-    Map<String, io.knotx.fragments.task.factory.config.GraphNodeOptions> transitions = nodeOptions.getOnTransitions();
+    Map<String, GraphNodeOptions> transitions = nodeOptions.getOnTransitions();
     Map<String, Node> edges = new HashMap<>();
     transitions.forEach((transition, childGraphOptions) -> edges
         .put(transition, initNode(childGraphOptions, nodesMetadata)));
@@ -113,7 +113,7 @@ public class DefaultTaskFactory implements TaskFactory,
   }
 
   private Optional<NodeFactory> findNodeFactory(
-      io.knotx.fragments.task.factory.config.GraphNodeOptions nodeOptions) {
+      GraphNodeOptions nodeOptions) {
     return Optional.ofNullable(nodeFactories.get(nodeOptions.getNode().getFactory()));
   }
 

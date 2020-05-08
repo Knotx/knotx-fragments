@@ -50,9 +50,9 @@ include("knotx-fragments-task-api")
 project(":knotx-fragments-task-api").projectDir = file("task/api")
 
 include("knotx-fragments-task-factory-api")
-include("knotx-fragments-task-factory-config")
+include("knotx-fragments-task-factory-default")
 project(":knotx-fragments-task-factory-api").projectDir = file("task/factory/api")
-project(":knotx-fragments-task-factory-config").projectDir = file("task/factory/config")
+project(":knotx-fragments-task-factory-default").projectDir = file("task/factory/default")
 
 include("knotx-fragments-task-engine")
 project(":knotx-fragments-task-engine").projectDir = file("task/engine")

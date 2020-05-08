@@ -13,14 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.knotx.fragments.engine;
+package io.knotx.fragments.task.engine;
 
 import io.knotx.fragments.api.Fragment;
 import io.knotx.fragments.api.FragmentContext;
 import io.knotx.fragments.api.FragmentResult;
-import io.knotx.fragments.engine.FragmentEvent.Status;
+import io.knotx.fragments.task.engine.FragmentEvent.Status;
 import io.knotx.fragments.task.api.Node;
-import io.knotx.fragments.engine.exception.NodeFatalException;
+import io.knotx.fragments.task.engine.exception.NodeFatalException;
 import io.knotx.server.api.context.ClientRequest;
 import io.reactivex.Single;
 import io.reactivex.SingleSource;

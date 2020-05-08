@@ -13,11 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.knotx.fragments.handler.consumer.html;
+package io.knotx.fragments.task.handler.log.html;
 
-import static io.knotx.fragments.handler.consumer.html.FragmentHtmlBodyWriterFactory.CONDITION_OPTION;
-import static io.knotx.fragments.handler.consumer.html.FragmentHtmlBodyWriterFactory.FRAGMENT_TYPES_OPTIONS;
-import static io.knotx.fragments.handler.consumer.html.FragmentHtmlBodyWriterFactory.HEADER_OPTION;
 import static io.knotx.junit5.assertions.KnotxAssertions.assertJsonEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
@@ -25,10 +22,10 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.common.collect.ImmutableList;
 import io.knotx.fragments.api.Fragment;
-import io.knotx.fragments.handler.consumer.api.FragmentExecutionLogConsumer;
-import io.knotx.fragments.handler.consumer.api.model.FragmentExecutionLog;
-import io.knotx.fragments.handler.consumer.api.model.GraphNodeExecutionLog;
-import io.knotx.fragments.handler.consumer.api.model.LoggedNodeStatus;
+import io.knotx.fragments.task.handler.log.api.FragmentExecutionLogConsumer;
+import io.knotx.fragments.task.handler.log.api.model.FragmentExecutionLog;
+import io.knotx.fragments.task.handler.log.api.model.GraphNodeExecutionLog;
+import io.knotx.fragments.task.handler.log.api.model.LoggedNodeStatus;
 import io.knotx.server.api.context.ClientRequest;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -56,7 +53,7 @@ class FragmentHtmlBodyWriterFactoryTest {
     // when
     FragmentExecutionLogConsumer tested = new FragmentHtmlBodyWriterFactory()
         .create(new JsonObject()
-            .put(FRAGMENT_TYPES_OPTIONS, new JsonArray().add(EXPECTED_FRAGMENT_TYPE)));
+            .put(FragmentHtmlBodyWriterFactory.FRAGMENT_TYPES_OPTIONS, new JsonArray().add(EXPECTED_FRAGMENT_TYPE)));
     tested
         .accept(new ClientRequest(), ImmutableList.of(FragmentExecutionLog.newInstance(original)));
 
@@ -75,7 +72,8 @@ class FragmentHtmlBodyWriterFactoryTest {
     // when
     FragmentExecutionLogConsumer tested = new FragmentHtmlBodyWriterFactory()
         .create(new JsonObject()
-            .put(CONDITION_OPTION, new JsonObject().put(HEADER_OPTION, EXPECTED_HEADER)));
+            .put(FragmentHtmlBodyWriterFactory.CONDITION_OPTION, new JsonObject().put(
+                FragmentHtmlBodyWriterFactory.HEADER_OPTION, EXPECTED_HEADER)));
     tested.accept(new ClientRequest()
             .setHeaders(MultiMap.caseInsensitiveMultiMap().add(EXPECTED_HEADER, "true")),
         ImmutableList.of(FragmentExecutionLog.newInstance(original)));
@@ -95,8 +93,9 @@ class FragmentHtmlBodyWriterFactoryTest {
     // when
     FragmentExecutionLogConsumer tested = new FragmentHtmlBodyWriterFactory()
         .create(new JsonObject()
-            .put(FRAGMENT_TYPES_OPTIONS, new JsonArray().add(EXPECTED_FRAGMENT_TYPE))
-            .put(CONDITION_OPTION, new JsonObject().put(HEADER_OPTION, EXPECTED_HEADER)));
+            .put(FragmentHtmlBodyWriterFactory.FRAGMENT_TYPES_OPTIONS, new JsonArray().add(EXPECTED_FRAGMENT_TYPE))
+            .put(FragmentHtmlBodyWriterFactory.CONDITION_OPTION, new JsonObject().put(
+                FragmentHtmlBodyWriterFactory.HEADER_OPTION, EXPECTED_HEADER)));
     tested.accept(new ClientRequest()
             .setHeaders(MultiMap.caseInsensitiveMultiMap().add(EXPECTED_HEADER, "true")),
         ImmutableList.of(FragmentExecutionLog.newInstance(original)));
@@ -116,8 +115,9 @@ class FragmentHtmlBodyWriterFactoryTest {
     // when
     FragmentExecutionLogConsumer tested = new FragmentHtmlBodyWriterFactory()
         .create(new JsonObject()
-            .put(FRAGMENT_TYPES_OPTIONS, new JsonArray().add(EXPECTED_FRAGMENT_TYPE))
-            .put(CONDITION_OPTION, new JsonObject().put(HEADER_OPTION, EXPECTED_HEADER)));
+            .put(FragmentHtmlBodyWriterFactory.FRAGMENT_TYPES_OPTIONS, new JsonArray().add(EXPECTED_FRAGMENT_TYPE))
+            .put(FragmentHtmlBodyWriterFactory.CONDITION_OPTION, new JsonObject().put(
+                FragmentHtmlBodyWriterFactory.HEADER_OPTION, EXPECTED_HEADER)));
     tested.accept(new ClientRequest()
             .setHeaders(MultiMap.caseInsensitiveMultiMap().add(EXPECTED_HEADER, "true")),
         ImmutableList.of(FragmentExecutionLog.newInstance(original)));
@@ -137,8 +137,8 @@ class FragmentHtmlBodyWriterFactoryTest {
     // when
     FragmentExecutionLogConsumer tested = new FragmentHtmlBodyWriterFactory()
         .create(new JsonObject()
-            .put(FRAGMENT_TYPES_OPTIONS, new JsonArray().add(EXPECTED_FRAGMENT_TYPE))
-            .put(CONDITION_OPTION, new JsonObject().put(PARAM_OPTION, EXPECTED_PARAM)));
+            .put(FragmentHtmlBodyWriterFactory.FRAGMENT_TYPES_OPTIONS, new JsonArray().add(EXPECTED_FRAGMENT_TYPE))
+            .put(FragmentHtmlBodyWriterFactory.CONDITION_OPTION, new JsonObject().put(PARAM_OPTION, EXPECTED_PARAM)));
     tested.accept(new ClientRequest()
             .setParams(MultiMap.caseInsensitiveMultiMap().add(EXPECTED_PARAM, "true")),
         ImmutableList.of(FragmentExecutionLog.newInstance(original)));
@@ -157,8 +157,8 @@ class FragmentHtmlBodyWriterFactoryTest {
     // when
     FragmentExecutionLogConsumer tested = new FragmentHtmlBodyWriterFactory()
         .create(new JsonObject()
-            .put(FRAGMENT_TYPES_OPTIONS, new JsonArray().add(EXPECTED_FRAGMENT_TYPE))
-            .put(CONDITION_OPTION, new JsonObject().put(PARAM_OPTION, EXPECTED_PARAM)));
+            .put(FragmentHtmlBodyWriterFactory.FRAGMENT_TYPES_OPTIONS, new JsonArray().add(EXPECTED_FRAGMENT_TYPE))
+            .put(FragmentHtmlBodyWriterFactory.CONDITION_OPTION, new JsonObject().put(PARAM_OPTION, EXPECTED_PARAM)));
     tested.accept(new ClientRequest()
             .setParams(MultiMap.caseInsensitiveMultiMap().add(EXPECTED_PARAM, "true")),
         ImmutableList.of(FragmentExecutionLog.newInstance(fragment)));
@@ -187,8 +187,8 @@ class FragmentHtmlBodyWriterFactoryTest {
     // when
     FragmentExecutionLogConsumer tested = new FragmentHtmlBodyWriterFactory()
         .create(new JsonObject()
-            .put(FRAGMENT_TYPES_OPTIONS, new JsonArray().add(EXPECTED_FRAGMENT_TYPE))
-            .put(CONDITION_OPTION, new JsonObject().put(PARAM_OPTION, EXPECTED_PARAM)));
+            .put(FragmentHtmlBodyWriterFactory.FRAGMENT_TYPES_OPTIONS, new JsonArray().add(EXPECTED_FRAGMENT_TYPE))
+            .put(FragmentHtmlBodyWriterFactory.CONDITION_OPTION, new JsonObject().put(PARAM_OPTION, EXPECTED_PARAM)));
     tested.accept(new ClientRequest()
             .setParams(MultiMap.caseInsensitiveMultiMap().add(EXPECTED_PARAM, "true")),
         ImmutableList.of(FragmentExecutionLog.newInstance(fragment)));
@@ -210,8 +210,8 @@ class FragmentHtmlBodyWriterFactoryTest {
     // when
     FragmentExecutionLogConsumer tested = new FragmentHtmlBodyWriterFactory()
         .create(new JsonObject()
-            .put(FRAGMENT_TYPES_OPTIONS, new JsonArray().add(EXPECTED_FRAGMENT_TYPE))
-            .put(CONDITION_OPTION, new JsonObject().put(PARAM_OPTION, EXPECTED_PARAM)));
+            .put(FragmentHtmlBodyWriterFactory.FRAGMENT_TYPES_OPTIONS, new JsonArray().add(EXPECTED_FRAGMENT_TYPE))
+            .put(FragmentHtmlBodyWriterFactory.CONDITION_OPTION, new JsonObject().put(PARAM_OPTION, EXPECTED_PARAM)));
     tested.accept(new ClientRequest()
             .setParams(MultiMap.caseInsensitiveMultiMap().add(EXPECTED_PARAM, "true")),
         ImmutableList.of(FragmentExecutionLog.newInstance(fragment)));
@@ -247,8 +247,8 @@ class FragmentHtmlBodyWriterFactoryTest {
     // when
     FragmentExecutionLogConsumer tested = new FragmentHtmlBodyWriterFactory()
         .create(new JsonObject()
-            .put(FRAGMENT_TYPES_OPTIONS, new JsonArray().add(EXPECTED_FRAGMENT_TYPE))
-            .put(CONDITION_OPTION, new JsonObject().put(PARAM_OPTION, EXPECTED_PARAM)));
+            .put(FragmentHtmlBodyWriterFactory.FRAGMENT_TYPES_OPTIONS, new JsonArray().add(EXPECTED_FRAGMENT_TYPE))
+            .put(FragmentHtmlBodyWriterFactory.CONDITION_OPTION, new JsonObject().put(PARAM_OPTION, EXPECTED_PARAM)));
     tested.accept(new ClientRequest()
             .setParams(MultiMap.caseInsensitiveMultiMap().add(EXPECTED_PARAM, "true")),
         ImmutableList.of(FragmentExecutionLog.newInstance(fragment, graphNodeExecutionLog)));

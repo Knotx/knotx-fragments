@@ -13,15 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.knotx.fragments.task.factory.config.node;
+package io.knotx.fragments.task.factory.generic.node;
 
 import static java.util.Collections.emptyMap;
 
-import io.knotx.fragments.task.factory.config.DefaultTaskFactory;
+import io.knotx.fragments.task.factory.generic.DefaultTaskFactory;
 import io.knotx.fragments.task.factory.api.metadata.NodeMetadata;
 import io.knotx.fragments.task.api.Node;
-import io.knotx.fragments.task.factory.config.GraphNodeOptions;
-import io.knotx.fragments.task.factory.config.NodeProvider;
+import io.knotx.fragments.task.factory.generic.GraphNodeOptions;
+import io.knotx.fragments.task.factory.generic.NodeProvider;
 import io.vertx.core.json.JsonObject;
 import io.vertx.reactivex.core.Vertx;
 import java.util.Map;

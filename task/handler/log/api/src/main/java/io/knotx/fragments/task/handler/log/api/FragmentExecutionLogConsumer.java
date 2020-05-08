@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.knotx.fragments.handler.consumer.api;
+package io.knotx.fragments.task.handler.log.api;
 
-import io.knotx.fragments.handler.consumer.api.model.FragmentExecutionLog;
+import io.knotx.fragments.task.handler.log.api.model.FragmentExecutionLog;
 import io.knotx.server.api.context.ClientRequest;
 import java.util.List;
 

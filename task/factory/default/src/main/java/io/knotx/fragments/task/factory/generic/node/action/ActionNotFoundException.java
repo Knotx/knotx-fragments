@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.knotx.fragments.task.factory.config.node.action;
+package io.knotx.fragments.task.factory.generic.node.action;
 
 public class ActionNotFoundException extends IllegalArgumentException {
 

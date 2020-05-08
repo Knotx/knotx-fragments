@@ -13,26 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.knotx.fragments.engine;
+package io.knotx.fragments.task.engine;
 
-import static io.knotx.fragments.engine.FragmentEventLogVerifier.verifyAllLogEntries;
-import static io.knotx.fragments.engine.Nodes.composite;
-import static io.knotx.fragments.engine.Nodes.single;
-import static io.knotx.fragments.engine.TestFunction.appendBody;
-import static io.knotx.fragments.engine.TestFunction.appendBodyWithPayload;
-import static io.knotx.fragments.engine.TestFunction.appendPayload;
-import static io.knotx.fragments.engine.TestFunction.appendPayloadBasingOnContext;
-import static io.knotx.fragments.engine.TestFunction.failure;
-import static io.knotx.fragments.engine.TestFunction.success;
-import static io.knotx.fragments.engine.TestFunction.successWithDelay;
-import static io.knotx.fragments.engine.Transitions.onError;
-import static io.knotx.fragments.engine.Transitions.onSuccess;
+import static io.knotx.fragments.task.engine.FragmentEventLogVerifier.verifyAllLogEntries;
+import static io.knotx.fragments.task.engine.Nodes.composite;
+import static io.knotx.fragments.task.engine.Nodes.single;
+import static io.knotx.fragments.task.engine.TestFunction.appendBody;
+import static io.knotx.fragments.task.engine.TestFunction.appendBodyWithPayload;
+import static io.knotx.fragments.task.engine.TestFunction.appendPayload;
+import static io.knotx.fragments.task.engine.TestFunction.appendPayloadBasingOnContext;
+import static io.knotx.fragments.task.engine.TestFunction.failure;
+import static io.knotx.fragments.task.engine.TestFunction.success;
+import static io.knotx.fragments.task.engine.TestFunction.successWithDelay;
+import static io.knotx.fragments.task.engine.Transitions.onError;
+import static io.knotx.fragments.task.engine.Transitions.onSuccess;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.knotx.fragments.api.Fragment;
-import io.knotx.fragments.engine.FragmentEvent.Status;
-import io.knotx.fragments.engine.FragmentEventLogVerifier.Operation;
+import io.knotx.fragments.task.engine.FragmentEvent.Status;
+import io.knotx.fragments.task.engine.FragmentEventLogVerifier.Operation;
 import io.knotx.fragments.task.api.Node;
 import io.knotx.server.api.context.ClientRequest;
 import io.reactivex.Single;
@@ -44,6 +44,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
@@ -128,7 +129,7 @@ class TaskEngineScenariosTest {
     // then
     verifyExecution(result, testContext,
         fragmentEvent -> {
-          assertEquals(Status.SUCCESS, fragmentEvent.getStatus());
+          Assertions.assertEquals(Status.SUCCESS, fragmentEvent.getStatus());
           final Fragment fragment = fragmentEvent.getFragment();
           assertEquals(expectedBody, fragment.getBody());
         });

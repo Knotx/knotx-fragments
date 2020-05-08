@@ -15,16 +15,16 @@
  */
 package io.knotx.fragments.handler.consumer;
 
-import io.knotx.fragments.engine.FragmentEvent;
+import io.knotx.fragments.task.engine.FragmentEvent;
 import io.knotx.fragments.task.api.NodeType;
 import io.knotx.fragments.task.factory.api.metadata.NodeMetadata;
 import io.knotx.fragments.task.factory.api.metadata.OperationMetadata;
 import io.knotx.fragments.task.factory.api.metadata.TaskMetadata;
 import io.knotx.fragments.handler.consumer.NodeExecutionData.Response;
-import io.knotx.fragments.handler.consumer.api.model.GraphNodeExecutionLog;
-import io.knotx.fragments.handler.consumer.api.model.GraphNodeOperationLog;
-import io.knotx.fragments.handler.consumer.api.model.GraphNodeResponseLog;
-import io.knotx.fragments.handler.consumer.api.model.LoggedNodeStatus;
+import io.knotx.fragments.task.handler.log.api.model.GraphNodeExecutionLog;
+import io.knotx.fragments.task.handler.log.api.model.GraphNodeOperationLog;
+import io.knotx.fragments.task.handler.log.api.model.GraphNodeResponseLog;
+import io.knotx.fragments.task.handler.log.api.model.LoggedNodeStatus;
 
 import java.util.*;
 import java.util.stream.Collectors;

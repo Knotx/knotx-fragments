@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.knotx.fragments.engine;
+package io.knotx.fragments.task.engine;
 
-import io.knotx.fragments.engine.FragmentEvent.Status;
+import io.knotx.fragments.task.engine.FragmentEvent.Status;
 import io.knotx.fragments.task.api.Node;
 import io.reactivex.Flowable;
 import io.reactivex.Single;

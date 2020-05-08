@@ -36,7 +36,7 @@ dependencies {
     testRuntimeOnly("io.knotx:knotx-launcher:${project.version}")
     // handler dependencies
     testImplementation(project(":knotx-fragments-task-handler"))
-    testImplementation(project(":knotx-fragments-task-factory-config"))
+    testImplementation(project(":knotx-fragments-task-factory-default"))
     testRuntimeOnly(project(":knotx-fragments-task-handler-log-html"))
     testRuntimeOnly(project(":knotx-fragments-task-handler-log-json"))
 }

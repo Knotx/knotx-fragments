@@ -16,7 +16,7 @@
 package io.knotx.fragments.task.factory.config;
 
 import static io.knotx.fragments.api.FragmentResult.SUCCESS_TRANSITION;
-import static io.knotx.fragments.task.factory.config.DefaultTaskFactoryConfig.DEFAULT_TASK_NAME_KEY;
+import static io.knotx.fragments.task.factory.generic.DefaultTaskFactoryConfig.DEFAULT_TASK_NAME_KEY;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonMap;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -36,10 +36,13 @@ import io.knotx.fragments.task.factory.api.metadata.NodeMetadata;
 import io.knotx.fragments.task.factory.api.metadata.OperationMetadata;
 import io.knotx.fragments.task.factory.api.metadata.TaskMetadata;
 import io.knotx.fragments.task.factory.api.metadata.TaskWithMetadata;
-import io.knotx.fragments.task.factory.config.node.NodeFactoryOptions;
-import io.knotx.fragments.task.factory.config.node.action.ActionNodeFactory;
-import io.knotx.fragments.task.factory.config.node.action.ActionNodeFactoryConfig;
-import io.knotx.fragments.task.factory.config.node.subtasks.SubtasksNodeFactory;
+import io.knotx.fragments.task.factory.generic.DefaultTaskFactory;
+import io.knotx.fragments.task.factory.generic.DefaultTaskFactoryConfig;
+import io.knotx.fragments.task.factory.generic.GraphNodeOptions;
+import io.knotx.fragments.task.factory.generic.node.NodeFactoryOptions;
+import io.knotx.fragments.task.factory.generic.node.action.ActionNodeFactory;
+import io.knotx.fragments.task.factory.generic.node.action.ActionNodeFactoryConfig;
+import io.knotx.fragments.task.factory.generic.node.subtasks.SubtasksNodeFactory;
 import io.knotx.server.api.context.ClientRequest;
 import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.VertxExtension;

@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.knotx.fragments.task.factory.config;
+package io.knotx.fragments.task.factory.generic;
 
 import io.knotx.fragments.task.factory.api.metadata.NodeMetadata;
 import io.knotx.fragments.task.api.Node;
-import io.knotx.fragments.task.factory.config.node.NodeOptions;
+import io.knotx.fragments.task.factory.generic.node.NodeOptions;
 import java.util.Map;
 
 /**
@@ -36,7 +36,7 @@ public interface NodeProvider {
    * @deprecated use {@link #initNode(GraphNodeOptions, Map)} instead
    */
   @Deprecated
-  Node initNode(io.knotx.fragments.task.factory.config.GraphNodeOptions nodeOptions);
+  Node initNode(GraphNodeOptions nodeOptions);
 
   /**
    * Init a graph node based on provided options. If factory defined in {@link
@@ -48,7 +48,7 @@ public interface NodeProvider {
    * @return {@link io.knotx.fragments.task.api.single.SingleNode} or {@link
    * io.knotx.fragments.task.api.composite.CompositeNode} instance
    */
-  default Node initNode(io.knotx.fragments.task.factory.config.GraphNodeOptions nodeOptions, Map<String, NodeMetadata> nodesMetadata) {
+  default Node initNode(GraphNodeOptions nodeOptions, Map<String, NodeMetadata> nodesMetadata) {
     return initNode(nodeOptions);
   }
 

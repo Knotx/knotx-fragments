@@ -15,7 +15,7 @@
  *
  * The code comes from https://github.com/tomaszmichalak/vertx-rx-map-reduce.
  */
-package io.knotx.fragments.engine;
+package io.knotx.fragments.task.engine;
 
 import java.util.Arrays;
 import java.util.Objects;

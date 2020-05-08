@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.knotx.fragments.engine;
+package io.knotx.fragments.task.engine;
 
 
 import static io.knotx.fragments.api.FragmentResult.ERROR_TRANSITION;

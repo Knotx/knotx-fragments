@@ -20,10 +20,11 @@ import static io.knotx.fragments.api.FragmentResult.SUCCESS_TRANSITION;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import io.knotx.fragments.task.factory.config.node.action.ActionNodeConfig;
-import io.knotx.fragments.task.factory.config.node.action.ActionNodeFactory;
-import io.knotx.fragments.task.factory.config.node.subtasks.SubtasksNodeConfig;
-import io.knotx.fragments.task.factory.config.node.subtasks.SubtasksNodeFactory;
+import io.knotx.fragments.task.factory.generic.GraphNodeOptions;
+import io.knotx.fragments.task.factory.generic.node.action.ActionNodeConfig;
+import io.knotx.fragments.task.factory.generic.node.action.ActionNodeFactory;
+import io.knotx.fragments.task.factory.generic.node.subtasks.SubtasksNodeConfig;
+import io.knotx.fragments.task.factory.generic.node.subtasks.SubtasksNodeFactory;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.VertxExtension;
