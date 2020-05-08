@@ -13,14 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.knotx.fragments.handler.consumer;
+package io.knotx.fragments.task.handler.consumer;
 
 import io.knotx.fragments.task.engine.FragmentEvent;
 import io.knotx.fragments.task.api.NodeType;
 import io.knotx.fragments.task.factory.api.metadata.NodeMetadata;
 import io.knotx.fragments.task.factory.api.metadata.OperationMetadata;
 import io.knotx.fragments.task.factory.api.metadata.TaskMetadata;
-import io.knotx.fragments.handler.consumer.NodeExecutionData.Response;
+import io.knotx.fragments.task.handler.consumer.NodeExecutionData.Response;
 import io.knotx.fragments.task.handler.log.api.model.GraphNodeExecutionLog;
 import io.knotx.fragments.task.handler.log.api.model.GraphNodeOperationLog;
 import io.knotx.fragments.task.handler.log.api.model.GraphNodeResponseLog;

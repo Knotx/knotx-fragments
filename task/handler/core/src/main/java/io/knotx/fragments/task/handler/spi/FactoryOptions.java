@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.knotx.fragments.handler.spi;
+package io.knotx.fragments.task.handler.spi;
 
-import io.knotx.fragments.handler.exception.ConfigurationException;
+import io.knotx.fragments.task.handler.exception.ConfigurationException;
 import io.vertx.codegen.annotations.DataObject;
 import io.vertx.core.json.JsonObject;
 import java.util.Objects;

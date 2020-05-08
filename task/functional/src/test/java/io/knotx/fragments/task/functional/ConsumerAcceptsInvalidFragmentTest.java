@@ -22,7 +22,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.doAnswer;
 
 import io.knotx.fragments.api.Fragment;
-import io.knotx.fragments.handler.FragmentsHandlerFactory;
+import io.knotx.fragments.task.handler.FragmentsHandlerFactory;
 import io.knotx.fragments.task.handler.log.api.model.FragmentExecutionLog;
 import io.knotx.fragments.task.handler.log.api.model.FragmentExecutionLog.ExecutionStatus;
 import io.knotx.fragments.task.handler.log.api.model.GraphNodeExecutionLog;

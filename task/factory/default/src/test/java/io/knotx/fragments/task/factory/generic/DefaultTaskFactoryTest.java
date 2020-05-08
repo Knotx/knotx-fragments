@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.knotx.fragments.task.factory.config;
+package io.knotx.fragments.task.factory.generic;
 
 import static io.knotx.fragments.api.FragmentResult.SUCCESS_TRANSITION;
 import static io.knotx.fragments.task.factory.generic.DefaultTaskFactoryConfig.DEFAULT_TASK_NAME_KEY;
@@ -36,9 +36,6 @@ import io.knotx.fragments.task.factory.api.metadata.NodeMetadata;
 import io.knotx.fragments.task.factory.api.metadata.OperationMetadata;
 import io.knotx.fragments.task.factory.api.metadata.TaskMetadata;
 import io.knotx.fragments.task.factory.api.metadata.TaskWithMetadata;
-import io.knotx.fragments.task.factory.generic.DefaultTaskFactory;
-import io.knotx.fragments.task.factory.generic.DefaultTaskFactoryConfig;
-import io.knotx.fragments.task.factory.generic.GraphNodeOptions;
 import io.knotx.fragments.task.factory.generic.node.NodeFactoryOptions;
 import io.knotx.fragments.task.factory.generic.node.action.ActionNodeFactory;
 import io.knotx.fragments.task.factory.generic.node.action.ActionNodeFactoryConfig;

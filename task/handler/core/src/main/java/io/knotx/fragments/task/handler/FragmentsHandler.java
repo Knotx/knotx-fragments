@@ -15,14 +15,14 @@
  *
  * The code comes from https://github.com/tomaszmichalak/vertx-rx-map-reduce.
  */
-package io.knotx.fragments.handler;
+package io.knotx.fragments.task.handler;
 
 import io.knotx.fragments.api.Fragment;
 import io.knotx.fragments.task.engine.FragmentsEngine;
 import io.knotx.fragments.task.engine.FragmentEvent;
 import io.knotx.fragments.task.engine.FragmentEvent.Status;
 import io.knotx.fragments.task.engine.FragmentEventContextTaskAware;
-import io.knotx.fragments.handler.consumer.FragmentExecutionLogConsumersNotifier;
+import io.knotx.fragments.task.handler.consumer.FragmentExecutionLogConsumersNotifier;
 import io.knotx.server.api.context.ClientRequest;
 import io.knotx.server.api.context.RequestContext;
 import io.knotx.server.api.context.RequestEvent;

@@ -13,20 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.knotx.fragments.handler.consumer;
+package io.knotx.fragments.task.handler.consumer;
 
 import static io.knotx.fragments.task.handler.log.api.model.FragmentExecutionLog.newInstance;
 import static java.util.stream.Collectors.toList;
 
 import io.knotx.fragments.task.engine.FragmentEvent;
-import io.knotx.fragments.handler.ExecutionPlan;
+import io.knotx.fragments.task.handler.ExecutionPlan;
 import io.knotx.fragments.task.handler.log.api.model.FragmentExecutionLog.ExecutionStatus;
-import io.knotx.fragments.handler.exception.ConfigurationException;
+import io.knotx.fragments.task.handler.exception.ConfigurationException;
 import io.knotx.fragments.task.factory.api.metadata.TasksMetadata;
 import io.knotx.fragments.task.handler.log.api.FragmentExecutionLogConsumer;
 import io.knotx.fragments.task.handler.log.api.FragmentExecutionLogConsumerFactory;
 import io.knotx.fragments.task.handler.log.api.model.FragmentExecutionLog;
-import io.knotx.fragments.handler.spi.FactoryOptions;
+import io.knotx.fragments.task.handler.spi.FactoryOptions;
 import io.knotx.server.api.context.ClientRequest;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;

@@ -13,7 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-@ModuleGen(name = "knotx-fragments-task-handler", groupPackage = "io.knotx")
-package io.knotx.fragments.handler;
+package io.knotx.fragments.task.handler.exception;
 
-import io.vertx.codegen.annotations.ModuleGen;
+public class TaskFactoryNotFoundException extends ConfigurationException {
+
+  private String factory;
+
+  public TaskFactoryNotFoundException(String factory) {
+    super("Task factory not found [" + factory + "]");
+    this.factory = factory;
+  }
+
+  public String getFactory() {
+    return factory;
+  }
+}

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.knotx.fragments.task.factory.config.node.action;
+package io.knotx.fragments.task.factory.generic.node.action;
 
 import static io.knotx.fragments.api.FragmentResult.ERROR_TRANSITION;
 import static io.knotx.fragments.api.FragmentResult.SUCCESS_TRANSITION;

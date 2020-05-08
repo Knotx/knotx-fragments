@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.knotx.fragments.handler;
+package io.knotx.fragments.task.handler;
 
 import static io.knotx.fragments.task.api.Task.UNDEFINED_TASK;
 

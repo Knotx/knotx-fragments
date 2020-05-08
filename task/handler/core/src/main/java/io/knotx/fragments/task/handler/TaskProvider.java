@@ -13,13 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.knotx.fragments.handler;
+package io.knotx.fragments.task.handler;
 
 import io.knotx.fragments.api.Fragment;
 import io.knotx.fragments.task.engine.FragmentEventContext;
 import io.knotx.fragments.task.factory.api.metadata.TaskWithMetadata;
-import io.knotx.fragments.handler.exception.TaskFactoryNotFoundException;
-import io.knotx.fragments.handler.spi.FactoryOptions;
+import io.knotx.fragments.task.handler.exception.TaskFactoryNotFoundException;
+import io.knotx.fragments.task.handler.spi.FactoryOptions;
 import io.knotx.fragments.task.factory.api.TaskFactory;
 import io.knotx.server.api.context.ClientRequest;
 import io.vertx.core.json.JsonObject;

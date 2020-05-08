@@ -12,4 +12,4 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
-io.knotx.fragments.handler.utils.TaskFactoryStub
+io.knotx.fragments.task.handler.utils.TaskFactoryStub

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.knotx.fragments.handler;
+package io.knotx.fragments.task.handler;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -24,8 +24,8 @@ import static org.mockito.Mockito.doAnswer;
 import io.knotx.fragments.api.Fragment;
 import io.knotx.fragments.task.engine.FragmentEvent;
 import io.knotx.fragments.task.engine.FragmentEvent.Status;
-import io.knotx.fragments.handler.exception.ConfigurationException;
-import io.knotx.fragments.handler.utils.RoutingContextStub;
+import io.knotx.fragments.task.handler.exception.ConfigurationException;
+import io.knotx.fragments.task.handler.utils.RoutingContextStub;
 import io.knotx.junit5.util.HoconLoader;
 import io.knotx.server.api.context.ClientRequest;
 import io.reactivex.Single;

@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.knotx.fragments.handler;
+package io.knotx.fragments.task.handler;
 
-import io.knotx.fragments.handler.spi.FactoryOptions;
+import io.knotx.fragments.task.handler.spi.FactoryOptions;
 import io.vertx.codegen.annotations.DataObject;
 import io.vertx.core.json.JsonObject;
 import java.util.Collections;

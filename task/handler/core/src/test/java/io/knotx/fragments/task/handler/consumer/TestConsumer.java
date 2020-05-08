@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.knotx.fragments.handler.consumer;
+package io.knotx.fragments.task.handler.consumer;
 
 import io.knotx.fragments.task.handler.log.api.FragmentExecutionLogConsumer;
 import io.knotx.fragments.task.handler.log.api.FragmentExecutionLogConsumerFactory;

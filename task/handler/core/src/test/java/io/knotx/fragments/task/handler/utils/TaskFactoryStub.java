@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.knotx.fragments.handler.utils;
+package io.knotx.fragments.task.handler.utils;
 
 import io.knotx.fragments.api.Fragment;
 import io.knotx.fragments.api.FragmentContext;

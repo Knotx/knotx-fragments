@@ -18,7 +18,7 @@ package io.knotx.fragments.task.functional;
 import static org.mockito.Mockito.doAnswer;
 
 import io.knotx.fragments.api.Fragment;
-import io.knotx.fragments.handler.FragmentsHandlerFactory;
+import io.knotx.fragments.task.handler.FragmentsHandlerFactory;
 import io.knotx.fragments.task.factory.generic.DefaultTaskFactoryConfig;
 import io.knotx.fragments.task.functional.utils.RoutingContextStub;
 import io.knotx.junit5.util.HoconLoader;
