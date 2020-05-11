@@ -19,7 +19,7 @@ This is a summary for all modules below.
 This live demo presents a Fragments Task configuration and [Fragments Chrome Extension](https://github.com/Knotx/knotx-fragments-chrome-extension) 
 visualization capabilities.
 
-<iframe width="560" height="315" src="https://www.youtube.com/embed/EWoHqzYGv0w" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+[![Chrome Extension live demo.](assets/images/chrome-extension-live-demo.png)](https://www.youtube.com/embed/EWoHqzYGv0w)
 
 Its written form is available [here](https://knotx.io/tutorials/chrome-extension/2_2/)
 
