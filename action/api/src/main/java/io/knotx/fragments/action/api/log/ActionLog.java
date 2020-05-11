@@ -18,15 +18,27 @@ package io.knotx.fragments.action.api.log;
 import static java.util.Collections.unmodifiableList;
 import static java.util.stream.Collectors.toList;
 
+import io.vertx.codegen.annotations.DataObject;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import java.util.List;
 import java.util.stream.StreamSupport;
 
+@DataObject
 public class ActionLog {
 
+  /**
+   * Configurable action name.
+   */
   private final String alias;
+  /**
+   * Action log data, e.g HTTP action adds HTTP request and response details.
+   */
   private final JsonObject logs;
+  /**
+   * Behaviours envelop other actions. They can invoke enveloped actions many times (in case of
+   * failure). This is an array that holds details about these invocations.
+   */
   private final List<ActionInvocationLog> doActionLogs;
 
   public ActionLog(String alias, JsonObject logs, List<ActionInvocationLog> doActionLogs) {

@@ -1,0 +1,28 @@
+= Cheatsheets
+
+[[ActionInvocationLog]]
+== ActionInvocationLog
+
+
+[cols=">25%,25%,50%"]
+[frame="topbot"]
+|===
+^|Name | Type ^| Description
+|[[doActionLog]]`@doActionLog`|`link:dataobjects.html#ActionLog[ActionLog]`|-
+|[[duration]]`@duration`|`Number (Long)`|-
+|[[success]]`@success`|`Boolean`|-
+|===
+
+[[ActionLog]]
+== ActionLog
+
+
+[cols=">25%,25%,50%"]
+[frame="topbot"]
+|===
+^|Name | Type ^| Description
+|[[alias]]`@alias`|`String`|-
+|[[invocationLogs]]`@invocationLogs`|`Array of link:dataobjects.html#ActionInvocationLog[ActionInvocationLog]`|-
+|[[logs]]`@logs`|`Json object`|-
+|===
+

@@ -21,7 +21,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Marks {@link ActionFactory} as one delivering cacheable actions.
+ * Flags {@link ActionFactory} that produces a stateful action.
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)

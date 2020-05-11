@@ -2,8 +2,7 @@
 
 ## HTTP Action
 
-HTTP Action is an [Action](https://github.com/Knotx/knotx-fragments/tree/master/handler/api#action) 
-that connects to the external WEB endpoint that responds with JSON and saves the response into the 
+HTTP Action connects to the external WEB endpoint that responds with JSON and saves the response into the 
 [Fragment's](https://github.com/Knotx/knotx-fragments/tree/master/api#knotx-fragment-api) `payload`.
 
 ### How does it work

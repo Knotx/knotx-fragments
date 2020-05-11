@@ -15,19 +15,35 @@
  */
 package io.knotx.fragments.action.api.log;
 
+import io.vertx.codegen.annotations.DataObject;
 import java.util.Objects;
 import java.util.Optional;
 
 import io.vertx.core.json.JsonObject;
 
+@DataObject
+/**
+ * This is an enveloped action invocation log.
+ */
 public class ActionInvocationLog {
 
   static final String DURATION = "duration";
   static final String SUCCESS = "success";
   static final String DO_ACTION_LOG = "doActionLog";
 
+  /**
+   * Action processing time in milliseconds.
+   */
   private final Long duration;
+
+  /**
+   * <code>true</code> when action ends with success
+   */
   private final boolean success;
+
+  /**
+   * Enveloped action log.
+   */
   private final ActionLog doActionLog;
 
   private ActionInvocationLog(long duration, boolean success, ActionLog doActionLog) {
@@ -36,7 +52,7 @@ public class ActionInvocationLog {
     this.doActionLog = doActionLog;
   }
 
-  ActionInvocationLog(JsonObject json) {
+  public ActionInvocationLog(JsonObject json) {
     this.duration = json.getLong(DURATION);
     this.success = json.getBoolean(SUCCESS);
     this.doActionLog = toDoActionLog(json);
