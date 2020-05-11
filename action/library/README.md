@@ -1,11 +1,15 @@
-# Actions
+# Action Library
+It is a core [actions](https://github.com/Knotx/knotx-fragments/tree/master/action#action) and
+[behaviours](https://github.com/Knotx/knotx-fragments/tree/master/action#behaviour) library.
 
-## HTTP Action
+## Action
+The core actions section.
 
+### HTTP Action
 HTTP Action connects to the external WEB endpoint that responds with JSON and saves the response into the 
 [Fragment's](https://github.com/Knotx/knotx-fragments/tree/master/api#knotx-fragment-api) `payload`.
 
-### How does it work
+#### How does it work
 HTTP Action uses HTTP Client to connect to the external WEB endpoint. It expects HTTP response with
 JSON body. To configure endpoint you will have to provide `domain` and `port` and additionally
 a request `path` to the WEB endpoint. The `path` parameter could contain placeholders that will be
@@ -22,7 +26,7 @@ Read more about placeholders in the [Knot.x Server Common Placeholders](https://
 The `@payload` and `@configuration` are values stored in [Fragment](https://github.com/Knotx/knotx-fragments/tree/master/api#knotx-fragment-api).
 For this structures use corresponding prefixes: `payload` and `config` 
 
-### How to use
+#### How to use
 Define HTTP Action using `http` factory and providing configs `endpointOptions` and `responseOptions` in the Fragment's Handler
 `actions` section.
 
@@ -70,7 +74,7 @@ Table below shows the behaviour of HttpAction depending on provided `responseOpt
 | application/text | false     | JSON           | JSON | _error     | -        |
 | application/text | true      | JSON           | JSON | _error     | -        |
 
-#### Node log
+##### Http Action log
 HTTP Action adds details about the request, response and occurred errors to [node log](https://github.com/Knotx/knotx-fragments/tree/master/engine#node-log). 
 If the log level is `ERROR`, then only failing situations are logged: exception occurs during processing, response predicate is not valid, or status code is between 400 and 600. 
 For the `INFO` log level all items are logged.
@@ -138,7 +142,7 @@ The table below presents expected entries in node log on particular log levels d
 
 The HTTP Action always calls the handler with a succeeded future. The future always has a `_success` or an `_error` transition and contains a node log. 
 
-#### Supported HTTP methods
+##### Supported HTTP methods
 
 Currently Knot.x supports `GET`, `POST`, `PUT`, `PATCH`, `DELETE` and `HEAD` HTTP methods.
 This is specified using `httpMethod` option under `config` node of HttpAction (defaults to `GET`).
@@ -151,7 +155,7 @@ Please note that unlike for path, placeholders in body will not be URL-encoded.
  
 To enable body interpolation, set `interpolateBody` flag under `endpointOptions` to `true`.
 
-#### Encoding
+##### Encoding
 
 Currently, only placeholders in a path are URL-encoded. Any other value is passed as-is, i.e.:
 - path schema
@@ -165,11 +169,10 @@ Values used for path interpolation **must not** be encoded (otherwise a double e
 
 Client request's values used for interpolation are already in a raw form (when decoded by Knot.x HTTP Server).
 
-#### Detailed configuration
+##### Detailed configuration
 All configuration options are explained in details in the [Config Options Cheetsheet](https://github.com/Knotx/knotx-fragments/tree/master/handler/core/docs/asciidoc/dataobjects.adoc).
 
-
-## Inline Body Action
+### Inline Body Action
 Inline Body Action replaces Fragment body with specified one. Its configuration looks like:
 ```hocon
 factory = "inline-body"
@@ -180,13 +183,13 @@ config {
 ```
 The default `body` value is empty content.
 
-### Inline Body Action Log
+#### Inline Body Action log
 
 When `loglevel` is set to `info`, action is getting logged:
 - `originalBody` - the incoming Fragment's body
 - `body` - new Fragment body
 
-## Inline Payload Action
+### Inline Payload Action
 Inline Payload Action puts JSON / JSON Array in Fragment payload with a specified key (alias). Its 
 configuration looks like:
 ```hocon
@@ -204,13 +207,13 @@ config {
 ```
 The default `alias` is action alias.
 
-## Inline Payload Action Log
+#### Inline Payload Action log
 
 When `loglevel` is set to `info`, the action is getting logged:
 - `key` - payload key
 - `value` - payload value
 
-## Payload To Body Action
+### Payload To Body Action
 Payload To Body Action copies to Fragment body specified payload key value. Its configuration looks like:
 ```hocon
 factory = payload-to-body
@@ -236,10 +239,11 @@ and key value `someKey.someNestedKey` body value will look like:
 }
 ```
 
-# Behaviours
+## Behaviour
+The core behaviours section.
 
-## Circuit Breaker Behaviour
-It wraps a simple action with the [Circuit Breaker implementation from Vert.x](https://vertx.io/docs/vertx-circuit-breaker/java/).
+### Circuit Breaker Behaviour
+It envelopes an action with the [Circuit Breaker implementation from Vert.x](https://vertx.io/docs/vertx-circuit-breaker/java/).
 Its configuration looks like:
 ```hocon
 factory = "cb"
@@ -281,7 +285,7 @@ Labels:
 - Exception - `doAction` throws an exception
 - `s` - success, `e` - error, `t` - timeout
 
-### Circuit Breaker Action Log
+#### Circuit Breaker Behaviour log
 
 Circuit Breaker logs the following data
 
@@ -309,7 +313,7 @@ Please note that not every call can be visible in `invocation log` entry.
 | Failure                |  No  |
 | Exception              |  No  |
 
-## In-memory Cache Behaviour
+### In-memory Cache Behaviour
 It wraps a simple action with cache. It caches a payload values added by a `doAction` action and 
 puts cached values in next invocations. It uses in-memory Guava cache implementation. The 
 configuration looks like:
@@ -331,7 +335,7 @@ Please note that cacheKey can be parametrized with request data like params, hea
 [Knot.x HTTP Server Common Placeholders](https://github.com/Knotx/knotx-server-http/tree/master/common/placeholders)
 documentation for more details.
 
-### In-Memory Cache Action Log
+#### In-Memory Cache Behaviour log
 
 In-Memory Cache logs most activities when `logLevel` option is set to `info`.
 

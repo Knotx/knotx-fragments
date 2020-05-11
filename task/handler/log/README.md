@@ -1,15 +1,11 @@
 # Fragment Execution Log Consumer
-[Fragment Execution Log Consumer](https://github.com/Knotx/knotx-fragments/blob/master/handler/consumer/api/src/java/io/knotx/fragments/handler/consumer/api/FragmentExecutionLogConsumer.java) 
-listens for fragment processing operations results. When a fragment operation ends, task execution 
-data is exposed to consumers via [Fragment execution log](#what-is-the-execution-log).
+Fragment Execution Log Consumer listens for fragment processing operations results. When a fragment 
+operation ends, task execution data is exposed to consumers via [Fragment execution log](#what-is-the-execution-log).
 
-## How to configure
-You can choose and configure one of the pre-defined consumers:
-- [Fragment HTML Body Writer](https://github.com/Knotx/knotx-fragments/blob/master/handler/consumer/html)
-- [JSON Writer](https://github.com/Knotx/knotx-fragments/blob/master/handler/consumer/json)
-
-or implement your custom one. Check the [Fragments Handler](https://github.com/Knotx/knotx-fragments/tree/master/handler#how-to-configure) 
-documentation for configuration details.
+## Modules
+- [API](https://github.com/Knotx/knotx-fragments/blob/master/task/handler/log/api) - the execution log consumer interface and log model
+- [Fragment HTML Body Writer](https://github.com/Knotx/knotx-fragments/blob/master/task/handler/log/html)
+- [JSON Writer](https://github.com/Knotx/knotx-fragments/blob/master/task/handler/log/json)
 
 ## What is the execution log?
 [Fragment execution log](https://github.com/Knotx/knotx-fragments/blob/master/handler/consumer/api/docs/asciidoc/dataobjects.adoc#fragmentexecutionlog)

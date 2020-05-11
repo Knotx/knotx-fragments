@@ -6,5 +6,5 @@ Task Factory materializes a task with using its logic:
 > Task factory creates a ready to use task instance.
 
 ## Modules:
-- [Task Factory API](https://github.com/Knotx/knotx-fragments/blob/master/task/factory/api) - defines the task factory interface
+- [API](https://github.com/Knotx/knotx-fragments/blob/master/task/factory/api) - defines the task factory interface
 - [Default Task Factory](https://github.com/Knotx/knotx-fragments/blob/master/task/factory/default) - the default task factory provided by Knot.x

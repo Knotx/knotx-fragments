@@ -1,4 +1,5 @@
 # Action API
+It includes key action classes and interfaces.
 
 ## Action
 [Action](https://github.com/Knotx/knotx-fragments/blob/master/action/api/src/main/java/io/knotx/fragments/action/api/Action.java) 

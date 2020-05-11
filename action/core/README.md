@@ -1,4 +1,5 @@
 # Action Core
+This modules provides mechanism to retrieve (create/reuse) action instances.
 
 ## Action provider
 Action provider initializes actions, combines actions with behaviours and caches stateful ones. It
