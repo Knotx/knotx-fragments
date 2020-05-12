@@ -4,7 +4,7 @@ based on it. It uses the [actions' library](https://github.com/Knotx/knotx-fragm
 to do operations on the fragment (such as fetching data from 3rd party APIs).
 
 ## How does it work
-It registers extendable graph node factories (one of them use Actions), delegates node initialization 
+It registers extendable graph node factories (one of them uses Actions), delegates node initialization 
 to them and joins all nodes with transitions.
 
 Factory implements the [task factory interface](https://github.com/Knotx/knotx-fragments/blob/master/task/factory/api#task-factory). 
@@ -22,8 +22,7 @@ In general:
 the form of a dictionary (`taskName -> graph logic`):
 ```hocon
 tasks {
-  # unique task name
-  myTask { 
+  myTask { # unique task name
     # graph configuration
   }
 }

@@ -10,7 +10,7 @@ that are connected with business decisions ([Transitions](https://github.com/Kno
 
 It applies tasks to fragments asynchronously.
 
-Finally, we get a list of modified fragments that contain [fragments' statuses](#fragments-status) 
+Finally, we get a list of modified fragments that contains [fragments' statuses](#fragments-status) 
 and [processing logs](#fragments-log). 
 
 ## Fragment's status

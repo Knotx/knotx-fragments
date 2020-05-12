@@ -8,7 +8,7 @@ This is a summary for all modules below.
   - [Default Task Factory](https://github.com/Knotx/knotx-fragments/tree/master/task/factory/default) - the default extendable configurable Task Factory implementation
 - [Task Engine](https://github.com/Knotx/knotx-fragments/tree/master/task/engine) - evaluates tasks and modifies fragments
 - [Task Handler](https://github.com/Knotx/knotx-fragments/tree/master/task/handler) - use Task Factories to produce tasks for fragments and delegates processing to Task Engine
-  - [Core](https://github.com/Knotx/knotx-fragments/tree/master/task/core) - uses Task Factory to instantiate task instances, then evaluates fragments (with tasks) using Task Engine, finally notify task execution log consumers about the results
+  - [Core](https://github.com/Knotx/knotx-fragments/tree/master/task/core) - uses Task Factory to instantiate task instances, then evaluates fragments (with tasks) using Task Engine, finally notifies task execution log consumers about the results
   - Log Consumer - exposes a task execution log
     - [Log Consumer API](https://github.com/Knotx/knotx-fragments/tree/master/task/handler/log/api) - the log consumer factory and serializable to JSON data model
     - [HTML Log Consumer](https://github.com/Knotx/knotx-fragments/tree/master/task/handler/log/html) - wraps an HTML fragment markup with task execution debug data

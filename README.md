@@ -8,26 +8,26 @@
 > While [Knot.x HTTP Server](https://github.com/Knotx/knotx-server-http) is a _"hearth"_ of Knot.x, 
 > Fragments processing is its _"brain"_.
 
-**Knot.x Fragments is a Swiss Army knife for **integrating with various data sources**. It provides 
-instruments that transform business use cases into implementation logic ready for evolution.**
+Knot.x Fragments is a Swiss Army knife for **integrating with various data sources**. It provides 
+instruments that transform business use cases into implementation logic ready for evolution.
 
 Knot.x Fragments is designed to build fault-tolerant, reactive, back-end integrations such as:
 - [API Gateway](https://github.com/Knotx/knotx-example-project#api-gateway--web-api)
 - Backend For Frontend (BFF) for single-page applications (SPA)
 - [Web API](https://github.com/Knotx/knotx-example-project#api-gateway--web-api) (both REST and GraphQL)
 
-Its initial purpose was a [templating solution](https://github.com/Knotx/knotx-example-project#template-processing) 
-combined dynamic data (from external data sources, 3rd party API etc.) with static content (HTML, 
-JSON, PDF etc) that comes from various content stores (such as Wordpress, Drupal, Magnolia or 
-Adobe Experience Manager).
+Additionally, it still supports its original purpose which is templating solution 
+that combines dynamic data (from external data sources, 3rd party API, etc.) with static content (HTML, 
+JSON, PDF, etc.) that comes from various content stores (such as Wordpress, Drupal, Magnolia or 
+Adobe Experience Manager). See the [example](https://github.com/Knotx/knotx-example-project#template-processing).
 
 ## Modules
 
 - [Fragments API](https://github.com/Knotx/knotx-fragments/tree/master/api) - defines a [**Fragment**](https://github.com/Knotx/knotx-fragments/tree/master/api#fragment) 
 and a [Fragment Operation](https://github.com/Knotx/knotx-fragments/tree/master/api#fragment-operation)
 - [Actions](https://github.com/Knotx/knotx-fragments/tree/master/action) - extendable 
-library of fragment operations that simplifies integration with APIs and provides such stability 
-patterns as a circuit breaker mechanism
+library of fragment operations that simplifies integration with APIs and provides stability 
+patterns (e.g. circuit breaker mechanism)
 - [Fragments Supplier](https://github.com/Knotx/knotx-fragments/tree/master/supplier) - converts an Http request into one or more [**Fragments**](https://github.com/Knotx/knotx-fragments/tree/master/api#knotx-fragment-api)
 - [Fragments Assembler](https://github.com/Knotx/knotx-fragments/tree/master/assembler) - merges Fragments into a single response
 - [Task](https://github.com/Knotx/knotx-fragments/tree/master/task) - processes fragments and applies a configured business logic assigned to them

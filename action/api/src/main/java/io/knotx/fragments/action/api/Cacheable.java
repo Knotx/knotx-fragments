@@ -21,7 +21,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Flags {@link ActionFactory} that produces a stateful action.
+ * Flags {@link ActionFactory} as producing stateful actions.
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)

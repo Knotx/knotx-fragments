@@ -1,5 +1,5 @@
 # Action Core
-This modules provides mechanism to retrieve (create/reuse) action instances.
+This modules provides mechanism to manage (create/reuse) action instances.
 
 ## Action provider
 Action provider initializes actions, combines actions with behaviours and caches stateful ones. It
@@ -8,7 +8,7 @@ If action is a behaviour, it also points to a wrapped action (by alias as well).
  
 Action factories register inside the provider by a [Java Service Loader](https://docs.oracle.com/javase/8/docs/api/java/util/ServiceLoader.html).
  
-Once configured, the action provider provides actions by alias e.g.
+Once configured, the action provider provides actions by aliases e.g.
 ```hocon
 Action actionInstance = provider.get(ACTION_ALIAS);
 ```
@@ -29,7 +29,7 @@ Action factory options contain:
 - `doAction` for behaviours
 
 and allows:
-- connecting a action factory with configuration
-- linking actions with behaviours.
+- linking action factory with configuration
+- wrapping actions with behaviours.
 
-More details [here](https://github.com/Knotx/knotx-fragments/blob/master/action/core/docs/asciidoc/dataobjects.adoc#actionfactoryoptions).
+Find more details [here](https://github.com/Knotx/knotx-fragments/blob/master/action/core/docs/asciidoc/dataobjects.adoc#actionfactoryoptions).

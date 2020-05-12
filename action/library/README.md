@@ -3,7 +3,7 @@ It is a core [actions](https://github.com/Knotx/knotx-fragments/tree/master/acti
 [behaviours](https://github.com/Knotx/knotx-fragments/tree/master/action#behaviour) library.
 
 ## Action
-The core actions section.
+This section contains user documentation for the Knot.x fragments core actions.
 
 ### HTTP Action
 HTTP Action connects to the external WEB endpoint that responds with JSON and saves the response into the 

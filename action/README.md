@@ -8,7 +8,7 @@ implements stability patterns to prevent/handle network issues.
 - [Library](https://github.com/Knotx/knotx-fragments/tree/master/action/library) - the core actions library
 
 ## How to start?
-- add required dependencies the classpath:
+- add required dependencies to the classpath:
   - `knotx-fragments-action-core.X.Y.Z.jar`
   - `knotx-fragments-action-library.X.Y.Z.jar`
 - define an [action](#action) identified by name, e.g.
@@ -30,15 +30,15 @@ implements stability patterns to prevent/handle network issues.
   ```
 
 ## How does it work?
-[Action](#action) is ready to use [fragment operation](https://github.com/Knotx/knotx-fragments/tree/master/api#fragment-operation) 
+[Action](#action) is a ready to use [fragment operation](https://github.com/Knotx/knotx-fragments/tree/master/api#fragment-operation) 
 created by an [action factory](https://github.com/Knotx/knotx-fragments/tree/master/action/api#action-factory). Action may be parametrized with JSON (`config`). 
-You can use actions' factories to create actions, however, we recommend using the [action provider](https://github.com/Knotx/knotx-fragments/tree/master/action/core#action-provider) 
+You can use action factories to create actions, however, we recommend using the [action provider](https://github.com/Knotx/knotx-fragments/tree/master/action/core#action-provider) 
 that would hide the complexity of initialization (maintaining stateful actions, combining actions 
 with their behaviours).
 
 ### Action
 [Action](https://github.com/Knotx/knotx-fragments/tree/master/action/api#action) can invoke an API 
-and save the response body in a fragment payload or simply modify a fragment's body.
+and save the response body in a fragment's payload or simply modify its body.
 
 Action may be decorated with [behaviours](#behaviour). Actions deployed on the [Vert.x Event Bus](https://vertx.io/docs/vertx-core/java/#event_bus) 
 are called [Knots](https://github.com/Knotx/knotx-fragments/tree/master/action/api#knot).
@@ -49,12 +49,12 @@ Below there is a list of core actions:
 - [Inline Payload Action](https://github.com/Knotx/knotx-fragments/tree/master/action/core#inline-payload-action) - adds the configured JSON data into a fragment's payload
 - [Payload To Body Action](https://github.com/Knotx/knotx-fragments/tree/master/action/core#payload-to-body-action) - rewrites a fragment's payload to the body
 
-> Please note that actions can be **stateless** and **stateful**.
+> Please note that action can be either **stateless** or **stateful**. It fully depends on its implementation.
 
 ### Behaviour
-Behaviour is an extraordinary [action](#action) that envelops the original action adding some 
-cross-cutting functionality e.g wraps an HTTP operation with the circuit breaker pattern mechanism.
+Behaviour is an [action](#action) wrapper, that enriches the original action with some 
+cross-cutting functionality e.g HTTP operation can gain the circuit breaker pattern mechanism behaviour.
 
 Below there is a list of core behaviours:
-- [Circuit Breaker Behaviour](https://github.com/Knotx/knotx-fragments/tree/master/action/core#circuit-breaker-behaviour) - it is a kind of quarantine for actions, it use the [Vert.x Circuit Breaker](https://vertx.io/docs/vertx-circuit-breaker/java/) implementation
+- [Circuit Breaker Behaviour](https://github.com/Knotx/knotx-fragments/tree/master/action/core#circuit-breaker-behaviour) - it is a kind of quarantine for actions, it uses the [Vert.x Circuit Breaker](https://vertx.io/docs/vertx-circuit-breaker/java/) implementation
 - [In-memory Cache Behaviour](https://github.com/Knotx/knotx-fragments/tree/master/action/core#in-memory-cache-behaviour) - caches a fragment's payload to reduce the number of action invocations
