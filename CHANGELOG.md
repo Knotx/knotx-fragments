@@ -3,7 +3,11 @@ All notable changes to `knotx-fragments` will be documented in this file.
 
 ## Unreleased
 List of changes that are finished but not yet released in any final version.
-- [PR-136](https://github.com/Knotx/knotx-fragments/pull/136) - #135 Extract actions Core & API.
+- [PR-154](https://github.com/Knotx/knotx-fragments/pull/154) - Cleanup Fragments modules: renamed modules to be more self-descriptive. Remove hidden API dependencies.
+- [PR-149](https://github.com/Knotx/knotx-fragments/pull/149) - Enable invalid fragments processing when a request param or header specified.
+- [PR-148](https://github.com/Knotx/knotx-fragments/pull/148) - Add `Fragment JSON Consumer` supporting debug data for JSON responses.
+- [PR-138](https://github.com/Knotx/knotx-fragments/pull/138) - Extract `Consumer API` and `Fragment HTML Body Writer`.
+- [PR-136](https://github.com/Knotx/knotx-fragments/pull/136) - Extract Actions Core & API modules.
 - [PR-120](https://github.com/Knotx/knotx-fragments/pull/120) - HTTP methods for HttpAction - support for POST/PUT/PATCH/DELETE/HEAD and sending body.
 - [PR-100](https://github.com/Knotx/knotx-fragments/pull/100) - KnotxServer response configuration - wildcards, case-insensitive filtering allowed headers
 - [PR-96](https://github.com/Knotx/knotx-fragments/pull/96) - HttpAction in knotx-fragments. Actions moved to a new module `knotx-fragments-handler-actions`.

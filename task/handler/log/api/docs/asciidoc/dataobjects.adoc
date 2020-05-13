@@ -1,0 +1,126 @@
+= Cheatsheets
+
+[[FragmentExecutionLog]]
+== FragmentExecutionLog
+
+++++
+ Contains detailed information about fragment processing.
+++++
+'''
+
+[cols=">25%,25%,50%"]
+[frame="topbot"]
+|===
+^|Name | Type ^| Description
+|[[finishTime]]`@finishTime`|`Number (long)`|+++
+Node processing finish time. It is timestamp value.
++++
+|[[fragment]]`@fragment`|`link:dataobjects.html#Fragment[Fragment]`|+++
+<a href="https://github.com/Knotx/knotx-fragments/blob/master/api/docs/asciidoc/dataobjects.adoc#fragment">Fragment</a>
+ details.
++++
+|[[graph]]`@graph`|`link:dataobjects.html#GraphNodeExecutionLog[GraphNodeExecutionLog]`|+++
+Task evaluation details.
++++
+|[[startTime]]`@startTime`|`Number (long)`|+++
+Node processing start time. It is timestamp value.
++++
+|[[status]]`@status`|`link:enums.html#ExecutionStatus[ExecutionStatus]`|+++
+Possible values: <code>UNPROCESSED</code>, <code>SUCCESS</code> and <code>FAILURE</code>.
++++
+|===
+
+[[GraphNodeExecutionLog]]
+== GraphNodeExecutionLog
+
+++++
+ It represents a root node data. It contains details about the node factory and node operation
+ result. A root node points to the next ones, so it allows traversing the whole graph. This data
+ can be used to visualize the graph processing flow.
+++++
+'''
+
+[cols=">25%,25%,50%"]
+[frame="topbot"]
+|===
+^|Name | Type ^| Description
+|[[finished]]`@finished`|`Number (long)`|+++
+Processing end timestamp
++++
+|[[id]]`@id`|`String`|+++
+Unique node id. In most cases, it is randomly generated value and can differ in subsequent
+ requests.
++++
+|[[label]]`@label`|`String`|+++
+Node label.
++++
+|[[on]]`@on`|`link:dataobjects.html#GraphNodeExecutionLog[GraphNodeExecutionLog]`|+++
+Map with a <a href="https://github.com/Knotx/knotx-fragments/tree/master/engine#transition">transition</a>
+ key and consequent <a href="https://github.com/Knotx/knotx-fragments/tree/master/engine#node">node</a>
+ as a value.
++++
+|[[operation]]`@operation`|`link:dataobjects.html#GraphNodeOperationLog[GraphNodeOperationLog]`|+++
+Node metadata details. This value is initialized based on
+ <code>io.knotx.fragments.task.factory.api.metadata.NodeMetadata#getOperation()</code> data.
++++
+|[[response]]`@response`|`link:dataobjects.html#GraphNodeResponseLog[GraphNodeResponseLog]`|+++
+It represents node execution data. It contains response data such as a transition and list of
+ invocations.
++++
+|[[started]]`@started`|`Number (long)`|+++
+Processing start timestamp
++++
+|[[status]]`@status`|`link:enums.html#LoggedNodeStatus[LoggedNodeStatus]`|+++
+Node status that is calculated based on node response. See <a href="https://github.com/Knotx/knotx-fragments/blob/feature/html-consumer-docuemntation-update/handler/consumer/html/src/main/java/io/knotx/fragments/handler/consumer/html/model/LoggedNodeStatus.java">LoggedNodeStatus</a>
+ for more details.
++++
+|[[subtasks]]`@subtasks`|`Array of link:dataobjects.html#GraphNodeExecutionLog[GraphNodeExecutionLog]`|+++
+List of composite node subgraphs.  Each item on the list represents the subgraph root node.  It
+ is valid only when @type is <code>COMPOSITE</code>.
++++
+|[[type]]`@type`|`link:enums.html#NodeType[NodeType]`|+++
+Node type value: <code>SINGLE</code> or <code>COMPOSITE</code> .
++++
+|===
+
+[[GraphNodeOperationLog]]
+== GraphNodeOperationLog
+
+++++
+ It represents node metadata.
+++++
+'''
+
+[cols=">25%,25%,50%"]
+[frame="topbot"]
+|===
+^|Name | Type ^| Description
+|[[data]]`@data`|`Json object`|+++
+Unstructured node factory metadata.
++++
+|[[factory]]`@factory`|`String`|+++
+Node factory name.
++++
+|===
+
+[[GraphNodeResponseLog]]
+== GraphNodeResponseLog
+
+++++
+ Node response details.
+++++
+'''
+
+[cols=">25%,25%,50%"]
+[frame="topbot"]
+|===
+^|Name | Type ^| Description
+|[[invocations]]`@invocations`|`Json array`|+++
+List of node invocation(s) logs. See <a href="https://github.com/Knotx/knotx-fragments/tree/master/engine#node-log">node
+ log</a> for more details.
++++
+|[[transition]]`@transition`|`String`|+++
+Node response transition.
++++
+|===
+
