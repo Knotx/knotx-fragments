@@ -72,16 +72,18 @@ public class FragmentsHandler implements Handler<RoutingContext> {
     ExecutionPlan executionPlan = new ExecutionPlan(fragments, clientRequest, taskProvider);
 
     doHandle(executionPlan)
-        .doOnSuccess(events -> LOGGER.debug("Fragments [{}] processed by engine.", fragmentIds(fragments)))
-        .doOnError(e -> LOGGER.error("Fragments [{}] NOT processed correctly!", fragmentIds(fragments), e))
+        .doOnSuccess(
+            events -> LOGGER.debug("Fragments [{}] processed by engine.", fragmentIds(fragments)))
+        .doOnError(
+            e -> LOGGER.error("Fragments [{}] NOT processed correctly!", fragmentIds(fragments), e))
         .doOnSuccess(events -> consumerNotifier.notify(clientRequest, events, executionPlan))
         .doOnSuccess(events -> putFragments(routingContext, events))
         .doOnSuccess(events -> LOGGER.trace("Fragments' events [{}] processed.", events))
         .map(events -> toHandlerResult(events, requestContext))
-        .doOnSuccess(result -> requestContextEngine
-            .processAndSaveResult(result, routingContext, requestContext))
-        .doOnError(error -> requestContextEngine.handleFatal(routingContext, requestContext, error))
-        .subscribe();
+        .subscribe(
+            result -> requestContextEngine
+                .processAndSaveResult(result, routingContext, requestContext),
+            error -> requestContextEngine.handleFatal(routingContext, requestContext, error));
   }
 
   public ExecutionPlan createExecutionPlan(List<Fragment> fragments, ClientRequest clientRequest) {
