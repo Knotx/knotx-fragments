@@ -25,7 +25,7 @@ import java.util.function.Supplier;
 
 /**
  * Options used during {@link ActionProvider#ActionProvider(Supplier, Map, Vertx)} initialization. Those
- * values are passed then to {@link io.knotx.fragments.action.api.ActionFactory#create(String,
+ * values are then passed to {@link io.knotx.fragments.action.api.ActionFactory#create(String,
  * JsonObject, io.vertx.core.Vertx, Action)}.
  */
 @DataObject(generateConverter = true)

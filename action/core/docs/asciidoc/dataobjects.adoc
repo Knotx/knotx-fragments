@@ -5,7 +5,7 @@
 
 ++++
  Options used during link initialization. Those
- values are passed then to link.
+ values are then passed to link.
 ++++
 '''
 

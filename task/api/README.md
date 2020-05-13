@@ -79,4 +79,5 @@ exception is returned.
 - If a node responds with a not configured transition, the "Unsupported Transition" error occurs.
 
 Nodes can declare custom transitions. Custom transitions allow to react to non standard situations 
-such as data sources timeouts, fallbacks etc.
+such as data sources timeouts, fallbacks etc. It is really easy, the action just needs to return any 
+string as a transition name and then we can configure it in a graph.
