@@ -222,21 +222,6 @@ class ActionProviderTest {
         .create(eq(PROXY_ALIAS), any(), eq(vertx.getDelegate()), eq(expectedOperationSecond));
   }
 
-  @Test
-  @DisplayName("Expect action factory is registered with Java SPI.")
-  void actionProviderWithSPI(Vertx vertx) {
-    // given
-    ActionProvider tested = new ActionProvider(
-        Collections.singletonMap("test", new ActionFactoryOptions("test", new JsonObject(), null)),
-        vertx);
-
-    // when
-    Optional<Action> operation = tested.get("test");
-
-    // then
-    assertTrue(operation.isPresent());
-  }
-
   private ActionFactoryOptions createFactoryOptions(String name, String doAction) {
     return new ActionFactoryOptions(name, new JsonObject(), doAction);
   }

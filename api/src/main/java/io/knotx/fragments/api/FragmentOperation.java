@@ -25,8 +25,9 @@ import io.vertx.lang.rx.RxGen;
 public interface FragmentOperation {
 
   /**
-   * Transforms a fragment into the new one. It returns a fragment result containing the new
-   * fragment and a transition (which tells about the status of the fragment transformation (e.g. `_success` or `_error`).
+   * Transforms a fragment into the new one. It passes a fragment result containing the new fragment
+   * and a transition (which tells about the status of the fragment transformation (e.g. `_success`
+   * or `_error`) to result handler.
    *
    * @param fragmentContext - contains both fragment and client request
    * @param resultHandler - handler that is invoked when the new fragment is ready

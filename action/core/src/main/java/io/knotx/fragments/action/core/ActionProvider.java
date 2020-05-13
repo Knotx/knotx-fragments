@@ -41,9 +41,6 @@ public class ActionProvider {
   private Map<String, ActionFactoryOptions> aliasToOptions;
   private Vertx vertx;
 
-  /**
-   * It gets a list of {@link ActionFactory} implementations as a parameter.
-   */
   public ActionProvider(Supplier<Iterator<ActionFactory>> supplier,
       Map<String, ActionFactoryOptions> aliasToOptions, Vertx vertx) {
     this.aliasToOptions = aliasToOptions;
@@ -53,22 +50,10 @@ public class ActionProvider {
   }
 
   /**
-   * I uses <a href="https://docs.oracle.com/javase/tutorial/sound/SPI-intro.html">Java Service
-   * Provider Interface</a> to load {@link ActionFactory} implementations available on the
-   * classpath.
-   */
-  public ActionProvider(Map<String, ActionFactoryOptions> actionNameToOptions, Vertx vertx) {
-    this(() -> {
-      ServiceLoader<ActionFactory> factories = ServiceLoader.load(ActionFactory.class);
-      return factories.iterator();
-    }, actionNameToOptions, vertx);
-  }
-
-  /**
-   * It provides action instance by alias.
+   * It provides an action instance by alias (action name) if configured.
    *
-   * @param alias action alias
-   * @return action instance
+   * @param alias action alias / name
+   * @return action instance if configured
    */
   public Optional<Action> get(String alias) {
     if (StringUtils.isBlank(alias)) {

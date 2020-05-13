@@ -21,9 +21,10 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.reactivex.core.Vertx;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Supplier;
 
 /**
- * Options used during {@link ActionProvider#ActionProvider(Map, Vertx)} initialization. Those
+ * Options used during {@link ActionProvider#ActionProvider(Supplier, Map, Vertx)} initialization. Those
  * values are passed then to {@link io.knotx.fragments.action.api.ActionFactory#create(String,
  * JsonObject, io.vertx.core.Vertx, Action)}.
  */

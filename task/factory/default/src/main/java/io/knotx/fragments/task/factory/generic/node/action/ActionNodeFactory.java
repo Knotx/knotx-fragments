@@ -18,6 +18,7 @@ package io.knotx.fragments.task.factory.generic.node.action;
 import static io.knotx.fragments.task.factory.api.metadata.NodeMetadata.single;
 
 import io.knotx.fragments.action.api.Action;
+import io.knotx.fragments.action.api.ActionFactory;
 import io.knotx.fragments.action.core.ActionFactoryOptions;
 import io.knotx.fragments.action.core.ActionProvider;
 import io.knotx.fragments.api.FragmentContext;
@@ -35,9 +36,12 @@ import io.vertx.core.Handler;
 import io.vertx.core.json.JsonObject;
 import io.vertx.reactivex.core.Vertx;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Optional;
+import java.util.ServiceLoader;
 import java.util.UUID;
+import java.util.function.Supplier;
 
 public class ActionNodeFactory implements NodeFactory {
 
@@ -56,7 +60,11 @@ public class ActionNodeFactory implements NodeFactory {
   @Override
   public ActionNodeFactory configure(JsonObject config, Vertx vertx) {
     this.actionNameToOptions = new ActionNodeFactoryConfig(config).getActions();
-    actionProvider = new ActionProvider(actionNameToOptions, vertx);
+    Supplier<Iterator<ActionFactory>> actionFactoriesSupplier = () -> {
+      ServiceLoader<ActionFactory> factories = ServiceLoader.load(ActionFactory.class);
+      return factories.iterator();
+    };
+    actionProvider = new ActionProvider(actionFactoriesSupplier, actionNameToOptions, vertx);
     return this;
   }
 
