@@ -65,8 +65,9 @@ public class GraphNodeResponseLog {
   }
 
   /**
-   * List of node invocation(s) logs. See <a href="https://github.com/Knotx/knotx-fragments/tree/master/engine#node-log">node
-   * log</a> for more details.
+   * List of node invocation(s) logs.
+   *
+   * @return list of node invocation(s) logs
    */
   public JsonArray getInvocations() {
     return invocations;

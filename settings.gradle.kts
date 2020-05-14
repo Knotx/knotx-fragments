@@ -14,9 +14,21 @@
  * limitations under the License.
  */
 pluginManagement {
+    val version: String by settings
+    plugins {
+        id("io.knotx.java-library") version version
+        id("io.knotx.codegen") version version
+        id("io.knotx.unit-test") version version
+        id("io.knotx.jacoco") version version
+        id("io.knotx.maven-publish") version version
+        id("io.knotx.publish-all-composite") version version
+        id("io.knotx.release-java") version version
+        id("org.nosphere.apache.rat") version "0.6.0"
+    }
     repositories {
-        maven { url = uri("https://plugins.gradle.org/m2/") }
         mavenLocal()
+        jcenter()
+        gradlePluginPortal()
     }
 }
 

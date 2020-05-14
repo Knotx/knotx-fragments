@@ -55,9 +55,7 @@ Unique node id. In most cases, it is randomly generated value and can differ in 
 Node label.
 +++
 |[[on]]`@on`|`link:dataobjects.html#GraphNodeExecutionLog[GraphNodeExecutionLog]`|+++
-Map with a <a href="https://github.com/Knotx/knotx-fragments/tree/master/engine#transition">transition</a>
- key and consequent <a href="https://github.com/Knotx/knotx-fragments/tree/master/engine#node">node</a>
- as a value.
+Maps a transition to node execution log.
 +++
 |[[operation]]`@operation`|`link:dataobjects.html#GraphNodeOperationLog[GraphNodeOperationLog]`|+++
 Node metadata details. This value is initialized based on
@@ -71,8 +69,7 @@ It represents node execution data. It contains response data such as a transitio
 Processing start timestamp
 +++
 |[[status]]`@status`|`link:enums.html#LoggedNodeStatus[LoggedNodeStatus]`|+++
-Node status that is calculated based on node response. See <a href="https://github.com/Knotx/knotx-fragments/blob/feature/html-consumer-docuemntation-update/handler/consumer/html/src/main/java/io/knotx/fragments/handler/consumer/html/model/LoggedNodeStatus.java">LoggedNodeStatus</a>
- for more details.
+Node status that is calculated based on node response.
 +++
 |[[subtasks]]`@subtasks`|`Array of link:dataobjects.html#GraphNodeExecutionLog[GraphNodeExecutionLog]`|+++
 List of composite node subgraphs.  Each item on the list represents the subgraph root node.  It
@@ -116,8 +113,7 @@ Node factory name.
 |===
 ^|Name | Type ^| Description
 |[[invocations]]`@invocations`|`Json array`|+++
-List of node invocation(s) logs. See <a href="https://github.com/Knotx/knotx-fragments/tree/master/engine#node-log">node
- log</a> for more details.
+List of node invocation(s) logs.
 +++
 |[[transition]]`@transition`|`String`|+++
 Node response transition.

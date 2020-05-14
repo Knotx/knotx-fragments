@@ -19,11 +19,12 @@ plugins {
     id("io.knotx.java-library")
     id("io.knotx.codegen")
     id("io.knotx.maven-publish")
-    id("io.knotx.jacoco")
     id("org.nosphere.apache.rat")
 }
 
 dependencies {
+    annotationProcessor(platform("io.knotx:knotx-dependencies:${project.version}"))
+
     implementation(platform("io.knotx:knotx-dependencies:${project.version}"))
 
     api("io.knotx:knotx-server-http-api:${project.version}")
