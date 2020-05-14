@@ -44,10 +44,10 @@ Action may be decorated with [behaviours](#behaviour). Actions deployed on the [
 are called [Knots](https://github.com/Knotx/knotx-fragments/tree/master/action/api#knot).
 
 Below there is a list of core actions:
-- [HTTP Action](https://github.com/Knotx/knotx-fragments/tree/master/action/core#http-action) - calls an external Web API and stores a response in a fragment's payload
-- [Inline Body Action](https://github.com/Knotx/knotx-fragments/tree/master/action/core#inline-body-action) - replaces a fragment's body with the configured value
-- [Inline Payload Action](https://github.com/Knotx/knotx-fragments/tree/master/action/core#inline-payload-action) - adds the configured JSON data into a fragment's payload
-- [Payload To Body Action](https://github.com/Knotx/knotx-fragments/tree/master/action/core#payload-to-body-action) - rewrites a fragment's payload to the body
+- [HTTP Action](https://github.com/Knotx/knotx-fragments/tree/master/action/library#http-action) - calls an external Web API and stores a response in a fragment's payload
+- [Inline Body Action](https://github.com/Knotx/knotx-fragments/tree/master/action/library#inline-body-action) - replaces a fragment's body with the configured value
+- [Inline Payload Action](https://github.com/Knotx/knotx-fragments/tree/master/action/library#inline-payload-action) - adds the configured JSON data into a fragment's payload
+- [Payload To Body Action](https://github.com/Knotx/knotx-fragments/tree/master/action/library#payload-to-body-action) - rewrites a fragment's payload to the body
 
 > Please note that action can be either **stateless** or **stateful**. It fully depends on its implementation.
 
@@ -56,5 +56,5 @@ Behaviour is an [action](#action) wrapper, that enriches the original action wit
 cross-cutting functionality e.g HTTP operation can gain the circuit breaker pattern mechanism behaviour.
 
 Below there is a list of core behaviours:
-- [Circuit Breaker Behaviour](https://github.com/Knotx/knotx-fragments/tree/master/action/core#circuit-breaker-behaviour) - it is a kind of quarantine for actions, it uses the [Vert.x Circuit Breaker](https://vertx.io/docs/vertx-circuit-breaker/java/) implementation
-- [In-memory Cache Behaviour](https://github.com/Knotx/knotx-fragments/tree/master/action/core#in-memory-cache-behaviour) - caches a fragment's payload to reduce the number of action invocations
+- [Circuit Breaker Behaviour](https://github.com/Knotx/knotx-fragments/tree/master/action/library#circuit-breaker-behaviour) - it is a kind of quarantine for actions, it uses the [Vert.x Circuit Breaker](https://vertx.io/docs/vertx-circuit-breaker/java/) implementation
+- [In-memory Cache Behaviour](https://github.com/Knotx/knotx-fragments/tree/master/action/library#in-memory-cache-behaviour) - caches a fragment's payload to reduce the number of action invocations

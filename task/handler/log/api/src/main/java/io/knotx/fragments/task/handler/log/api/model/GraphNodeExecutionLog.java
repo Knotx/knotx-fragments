@@ -188,9 +188,9 @@ public class GraphNodeExecutionLog {
   }
 
   /**
-   * Map with a <a href="https://github.com/Knotx/knotx-fragments/tree/master/engine#transition">transition</a>
-   * key and consequent <a href="https://github.com/Knotx/knotx-fragments/tree/master/engine#node">node</a>
-   * as a value.
+   * Maps a transition to node execution log.
+   *
+   * @return transition to node execution log map
    */
   public Map<String, GraphNodeExecutionLog> getOn() {
     return on;
@@ -202,8 +202,9 @@ public class GraphNodeExecutionLog {
   }
 
   /**
-   * Node status that is calculated based on node response. See <a href="https://github.com/Knotx/knotx-fragments/blob/feature/html-consumer-docuemntation-update/handler/consumer/html/src/main/java/io/knotx/fragments/handler/consumer/html/model/LoggedNodeStatus.java">LoggedNodeStatus</a>
-   * for more details.
+   * Node status that is calculated based on node response.
+   *
+   * @return node status
    */
   public LoggedNodeStatus getStatus() {
     return status;

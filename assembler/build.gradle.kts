@@ -19,15 +19,18 @@ plugins {
     id("io.knotx.java-library")
     id("io.knotx.codegen")
     id("io.knotx.unit-test")
-    id("io.knotx.maven-publish")
     id("io.knotx.jacoco")
+    id("io.knotx.maven-publish")
     id("org.nosphere.apache.rat")
 }
 
 dependencies {
+    annotationProcessor(platform("io.knotx:knotx-dependencies:${project.version}"))
+
     api(project(":knotx-fragments-api"))
     api("io.knotx:knotx-server-http-api:${project.version}")
 
+    implementation(platform("io.knotx:knotx-dependencies:${project.version}"))
     implementation(group = "io.vertx", name = "vertx-core")
     implementation(group = "io.vertx", name = "vertx-service-proxy")
     implementation(group = "io.vertx", name = "vertx-rx-java2")

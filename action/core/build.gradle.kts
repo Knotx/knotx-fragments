@@ -19,13 +19,15 @@ import org.nosphere.apache.rat.RatTask
 plugins {
     id("io.knotx.java-library")
     id("io.knotx.codegen")
-    id("io.knotx.maven-publish")
-    id("io.knotx.jacoco")
     id("io.knotx.unit-test")
+    id("io.knotx.jacoco")
+    id("io.knotx.maven-publish")
     id("org.nosphere.apache.rat")
 }
 
 dependencies {
+    annotationProcessor(platform("io.knotx:knotx-dependencies:${project.version}"))
+
     api(project(":knotx-fragments-action-api"))
 
     implementation(platform("io.knotx:knotx-dependencies:${project.version}"))
