@@ -15,9 +15,9 @@
  */
 package io.knotx.fragments.action.library.http.request;
 
-import io.knotx.fragments.action.helper.FragmentContextPlaceholderResolver;
-import io.knotx.fragments.api.FragmentContext;
+import io.knotx.fragments.action.library.helper.FragmentContextPlaceholderResolver;
 import io.knotx.fragments.action.library.http.options.EndpointOptions;
+import io.knotx.fragments.api.FragmentContext;
 import io.vertx.reactivex.core.MultiMap;
 
 public class EndpointRequestComposer {

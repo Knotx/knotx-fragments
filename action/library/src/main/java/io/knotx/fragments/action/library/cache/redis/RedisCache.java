@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.knotx.fragments.action.cache.redis;
+package io.knotx.fragments.action.library.cache.redis;
 
 import io.knotx.commons.json.JsonParser;
-import io.knotx.fragments.action.cache.Cache;
+import io.knotx.fragments.action.library.cache.Cache;
 import io.reactivex.Maybe;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;

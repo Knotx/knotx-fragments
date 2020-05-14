@@ -15,7 +15,7 @@
  */
 package io.knotx.fragments.action.library.http.request;
 
-import io.knotx.fragments.action.helper.FragmentContextPlaceholderResolver;
+import io.knotx.fragments.action.library.helper.FragmentContextPlaceholderResolver;
 import io.knotx.fragments.action.library.http.options.EndpointOptions;
 import io.vertx.core.json.JsonObject;
 import org.apache.commons.lang3.StringUtils;

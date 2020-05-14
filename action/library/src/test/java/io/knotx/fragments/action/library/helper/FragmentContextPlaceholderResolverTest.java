@@ -13,12 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.knotx.fragments.action.helper;
+package io.knotx.fragments.action.library.helper;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import io.knotx.fragments.action.helper.FragmentContextPlaceholderResolver;
 import io.knotx.fragments.api.Fragment;
 import io.knotx.fragments.api.FragmentContext;
 import io.knotx.server.api.context.ClientRequest;

@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.knotx.fragments.action.cache.memory;
+package io.knotx.fragments.action.library.cache.memory;
 
 
 import com.google.common.cache.CacheBuilder;
-import io.knotx.fragments.action.cache.Cache;
+import io.knotx.fragments.action.library.cache.Cache;
 import io.reactivex.Maybe;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;

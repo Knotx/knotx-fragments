@@ -26,27 +26,25 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.knotx.fragments.action.api.Action;
 import io.knotx.fragments.action.api.log.ActionLogger;
-import io.knotx.fragments.action.cache.memory.InMemoryCacheActionFactory;
+import io.knotx.fragments.action.library.cache.memory.InMemoryCacheActionFactory;
 import io.knotx.fragments.api.Fragment;
 import io.knotx.fragments.api.FragmentContext;
 import io.knotx.fragments.api.FragmentResult;
-import io.knotx.fragments.action.library.InMemoryCacheActionFactory;
-import io.knotx.fragments.action.api.Action;
-import io.knotx.fragments.action.api.log.ActionLogger;
 import io.knotx.junit5.KnotxExtension;
 import io.knotx.server.api.context.ClientRequest;
 import io.vertx.core.Future;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.VertxTestContext;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Stream;
 
 @ExtendWith(KnotxExtension.class)
 class InMemoryCacheActionFactoryLoggingTest {
@@ -81,7 +79,7 @@ class InMemoryCacheActionFactoryLoggingTest {
   @MethodSource("provideAllLogLevelConfigurations")
   @DisplayName("Cache miss gets logged with computed value only when log level is info")
   void callActionWithPayloadUpdate(JsonObject configuration, boolean isLogLevelInfo,
-      VertxTestContext testContext) throws Throwable {
+                                   VertxTestContext testContext) throws Throwable {
     // given
     JsonObject expectedPayloadValue = new JsonObject().put("someKey", "someValue");
     Action doAction = (fragmentContext, resultHandler) -> {
@@ -97,21 +95,21 @@ class InMemoryCacheActionFactoryLoggingTest {
 
     // when
     tested.apply(new FragmentContext(firstFragment, new ClientRequest()),
-        result -> {
-          // then
-          testContext.verify(() -> {
-            JsonObject log = result.result().getLog().getJsonObject(LOGS_KEY);
-            if (isLogLevelInfo) {
-              assertTrue(log.containsKey(CACHE_MISS));
-              assertEquals(expectedPayloadValue,
-                  log.getJsonObject(CACHE_MISS)
-                      .getJsonObject(COMPUTED_VALUE));
-            } else {
-              assertFalse(log.containsKey(CACHE_MISS));
-            }
-            testContext.completeNow();
-          });
-        });
+                 result -> {
+                   // then
+                   testContext.verify(() -> {
+                     JsonObject log = result.result().getLog().getJsonObject(LOGS_KEY);
+                     if (isLogLevelInfo) {
+                       assertTrue(log.containsKey(CACHE_MISS));
+                       assertEquals(expectedPayloadValue,
+                                    log.getJsonObject(CACHE_MISS)
+                                        .getJsonObject(COMPUTED_VALUE));
+                     } else {
+                       assertFalse(log.containsKey(CACHE_MISS));
+                     }
+                     testContext.completeNow();
+                   });
+                 });
 
     assertTrue(testContext.awaitCompletion(5, TimeUnit.SECONDS));
     if (testContext.failed()) {
@@ -123,7 +121,7 @@ class InMemoryCacheActionFactoryLoggingTest {
   @MethodSource("provideAllLogLevelConfigurations")
   @DisplayName("Cache hit gets logged with cached value only when log level is info")
   void callActionTwiceWithTheSameKey(JsonObject configuration, boolean isLogLevelInfo,
-      VertxTestContext testContext) throws Throwable {
+                                     VertxTestContext testContext) throws Throwable {
     // given
     JsonObject expectedPayloadValue = new JsonObject().put("someKey", "someValue");
     Action doAction = (fragmentContext, resultHandler) -> {
@@ -142,21 +140,21 @@ class InMemoryCacheActionFactoryLoggingTest {
 
     // when
     tested.apply(firstRequestContext,
-        firstResult -> tested.apply(
-            secondRequestContext, secondResult -> {
-              // then
-              testContext.verify(() -> {
-                JsonObject log = secondResult.result().getLog().getJsonObject(LOGS_KEY);
-                if (isLogLevelInfo) {
-                  assertTrue(log.containsKey(CACHE_HIT));
-                  assertEquals(expectedPayloadValue, log.getJsonObject(CACHE_HIT)
-                      .getJsonObject(CACHED_VALUE));
-                } else {
-                  assertFalse(log.containsKey(CACHE_HIT));
-                }
-                testContext.completeNow();
-              });
-            })
+                 firstResult -> tested.apply(
+                     secondRequestContext, secondResult -> {
+                       // then
+                       testContext.verify(() -> {
+                         JsonObject log = secondResult.result().getLog().getJsonObject(LOGS_KEY);
+                         if (isLogLevelInfo) {
+                           assertTrue(log.containsKey(CACHE_HIT));
+                           assertEquals(expectedPayloadValue, log.getJsonObject(CACHE_HIT)
+                               .getJsonObject(CACHED_VALUE));
+                         } else {
+                           assertFalse(log.containsKey(CACHE_HIT));
+                         }
+                         testContext.completeNow();
+                       });
+                     })
     );
 
     assertTrue(testContext.awaitCompletion(5, TimeUnit.SECONDS));
@@ -169,8 +167,8 @@ class InMemoryCacheActionFactoryLoggingTest {
   @MethodSource("provideAllLogLevelConfigurations")
   @DisplayName("DoAction log is present when transition is _success and only on log level set to info")
   void callActionWithDoActionReturningSuccessTransition(JsonObject configuration,
-      boolean isLogLevelInfo,
-      VertxTestContext testContext) throws Throwable {
+                                                        boolean isLogLevelInfo,
+                                                        VertxTestContext testContext) throws Throwable {
 
     ActionLogger innerActionLog = ActionLogger.create("DoAction", INFO);
     innerActionLog.info("InnerInfo", "InnerValue");
@@ -178,7 +176,7 @@ class InMemoryCacheActionFactoryLoggingTest {
     Action doAction = (fragmentContext, resultHandler) -> Future
         .succeededFuture(
             new FragmentResult(fragmentContext.getFragment(), FragmentResult.SUCCESS_TRANSITION,
-                innerActionLog.toLog().toJson()))
+                               innerActionLog.toLog().toJson()))
         .setHandler(resultHandler);
 
     Action tested = new InMemoryCacheActionFactory()
@@ -186,24 +184,24 @@ class InMemoryCacheActionFactoryLoggingTest {
 
     // when
     tested.apply(new FragmentContext(firstFragment, new ClientRequest()),
-        result -> {
-          // then
-          testContext.verify(() -> {
-            JsonArray calledDoActionLogEntires = result.result().getLog()
-                .getJsonArray(DO_ACTION_LOGS_KEY);
-            if (isLogLevelInfo) {
-              JsonObject calledDoActionLogEntry = calledDoActionLogEntires.getJsonObject(0);
-              assertTrue(calledDoActionLogEntry.getBoolean("success"));
-              String innerInfoLogValue = calledDoActionLogEntry.getJsonObject("doActionLog")
-                  .getJsonObject(LOGS_KEY)
-                  .getString("InnerInfo");
-              assertEquals("InnerValue", innerInfoLogValue);
-            } else {
-              assertTrue(calledDoActionLogEntires.isEmpty());
-            }
-            testContext.completeNow();
-          });
-        });
+                 result -> {
+                   // then
+                   testContext.verify(() -> {
+                     JsonArray calledDoActionLogEntires = result.result().getLog()
+                         .getJsonArray(DO_ACTION_LOGS_KEY);
+                     if (isLogLevelInfo) {
+                       JsonObject calledDoActionLogEntry = calledDoActionLogEntires.getJsonObject(0);
+                       assertTrue(calledDoActionLogEntry.getBoolean("success"));
+                       String innerInfoLogValue = calledDoActionLogEntry.getJsonObject("doActionLog")
+                           .getJsonObject(LOGS_KEY)
+                           .getString("InnerInfo");
+                       assertEquals("InnerValue", innerInfoLogValue);
+                     } else {
+                       assertTrue(calledDoActionLogEntires.isEmpty());
+                     }
+                     testContext.completeNow();
+                   });
+                 });
 
     assertTrue(testContext.awaitCompletion(5, TimeUnit.SECONDS));
     if (testContext.failed()) {
@@ -215,8 +213,8 @@ class InMemoryCacheActionFactoryLoggingTest {
   @MethodSource("provideAllLogLevelConfigurations")
   @DisplayName("DoAction log is present when transition is _error")
   void callActionWithDoActionReturningErrorTransition(JsonObject configuration,
-      boolean isLogLevelInfo,
-      VertxTestContext testContext) throws Throwable {
+                                                      boolean isLogLevelInfo,
+                                                      VertxTestContext testContext) throws Throwable {
 
     ActionLogger innerActionLog = ActionLogger.create("DoAction", INFO);
     innerActionLog.info("InnerInfo", "InnerValue");
@@ -224,7 +222,7 @@ class InMemoryCacheActionFactoryLoggingTest {
     Action doAction = (fragmentContext, resultHandler) -> Future
         .succeededFuture(
             new FragmentResult(fragmentContext.getFragment(), FragmentResult.ERROR_TRANSITION,
-                innerActionLog.toLog().toJson()))
+                               innerActionLog.toLog().toJson()))
         .setHandler(resultHandler);
 
     Action tested = new InMemoryCacheActionFactory()
@@ -232,19 +230,19 @@ class InMemoryCacheActionFactoryLoggingTest {
 
     // when
     tested.apply(new FragmentContext(firstFragment, new ClientRequest()),
-        result -> {
-          // then
-          testContext.verify(() -> {
-            JsonObject calledActionLog = result.result().getLog()
-                .getJsonArray(DO_ACTION_LOGS_KEY).getJsonObject(0);
-            assertFalse(calledActionLog.getBoolean("success"));
-            String innerInfoLogValue = calledActionLog.getJsonObject("doActionLog")
-                .getJsonObject(LOGS_KEY)
-                .getString("InnerInfo");
-            assertEquals("InnerValue", innerInfoLogValue);
-            testContext.completeNow();
-          });
-        });
+                 result -> {
+                   // then
+                   testContext.verify(() -> {
+                     JsonObject calledActionLog = result.result().getLog()
+                         .getJsonArray(DO_ACTION_LOGS_KEY).getJsonObject(0);
+                     assertFalse(calledActionLog.getBoolean("success"));
+                     String innerInfoLogValue = calledActionLog.getJsonObject("doActionLog")
+                         .getJsonObject(LOGS_KEY)
+                         .getString("InnerInfo");
+                     assertEquals("InnerValue", innerInfoLogValue);
+                     testContext.completeNow();
+                   });
+                 });
 
     assertTrue(testContext.awaitCompletion(5, TimeUnit.SECONDS));
     if (testContext.failed()) {
@@ -256,7 +254,7 @@ class InMemoryCacheActionFactoryLoggingTest {
   @MethodSource("provideAllLogLevelConfigurations")
   @DisplayName("Cache pass gets logged when no payload is added by doAction")
   void callActionThatDoesNotAddPayload(JsonObject configuration, boolean isLogLevelInfo,
-      VertxTestContext testContext)
+                                       VertxTestContext testContext)
       throws Throwable {
     Action doAction = (fragmentContext, resultHandler) -> Future
         .succeededFuture(
@@ -268,15 +266,15 @@ class InMemoryCacheActionFactoryLoggingTest {
 
     // when
     tested.apply(new FragmentContext(firstFragment, new ClientRequest()),
-        result -> {
-          // then
-          testContext.verify(() -> {
-            JsonObject log = result.result().getLog().getJsonObject(LOGS_KEY);
-            assertTrue(log.containsKey(CACHE_PASS));
-            assertEquals(EXAMPLE_CACHE_KEY, log.getJsonObject(CACHE_PASS).getString(CACHE_KEY));
-            testContext.completeNow();
-          });
-        });
+                 result -> {
+                   // then
+                   testContext.verify(() -> {
+                     JsonObject log = result.result().getLog().getJsonObject(LOGS_KEY);
+                     assertTrue(log.containsKey(CACHE_PASS));
+                     assertEquals(EXAMPLE_CACHE_KEY, log.getJsonObject(CACHE_PASS).getString(CACHE_KEY));
+                     testContext.completeNow();
+                   });
+                 });
 
     assertTrue(testContext.awaitCompletion(5, TimeUnit.SECONDS));
     if (testContext.failed()) {
@@ -288,7 +286,7 @@ class InMemoryCacheActionFactoryLoggingTest {
   @MethodSource("provideAllLogLevelConfigurations")
   @DisplayName("Should preserve action logs when doAction has ended with failure")
   void callActionCausingFailure(JsonObject configuration, boolean isLogLevelInfo,
-      VertxTestContext testContext) {
+                                VertxTestContext testContext) {
     Action doAction = (fragmentContext, resultHandler) -> Future
         .<FragmentResult>failedFuture(new IllegalStateException("Application failed!"))
         .setHandler(resultHandler);
@@ -305,7 +303,7 @@ class InMemoryCacheActionFactoryLoggingTest {
           assertEquals(EMPTY_JSON_ARRAY, nodeLog.getJsonArray("doActionLogs"));
           assertEquals(1, errors.getList().size());
           assertEquals(IllegalStateException.class.getCanonicalName(),
-              doActionError.getString("className"));
+                       doActionError.getString("className"));
           assertEquals("Application failed!", doActionError.getString("message"));
           testContext.completeNow();
         })

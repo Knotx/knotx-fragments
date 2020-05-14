@@ -13,16 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.knotx.fragments.action.cache;
+package io.knotx.fragments.action.library.cache;
 
 import static io.knotx.fragments.api.FragmentResult.ERROR_TRANSITION;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import io.knotx.fragments.action.cache.memory.InMemoryCacheActionFactory;
-import io.knotx.fragments.api.Fragment;
 import io.knotx.fragments.action.api.Action;
+import io.knotx.fragments.action.library.cache.memory.InMemoryCacheActionFactory;
+import io.knotx.fragments.api.Fragment;
 import io.knotx.fragments.api.FragmentContext;
 import io.knotx.fragments.api.FragmentResult;
 import io.knotx.junit5.KnotxExtension;
@@ -31,12 +31,13 @@ import io.vertx.core.Future;
 import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.VertxTestContext;
 import io.vertx.reactivex.core.MultiMap;
-import java.util.UUID;
-import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+
+import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 @ExtendWith(KnotxExtension.class)
 class InMemoryCacheActionFactoryTest {

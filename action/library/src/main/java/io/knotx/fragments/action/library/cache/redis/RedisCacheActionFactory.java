@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.knotx.fragments.action.cache.redis;
+package io.knotx.fragments.action.library.cache.redis;
 
 import io.knotx.fragments.action.api.Action;
 import io.knotx.fragments.action.api.ActionFactory;
-import io.knotx.fragments.action.cache.CacheAction;
-import io.knotx.fragments.action.cache.CacheOptions;
+import io.knotx.fragments.action.library.cache.CacheAction;
+import io.knotx.fragments.action.library.cache.CacheOptions;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
 import io.vertx.reactivex.redis.client.Redis;

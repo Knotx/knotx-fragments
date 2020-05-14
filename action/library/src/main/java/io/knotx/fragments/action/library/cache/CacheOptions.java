@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.knotx.fragments.action.cache;
+package io.knotx.fragments.action.library.cache;
 
 import io.knotx.fragments.action.api.log.ActionLogLevel;
 import io.vertx.codegen.annotations.DataObject;

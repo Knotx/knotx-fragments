@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.knotx.fragments.action.helper;
+package io.knotx.fragments.action.library.helper;
 
 import io.knotx.fragments.api.FragmentContext;
 import io.knotx.server.common.placeholders.PlaceholdersResolver;

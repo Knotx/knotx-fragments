@@ -13,13 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.knotx.fragments.action.cache;
+package io.knotx.fragments.action.library.cache;
 
 import io.knotx.fragments.action.api.Action;
 import io.knotx.fragments.action.api.log.ActionLogLevel;
 import io.knotx.fragments.action.api.log.ActionLogger;
-import io.knotx.fragments.action.helper.FragmentContextPlaceholderResolver;
-import io.knotx.fragments.action.helper.TimeCalculator;
+import io.knotx.fragments.action.library.helper.FragmentContextPlaceholderResolver;
+import io.knotx.fragments.action.library.helper.TimeCalculator;
 import io.knotx.fragments.api.Fragment;
 import io.knotx.fragments.api.FragmentContext;
 import io.knotx.fragments.api.FragmentResult;
