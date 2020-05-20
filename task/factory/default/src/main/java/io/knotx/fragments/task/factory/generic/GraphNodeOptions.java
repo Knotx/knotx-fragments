@@ -15,6 +15,7 @@
  */
 package io.knotx.fragments.task.factory.generic;
 
+import com.google.common.base.Objects;
 import io.knotx.fragments.task.factory.generic.node.NodeOptions;
 import io.knotx.fragments.task.factory.generic.node.action.ActionNodeConfig;
 import io.knotx.fragments.task.factory.generic.node.action.ActionNodeFactory;
@@ -25,7 +26,6 @@ import io.vertx.core.json.JsonObject;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 
 /**
@@ -35,6 +35,7 @@ import java.util.Optional;
 public class GraphNodeOptions {
 
   private NodeOptions node;
+  private String label;
   private Map<String, GraphNodeOptions> onTransitions;
 
   public GraphNodeOptions(NodeOptions nodeOptions, Map<String, GraphNodeOptions> transitions) {
@@ -85,6 +86,24 @@ public class GraphNodeOptions {
    */
   public GraphNodeOptions setNode(NodeOptions node) {
     this.node = node;
+    return this;
+  }
+
+  /**
+   * @return graph node label
+   */
+  public String getLabel() {
+    return label;
+  }
+
+  /**
+   * Sets human readable graph node label
+   *
+   * @param label graph node label
+   * @return reference to this, so the API can be used fluently
+   */
+  public GraphNodeOptions setLabel(String label) {
+    this.label = label;
     return this;
   }
 
@@ -164,19 +183,21 @@ public class GraphNodeOptions {
       return false;
     }
     GraphNodeOptions that = (GraphNodeOptions) o;
-    return Objects.equals(node, that.node) &&
-        Objects.equals(onTransitions, that.onTransitions);
+    return Objects.equal(node, that.node) &&
+        Objects.equal(label, that.label) &&
+        Objects.equal(onTransitions, that.onTransitions);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(node, onTransitions);
+    return Objects.hashCode(node, label, onTransitions);
   }
 
   @Override
   public String toString() {
     return "GraphNodeOptions{" +
         "node=" + node +
+        ", label='" + label + '\'' +
         ", onTransitions=" + onTransitions +
         '}';
   }
