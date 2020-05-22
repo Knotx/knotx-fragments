@@ -1,7 +1,7 @@
-<!--- Provide a general summary of your changes in the Title above -->
+<!-- Please update the sections below that apply, remove the rest -->
 
 ## Description
-<!--- Describe your changes in detail -->
+<!--- Provide a general summary of your changes in the title above -->
 
 ## Motivation and Context
 <!--- Why is this change required? What problem does it solve? -->
@@ -21,7 +21,7 @@
 ## Checklist:
 <!--- Go over all the following points, and put an `x` in all the boxes that apply. -->
 <!--- If you're unsure about any of these, don't hesitate to ask. We're here to help! -->
-- [ ] My code follows the [code style](/CONTRIBUTING.md#coding-conventions) of this project.
+- [ ] I have read the [CONTRIBUTING](https://github.com/Knotx/knotx/blob/master/CONTRIBUTING.md) document.
 - [ ] My change requires a change to the documentation.
 - [ ] I have updated the documentation accordingly.
 
