@@ -47,9 +47,8 @@ public class HttpActionOptions {
   }
 
   /**
-   * Set the {@code HttpMethod} used for performing the request.
-   * Defaults to GET.
-   * Supported methods are GET, POST, PATCH, PUT, DELETE and HEAD.
+   * Set the {@code HttpMethod} used for performing the request. Defaults to GET. Supported methods
+   * are GET, POST, PATCH, PUT, DELETE and HEAD.
    *
    * @param httpMethod HTTP method
    * @return a reference to this, so the API can be used fluently
@@ -130,6 +129,16 @@ public class HttpActionOptions {
   public HttpActionOptions setLogLevel(String logLevel) {
     this.logLevel = logLevel;
     return this;
+  }
+
+  public JsonObject toJson() {
+    return new JsonObject()
+        .put("httpMethod", httpMethod)
+        .put("webClientOptions", webClientOptions.toJson())
+        .put("endpointOptions", endpointOptions.toJson())
+        .put("responseOptions", responseOptions.toJson())
+        .put("requestTimeoutMs", requestTimeoutMs)
+        .put("logLevel", logLevel);
   }
 
   @Override

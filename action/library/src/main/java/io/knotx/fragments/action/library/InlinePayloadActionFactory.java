@@ -37,6 +37,7 @@ public class InlinePayloadActionFactory implements ActionFactory {
 
   private static final String KEY_LOG_KEY = "key";
   private static final String VALUE_LOG_KEY = "value";
+  private JsonObject actionConfig;
 
   @Override
   public String getName() {
@@ -54,6 +55,7 @@ public class InlinePayloadActionFactory implements ActionFactory {
    */
   @Override
   public Action create(String alias, JsonObject config, Vertx vertx, Action doAction) {
+    this.actionConfig = config;
     if (doAction != null) {
       throw new IllegalArgumentException("Inline Payload Action does not support doAction");
     }
@@ -70,6 +72,11 @@ public class InlinePayloadActionFactory implements ActionFactory {
       updatePayload(fragment, key, value, actionLogger);
       successTransition(fragmentContext, actionLogger, resultHandler);
     };
+  }
+
+  @Override
+  public JsonObject getConfigurationDefaults() {
+    return actionConfig;
   }
 
   private void updatePayload(Fragment fragment, String key, Object value,

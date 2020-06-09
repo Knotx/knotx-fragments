@@ -28,6 +28,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import io.knotx.fragments.api.Fragment;
 import io.knotx.fragments.action.library.exception.DoActionExecuteException;
 import io.knotx.fragments.action.api.Action;
@@ -43,6 +44,7 @@ import io.vertx.circuitbreaker.impl.CircuitBreakerImpl;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
@@ -630,6 +632,49 @@ class CircuitBreakerActionFactoryTest {
     if (testContext.failed()) {
       throw testContext.causeOfFailure();
     }
+  }
+
+  @Test
+  @DisplayName("Should return valid JSON with configuration defaults")
+  void shouldReturnValidJsonWithConfigurationDefaults(Vertx vertx) {
+    CircuitBreakerActionFactory circuitBreakerActionFactory = new CircuitBreakerActionFactory();
+    circuitBreakerActionFactory
+        .create("", new JsonObject(), vertx, CircuitBreakerDoActions::applySuccess);
+    assertNotNull(circuitBreakerActionFactory.getConfigurationDefaults());
+    JsonObject configDefaults = circuitBreakerActionFactory.getConfigurationDefaults();
+    assertEquals(4, configDefaults.size());
+    assertThatConfigDefaultsContainsAllEntries(configDefaults);
+    assertEquals("error", configDefaults.getString("logLevel"));
+    assertEquals(1, configDefaults.getJsonArray("errorTransitions").size());
+    assertEquals(10, configDefaults.getJsonObject("circuitBreakerOptions").size());
+  }
+
+  @Test
+  @DisplayName("Should return valid JSON with overwritten configuration")
+  public void shouldReturnValidJsonWithOverwrittenConfiguration(Vertx vertx) {
+    CircuitBreakerActionFactory circuitBreakerActionFactory = new CircuitBreakerActionFactory();
+    JsonObject actionConfig = new JsonObject()
+        .put("logLevel", "info")
+        .put("errorTransitions", new JsonArray().add("_error").add("_failure"))
+        .put("circuitBreakerOptions", new JsonObject().put("maxFailures", 1).put("timeout", 500));
+    circuitBreakerActionFactory
+        .create("", actionConfig, vertx, CircuitBreakerDoActions::applySuccess);
+    assertNotNull(circuitBreakerActionFactory.getConfigurationDefaults());
+    JsonObject configDefaults = circuitBreakerActionFactory.getConfigurationDefaults();
+    assertThatConfigDefaultsContainsAllEntries(configDefaults);
+    assertEquals("info", configDefaults.getString("logLevel"));
+    assertEquals(2, configDefaults.getJsonArray("errorTransitions").size());
+    assertEquals(10, configDefaults.getJsonObject("circuitBreakerOptions").size());
+    assertEquals(1,
+        configDefaults.getJsonObject("circuitBreakerOptions").getInteger("maxFailures"));
+    assertEquals(500, configDefaults.getJsonObject("circuitBreakerOptions").getLong("timeout"));
+  }
+
+  private void assertThatConfigDefaultsContainsAllEntries(JsonObject configDefaults) {
+    assertTrue(configDefaults.containsKey("circuitBreakerName"));
+    assertTrue(configDefaults.containsKey("circuitBreakerOptions"));
+    assertTrue(configDefaults.containsKey("errorTransitions"));
+    assertTrue(configDefaults.containsKey("logLevel"));
   }
 
   private Action newActionInstance(Action action, Vertx vertx) {

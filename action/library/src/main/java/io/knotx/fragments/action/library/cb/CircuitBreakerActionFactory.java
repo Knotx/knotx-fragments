@@ -36,6 +36,7 @@ public class CircuitBreakerActionFactory implements ActionFactory {
 
   static final String FALLBACK_TRANSITION = "_fallback";
   static final String FACTORY_NAME = "cb";
+  private JsonObject actionConfig;
 
   @Override
   public String getName() {
@@ -48,10 +49,16 @@ public class CircuitBreakerActionFactory implements ActionFactory {
       throw new DoActionNotDefinedException("Circuit Breaker action requires `doAction` defined");
     }
     CircuitBreakerActionFactoryOptions options = new CircuitBreakerActionFactoryOptions(config);
+    this.actionConfig = options.toJson();
     CircuitBreaker circuitBreaker = new CircuitBreakerImpl(options.getCircuitBreakerName(), vertx,
         options.getCircuitBreakerOptions());
 
     return new CircuitBreakerAction(circuitBreaker, doAction, alias,
         fromConfig(options.getLogLevel()), options.getErrorTransitions());
+  }
+
+  @Override
+  public JsonObject getConfigurationDefaults() {
+    return actionConfig;
   }
 }

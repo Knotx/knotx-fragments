@@ -71,6 +71,7 @@ public class InMemoryCacheActionFactory implements ActionFactory {
 
   private static final long DEFAULT_MAXIMUM_SIZE = 1000;
   private static final long DEFAULT_TTL = 5000;
+  private JsonObject actionConfig;
 
 
   @Override
@@ -80,6 +81,7 @@ public class InMemoryCacheActionFactory implements ActionFactory {
 
   @Override
   public Action create(String alias, JsonObject config, Vertx vertx, Action doAction) {
+    this.actionConfig = config;
 
     return new Action() {
       private Cache<String, Object> cache = createCache(config);
@@ -166,6 +168,11 @@ public class InMemoryCacheActionFactory implements ActionFactory {
             actionLogger.toLog().toJson());
       }
     };
+  }
+
+  @Override
+  public JsonObject getConfigurationDefaults() {
+    return actionConfig;
   }
 
   private FragmentResult handleFailure(FragmentContext fragmentContext, ActionLogger actionLogger,

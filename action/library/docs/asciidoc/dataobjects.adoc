@@ -154,9 +154,8 @@ Sets the HTTP <code>port</code> the external service
 Set the details of the remote http endpoint location.
 +++
 |[[httpMethod]]`@httpMethod`|`String`|+++
-Set the <code>HttpMethod</code> used for performing the request.
- Defaults to GET.
- Supported methods are GET, POST, PATCH, PUT, DELETE and HEAD.
+Set the <code>HttpMethod</code> used for performing the request. Defaults to GET. Supported methods
+ are GET, POST, PATCH, PUT, DELETE and HEAD.
 +++
 |[[logLevel]]`@logLevel`|`String`|+++
 Set level of action logs.
