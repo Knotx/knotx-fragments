@@ -21,16 +21,12 @@ import io.knotx.server.api.handler.DefaultRequestContextEngine;
 import io.knotx.server.api.handler.RequestContextEngine;
 import io.knotx.server.api.handler.RequestEventHandlerResult;
 import io.vertx.core.Handler;
-import io.vertx.core.logging.Logger;
-import io.vertx.core.logging.LoggerFactory;
 import io.vertx.reactivex.ext.web.RoutingContext;
 import java.util.Collections;
 import java.util.List;
 import org.apache.commons.lang3.ObjectUtils;
 
 public class FragmentsSupplierHandler implements Handler<RoutingContext> {
-
-  private static final Logger LOGGER = LoggerFactory.getLogger(FragmentsSupplierHandler.class);
 
   private final RequestContextEngine engine;
 
@@ -46,14 +42,9 @@ public class FragmentsSupplierHandler implements Handler<RoutingContext> {
     RequestContext requestContext = context.get(RequestContext.KEY);
     try {
       RequestEventHandlerResult result;
-      try {
-        List<Fragment> fragments = supplier.getFragments(requestContext);
-        context.put("fragments", ObjectUtils.defaultIfNull(fragments, Collections.emptyList()));
-        result = RequestEventHandlerResult.success(requestContext.getRequestEvent());
-      } catch (FragmentsProvisionException e) {
-        LOGGER.error(e.getMessage());
-        result = RequestEventHandlerResult.fail(e.getMessage());
-      }
+      List<Fragment> fragments = supplier.getFragments(requestContext);
+      context.put("fragments", ObjectUtils.defaultIfNull(fragments, Collections.emptyList()));
+      result = RequestEventHandlerResult.success(requestContext.getRequestEvent());
       engine.processAndSaveResult(result, context, requestContext);
     } catch (Exception e) {
       engine.handleFatal(context, requestContext, e);

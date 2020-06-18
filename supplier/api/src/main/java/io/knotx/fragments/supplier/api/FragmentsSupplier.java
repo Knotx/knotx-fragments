@@ -27,7 +27,6 @@ public interface FragmentsSupplier {
    *
    * @param requestContext request context
    * @return a list of {@code Fragment}s
-   * @throws FragmentsProvisionException thrown when fragments not found in request context
    */
-  List<Fragment> getFragments(RequestContext requestContext) throws FragmentsProvisionException;
+  List<Fragment> getFragments(RequestContext requestContext);
 }
