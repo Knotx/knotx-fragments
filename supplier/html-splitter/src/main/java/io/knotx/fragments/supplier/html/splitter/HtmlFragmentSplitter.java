@@ -17,6 +17,8 @@ package io.knotx.fragments.supplier.html.splitter;
 
 import io.knotx.fragments.api.Fragment;
 import io.vertx.core.json.JsonObject;
+import io.vertx.core.logging.Logger;
+import io.vertx.core.logging.LoggerFactory;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.MatchResult;
@@ -25,6 +27,8 @@ import java.util.regex.Pattern;
 import org.apache.commons.lang3.StringUtils;
 
 class HtmlFragmentSplitter {
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(HtmlFragmentSplitter.class);
 
   private static final String DYNAMIC_FRAGMENT_REGEXP = "<knotx:(?<type>\\w+)(?<attributes>.*?[^>])>(?<body>.*?)</knotx:\\1>";
   private static final Pattern DYNAMIC_FRAGMENT_PATTERN = Pattern
@@ -40,6 +44,7 @@ class HtmlFragmentSplitter {
    * @return list of fragments (see {@link Fragment}).
    */
   List<Fragment> split(String html) {
+    LOGGER.trace("Splitting HTML: ", html);
     List<Fragment> fragments = new ArrayList<>();
     if (StringUtils.isNotBlank(html)) {
       Matcher matcher = DYNAMIC_FRAGMENT_PATTERN.matcher(html);

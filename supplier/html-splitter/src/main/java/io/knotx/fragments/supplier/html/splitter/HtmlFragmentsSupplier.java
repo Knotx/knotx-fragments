@@ -16,21 +16,14 @@
 package io.knotx.fragments.supplier.html.splitter;
 
 import io.knotx.fragments.api.Fragment;
-import io.knotx.fragments.supplier.api.FragmentsProvisionException;
 import io.knotx.fragments.supplier.api.FragmentsSupplier;
 import io.knotx.server.api.context.ClientResponse;
 import io.knotx.server.api.context.RequestContext;
 import io.vertx.core.buffer.Buffer;
-import io.vertx.core.logging.Logger;
-import io.vertx.core.logging.LoggerFactory;
 import java.util.List;
 import java.util.Optional;
-import org.apache.commons.lang3.StringUtils;
 
 public class HtmlFragmentsSupplier implements FragmentsSupplier {
-
-  private static final Logger LOGGER = LoggerFactory.getLogger(HtmlFragmentsSupplier.class);
-  private static final String MISSING_CLIENT_RESPONSE_BODY = "Template body is missing!";
 
   private final HtmlFragmentSplitter splitter;
 
@@ -39,20 +32,13 @@ public class HtmlFragmentsSupplier implements FragmentsSupplier {
   }
 
   @Override
-  public List<Fragment> getFragments(RequestContext requestContext)
-      throws FragmentsProvisionException {
+  public List<Fragment> getFragments(RequestContext requestContext) {
     List<Fragment> fragments;
     ClientResponse clientResponse = requestContext.getClientResponse();
     final String template = Optional.ofNullable(clientResponse.getBody()).map(Buffer::toString)
         .orElse(null);
-    if (StringUtils.isNotBlank(template)) {
-      fragments = splitter.split(template);
-      // ToDo configuration, by default clear body
-      clearBody(clientResponse);
-    } else {
-      LOGGER.warn(MISSING_CLIENT_RESPONSE_BODY);
-      throw new FragmentsProvisionException(MISSING_CLIENT_RESPONSE_BODY);
-    }
+    fragments = splitter.split(template);
+    clearBody(clientResponse);
     return fragments;
   }
 

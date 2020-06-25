@@ -16,12 +16,11 @@
 package io.knotx.fragments.supplier.html.splitter;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import io.knotx.fragments.api.Fragment;
-import io.knotx.fragments.supplier.api.FragmentsProvisionException;
 import io.knotx.server.api.context.ClientResponse;
 import io.knotx.server.api.context.RequestContext;
 import io.vertx.core.buffer.Buffer;
@@ -56,28 +55,28 @@ class HtmlFragmentsSupplierTest {
   }
 
   @Test
-  @DisplayName("Expect FragmentsProvisionException when template body is missing")
+  @DisplayName("Expect empty fragments list when template body is missing")
   void handleMissingTemplate() {
     // given
     when(clientResponse.getBody()).thenReturn(null);
 
     // then
-    assertThrows(FragmentsProvisionException.class, () -> tested.getFragments(requestContext));
+    assertTrue(() -> tested.getFragments(requestContext).isEmpty());
   }
 
   @Test
-  @DisplayName("Expect FragmentsProvisionException when template body is empty")
+  @DisplayName("Expect empty fragments list when template body is empty")
   void handleEmptyTemplate() {
     // given
     when(clientResponse.getBody()).thenReturn(Buffer.buffer());
 
     // then
-    assertThrows(FragmentsProvisionException.class, () -> tested.getFragments(requestContext));
+    assertTrue(() -> tested.getFragments(requestContext).isEmpty());
   }
 
   @Test
-  @DisplayName("Expect list of fragments  when template is not empty")
-  void checkPayloadAndClientRequestRewritten() throws FragmentsProvisionException {
+  @DisplayName("Expect list of fragments when template is not empty")
+  void checkPayloadAndClientRequestRewritten() {
     // given
     Buffer buffer = Mockito.mock(Buffer.class);
     when(buffer.toString()).thenReturn("body content");
@@ -87,7 +86,6 @@ class HtmlFragmentsSupplierTest {
     when(splitter.split("body content")).thenReturn(expectedFragments);
 
     // when
-
     List<Fragment> fragments = tested.getFragments(requestContext);
 
     // then
@@ -96,7 +94,7 @@ class HtmlFragmentsSupplierTest {
 
   @Test
   @DisplayName("Expect client response body cleared when template is not empty")
-  void checkBodyCleared() throws FragmentsProvisionException {
+  void checkBodyCleared() {
     // given
     Buffer buffer = Mockito.mock(Buffer.class);
     when(buffer.toString()).thenReturn("body content");

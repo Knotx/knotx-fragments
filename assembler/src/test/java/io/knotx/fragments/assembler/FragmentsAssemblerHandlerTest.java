@@ -16,6 +16,7 @@
 package io.knotx.fragments.assembler;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
@@ -63,8 +64,26 @@ public class FragmentsAssemblerHandlerTest {
   }
 
   @Test
-  @DisplayName("Expect OK and fragments body merged to client response body when fragments present in the routing context")
-  public void callAssemblerWithFragment_expectAssemblerResultWithBodyAndOkStatus() {
+  @DisplayName("Expect empty client response body when empty fragments list in the routing context")
+  public void callAssemblerWithFragment_expectEmptyBody() {
+    // given
+    FragmentsAssemblerHandler assemblerHandler = new FragmentsAssemblerHandler();
+    when(routingContext.get("fragments")).thenReturn(Collections.emptyList());
+    RequestEvent requestEvent = new RequestEvent(clientRequest, new JsonObject());
+
+    // when
+    RequestEventHandlerResult result = assemblerHandler.joinFragmentsBodies(routingContext, requestEvent);
+
+    // then
+    assertTrue(result.getRequestEvent().isPresent());
+    assertEquals(0, result.getBody().length());
+    assertNull(result.getStatusCode());
+    assertEquals("0", result.getHeaders().get(HttpHeaders.CONTENT_LENGTH));
+  }
+
+  @Test
+  @DisplayName("Expect fragments body merged to client response body and no status when fragments present in the routing context")
+  public void callAssemblerWithFragment_expectAssemblerResultWithBodyAndNoStatus() {
     // given
     String expectedBody = "<h1>Some text</h1>\n" + "<p>Some text</p>";
     FragmentsAssemblerHandler assemblerHandler = new FragmentsAssemblerHandler();
@@ -81,7 +100,7 @@ public class FragmentsAssemblerHandlerTest {
     // then
     assertTrue(result.getRequestEvent().isPresent());
     assertEquals(Buffer.buffer(expectedBody), result.getBody());
-    assertEquals(HttpResponseStatus.OK.code(), result.getStatusCode().intValue());
+    assertNull(result.getStatusCode());
     assertEquals(Integer.toString((expectedBody.length())),
         result.getHeaders().get(HttpHeaders.CONTENT_LENGTH));
   }

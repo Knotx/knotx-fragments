@@ -17,6 +17,8 @@ This regexp contains 3 matching groups:
 Finally, the `RequestContext` response body is cleared (set to `null`) and fragments are saved
 into [`RoutingContext`](https://vertx.io/docs/apidocs/io/vertx/ext/web/RoutingContext.html) under `"fragments"` key.
 
+In case when there is no body or body is empty in the Request Context, an empty list of Fragments is supplied.
+
 ### Example
 Let's assume, that the following markup is the [Request Context](https://github.com/Knotx/knotx-server-http/blob/master/api/docs/asciidoc/dataobjects.adoc#requestcontext)
 response body (the [`ClientResponse`](https://github.com/Knotx/knotx-server-http/blob/master/api/docs/asciidoc/dataobjects.adoc#clientresponse) body):

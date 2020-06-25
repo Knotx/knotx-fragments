@@ -74,16 +74,12 @@ class FragmentsAssemblerHandler implements Handler<RoutingContext> {
   private RequestEventHandlerResult createSuccessResponse(RequestEvent inputContext,
       String responseBody) {
     MultiMap headers = MultiMap.caseInsensitiveMultiMap();
-    int statusCode;
 
-    headers.add(HttpHeaders.CONTENT_LENGTH.toString()
-            .toLowerCase(),
+    headers.add(HttpHeaders.CONTENT_LENGTH.toString().toLowerCase(),
         Integer.toString(responseBody.length()));
-    statusCode = HttpResponseStatus.OK.code();
 
     return RequestEventHandlerResult.success(inputContext)
         .withBody(Buffer.buffer(responseBody))
-        .withStatusCode(statusCode)
         .withHeaders(headers);
   }
 
