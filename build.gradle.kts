@@ -16,7 +16,7 @@
 plugins {
     java
     id("io.knotx.release-java")
-    id("io.knotx.publish-all-composite")
+    id("io.knotx.composite-build-support")
 }
 
 subprojects {
