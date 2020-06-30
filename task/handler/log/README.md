@@ -8,9 +8,9 @@ operation ends, task execution data is exposed to consumers via [Fragment execut
 - [JSON Writer](https://github.com/Knotx/knotx-fragments/blob/master/task/handler/log/json)
 
 ## What is the execution log?
-[Fragment execution log](https://github.com/Knotx/knotx-fragments/blob/master/handler/consumer/api/docs/asciidoc/dataobjects.adoc#fragmentexecutionlog)
+[Fragment execution log](https://github.com/Knotx/knotx-fragments/blob/master/task/handler/log/api/docs/asciidoc/dataobjects.adoc#fragmentexecutionlog)
 is a JSON that contains both [fragment](https://github.com/Knotx/knotx-fragments/blob/master/api/docs/asciidoc/dataobjects.adoc#fragment) 
-data and [graph node execution log](https://github.com/Knotx/knotx-fragments/blob/master/handler/consumer/api/docs/asciidoc/dataobjects.adoc#graphnodeexecutionlog).
+data and [graph node execution log](https://github.com/Knotx/knotx-fragments/blob/master/task/handler/log/api/docs/asciidoc/dataobjects.adoc#graphnodeexecutionlog).
   
 The [graph node execution log](#graph-node-execution-log) contains data about the processing of the 
 [Task](https://github.com/Knotx/knotx-fragments/tree/master/engine#task)'s root node and allows you to 
