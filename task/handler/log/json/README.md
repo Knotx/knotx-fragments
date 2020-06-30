@@ -1,6 +1,14 @@
 # Fragment JSON Consumer
+It exposes fragments tasks execution log to JSON response body for further analysis.
+
+## How to start?
+- Configure consumer in handler
+  - add a [consumer factory configuration](#how-to-configure) to the [Fragments Handler options](https://github.com/Knotx/knotx-fragments/blob/master/handler/core/docs/asciidoc/dataobjects.adoc#fragmentshandleroptions)
+  - set `logLevel` to `INFO` for more fragments' processing details in the [Default Task Factory config](https://github.com/Knotx/knotx-fragments/blob/master/handler/core/docs/asciidoc/dataobjects.adoc#defaulttaskfactoryconfig)
+  
+## How does it work?
 When configured, it appends debug data to `Fragment` body under `_knotx_fragment` key, the existing body remains unchanged.
-Appended entry will contain data provided by [FragmentExecutionLog](https://github.com/Knotx/knotx-fragments/blob/master/handler/consumer/api/src/main/java/io/knotx/fragments/handler/consumer/api/model/FragmentExecutionLog.java).
+Appended entry will contain data provided by [FragmentExecutionLog](https://github.com/Knotx/knotx-fragments/blob/master/task/handler/log/api/docs/asciidoc/dataobjects.adoc#fragmentexecutionlog).
 ```
 {
   "user" {
@@ -14,13 +22,6 @@ Appended entry will contain data provided by [FragmentExecutionLog](https://gith
   }
 }
 ```
-
-## How to start?
-- Configure consumer in handler
-  - add a [consumer factory configuration](#how-to-configure) to the [Fragments Handler options](https://github.com/Knotx/knotx-fragments/blob/master/handler/core/docs/asciidoc/dataobjects.adoc#fragmentshandleroptions)
-  - set `logLevel` to `INFO` for more fragments' processing details in the [Default Task Factory config](https://github.com/Knotx/knotx-fragments/blob/master/handler/core/docs/asciidoc/dataobjects.adoc#defaulttaskfactoryconfig)
-  
-Any issues? Please check the [functional](https://github.com/Knotx/knotx-stack/blob/master/src/functionalTest/java/io/knotx/stack/functional/KnotxFragmentsDebugDataWithHandlebarsTest.java) test configuration.
 
 ## How to configure?
 It must be configured in `consumerFactories`
