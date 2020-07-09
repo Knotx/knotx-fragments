@@ -23,9 +23,10 @@ import java.util.List;
 public interface FragmentsSupplier {
 
   /**
-   * Supplies list of {@code Fragment}
+   * Supplies a list of {@code Fragment}s.
    *
    * @param requestContext request context
+   * @return a list of {@code Fragment}s
    */
-  List<Fragment> getFragments(RequestContext requestContext) throws FragmentsProvisionException;
+  List<Fragment> getFragments(RequestContext requestContext);
 }

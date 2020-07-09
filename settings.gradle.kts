@@ -14,19 +14,38 @@
  * limitations under the License.
  */
 pluginManagement {
+    val version: String by settings
+    plugins {
+        id("io.knotx.java-library") version version
+        id("io.knotx.codegen") version version
+        id("io.knotx.unit-test") version version
+        id("io.knotx.jacoco") version version
+        id("io.knotx.maven-publish") version version
+        id("io.knotx.composite-build-support") version version
+        id("io.knotx.release-java") version version
+        id("org.nosphere.apache.rat") version "0.6.0"
+    }
     repositories {
-        maven { url = uri("https://plugins.gradle.org/m2/") }
         mavenLocal()
+        jcenter()
+        gradlePluginPortal()
     }
 }
 
 rootProject.name = "knotx-fragments"
 
-// API
+// Fragment
+
 include("knotx-fragments-api")
 project(":knotx-fragments-api").projectDir = file("api")
 
-// Supplier
+include("knotx-fragments-action-api")
+include("knotx-fragments-action-core")
+include("knotx-fragments-action-library")
+project(":knotx-fragments-action-api").projectDir = file("action/api")
+project(":knotx-fragments-action-core").projectDir = file("action/core")
+project(":knotx-fragments-action-library").projectDir = file("action/library")
+
 include("knotx-fragments-supplier-api")
 include("knotx-fragments-supplier-single-fragment")
 include("knotx-fragments-supplier-html-splitter")
@@ -34,30 +53,30 @@ project(":knotx-fragments-supplier-api").projectDir = file("supplier/api")
 project(":knotx-fragments-supplier-single-fragment").projectDir = file("supplier/single-fragment")
 project(":knotx-fragments-supplier-html-splitter").projectDir = file("supplier/html-splitter")
 
-// Actions
-include("knotx-fragments-action-api")
-include("knotx-fragments-action-core")
-project(":knotx-fragments-action-api").projectDir = file("actions/api")
-project(":knotx-fragments-action-core").projectDir = file("actions/core")
-
-// Handler
-include("knotx-fragments-handler-api")
-include("knotx-fragments-handler-core")
-include("knotx-fragments-handler-consumer-api")
-include("knotx-fragments-handler-consumer-html")
-include("knotx-fragments-handler-consumer-json")
-project(":knotx-fragments-handler-api").projectDir = file("handler/api")
-project(":knotx-fragments-handler-core").projectDir = file("handler/core")
-project(":knotx-fragments-handler-consumer-api").projectDir = file("handler/consumer/api")
-project(":knotx-fragments-handler-consumer-html").projectDir = file("handler/consumer/html")
-project(":knotx-fragments-handler-consumer-json").projectDir = file("handler/consumer/json")
-
-// Engine
-include("knotx-fragments-engine-api")
-include("knotx-fragments-engine-core")
-project(":knotx-fragments-engine-api").projectDir = file("engine/api")
-project(":knotx-fragments-engine-core").projectDir = file("engine/core")
-
-// Assembler
 include("knotx-fragments-assembler")
 project(":knotx-fragments-assembler").projectDir = file("assembler")
+
+// Task
+
+include("knotx-fragments-task-api")
+project(":knotx-fragments-task-api").projectDir = file("task/api")
+
+include("knotx-fragments-task-factory-api")
+include("knotx-fragments-task-factory-default")
+project(":knotx-fragments-task-factory-api").projectDir = file("task/factory/api")
+project(":knotx-fragments-task-factory-default").projectDir = file("task/factory/default")
+
+include("knotx-fragments-task-engine")
+project(":knotx-fragments-task-engine").projectDir = file("task/engine")
+
+include("knotx-fragments-task-handler")
+include("knotx-fragments-task-handler-log-api")
+include("knotx-fragments-task-handler-log-html")
+include("knotx-fragments-task-handler-log-json")
+project(":knotx-fragments-task-handler").projectDir = file("task/handler/core")
+project(":knotx-fragments-task-handler-log-api").projectDir = file("task/handler/log/api")
+project(":knotx-fragments-task-handler-log-html").projectDir = file("task/handler/log/html")
+project(":knotx-fragments-task-handler-log-json").projectDir = file("task/handler/log/json")
+
+include("knotx-fragments-task-functional-test")
+project(":knotx-fragments-task-functional-test").projectDir = file("task/functional")

@@ -5,34 +5,32 @@
 
 # Knot.x Fragments
 
-> While [Knot.x HTTP Server](https://github.com/Knotx/knotx-server-http) is a _"hearth"_ of Knot.x, Fragments processing 
-is its _"brain"_.
+> While [Knot.x HTTP Server](https://github.com/Knotx/knotx-server-http) is a _"hearth"_ of Knot.x, 
+> Fragments processing is its _"brain"_.
 
-Knot.x Fragments is a Swiss Army knife for **integrating with dynamic data sources**. It 
-comes with **distributed systems stability patterns** such as a **circuit breaker** to handle different 
-kinds of network failures. Thanks to those build-in mechanisms you can focus more on delivering
-business logic and be ready to handle any unexpected integration problems.
+Knot.x Fragments is a Swiss Army knife for **integrating with various data sources**. It provides 
+instruments that transform business use cases into implementation logic ready for evolution.
 
-Knot.x Fragments encourages to decompose business logic into a chain of simple steps that later 
-can be wrapped with integration stability patterns without code changes. 
-Besides, when the chain becomes more complex and additional failure scenarios are known, 
-failure logic can be adjusted with fallback configuration (no changes in the business logic required).
+Knot.x Fragments is designed to build fault-tolerant, reactive, back-end integrations such as:
+- [API Gateway](https://github.com/Knotx/knotx-example-project#api-gateway--web-api)
+- Backend For Frontend (BFF) for single-page applications (SPA)
+- [Web API](https://github.com/Knotx/knotx-example-project#api-gateway--web-api) (both REST and GraphQL)
 
-Knot.x Fragments is designed to build fault-tolerant, back-end integrations such as:
-- API Gateways, Backend For Frontend (BFF) for single-page applications (SPA), Web APIs
-- documents processing (HTML, JSON, PDF etc) with a templating engine support
+Additionally, it still supports its original purpose which is templating solution 
+that combines dynamic data (from external data sources, 3rd party API, etc.) with static content (HTML, 
+JSON, PDF, etc.) that comes from various content stores (such as Wordpress, Drupal, Magnolia or 
+Adobe Experience Manager). See the [example](https://github.com/Knotx/knotx-example-project#template-processing).
 
 ## Modules
 
+- [Fragments API](https://github.com/Knotx/knotx-fragments/tree/master/api) - defines a [**Fragment**](https://github.com/Knotx/knotx-fragments/tree/master/api#fragment) 
+and a [Fragment Operation](https://github.com/Knotx/knotx-fragments/tree/master/api#fragment-operation)
+- [Actions](https://github.com/Knotx/knotx-fragments/tree/master/action) - extendable 
+library of fragment operations that simplifies integration with APIs and provides stability 
+patterns (e.g. [circuit breaker mechanism](https://github.com/Knotx/knotx-fragments/tree/master/action/library#circuit-breaker-behaviour))
 - [Fragments Supplier](https://github.com/Knotx/knotx-fragments/tree/master/supplier) - converts an Http request into one or more [**Fragments**](https://github.com/Knotx/knotx-fragments/tree/master/api#knotx-fragment-api)
-    - [HTML Splitter](https://github.com/Knotx/knotx-fragments/tree/master/supplier/html-splitter)
-    - [Single Fragment Supplier](https://github.com/Knotx/knotx-fragments/tree/master/supplier/single-fragment)
-- [Fragments Handler](https://github.com/Knotx/knotx-fragments/tree/master/handler) - configures tasks for fragments and delegates processing to Engine 
-    - [Fragment Execution Log Consumer](https://github.com/Knotx/knotx-fragments/tree/master/handler/consumer) - exposes data from evaluated fragments
-- [Fragments Engine](https://github.com/Knotx/knotx-fragments/tree/master/engine) - evaluates fragments (tasks) with map-reduce nature
 - [Fragments Assembler](https://github.com/Knotx/knotx-fragments/tree/master/assembler) - merges Fragments into a single response
-
-Each module contains its own documentation inside.
+- [Task](https://github.com/Knotx/knotx-fragments/tree/master/task) - processes fragments and applies a configured business logic assigned to them
 
 ## How does it work
 
@@ -73,10 +71,6 @@ In this case, the Action responds with an **error** Transition, which indicates 
 
 Finally, after all the Fragments were processed, they are combined into a single response by the 
 [Fragments Assembler](https://github.com/Knotx/knotx-fragments/tree/master/assembler) handler.
-
-### Example: HTML template processing
-
-Read more about configuring HTML template processing in the [Knot.x Example Project](https://github.com/Knotx/knotx-example-project/tree/master/template-processing).
 
 ## License
 **Knot.x Fragments** is licensed under the [Apache License, Version 2.0 (the "License")](https://www.apache.org/licenses/LICENSE-2.0.txt)

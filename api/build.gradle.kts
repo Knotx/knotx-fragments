@@ -15,21 +15,16 @@
  */
 import org.nosphere.apache.rat.RatTask
 
-repositories {
-    mavenLocal()
-    maven { url = uri("https://plugins.gradle.org/m2/") }
-    maven { url = uri("http://repo1.maven.org/maven2") }
-}
-
 plugins {
     id("io.knotx.java-library")
     id("io.knotx.codegen")
     id("io.knotx.maven-publish")
-    id("io.knotx.jacoco")
-    id("org.nosphere.apache.rat") version "0.6.0"
+    id("org.nosphere.apache.rat")
 }
 
 dependencies {
+    annotationProcessor(platform("io.knotx:knotx-dependencies:${project.version}"))
+
     implementation(platform("io.knotx:knotx-dependencies:${project.version}"))
 
     api("io.knotx:knotx-server-http-api:${project.version}")

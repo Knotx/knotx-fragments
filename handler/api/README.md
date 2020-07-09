@@ -1,2 +1,0 @@
-# Fragments Handler API
-

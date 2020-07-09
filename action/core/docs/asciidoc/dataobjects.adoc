@@ -1,0 +1,27 @@
+= Cheatsheets
+
+[[ActionFactoryOptions]]
+== ActionFactoryOptions
+
+++++
+ Options used during link initialization. Those
+ values are then passed to link.
+++++
+'''
+
+[cols=">25%,25%,50%"]
+[frame="topbot"]
+|===
+^|Name | Type ^| Description
+|[[config]]`@config`|`Json object`|+++
+Sets <code>Action</code> configuration that is passed to Action.
++++
+|[[doAction]]`@doAction`|`String`|+++
+Sets the <code>Action</code> (by its alias) that would be triggered by the returned action instance.
+ This is mainly used by <a href="https://github.com/Knotx/knotx-fragments/tree/master/action#behaviours">behaviours</a>.
++++
+|[[factory]]`@factory`|`String`|+++
+Sets <code>Action</code> factory name.
++++
+|===
+
