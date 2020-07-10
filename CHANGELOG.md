@@ -3,6 +3,7 @@ All notable changes to `knotx-fragments` will be documented in this file.
 
 ## Unreleased
 List of changes that are finished but not yet released in any final version.
+- [PR-170](https://github.com/Knotx/knotx-stack/pull/170) - Upgrade to Vert.x `3.9.1`, replace deprecated `setHandler` with `onComplete`.
                 
 ## 2.2.1
 - [PR-165](https://github.com/Knotx/knotx-stack/pull/165) - Knotx/knotx-fragments#161 enable passing status code from handlers to end user

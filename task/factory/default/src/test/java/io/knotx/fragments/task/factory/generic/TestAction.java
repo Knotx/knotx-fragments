@@ -46,7 +46,7 @@ public class TestAction implements ActionFactory {
 
       Future<FragmentResult> resultFuture = succeededFuture(
           new FragmentResult(fragment, transition));
-      resultFuture.setHandler(resultHandler);
+      resultFuture.onComplete(resultHandler);
     };
   }
 }
