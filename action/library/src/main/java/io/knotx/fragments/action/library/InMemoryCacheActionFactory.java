@@ -98,7 +98,7 @@ public class InMemoryCacheActionFactory implements ActionFactory {
             .onErrorReturn(
                 error -> handleFailure(fragmentContext, actionLogger, error))
             .map(Future::succeededFuture)
-            .doOnSuccess(future -> future.setHandler(resultHandler))
+            .doOnSuccess(future -> future.onComplete(resultHandler))
             .subscribe();
       }
 

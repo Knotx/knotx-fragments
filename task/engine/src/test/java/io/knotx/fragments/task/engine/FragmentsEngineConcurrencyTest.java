@@ -64,7 +64,7 @@ class FragmentsEngineConcurrencyTest {
     }
     Future.succeededFuture(
         new FragmentResult(fragmentContext.getFragment(), FragmentResult.SUCCESS_TRANSITION))
-        .setHandler(resultHandler);
+        .onComplete(resultHandler);
   };
 
   @Test

@@ -32,7 +32,7 @@ interface TestFunction extends FragmentOperation {
     return (fragmentContext, resultHandler) -> {
       Fragment fragment = fragmentContext.getFragment();
       FragmentResult result = new FragmentResult(fragment, SUCCESS_TRANSITION);
-      Future.succeededFuture(result).setHandler(resultHandler);
+      Future.succeededFuture(result).onComplete(resultHandler);
     };
   }
 
@@ -40,7 +40,7 @@ interface TestFunction extends FragmentOperation {
     return (fragmentContext, resultHandler) -> {
       Fragment fragment = fragmentContext.getFragment();
       FragmentResult result = new FragmentResult(fragment, SUCCESS_TRANSITION);
-      vertx.setTimer(delayInMs, event -> Future.succeededFuture(result).setHandler(resultHandler));
+      vertx.setTimer(delayInMs, event -> Future.succeededFuture(result).onComplete(resultHandler));
     };
   }
 
@@ -48,7 +48,7 @@ interface TestFunction extends FragmentOperation {
     return (fragmentContext, resultHandler) -> {
       Fragment fragment = fragmentContext.getFragment();
       FragmentResult result = new FragmentResult(fragment, SUCCESS_TRANSITION, nodeObject);
-      Future.succeededFuture(result).setHandler(resultHandler);
+      Future.succeededFuture(result).onComplete(resultHandler);
     };
   }
 
@@ -56,20 +56,20 @@ interface TestFunction extends FragmentOperation {
     return (fragmentContext, resultHandler) -> {
       Fragment fragment = fragmentContext.getFragment();
       FragmentResult result = new FragmentResult(fragment, ERROR_TRANSITION, nodeLog);
-      Future.succeededFuture(result).setHandler(resultHandler);
+      Future.succeededFuture(result).onComplete(resultHandler);
     };
   }
 
 
   static TestFunction failure() {
     return (fragmentContext, resultHandler) -> Future.<FragmentResult>failedFuture(
-        new RuntimeException()).setHandler(resultHandler);
+        new RuntimeException()).onComplete(resultHandler);
   }
 
   static TestFunction fatal(Fragment fragment) {
     return (fragmentContext, resultHandler) -> Future.<FragmentResult>failedFuture(
         new NodeFatalException(fragment))
-        .setHandler(resultHandler);
+        .onComplete(resultHandler);
   }
 
   static TestFunction appendPayload(String payloadKey, JsonObject payloadValue) {
@@ -77,7 +77,7 @@ interface TestFunction extends FragmentOperation {
       Fragment fragment = fragmentContext.getFragment();
       fragment.appendPayload(payloadKey, payloadValue);
       FragmentResult result = new FragmentResult(fragment, SUCCESS_TRANSITION);
-      Future.succeededFuture(result).setHandler(resultHandler);
+      Future.succeededFuture(result).onComplete(resultHandler);
     };
   }
 
@@ -86,7 +86,7 @@ interface TestFunction extends FragmentOperation {
       Fragment fragment = fragmentContext.getFragment();
       fragment.appendPayload(payloadKey, payloadValue);
       FragmentResult result = new FragmentResult(fragment, SUCCESS_TRANSITION);
-      Future.succeededFuture(result).setHandler(resultHandler);
+      Future.succeededFuture(result).onComplete(resultHandler);
     };
   }
 
@@ -97,7 +97,7 @@ interface TestFunction extends FragmentOperation {
       String payloadValue = fragment.getPayload().getString(expectedPayloadKey);
       fragment.appendPayload(updatedPayloadKey, payloadValue + updatedPayloadValue);
       FragmentResult result = new FragmentResult(fragment, SUCCESS_TRANSITION);
-      Future.succeededFuture(result).setHandler(resultHandler);
+      Future.succeededFuture(result).onComplete(resultHandler);
     };
   }
 
@@ -106,7 +106,7 @@ interface TestFunction extends FragmentOperation {
       Fragment fragment = fragmentContext.getFragment();
       fragment.setBody(fragment.getBody() + postfix);
       FragmentResult result = new FragmentResult(fragment, SUCCESS_TRANSITION);
-      Future.succeededFuture(result).setHandler(resultHandler);
+      Future.succeededFuture(result).onComplete(resultHandler);
     };
   }
 
@@ -118,7 +118,7 @@ interface TestFunction extends FragmentOperation {
         fragment.setBody(fragment.getBody() + payloadValue);
       }
       FragmentResult result = new FragmentResult(fragment, SUCCESS_TRANSITION);
-      Future.succeededFuture(result).setHandler(resultHandler);
+      Future.succeededFuture(result).onComplete(resultHandler);
     };
   }
 }

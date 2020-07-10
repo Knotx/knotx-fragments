@@ -86,7 +86,7 @@ class InMemoryCacheActionFactoryLoggingTest {
       fragment.appendPayload(PAYLOAD_KEY, expectedPayloadValue);
       Future
           .succeededFuture(new FragmentResult(fragment, FragmentResult.SUCCESS_TRANSITION))
-          .setHandler(resultHandler);
+          .onComplete(resultHandler);
     };
 
     Action tested = new InMemoryCacheActionFactory()
@@ -128,7 +128,7 @@ class InMemoryCacheActionFactoryLoggingTest {
       fragment.appendPayload(PAYLOAD_KEY, expectedPayloadValue);
       Future
           .succeededFuture(new FragmentResult(fragment, FragmentResult.SUCCESS_TRANSITION))
-          .setHandler(resultHandler);
+          .onComplete(resultHandler);
     };
 
     Action tested = new InMemoryCacheActionFactory()
@@ -176,7 +176,7 @@ class InMemoryCacheActionFactoryLoggingTest {
         .succeededFuture(
             new FragmentResult(fragmentContext.getFragment(), FragmentResult.SUCCESS_TRANSITION,
                 innerActionLog.toLog().toJson()))
-        .setHandler(resultHandler);
+        .onComplete(resultHandler);
 
     Action tested = new InMemoryCacheActionFactory()
         .create(ACTION_ALIAS, configuration, null, doAction);
@@ -222,7 +222,7 @@ class InMemoryCacheActionFactoryLoggingTest {
         .succeededFuture(
             new FragmentResult(fragmentContext.getFragment(), FragmentResult.ERROR_TRANSITION,
                 innerActionLog.toLog().toJson()))
-        .setHandler(resultHandler);
+        .onComplete(resultHandler);
 
     Action tested = new InMemoryCacheActionFactory()
         .create(ACTION_ALIAS, configuration, null, doAction);
@@ -258,7 +258,7 @@ class InMemoryCacheActionFactoryLoggingTest {
     Action doAction = (fragmentContext, resultHandler) -> Future
         .succeededFuture(
             new FragmentResult(fragmentContext.getFragment(), FragmentResult.SUCCESS_TRANSITION))
-        .setHandler(resultHandler);
+        .onComplete(resultHandler);
 
     Action tested = new InMemoryCacheActionFactory()
         .create(ACTION_ALIAS, configuration, null, doAction);
@@ -288,7 +288,7 @@ class InMemoryCacheActionFactoryLoggingTest {
       VertxTestContext testContext) throws Throwable {
     Action doAction = (fragmentContext, resultHandler) -> Future
         .<FragmentResult>failedFuture(new IllegalStateException("Application failed!"))
-        .setHandler(resultHandler);
+        .onComplete(resultHandler);
 
     Action tested = new InMemoryCacheActionFactory()
         .create(ACTION_ALIAS, configuration, null, doAction);

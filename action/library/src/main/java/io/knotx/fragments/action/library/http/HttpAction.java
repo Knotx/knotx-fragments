@@ -67,7 +67,7 @@ public class HttpAction implements Action {
     Single.just(fragmentContext)
         .flatMap(this::process)
         .map(Future::succeededFuture)
-        .map(future -> future.setHandler(resultHandler))
+        .map(future -> future.onComplete(resultHandler))
         .subscribe();
   }
 

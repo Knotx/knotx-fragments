@@ -39,7 +39,7 @@ class CircuitBreakerDoActions {
     actionLogger.info("info", "success");
     Future.succeededFuture(new FragmentResult(fragmentContext.getFragment(), SUCCESS_TRANSITION,
         actionLogger.toLog().toJson()))
-        .setHandler(resultHandler);
+        .onComplete(resultHandler);
   }
 
   static void applyCustomTransition(FragmentContext fragmentContext,
@@ -48,7 +48,7 @@ class CircuitBreakerDoActions {
     actionLogger.info("info", "custom");
     Future.succeededFuture(new FragmentResult(fragmentContext.getFragment(), CUSTOM_TRANSITION,
         actionLogger.toLog().toJson()))
-        .setHandler(resultHandler);
+        .onComplete(resultHandler);
   }
 
   static void applyErrorTransition(FragmentContext fragmentContext,
@@ -57,7 +57,7 @@ class CircuitBreakerDoActions {
     actionLogger.info("info", "error");
     Future.succeededFuture(new FragmentResult(fragmentContext.getFragment(), ERROR_TRANSITION,
         actionLogger.toLog().toJson()))
-        .setHandler(resultHandler);
+        .onComplete(resultHandler);
   }
 
   static void applyFailure(FragmentContext fragmentContext,
@@ -65,7 +65,7 @@ class CircuitBreakerDoActions {
     ActionLogger actionLogger = ActionLogger.create("action", INFO);
     actionLogger.info("info", "failure");
     Future.<FragmentResult>failedFuture(new IllegalStateException("Application failed!"))
-        .setHandler(resultHandler);
+        .onComplete(resultHandler);
   }
 
   static void applyException(FragmentContext fragmentContext,
@@ -80,7 +80,7 @@ class CircuitBreakerDoActions {
         l ->
             Future.succeededFuture(
                 new FragmentResult(fragmentContext.getFragment(), SUCCESS_TRANSITION)
-            ).setHandler(resultHandler));
+            ).onComplete(resultHandler));
   }
 
   static Action applyOneAfterAnother(Action first, Action second) {
