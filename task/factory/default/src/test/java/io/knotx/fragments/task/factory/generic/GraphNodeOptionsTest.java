@@ -19,7 +19,6 @@ import static io.knotx.junit5.util.HoconLoader.verify;
 import static io.knotx.fragments.api.FragmentResult.SUCCESS_TRANSITION;
 import static org.junit.jupiter.api.Assertions.*;
 
-import io.knotx.fragments.task.factory.generic.GraphNodeOptions;
 import io.knotx.fragments.task.factory.generic.node.action.ActionNodeConfig;
 import io.knotx.fragments.task.factory.generic.node.action.ActionNodeFactory;
 import io.knotx.fragments.task.factory.generic.node.subtasks.SubtasksNodeConfig;
@@ -96,6 +95,18 @@ class GraphNodeOptionsTest {
       Map<String, GraphNodeOptions> transitions = graphNodeOptions.getOnTransitions();
 
       assertFalse(transitions.isEmpty());
+    }, vertx);
+  }
+
+  @Test
+  @DisplayName("Expect 'onTransitions' to take precedence over 'on' alias")
+  void expectAliasToTakePrecedence(Vertx vertx) throws Throwable {
+    verify("conf/taskWithTransitionsAndAlias.conf", config -> {
+      GraphNodeOptions graphNodeOptions = new GraphNodeOptions(config);
+      Map<String, GraphNodeOptions> transitions = graphNodeOptions.getOnTransitions();
+
+      assertEquals(transitions.size(), 1);
+      assertNotNull(transitions.get("_error"));
     }, vertx);
   }
 
