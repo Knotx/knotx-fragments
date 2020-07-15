@@ -66,7 +66,7 @@ public class TaskFactoryStub implements TaskFactory {
         fragment.setBody(transition);
         future = Future
             .succeededFuture(new FragmentResult(fragment, transition));
-        future.setHandler(resultHandler);
+        future.onComplete(resultHandler);
       }
 
       @Override

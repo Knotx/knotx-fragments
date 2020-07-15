@@ -50,7 +50,7 @@ public class PayloadToBodyActionFactory implements ActionFactory {
           .orElse(new FragmentResult(fragment, FragmentResult.ERROR_TRANSITION));
 
       Future<FragmentResult> resultFuture = succeededFuture(result);
-      resultFuture.setHandler(resultHandler);
+      resultFuture.onComplete(resultHandler);
     };
   }
 

@@ -51,12 +51,12 @@ class FragmentsEngineOrderTest {
         }
         Future.succeededFuture(
             new FragmentResult(fragmentContext.getFragment(), FragmentResult.SUCCESS_TRANSITION))
-            .setHandler(resultHandler);
+            .onComplete(resultHandler);
       };
   private static final FragmentOperation SIMPLE_OPERATION =
       (fragmentContext, resultHandler) -> Future.succeededFuture(
           new FragmentResult(fragmentContext.getFragment(), FragmentResult.SUCCESS_TRANSITION))
-          .setHandler(resultHandler);
+          .onComplete(resultHandler);
 
   @Test
   @DisplayName("Expect fragments in incoming order")

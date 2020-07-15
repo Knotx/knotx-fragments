@@ -94,7 +94,7 @@ public class InlineBodyActionFactory implements ActionFactory {
     Future<FragmentResult> resultFuture = Future.succeededFuture(
         new FragmentResult(fragmentContext.getFragment(), FragmentResult.SUCCESS_TRANSITION,
             actionLogger.toLog().toJson()));
-    resultFuture.setHandler(resultHandler);
+    resultFuture.onComplete(resultHandler);
   }
 
 }

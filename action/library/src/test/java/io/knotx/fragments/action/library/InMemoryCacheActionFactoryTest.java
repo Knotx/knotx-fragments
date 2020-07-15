@@ -63,7 +63,7 @@ class InMemoryCacheActionFactoryTest {
     // given
     Action doAction = (fragmentContext, resultHandler) -> Future
         .succeededFuture(new FragmentResult(firstFragment, FragmentResult.SUCCESS_TRANSITION))
-        .setHandler(resultHandler);
+        .onComplete(resultHandler);
 
     Action tested = new InMemoryCacheActionFactory()
         .create(ACTION_ALIAS, ACTION_CONFIG, null, doAction);
@@ -88,7 +88,7 @@ class InMemoryCacheActionFactoryTest {
     // given
     Action doAction = (fragmentContext, resultHandler) -> Future
         .succeededFuture(new FragmentResult(firstFragment, ERROR_TRANSITION))
-        .setHandler(resultHandler);
+        .onComplete(resultHandler);
 
     Action tested = new InMemoryCacheActionFactory()
         .create(ACTION_ALIAS, ACTION_CONFIG, null, doAction);
@@ -116,7 +116,7 @@ class InMemoryCacheActionFactoryTest {
     // given
     Action doAction = (fragmentContext, resultHandler) -> Future
         .<FragmentResult>failedFuture(new IllegalStateException())
-        .setHandler(resultHandler);
+        .onComplete(resultHandler);
 
     Action tested = new InMemoryCacheActionFactory()
         .create(ACTION_ALIAS, ACTION_CONFIG, null, doAction);
@@ -150,7 +150,7 @@ class InMemoryCacheActionFactoryTest {
       fragment.appendPayload(PAYLOAD_KEY, expectedPayloadValue);
       Future
           .succeededFuture(new FragmentResult(fragment, FragmentResult.SUCCESS_TRANSITION))
-          .setHandler(resultHandler);
+          .onComplete(resultHandler);
     };
 
     Action tested = new InMemoryCacheActionFactory()
@@ -183,7 +183,7 @@ class InMemoryCacheActionFactoryTest {
       fragment.appendPayload(PAYLOAD_KEY, uniqueValue(fragmentContext.hashCode()));
       Future
           .succeededFuture(new FragmentResult(fragment, FragmentResult.SUCCESS_TRANSITION))
-          .setHandler(resultHandler);
+          .onComplete(resultHandler);
     };
 
     Action tested = new InMemoryCacheActionFactory()
@@ -215,7 +215,7 @@ class InMemoryCacheActionFactoryTest {
       fragment.appendPayload(PAYLOAD_KEY, uniqueValue(fragmentContext.hashCode()));
       Future
           .succeededFuture(new FragmentResult(fragment, FragmentResult.SUCCESS_TRANSITION))
-          .setHandler(resultHandler);
+          .onComplete(resultHandler);
     };
 
     Action tested = new InMemoryCacheActionFactory()
@@ -247,7 +247,7 @@ class InMemoryCacheActionFactoryTest {
       fragment.appendPayload(PAYLOAD_KEY, uniqueValue(fragmentContext.hashCode()));
       Future
           .succeededFuture(new FragmentResult(fragment, FragmentResult.SUCCESS_TRANSITION))
-          .setHandler(resultHandler);
+          .onComplete(resultHandler);
     };
 
     Action tested = new InMemoryCacheActionFactory()
@@ -287,13 +287,13 @@ class InMemoryCacheActionFactoryTest {
       if (fragmentContext.getClientRequest().getParams().contains("error")) {
         Future
             .<FragmentResult>failedFuture(new IllegalStateException())
-            .setHandler(resultHandler);
+            .onComplete(resultHandler);
       } else {
         Fragment fragment = fragmentContext.getFragment();
         fragment.appendPayload(PAYLOAD_KEY, expectedPayloadValue);
         Future
             .succeededFuture(new FragmentResult(fragment, FragmentResult.SUCCESS_TRANSITION))
-            .setHandler(resultHandler);
+            .onComplete(resultHandler);
       }
     };
 

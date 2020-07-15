@@ -177,7 +177,7 @@ class TaskEngineSingleOperationTest {
     // given
     FragmentOperation operation = (context, handler) -> Future
         .succeededFuture(new FragmentResult(context.getFragment(), "customTransition"))
-        .setHandler(handler);
+        .onComplete(handler);
     SingleNode rootNode = Nodes.single("knotx.knot.successKnot", operation);
 
     // when
@@ -231,7 +231,7 @@ class TaskEngineSingleOperationTest {
     // given
     FragmentOperation operation = (context, handler) -> Future
         .succeededFuture(new FragmentResult(context.getFragment(), "customTransition"))
-        .setHandler(handler);
+        .onComplete(handler);
     SingleNode rootNode = Nodes.single("first", operation);
 
     // when

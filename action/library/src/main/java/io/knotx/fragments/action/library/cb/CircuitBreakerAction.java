@@ -66,7 +66,7 @@ class CircuitBreakerAction implements Action {
     circuitBreaker.executeWithFallback(
         promise -> executeCommand(promise, fragmentContext, counter, actionLogger),
         throwable -> handleFallback(fragmentContext, throwable, counter, actionLogger)
-    ).setHandler(resultHandler);
+    ).onComplete(resultHandler);
   }
 
   private void executeCommand(Promise<FragmentResult> promise, FragmentContext fragmentContext,
