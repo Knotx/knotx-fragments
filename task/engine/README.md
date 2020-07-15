@@ -87,10 +87,10 @@ The following rules applies:
 then a fragment status is `success`<br/>
 ![A and B ends correctly](assets/images/status/status-when-success-transition.png)
 - when a leaf node responds with the [error transition](https://github.com/Knotx/knotx-fragments/tree/master/task/api#error-transition)
-then a fragment status is `failure`.
+then a fragment status is `failure`.<br/>
 ![A and B ends correctly](assets/images/status/status-when-error-transition.png)
 - when a leaf node responds with a [custom transition](https://github.com/Knotx/knotx-fragments/tree/master/task/api#error-transition)
-then a fragment status is `failure`.
+then a fragment status is `failure`.<br/>
 ![A and B ends correctly](assets/images/status/status-when-custom-transition.png)
 
 #### Fragment log
