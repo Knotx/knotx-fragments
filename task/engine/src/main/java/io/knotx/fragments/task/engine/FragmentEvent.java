@@ -20,17 +20,10 @@ import static io.knotx.fragments.api.FragmentResult.ERROR_TRANSITION;
 import static io.knotx.fragments.api.FragmentResult.SUCCESS_TRANSITION;
 
 import io.knotx.fragments.api.Fragment;
-import io.vertx.codegen.annotations.DataObject;
-import io.vertx.core.json.JsonObject;
 import java.util.Objects;
 import java.util.Optional;
 
-@DataObject
 public class FragmentEvent {
-
-  private static final String FRAGMENT_KEY = "fragment";
-  private static final String LOG_KEY = "log";
-  private static final String STATUS_KEY = "status";
 
   private final EventLog log;
   private Fragment fragment;
@@ -40,19 +33,6 @@ public class FragmentEvent {
     this.fragment = fragment;
     this.log = new EventLog();
     this.status = Status.UNPROCESSED;
-  }
-
-  public FragmentEvent(JsonObject json) {
-    this.fragment = new Fragment(json.getJsonObject(FRAGMENT_KEY));
-    this.log = new EventLog(json.getJsonObject(LOG_KEY));
-    this.status = Status.valueOf(json.getString(STATUS_KEY));
-  }
-
-  public JsonObject toJson() {
-    return new JsonObject()
-        .put(FRAGMENT_KEY, fragment.toJson())
-        .put(LOG_KEY, log.toJson())
-        .put(STATUS_KEY, status);
   }
 
   public FragmentEvent log(EventLogEntry logEntry) {
@@ -67,10 +47,6 @@ public class FragmentEvent {
   public FragmentEvent setFragment(Fragment fragment) {
     this.fragment = fragment;
     return this;
-  }
-
-  public JsonObject getLogAsJson() {
-    return log.toJson();
   }
 
   public EventLog getLog() {

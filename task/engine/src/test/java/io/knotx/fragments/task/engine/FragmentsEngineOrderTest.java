@@ -15,17 +15,18 @@
  */
 package io.knotx.fragments.task.engine;
 
-import static io.knotx.fragments.task.engine.Nodes.single;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.knotx.fragments.api.Fragment;
 import io.knotx.fragments.api.FragmentOperation;
-import io.knotx.fragments.task.api.Task;
-import io.knotx.fragments.task.api.Node;
 import io.knotx.fragments.api.FragmentResult;
+import io.knotx.fragments.task.api.Node;
+import io.knotx.fragments.task.api.Task;
+import io.knotx.junit5.util.RequestUtil;
 import io.knotx.server.api.context.ClientRequest;
 import io.reactivex.Single;
+import io.reactivex.functions.Consumer;
 import io.vertx.core.Future;
 import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.VertxExtension;
@@ -34,7 +35,6 @@ import io.vertx.reactivex.core.Vertx;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Consumer;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -91,16 +91,10 @@ class FragmentsEngineOrderTest {
   void verifyExecution(Single<List<FragmentEvent>> result,
       Consumer<List<FragmentEvent>> successConsumer,
       VertxTestContext testContext) throws Throwable {
-    result.subscribe(
-        onSuccess -> testContext.verify(() -> {
-          successConsumer.accept(onSuccess);
-          testContext.completeNow();
-        }), testContext::failNow);
-
+    RequestUtil.subscribeToResult_shouldSucceed(testContext, result, successConsumer);
     assertTrue(testContext.awaitCompletion(5, TimeUnit.SECONDS));
     if (testContext.failed()) {
       throw testContext.causeOfFailure();
     }
   }
-
 }

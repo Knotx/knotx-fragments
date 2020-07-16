@@ -15,23 +15,21 @@
  */
 package io.knotx.fragments.task.engine;
 
+import static io.knotx.fragments.api.FragmentResult.ERROR_TRANSITION;
+import static io.knotx.fragments.api.FragmentResult.SUCCESS_TRANSITION;
+
 import io.knotx.fragments.api.Fragment;
 import io.knotx.fragments.api.FragmentContext;
 import io.knotx.fragments.api.FragmentResult;
-import io.knotx.fragments.task.engine.FragmentEvent.Status;
 import io.knotx.fragments.task.api.Node;
-import io.knotx.fragments.task.engine.exception.NodeFatalException;
+import io.knotx.fragments.task.api.NodeFatalException;
+import io.knotx.fragments.task.engine.FragmentEvent.Status;
 import io.knotx.server.api.context.ClientRequest;
 import io.reactivex.Single;
 import io.reactivex.SingleSource;
-import io.vertx.core.eventbus.ReplyException;
-import io.vertx.core.eventbus.ReplyFailure;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
-
-import static io.knotx.fragments.api.FragmentResult.ERROR_TRANSITION;
-import static io.knotx.fragments.api.FragmentResult.SUCCESS_TRANSITION;
 
 class TaskExecutionContext {
 
@@ -72,34 +70,21 @@ class TaskExecutionContext {
   }
 
   SingleSource<? extends FragmentResult> handleError(Throwable error) {
-    if (isFatal(error)) {
-      handleFatalError((NodeFatalException) error);
-    } else {
-      handleRegularError(error);
-    }
     FragmentEvent fragmentEvent = fragmentEventContext.getFragmentEvent();
-    return Single.just(new FragmentResult(fragmentEvent.getFragment(), ERROR_TRANSITION,
-        prepareErrorActionLog(error)));
-  }
-
-  private JsonObject prepareErrorActionLog(Throwable error) {
-    return new JsonObject()
-        .put("error", error.getMessage());
-  }
-
-  private void handleFatalError(NodeFatalException error) {
-    LOGGER
-        .error("Processing failed with fatal error [{}].", fragmentEventContext.getFragmentEvent(),
-            error);
-    throw error;
-  }
-
-  private void handleRegularError(Throwable error) {
-    FragmentEvent fragmentEvent = fragmentEventContext.getFragmentEvent();
-    LOGGER.warn("Knot processing failed [{}], trying to process with the 'error' transition.",
-        fragmentEvent, error);
     fragmentEvent.setStatus(Status.FAILURE);
-    fragmentEvent.log(getEventLogEntry(error));
+    fragmentEvent.log(EventLogEntry.exception(taskName, currentNode.getId(), ERROR_TRANSITION, error));
+    if (isFatal(error)) {
+      LOGGER
+          .error("Processing failed with fatal error [{}].",
+              fragmentEventContext.getFragmentEvent(),
+              error);
+      throw new TaskFatalException(fragmentEventContext);
+    } else {
+      LOGGER.warn("Knot processing failed [{}], trying to process with the 'error' transition.",
+          fragmentEvent, error);
+      return Single.just(
+          new FragmentResult(fragmentEvent.getFragment(), ERROR_TRANSITION, new JsonObject()));
+    }
   }
 
   TaskExecutionContext merge(TaskExecutionContext other) {
@@ -130,7 +115,7 @@ class TaskExecutionContext {
       handleSuccess(result);
     } else {
       fragmentEvent
-          .log(EventLogEntry.error(taskName, currentNode.getId(), nextTransition));
+          .log(EventLogEntry.error(taskName, currentNode.getId(), result));
     }
     return result;
   }
@@ -158,14 +143,11 @@ class TaskExecutionContext {
   void handleSuccess(FragmentResult fragmentResult) {
     FragmentEvent fragmentEvent = fragmentEventContext.getFragmentEvent();
     fragmentEvent.setStatus(Status.SUCCESS);
-    fragmentEvent.log(EventLogEntry.success(taskName, currentNode.getId(), fragmentResult));
-  }
-
-  private EventLogEntry getEventLogEntry(Throwable error) {
-    return error instanceof ReplyException
-        && ((ReplyException) error).failureType() == ReplyFailure.TIMEOUT
-        ? EventLogEntry.timeout(taskName, currentNode.getId())
-        : EventLogEntry.error(taskName, currentNode.getId(), ERROR_TRANSITION);
+    if (ERROR_TRANSITION.equals(fragmentResult.getTransition())) {
+      fragmentEvent.log(EventLogEntry.error(taskName, currentNode.getId(), fragmentResult));
+    } else {
+      fragmentEvent.log(EventLogEntry.success(taskName, currentNode.getId(), fragmentResult));
+    }
   }
 
   private boolean isFatal(Throwable error) {
@@ -173,8 +155,8 @@ class TaskExecutionContext {
   }
 
   private void ifNotDefaultTransitionEndAsUnsupportedFailure(String transition) {
+    FragmentEvent fragmentEvent = fragmentEventContext.getFragmentEvent();
     if (!SUCCESS_TRANSITION.equals(transition)) {
-      FragmentEvent fragmentEvent = fragmentEventContext.getFragmentEvent();
       fragmentEvent.setStatus(Status.FAILURE);
       fragmentEvent.log(EventLogEntry.unsupported(taskName, currentNode.getId(), transition));
     }

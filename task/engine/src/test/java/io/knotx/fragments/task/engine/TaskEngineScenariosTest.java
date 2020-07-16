@@ -34,8 +34,10 @@ import io.knotx.fragments.api.Fragment;
 import io.knotx.fragments.task.engine.FragmentEvent.Status;
 import io.knotx.fragments.task.engine.FragmentEventLogVerifier.Operation;
 import io.knotx.fragments.task.api.Node;
+import io.knotx.junit5.util.RequestUtil;
 import io.knotx.server.api.context.ClientRequest;
 import io.reactivex.Single;
+import io.reactivex.functions.Consumer;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.VertxExtension;
@@ -43,7 +45,6 @@ import io.vertx.junit5.VertxTestContext;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Consumer;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
@@ -58,10 +59,10 @@ class TaskEngineScenariosTest {
   private static final String INITIAL_BODY = "initial body";
 
   private FragmentEventContext eventContext;
-  private Fragment initialFragment = new Fragment("snippet", new JsonObject(), INITIAL_BODY);
 
   @BeforeEach
   void setUp() {
+    Fragment initialFragment = new Fragment("snippet", new JsonObject(), INITIAL_BODY);
     eventContext = new FragmentEventContext(new FragmentEvent(initialFragment),
         new ClientRequest());
   }
@@ -142,14 +143,16 @@ class TaskEngineScenariosTest {
   @DisplayName("Expect logs in order after complex processing")
   void expectProcessingLogsInOrder(VertxTestContext testContext, Vertx vertx) throws Throwable {
     // given
-    Node rootNode = single("first", success(),
-        onSuccess(
+    Exception nodeException = new IllegalArgumentException("Some node error message");
+    Node rootNode =
+        single("first", success(), onSuccess(
             composite("parallelA-B",
                 parallel(
                     single("A1", success(), onSuccess(
-                        single("A2", failure(), onError(
+                        single("A2", failure(nodeException), onError(
                             single("A3-fallback", success()))))),
                     single("B", success())),
+                // onSuccess
                 single("middle", success(), onSuccess(
                     composite("parallelX-Y",
                         parallel(
@@ -164,16 +167,16 @@ class TaskEngineScenariosTest {
     verifyExecution(result, testContext,
         fragmentEvent -> {
           assertEquals(Status.SUCCESS, fragmentEvent.getStatus());
-          verifyAllLogEntries(fragmentEvent.getLogAsJson(),
-              Operation.exact("task", "first", "UNPROCESSED", 0),
+          verifyAllLogEntries(
+              fragmentEvent.getLog().getOperations(), Operation.exact("task", "first", "UNPROCESSED", 0),
               Operation.exact("task", "first", "SUCCESS", 1),
-              Operation.exact("task",  "parallelA-B", "UNPROCESSED", 2),
+              Operation.exact("task", "parallelA-B", "UNPROCESSED", 2),
               Operation.range("task", "A1", "UNPROCESSED", 3, 9),
               Operation.range("task", "A2", "UNPROCESSED", 3, 9),
               Operation.range("task", "A3-fallback", "UNPROCESSED", 3, 9),
               Operation.range("task", "B", "UNPROCESSED", 3, 9),
               Operation.range("task", "A1", "SUCCESS", 4, 10),
-              Operation.range("task", "A2", "ERROR", 4, 10),
+              Operation.range("task", "A2", "ERROR", 4, 10, nodeException),
               Operation.range("task", "A3-fallback", "SUCCESS", 4, 10),
               Operation.range("task", "B", "SUCCESS", 4, 10),
               Operation.exact("task", "parallelA-B", "SUCCESS", 11),
@@ -224,9 +227,7 @@ class TaskEngineScenariosTest {
 
     // then
     verifyExecution(result, testContext,
-        fragmentEvent -> {
-          assertEquals(Status.SUCCESS, fragmentEvent.getStatus());
-        }, 1);
+        fragmentEvent -> assertEquals(Status.SUCCESS, fragmentEvent.getStatus()));
   }
 
   /*
@@ -257,7 +258,7 @@ class TaskEngineScenariosTest {
           assertEquals(Status.SUCCESS, fragmentEvent.getStatus());
           JsonObject payload = fragmentEvent.getFragment().getPayload();
           assertEquals("B1Payload", payload.getString("B1"));
-        }, 1);
+        });
   }
 
   private List<Node> parallel(Node... nodes) {
@@ -266,23 +267,10 @@ class TaskEngineScenariosTest {
 
   private void verifyExecution(Single<FragmentEvent> result, VertxTestContext testContext,
       Consumer<FragmentEvent> successConsumer) throws Throwable {
-    verifyExecution(result, testContext, successConsumer, 5);
-  }
-
-  private void verifyExecution(Single<FragmentEvent> result, VertxTestContext testContext,
-      Consumer<FragmentEvent> successConsumer, int completionTimeout) throws Throwable {
-    // execute
-    // verifyAllLogEntries
-    result.subscribe(
-        onSuccess -> testContext.verify(() -> {
-          successConsumer.accept(onSuccess);
-          testContext.completeNow();
-        }), testContext::failNow);
-
-    assertTrue(testContext.awaitCompletion(completionTimeout, TimeUnit.SECONDS));
+    RequestUtil.subscribeToResult_shouldSucceed(testContext, result, successConsumer);
+    assertTrue(testContext.awaitCompletion(5, TimeUnit.SECONDS));
     if (testContext.failed()) {
       throw testContext.causeOfFailure();
     }
   }
-
 }

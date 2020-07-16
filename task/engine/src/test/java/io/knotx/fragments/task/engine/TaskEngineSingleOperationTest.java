@@ -15,32 +15,39 @@
  */
 package io.knotx.fragments.task.engine;
 
-import static io.knotx.fragments.task.engine.Nodes.single;
 import static io.knotx.fragments.task.engine.TestFunction.appendBody;
+import static io.knotx.fragments.task.engine.TestFunction.appendPayload;
+import static io.knotx.fragments.task.engine.TestFunction.error;
 import static io.knotx.fragments.task.engine.TestFunction.errorWithNodeLog;
 import static io.knotx.fragments.task.engine.TestFunction.failure;
+import static io.knotx.fragments.task.engine.TestFunction.fatal;
 import static io.knotx.fragments.task.engine.TestFunction.success;
 import static io.knotx.fragments.task.engine.TestFunction.successWithNodeLog;
+import static io.knotx.fragments.task.engine.Transitions.on;
 import static io.knotx.fragments.task.engine.Transitions.onError;
 import static io.knotx.fragments.task.engine.Transitions.onSuccess;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.knotx.fragments.api.Fragment;
 import io.knotx.fragments.api.FragmentOperation;
+import io.knotx.fragments.api.FragmentResult;
+import io.knotx.fragments.task.api.Node;
+import io.knotx.fragments.task.api.NodeFatalException;
+import io.knotx.fragments.task.api.single.SingleNode;
 import io.knotx.fragments.task.engine.FragmentEvent.Status;
 import io.knotx.fragments.task.engine.FragmentEventLogVerifier.Operation;
-import io.knotx.fragments.task.api.Node;
-import io.knotx.fragments.task.api.single.SingleNode;
-import io.knotx.fragments.api.FragmentResult;
+import io.knotx.junit5.util.RequestUtil;
 import io.knotx.server.api.context.ClientRequest;
 import io.reactivex.Single;
+import io.reactivex.exceptions.CompositeException;
+import io.reactivex.functions.Consumer;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Consumer;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -53,29 +60,13 @@ class TaskEngineSingleOperationTest {
   private static final String INITIAL_BODY = "initial body";
 
   private FragmentEventContext eventContext;
-  private Fragment initialFragment = new Fragment("snippet", new JsonObject(), INITIAL_BODY);
-  private Fragment evaluatedFragment = new Fragment(initialFragment.toJson())
-      .setBody("initial body:updated");
+  private Fragment initialFragment;
 
   @BeforeEach
   void setUp() {
+    initialFragment = new Fragment("snippet", new JsonObject(), INITIAL_BODY);
     eventContext = new FragmentEventContext(new FragmentEvent(initialFragment),
         new ClientRequest());
-  }
-
-  @Test
-  @DisplayName("Expect evaluated fragment when engine operation ends.")
-  void expectEvaluatedFragment(VertxTestContext testContext, Vertx vertx)
-      throws Throwable {
-    // given
-    Node rootNode = Nodes.single("first", appendBody(":updated"));
-
-    // when
-    Single<FragmentEvent> result = new TaskEngine(vertx).start("task", rootNode, eventContext);
-
-    // then
-    verifyExecution(result, testContext,
-        event -> assertEquals(evaluatedFragment, event.getFragment()));
   }
 
   @Test
@@ -94,8 +85,40 @@ class TaskEngineSingleOperationTest {
   }
 
   @Test
-  @DisplayName("Expect all graph node operations are executed.")
-  void expectrootNodeOperations(VertxTestContext testContext, Vertx vertx)
+  @DisplayName("Expect new fragment body when operation ends.")
+  void expectNewFragmentBodyWhenOperationEnds(VertxTestContext testContext, Vertx vertx)
+      throws Throwable {
+    // given
+    Node rootNode = Nodes.single("first", appendBody(":updated"));
+
+    // when
+    Single<FragmentEvent> result = new TaskEngine(vertx).start("task", rootNode, eventContext);
+
+    // then
+    verifyExecution(result, testContext,
+        event -> assertEquals(new Fragment(initialFragment.toJson())
+            .setBody(INITIAL_BODY + ":updated"), event.getFragment()));
+  }
+
+  @Test
+  @DisplayName("Expect new fragment payload when operation ends.")
+  void expectNewFragmentPayloadWhenOperationEnds(VertxTestContext testContext, Vertx vertx)
+      throws Throwable {
+    // given
+    Node rootNode = Nodes.single("first", appendPayload("newKey", "newValue"));
+
+    // when
+    Single<FragmentEvent> result = new TaskEngine(vertx).start("task", rootNode, eventContext);
+
+    // then
+    verifyExecution(result, testContext,
+        event -> assertEquals(new Fragment(initialFragment.toJson())
+            .setBody(INITIAL_BODY).appendPayload("newKey", "newValue"), event.getFragment()));
+  }
+
+  @Test
+  @DisplayName("Expect updated fragment is passed to next operations.")
+  void expectAllNodeExecuted(VertxTestContext testContext, Vertx vertx)
       throws Throwable {
     // given
     SingleNode rootNode = Nodes.single("first", appendBody(":A"), onSuccess(
@@ -123,12 +146,32 @@ class TaskEngineSingleOperationTest {
     Single<FragmentEvent> result = new TaskEngine(vertx).start("task", rootNode, eventContext);
 
     // then
-    verifyExecution(result, testContext, event -> Assertions.assertEquals(Status.SUCCESS, event.getStatus()));
+    verifyExecution(result, testContext,
+        event -> Assertions.assertEquals(Status.SUCCESS, event.getStatus()));
+  }
+
+  @Test
+  @DisplayName("Expect success log entry when operation ends.")
+  void expectSuccessLogEntryWhenOperationEnds(VertxTestContext testContext, Vertx vertx)
+      throws Throwable {
+    // given
+    JsonObject nodeLog = new JsonObject().put("debug", "success");
+    SingleNode rootNode = Nodes.single("first", successWithNodeLog(nodeLog));
+
+    // when
+    Single<FragmentEvent> result = new TaskEngine(vertx).start("task", rootNode, eventContext);
+
+    // then
+    verifyExecution(result, testContext,
+        event -> FragmentEventLogVerifier.verifyAllLogEntries(event.getLog().getOperations(),
+            Operation.exact("task", "first", "UNPROCESSED", 0),
+            Operation.exact("task", "first", "SUCCESS", 1, nodeLog)
+        ));
   }
 
   @Test
   @DisplayName("Expect success status when all operations ends.")
-  void expectSuccessEventWhenAllOperationsEnds(VertxTestContext testContext, Vertx vertx)
+  void expectSuccessEventWhenAllOperationsEnd(VertxTestContext testContext, Vertx vertx)
       throws Throwable {
     // given
     SingleNode rootNode = Nodes.single("first", success(), onSuccess(
@@ -142,8 +185,123 @@ class TaskEngineSingleOperationTest {
   }
 
   @Test
+  @DisplayName("Expect failure status when operation ends with error transition.")
+  void expectFailureEventWhenOperationEndsWithErrorTransition(VertxTestContext testContext,
+      Vertx vertx)
+      throws Throwable {
+    // given
+    SingleNode rootNode = Nodes.single("first", error());
+
+    // when
+    Single<FragmentEvent> result = new TaskEngine(vertx).start("task", rootNode, eventContext);
+
+    // then
+    verifyExecution(result, testContext, event -> assertEquals(Status.FAILURE, event.getStatus()));
+  }
+
+  @Test
+  @DisplayName("Expect error and unsupported event log entries when operation ends with error transition.")
+  void expectErrorAndUnsupportedLogEntriesWhenOperationEndsWithErrorTransition(
+      VertxTestContext testContext, Vertx vertx)
+      throws Throwable {
+    // given
+    JsonObject nodeLog = new JsonObject()
+        .put("error", IllegalArgumentException.class.getCanonicalName());
+    SingleNode rootNode = Nodes.single("first", errorWithNodeLog(nodeLog));
+
+    // when
+    Single<FragmentEvent> result = new TaskEngine(vertx).start("task", rootNode, eventContext);
+
+    // then
+    verifyExecution(result, testContext,
+        event -> FragmentEventLogVerifier.verifyAllLogEntries(event.getLog().getOperations(),
+            Operation.exact("task", "first", "UNPROCESSED", 0),
+            Operation.exact("task", "first", "ERROR", 1, nodeLog),
+            Operation.exact("task", "first", "UNSUPPORTED_TRANSITION", 2)
+        ));
+  }
+
+  @Test
+  @DisplayName("Expect success status when operation ends with error transition, next operation ends.")
+  void expectSuccessEventWhenOperationEndsWithErrorTransitionNextOperationEnds(
+      VertxTestContext testContext, Vertx vertx)
+      throws Throwable {
+    // given
+    SingleNode rootNode = Nodes.single("first", error(), onError(
+        Nodes.single("second", success())));
+
+    // when
+    Single<FragmentEvent> result = new TaskEngine(vertx).start("task", rootNode, eventContext);
+
+    // then
+    verifyExecution(result, testContext, event -> assertEquals(Status.SUCCESS, event.getStatus()));
+  }
+
+  @Test
+  @DisplayName("Expect failure status when operation ends with custom transition that is NOT handled.")
+  void expectFailureEventWhenOperationEndsWithCustomTransition(VertxTestContext testContext,
+      Vertx vertx)
+      throws Throwable {
+    // given
+    FragmentOperation operation = (context, handler) -> Future
+        .succeededFuture(new FragmentResult(context.getFragment(), "customTransition"))
+        .onComplete(handler);
+    SingleNode rootNode = Nodes.single("first", operation);
+
+    // when
+    Single<FragmentEvent> result = new TaskEngine(vertx).start("task", rootNode, eventContext);
+
+    // then
+    verifyExecution(result, testContext, event -> assertEquals(Status.FAILURE, event.getStatus()));
+  }
+
+
+  @Test
+  @DisplayName("Expect success and unsupported event log entries when operation ends with custom transition.")
+  void expectSuccessAndUnsupportedEventLogEntryWhenOperationEndsWithCustomTransition(
+      VertxTestContext testContext, Vertx vertx)
+      throws Throwable {
+    // given
+    FragmentOperation operation = (context, handler) -> Future
+        .succeededFuture(new FragmentResult(context.getFragment(), "customTransition"))
+        .onComplete(handler);
+    SingleNode rootNode = Nodes.single("first", operation);
+
+    // when
+    Single<FragmentEvent> result = new TaskEngine(vertx).start("task", rootNode, eventContext);
+
+    // then
+    verifyExecution(result, testContext,
+        event -> FragmentEventLogVerifier.verifyAllLogEntries(event.getLog().getOperations(),
+            Operation.exact("task", "first", "UNPROCESSED", 0),
+            Operation.exact("task", "first", "SUCCESS", 1),
+            Operation.exact("task", "first", "UNSUPPORTED_TRANSITION", 2)
+        ));
+  }
+
+  @Test
+  @DisplayName("Expect success status when operation ends with error transition, next operation ends.")
+  void expectSuccessEventWhenOperationEndsWithCustomTransitionNextOperationEnds(
+      VertxTestContext testContext, Vertx vertx)
+      throws Throwable {
+    // given
+    FragmentOperation operation = (context, handler) -> Future
+        .succeededFuture(new FragmentResult(context.getFragment(), "customTransition"))
+        .onComplete(handler);
+    SingleNode rootNode = Nodes.single("first", operation,
+        on("customTransition", Nodes.single("second", success())));
+
+    // when
+    Single<FragmentEvent> result = new TaskEngine(vertx).start("task", rootNode, eventContext);
+
+    // then
+    verifyExecution(result, testContext, event -> assertEquals(Status.SUCCESS, event.getStatus()));
+  }
+
+  @Test
   @DisplayName("Expect failure status when operation throws exception.")
-  void expectFailureEventWhenUnhandledException(VertxTestContext testContext, Vertx vertx)
+  void expectFailureEventWhenOperationThrowsNonFatalException(VertxTestContext testContext,
+      Vertx vertx)
       throws Throwable {
     // given
     SingleNode rootNode = Nodes.single("first", failure());
@@ -156,8 +314,60 @@ class TaskEngineSingleOperationTest {
   }
 
   @Test
-  @DisplayName("Expect success status when operation throws exception and error transition is handled.")
-  void expectSuccessEventWhenExceptionHandled(VertxTestContext testContext, Vertx vertx)
+  @DisplayName("Expect error and unsupported transition event logs entries when operation throws exception.")
+  void expectErrorAndUnsupportedLogEntriesWhenOperationThrowsNonFatalException(
+      VertxTestContext testContext, Vertx vertx)
+      throws Throwable {
+    // given
+    Throwable error = new IllegalArgumentException("Some message");
+    SingleNode rootNode = Nodes.single("first", failure(error));
+
+    // when
+    Single<FragmentEvent> result = new TaskEngine(vertx).start("task", rootNode, eventContext);
+
+    // then
+    verifyExecution(result, testContext,
+        event -> FragmentEventLogVerifier.verifyAllLogEntries(event.getLog().getOperations(),
+            Operation.exact("task", "first", "UNPROCESSED", 0),
+            Operation.exact("task", "first", "ERROR", 1, error),
+            Operation.exact("task", "first", "UNSUPPORTED_TRANSITION", 2)
+        ));
+  }
+
+  @Test
+  @DisplayName("Expect failure status when operation throws exception.")
+  void expectFailureEventWhenOperationThrowsFatalException(VertxTestContext testContext,
+      Vertx vertx)
+      throws Throwable {
+    // given
+    NodeFatalException nodeFatalException = new NodeFatalException("Node fatal exception!");
+    SingleNode rootNode = Nodes.single("first", fatal(nodeFatalException));
+
+    // when
+    Single<FragmentEvent> result = new TaskEngine(vertx).start("task", rootNode, eventContext);
+
+    // then
+    verifyFailure(result, testContext, error -> {
+      assertTrue(error instanceof CompositeException);
+      CompositeException composite = (CompositeException) error;
+      assertEquals(2, composite.getExceptions().size());
+      assertEquals(NodeFatalException.class, composite.getExceptions().get(0).getClass());
+      assertEquals(TaskFatalException.class, composite.getExceptions().get(1).getClass());
+      FragmentEventContext context = ((TaskFatalException) composite.getExceptions().get(1))
+          .getContext();
+      EventLog log = context.getFragmentEvent().getLog();
+      assertEquals(2, log.getOperations().size());
+      FragmentEventLogVerifier.verifyAllLogEntries(log.getOperations(),
+          Operation.exact("task", "first", "UNPROCESSED", 0),
+          Operation.exact("task", "first", "ERROR", 1, nodeFatalException)
+      );
+    });
+  }
+
+  @Test
+  @DisplayName("Expect success status when operation throws non-fatal exception, next operation ends.")
+  void expectSuccessEventWhenOperationThrowsNonFatalExceptionNextOperationEnds(
+      VertxTestContext testContext, Vertx vertx)
       throws Throwable {
     // given
     SingleNode rootNode = Nodes.single("first", failure(), onError(
@@ -171,87 +381,12 @@ class TaskEngineSingleOperationTest {
   }
 
   @Test
-  @DisplayName("Expect failure status when operation ends with custom transition that is NOT handled.")
-  void executeEventWithInvalidAddressInKnotFlow(VertxTestContext testContext, Vertx vertx)
-      throws Throwable {
-    // given
-    FragmentOperation operation = (context, handler) -> Future
-        .succeededFuture(new FragmentResult(context.getFragment(), "customTransition"))
-        .onComplete(handler);
-    SingleNode rootNode = Nodes.single("knotx.knot.successKnot", operation);
-
-    // when
-    Single<FragmentEvent> result = new TaskEngine(vertx).start("task", rootNode, eventContext);
-
-    // then
-    verifyExecution(result, testContext, event -> assertEquals(Status.FAILURE, event.getStatus()));
-  }
-
-  @Test
-  @DisplayName("Expect success event log entry when operation ends.")
-  void expectSuccessEventLogEntry(VertxTestContext testContext, Vertx vertx)
-      throws Throwable {
-    // given
-    SingleNode rootNode = Nodes.single("first", success());
-
-    // when
-    Single<FragmentEvent> result = new TaskEngine(vertx).start("task", rootNode, eventContext);
-
-    // then
-    verifyExecution(result, testContext,
-        event -> FragmentEventLogVerifier.verifyAllLogEntries(event.getLogAsJson(),
-            Operation.exact("task", "first", "UNPROCESSED", 0),
-            Operation.exact("task", "first", "SUCCESS", 1)
-        ));
-  }
-
-  @Test
-  @DisplayName("Expect unsupported event log entries when error transition not handled.")
-  void expectUnsupportedEventLogEntryWhenError(VertxTestContext testContext, Vertx vertx)
-      throws Throwable {
-    // given
-    SingleNode rootNode = Nodes.single("first", failure());
-
-    // when
-    Single<FragmentEvent> result = new TaskEngine(vertx).start("task", rootNode, eventContext);
-
-    // then
-    verifyExecution(result, testContext,
-        event -> FragmentEventLogVerifier.verifyAllLogEntries(event.getLogAsJson(),
-            Operation.exact("task", "first", "UNPROCESSED", 0),
-            Operation.exact("task", "first", "ERROR", 1),
-            Operation.exact("task", "first", "UNSUPPORTED_TRANSITION", 2)
-        ));
-  }
-
-  @Test
-  @DisplayName("Expect unsupported event log entries when custom transition not handled.")
-  void expectUnsupportedEventLogEntryWhenCustomTransition(VertxTestContext testContext, Vertx vertx)
-      throws Throwable {
-    // given
-    FragmentOperation operation = (context, handler) -> Future
-        .succeededFuture(new FragmentResult(context.getFragment(), "customTransition"))
-        .onComplete(handler);
-    SingleNode rootNode = Nodes.single("first", operation);
-
-    // when
-    Single<FragmentEvent> result = new TaskEngine(vertx).start("task", rootNode, eventContext);
-
-    // then
-    verifyExecution(result, testContext,
-        event -> FragmentEventLogVerifier.verifyAllLogEntries(event.getLogAsJson(),
-            Operation.exact("task", "first", "UNPROCESSED", 0),
-            Operation.exact("task", "first", "SUCCESS", 1),
-            Operation.exact("task", "first", "UNSUPPORTED_TRANSITION", 2)
-        ));
-  }
-
-  @Test
   @DisplayName("Expect error and success event log entries when error transition handled.")
   void expectErrorAndSuccessEventLogEntries(VertxTestContext testContext, Vertx vertx)
       throws Throwable {
     // given
-    SingleNode rootNode = Nodes.single("first", failure(), onError(
+    Exception nodeException = new IllegalArgumentException("Some node exception!");
+    SingleNode rootNode = Nodes.single("first", failure(nodeException), onError(
         Nodes.single("second", success())));
 
     // when
@@ -259,53 +394,9 @@ class TaskEngineSingleOperationTest {
 
     // then
     verifyExecution(result, testContext,
-        event -> FragmentEventLogVerifier.verifyAllLogEntries(event.getLogAsJson(),
+        event -> FragmentEventLogVerifier.verifyAllLogEntries(event.getLog().getOperations(),
             Operation.exact("task", "first", "UNPROCESSED", 0),
-            Operation.exact("task", "first", "ERROR", 1),
-            Operation.exact("task", "second", "UNPROCESSED", 2),
-            Operation.exact("task", "second", "SUCCESS", 3)
-        ));
-  }
-
-  @Test
-  @DisplayName("Expect node debug in log event log entries when success transition handled.")
-  void expectNodeDebugLogEventLogEntriesForSuccess(VertxTestContext testContext, Vertx vertx)
-      throws Throwable {
-    // given
-    JsonObject successNodeLog = new JsonObject().put("debug", "success");
-    SingleNode rootNode = Nodes.single("first", successWithNodeLog(successNodeLog), onSuccess(
-        Nodes.single("second", success())));
-
-    // when
-    Single<FragmentEvent> result = new TaskEngine(vertx).start("task", rootNode, eventContext);
-
-    // then
-    verifyExecution(result, testContext,
-        event -> FragmentEventLogVerifier.verifyAllLogEntries(event.getLogAsJson(),
-            Operation.exact("task", "first", "UNPROCESSED", 0),
-            Operation.exact("task", "first", "SUCCESS", 1, successNodeLog),
-            Operation.exact("task", "second", "UNPROCESSED", 2),
-            Operation.exact("task", "second", "SUCCESS", 3)
-        ));
-  }
-
-  @Test
-  @DisplayName("Expect node log in  event log entries when error transition handled.")
-  void expectNodeDebugLogEventLogEntriesForError(VertxTestContext testContext, Vertx vertx)
-      throws Throwable {
-    // given
-    JsonObject errorNodeLog = new JsonObject().put("debug", "error");
-    SingleNode rootNode = Nodes.single("first", errorWithNodeLog(errorNodeLog), onError(
-        Nodes.single("second", success())));
-
-    // when
-    Single<FragmentEvent> result = new TaskEngine(vertx).start("task", rootNode, eventContext);
-
-    // then
-    verifyExecution(result, testContext,
-        event -> FragmentEventLogVerifier.verifyAllLogEntries(event.getLogAsJson(),
-            Operation.exact("task", "first", "UNPROCESSED", 0),
-            Operation.exact("task", "first", "SUCCESS", 1, errorNodeLog),
+            Operation.exact("task", "first", "ERROR", 1, nodeException),
             Operation.exact("task", "second", "UNPROCESSED", 2),
             Operation.exact("task", "second", "SUCCESS", 3)
         ));
@@ -313,18 +404,19 @@ class TaskEngineSingleOperationTest {
 
   private void verifyExecution(Single<FragmentEvent> result, VertxTestContext testContext,
       Consumer<FragmentEvent> successConsumer) throws Throwable {
-    // execute
-    // verifyAllLogEntries
-    result.subscribe(
-        onSuccess -> testContext.verify(() -> {
-          successConsumer.accept(onSuccess);
-          testContext.completeNow();
-        }), testContext::failNow);
-
-    Assertions.assertTrue(testContext.awaitCompletion(5, TimeUnit.SECONDS));
+    RequestUtil.subscribeToResult_shouldSucceed(testContext, result, successConsumer);
+    assertTrue(testContext.awaitCompletion(5, TimeUnit.SECONDS));
     if (testContext.failed()) {
       throw testContext.causeOfFailure();
     }
   }
 
+  private void verifyFailure(Single<FragmentEvent> result, VertxTestContext testContext,
+      Consumer<Throwable> errorConsumer) throws Throwable {
+    RequestUtil.subscribeToResult_shouldFail(testContext, result, errorConsumer);
+    assertTrue(testContext.awaitCompletion(5, TimeUnit.SECONDS));
+    if (testContext.failed()) {
+      throw testContext.causeOfFailure();
+    }
+  }
 }

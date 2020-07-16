@@ -95,14 +95,14 @@ then a fragment status is `failure`.<br/>
 
 #### Fragment log
 A fragment's log contains details about task processing. When node processing ends (or
-raises an exception), the engine appends the new [entry](https://github.com/Knotx/knotx-fragments/blob/master/engine/src/main/java/io/knotx/fragments/engine/EventLogEntry.java)
-in the fragment's log containing:
-- task name
-- node identifier
-- node status
-- [node log](https://github.com/Knotx/knotx-fragments/tree/master/task/api##node-log)
-- transition
-- timestamp.
+raises an exception), the engine appends the new entry in the fragment's log containing:
+- task name (`String`)
+- node identifier (`String`)
+- node status (`io.knotx.fragments.task.engine.EventLogEntry.NodeStatus`)
+- transition (`String`)
+- node log (`io.vertx.core.json.JsonObject`)
+- error (`Throwable`)
+- timestamp (`Long`).
 
 Node status is a simple text value managed by the engine. It resembles a fragment's status but is a
 bit more accurate (such as a `UNSUPPORTED_TRANSITION` value).
@@ -115,7 +115,17 @@ task is a graph of two nodes: `A` and `B`.
 The `A` node responds with the `_success` transition. Then the `B` node starts processing and responds
 with the `_succcess` transition. Finally, the fragment status is `SUCCESS` and the fragment's log contains:
 
-| Task       | Node identifier | Node status | Transition | Node Log        |
-|------------|-----------------|-------------|------------|-----------------|
-| `taskName` | `A`             | SUCCESS     | `_success` | { A node log }  |
-| `taskName` | `B`             | SUCCESS     | `_success` | { B node log }  |
+| Timestamp | Task       | Node identifier | Node status | Transition | Node Log        |  Error  |
+|-----------|------------|-----------------|-------------|------------|-----------------| ------- |
+| 1111111111| `taskName` | `A`             | UNPROCESSED |            |                 |         |
+| 1111111112| `taskName` | `A`             | SUCCESS     | `_success` | { A node log }  |         |
+| 1111111113| `taskName` | `B`             | UNPROCESSED |            |                 |         |
+| 1111111114| `taskName` | `B`             | SUCCESS     | `_success` | { B node log }  |         |
+
+Please note that every time, a leaf node (in a task or subtask) responds with a transition different 
+than `_success` then the engine adds the unsupported transition entry. See the example below:
+
+| Timestamp | Task       | Node identifier | Node status            | Transition | Node Log        |   Error   |
+|-----------|------------|-----------------|------------------------|------------|-----------------| --------- |
+| 1111111111| `taskName` | `B`             | ERROR                  | `_error`   | { }             | Throwable |
+| 1111111112| `taskName` | `B`             | UNSUPPORTED_TRANSITION | `_error`   | { }             | Throwable |

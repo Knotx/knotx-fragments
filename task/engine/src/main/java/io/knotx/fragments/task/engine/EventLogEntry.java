@@ -12,22 +12,21 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * The code comes from https://github.com/tomaszmichalak/vertx-rx-map-reduce.
  */
 package io.knotx.fragments.task.engine;
 
 import io.knotx.fragments.api.FragmentResult;
 import io.vertx.core.json.JsonObject;
+import java.util.Objects;
 
 public class EventLogEntry {
 
-  private static final String TASK_KEY = "task";
-  private static final String NODE_KEY = "node";
-  private static final String STATUS_KEY = "status";
-  private static final String TRANSITION_KEY = "transition";
-  private static final String TIMESTAMP_KEY = "timestamp";
-  private static final String NODE_LOG_KEY = "nodeLog";
+  public enum NodeStatus {
+    SUCCESS,
+    UNSUPPORTED_TRANSITION,
+    ERROR,
+    UNPROCESSED
+  }
 
   private final String task;
   private final String node;
@@ -35,69 +34,47 @@ public class EventLogEntry {
   private final String transition;
   private final long timestamp;
   private final JsonObject nodeLog;
+  private final Throwable error;
 
   public static EventLogEntry started(String task, String node) {
-    return new EventLogEntry(task, node, NodeStatus.UNPROCESSED, null, null);
+    return new EventLogEntry(task, node, NodeStatus.UNPROCESSED, null, null, null);
   }
 
   public static EventLogEntry success(String task, String node, FragmentResult fragmentResult) {
-    return new EventLogEntry(task, node, NodeStatus.SUCCESS, fragmentResult.getTransition(), fragmentResult.getLog());
+    return new EventLogEntry(task, node, NodeStatus.SUCCESS, fragmentResult.getTransition(),
+        fragmentResult.getLog(), null);
   }
 
   public static EventLogEntry unsupported(String task, String node, String transition) {
-    return new EventLogEntry(task, node, NodeStatus.UNSUPPORTED_TRANSITION, transition,null);
+    return new EventLogEntry(task, node, NodeStatus.UNSUPPORTED_TRANSITION, transition, null, null);
   }
 
-  public static EventLogEntry error(String task, String node, String transition, JsonObject actionLog) {
-    return new EventLogEntry(task, node, NodeStatus.ERROR, transition, actionLog);
+  public static EventLogEntry error(String task, String node, FragmentResult fragmentResult) {
+    return error(task, node, fragmentResult.getTransition(), fragmentResult.getLog());
   }
 
   public static EventLogEntry error(String task, String node, String transition) {
-    return new EventLogEntry(task, node, NodeStatus.ERROR, transition,null);
+    return error(task, node, transition, null);
   }
 
-  public static EventLogEntry timeout(String task, String node) {
-    return new EventLogEntry(task, node, NodeStatus.TIMEOUT, null, null);
+  public static EventLogEntry error(String task, String node, String transition, JsonObject nodeLog) {
+    return new EventLogEntry(task, node, NodeStatus.ERROR, transition, nodeLog, null);
   }
 
-  private EventLogEntry(String task, String node, NodeStatus status, String transition, JsonObject nodeLog) {
+  public static EventLogEntry exception(String task, String node, String transition,
+      Throwable error) {
+    return new EventLogEntry(task, node, NodeStatus.ERROR, transition, null, error);
+  }
+
+  private EventLogEntry(String task, String node, NodeStatus status, String transition,
+      JsonObject nodeLog, Throwable error) {
     this.task = task;
     this.node = node;
     this.status = status;
     this.transition = transition;
     this.timestamp = System.currentTimeMillis();
-    this.nodeLog = nodeLog;
-  }
-
-  EventLogEntry(JsonObject json) {
-    this.task = json.getString(TASK_KEY);
-    this.node = json.getString(NODE_KEY);
-    this.status = NodeStatus.valueOf(json.getString(STATUS_KEY));
-    this.transition = json.getString(TRANSITION_KEY);
-    this.timestamp = json.getLong(TIMESTAMP_KEY);
-    this.nodeLog = json.getJsonObject(NODE_LOG_KEY);
-  }
-
-  public JsonObject toJson() {
-    return new JsonObject()
-        .put(TASK_KEY, task)
-        .put(NODE_KEY, node)
-        .put(STATUS_KEY, status.name())
-        .put(TRANSITION_KEY, transition)
-        .put(TIMESTAMP_KEY, timestamp)
-        .put(NODE_LOG_KEY, nodeLog);
-  }
-
-  @Override
-  public String toString() {
-    return "EventLogEntry{" +
-        "task='" + task + '\'' +
-        ", node='" + node + '\'' +
-        ", status=" + status +
-        ", transition='" + transition + '\'' +
-        ", timestamp=" + timestamp +
-        ", nodeLog=" + nodeLog +
-        '}';
+    this.nodeLog = nodeLog == null ? new JsonObject() : nodeLog;
+    this.error = error;
   }
 
   public String getTask() {
@@ -124,12 +101,43 @@ public class EventLogEntry {
     return nodeLog;
   }
 
-  public enum NodeStatus {
-    SUCCESS,
-    UNSUPPORTED_TRANSITION,
-    ERROR,
-    TIMEOUT,
-    UNPROCESSED
+  public Throwable getError() {
+    return error;
   }
 
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    EventLogEntry that = (EventLogEntry) o;
+    return timestamp == that.timestamp &&
+        Objects.equals(task, that.task) &&
+        Objects.equals(node, that.node) &&
+        status == that.status &&
+        Objects.equals(transition, that.transition) &&
+        Objects.equals(nodeLog, that.nodeLog) &&
+        Objects.equals(error, that.error);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(task, node, status, transition, timestamp, nodeLog, error);
+  }
+
+  @Override
+  public String toString() {
+    return "EventLogEntry{" +
+        "task='" + task + '\'' +
+        ", node='" + node + '\'' +
+        ", status=" + status +
+        ", transition='" + transition + '\'' +
+        ", timestamp=" + timestamp +
+        ", nodeLog=" + nodeLog +
+        ", error=" + error +
+        '}';
+  }
 }
