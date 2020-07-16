@@ -32,4 +32,8 @@ public interface Transitions {
     return Collections.singletonMap(ERROR_TRANSITION, node);
   }
 
+  static Map<String, Node> on(String transition, Node node) {
+    return Collections.singletonMap(transition, node);
+  }
+
 }

@@ -22,10 +22,10 @@ import static io.knotx.junit5.assertions.KnotxAssertions.assertJsonEquals;
 import com.google.common.collect.ImmutableMap;
 import io.knotx.fragments.api.Fragment;
 import io.knotx.fragments.api.FragmentResult;
+import io.knotx.fragments.task.api.NodeType;
 import io.knotx.fragments.task.engine.EventLog;
 import io.knotx.fragments.task.engine.EventLogEntry;
 import io.knotx.fragments.task.engine.FragmentEvent;
-import io.knotx.fragments.task.api.NodeType;
 import io.knotx.fragments.task.factory.api.metadata.NodeMetadata;
 import io.knotx.fragments.task.factory.api.metadata.OperationMetadata;
 import io.knotx.fragments.task.factory.api.metadata.TaskMetadata;
@@ -37,7 +37,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.stream.Collectors;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -139,7 +138,7 @@ class MetadataConverterTest {
             .put(ERROR_TRANSITION, jsonForMissingNode(missingNodeId)))
         .put("response", new JsonObject()
             .put("transition", ERROR_TRANSITION)
-            .put("invocations", new JsonArray()));
+            .put("invocations", new JsonArray().add(new JsonObject())));
 
     assertJsonEquals(expected, output);
   }
@@ -311,7 +310,7 @@ class MetadataConverterTest {
             .put(SUCCESS_TRANSITION, jsonForNode("b-composite", "subtasks")
                 .put("response", new JsonObject()
                     .put("transition", ERROR_TRANSITION)
-                    .put("invocations", new JsonArray()))
+                    .put("invocations", new JsonArray().add(new JsonObject())))
                 .put("status", LoggedNodeStatus.ERROR)
                 .put("type", NodeType.COMPOSITE)
                 .put("label", "composite")
@@ -345,9 +344,7 @@ class MetadataConverterTest {
   }
 
   private EventLog createEventLog(EventLogEntry... entries) {
-    return new EventLog(new JsonObject()
-        .put("operations", new JsonArray(
-            Arrays.stream(entries).map(EventLogEntry::toJson).collect(Collectors.toList()))));
+    return new EventLog(Arrays.asList(entries));
   }
 
   private FragmentResult createFragmentResult(String transition, JsonObject nodeLog) {

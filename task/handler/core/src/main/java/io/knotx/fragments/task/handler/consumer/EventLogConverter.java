@@ -77,7 +77,7 @@ class EventLogConverter {
     final LoggedNodeStatus result;
     if (SUCCESS_TRANSITION.equals(transition)) {
       result = LoggedNodeStatus.SUCCESS;
-    } else if (ERROR_TRANSITION.equals(transition) || status == NodeStatus.TIMEOUT) {
+    } else if (ERROR_TRANSITION.equals(transition)) {
       result = LoggedNodeStatus.ERROR;
     } else if (StringUtils.isNotEmpty(transition) && status != NodeStatus.UNSUPPORTED_TRANSITION) {
       result = LoggedNodeStatus.OTHER;

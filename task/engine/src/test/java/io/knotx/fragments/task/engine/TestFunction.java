@@ -21,7 +21,7 @@ import static io.knotx.fragments.api.FragmentResult.SUCCESS_TRANSITION;
 import io.knotx.fragments.api.Fragment;
 import io.knotx.fragments.api.FragmentOperation;
 import io.knotx.fragments.api.FragmentResult;
-import io.knotx.fragments.task.engine.exception.NodeFatalException;
+import io.knotx.fragments.task.api.NodeFatalException;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
@@ -52,6 +52,14 @@ interface TestFunction extends FragmentOperation {
     };
   }
 
+  static TestFunction error() {
+    return (fragmentContext, resultHandler) -> {
+      Fragment fragment = fragmentContext.getFragment();
+      FragmentResult result = new FragmentResult(fragment, ERROR_TRANSITION);
+      Future.succeededFuture(result).onComplete(resultHandler);
+    };
+  }
+
   static TestFunction errorWithNodeLog(JsonObject nodeLog) {
     return (fragmentContext, resultHandler) -> {
       Fragment fragment = fragmentContext.getFragment();
@@ -66,9 +74,13 @@ interface TestFunction extends FragmentOperation {
         new RuntimeException()).onComplete(resultHandler);
   }
 
-  static TestFunction fatal(Fragment fragment) {
-    return (fragmentContext, resultHandler) -> Future.<FragmentResult>failedFuture(
-        new NodeFatalException(fragment))
+  static TestFunction failure(Throwable error) {
+    return (fragmentContext, resultHandler) -> Future.<FragmentResult>failedFuture(error)
+        .onComplete(resultHandler);
+  }
+
+  static TestFunction fatal(NodeFatalException fatalException) {
+    return (fragmentContext, resultHandler) -> Future.<FragmentResult>failedFuture(fatalException)
         .onComplete(resultHandler);
   }
 

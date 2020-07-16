@@ -15,16 +15,11 @@
  */
 package io.knotx.fragments.task.engine;
 
-import io.vertx.core.json.JsonArray;
-import io.vertx.core.json.JsonObject;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 public class EventLog {
-
-  private static final String OPERATIONS_KEY = "operations";
 
   private final List<EventLogEntry> operations;
 
@@ -32,18 +27,8 @@ public class EventLog {
     operations = new ArrayList<>();
   }
 
-  public EventLog(JsonObject json) {
-    operations = json.getJsonArray(OPERATIONS_KEY).stream()
-        .map(JsonObject.class::cast)
-        .map(EventLogEntry::new)
-        .collect(Collectors.toList());
-  }
-
-  public JsonObject toJson() {
-    final JsonArray jsonArray = new JsonArray();
-    operations.forEach(entry -> jsonArray.add(entry.toJson()));
-    return new JsonObject()
-        .put(OPERATIONS_KEY, jsonArray);
+  public EventLog(List<EventLogEntry> operations) {
+    this.operations = operations;
   }
 
   void append(EventLogEntry logEntry) {
@@ -70,10 +55,6 @@ public class EventLog {
         .mapToLong(EventLogEntry::getTimestamp)
         .max()
         .orElse(0);
-  }
-
-  public JsonObject getLog() {
-    return toJson();
   }
 
   @Override

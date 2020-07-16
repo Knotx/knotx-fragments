@@ -16,15 +16,9 @@
 package io.knotx.fragments.task.engine;
 
 import io.knotx.server.api.context.ClientRequest;
-import io.vertx.codegen.annotations.DataObject;
-import io.vertx.core.json.JsonObject;
 import java.util.Objects;
 
-@DataObject
 public class FragmentEventContext {
-
-  private static final String FRAGMENT_EVENT_KEY = "fragmentEvent";
-  private static final String CLIENT_REQUEST_KEY = "clientRequest";
 
   private final FragmentEvent fragmentEvent;
   private final ClientRequest clientRequest;
@@ -32,17 +26,6 @@ public class FragmentEventContext {
   public FragmentEventContext(FragmentEvent fragmentEvent, ClientRequest clientRequest) {
     this.fragmentEvent = fragmentEvent;
     this.clientRequest = clientRequest;
-  }
-
-  public FragmentEventContext(JsonObject json) {
-    this.fragmentEvent = new FragmentEvent(json.getJsonObject(FRAGMENT_EVENT_KEY));
-    this.clientRequest = new ClientRequest(json.getJsonObject(CLIENT_REQUEST_KEY));
-  }
-
-  public JsonObject toJson() {
-    return new JsonObject()
-        .put(FRAGMENT_EVENT_KEY, fragmentEvent.toJson())
-        .put(CLIENT_REQUEST_KEY, clientRequest.toJson());
   }
 
   public FragmentEvent getFragmentEvent() {

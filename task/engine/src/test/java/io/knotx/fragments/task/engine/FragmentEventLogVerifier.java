@@ -12,17 +12,14 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * The code comes from https://github.com/tomaszmichalak/vertx-rx-map-reduce.
  */
 package io.knotx.fragments.task.engine;
 
+import io.vertx.core.json.JsonObject;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Objects;
 import java.util.stream.Stream;
-
-import io.vertx.core.json.JsonArray;
-import io.vertx.core.json.JsonObject;
 
 class FragmentEventLogVerifier {
 
@@ -30,39 +27,39 @@ class FragmentEventLogVerifier {
   private static final String ASSERTION_DIFFERENT_SIZE = "Log entries does not have the same size! (expected: %s, current: %s)\nExpected:\n%s,\ncurrent:\n%s";
 
 
-  static void verifyAllLogEntries(JsonObject log, Operation... expectedOperations) {
-    JsonArray logArray = log.getJsonArray("operations", new JsonArray());
-    if (logArray.size() != expectedOperations.length) {
+  static void verifyAllLogEntries(
+      List<EventLogEntry> operations,
+      Operation... expectedOperations) {
+
+    if (operations.size() != expectedOperations.length) {
       throw new AssertionError(
-          String.format(ASSERTION_DIFFERENT_SIZE, expectedOperations.length, logArray.size(),
-              Arrays.toString(expectedOperations), logArray));
+          String.format(ASSERTION_DIFFERENT_SIZE, expectedOperations.length, operations.size(),
+              Arrays.toString(expectedOperations), operations));
     }
     for (Operation expectedOperation : expectedOperations) {
       Position position = expectedOperation.getPosition();
-      getSliceOfLog(logArray, position)
+      getSliceOfLog(operations, position)
           .filter(expectedOperation::matches)
           .findAny()
           .orElseThrow(() -> new AssertionError(
-                  String.format(ASSERTION_NOT_MATCH, Arrays.toString(expectedOperations), logArray)));
+                  String.format(ASSERTION_NOT_MATCH, expectedOperation, operations)));
     }
   }
 
-  static void verifyLogEntries(JsonObject log, Operation... expectedOperations) {
-    JsonArray logArray = log.getJsonArray("operations", new JsonArray());
+  static void verifyLogEntries(List<EventLogEntry> operations, Operation... expectedOperations) {
     for (Operation expectedOperation : expectedOperations) {
       Position position = expectedOperation.getPosition();
-      getSliceOfLog(logArray, position)
+      getSliceOfLog(operations, position)
           .filter(expectedOperation::matches)
           .findAny()
           .orElseThrow(() -> new AssertionError(
-              String.format(ASSERTION_NOT_MATCH, Arrays.toString(expectedOperations), logArray)));
+              String.format(ASSERTION_NOT_MATCH, expectedOperation, operations)));
     }
   }
 
-  private static Stream<JsonObject> getSliceOfLog(JsonArray logArray, Position position) {
-    return logArray.stream().skip(position.from())
-        .limit(position.to() - position.from() + 1)
-        .map(JsonObject.class::cast);
+  private static Stream<EventLogEntry> getSliceOfLog(List<EventLogEntry> operations, Position position) {
+    return operations.stream().skip(position.from())
+        .limit(position.to() - position.from() + 1);
   }
 
   static final class Operation {
@@ -72,45 +69,59 @@ class FragmentEventLogVerifier {
     private final String status;
     private final Position position;
     private final JsonObject nodeLog;
+    private final Throwable error;
 
     private Operation(String task, String node, String status, Position position,
-        JsonObject nodeLog) {
+        JsonObject nodeLog, Throwable error) {
       this.task = task;
       this.node = node;
       this.status = status;
       this.position = position;
       this.nodeLog = nodeLog;
+      this.error = error;
     }
 
     static Operation exact(String task, String node, String status, int position) {
-      return new Operation(task, node, status, new ExactPosition(position), null);
+      return new Operation(task, node, status, new ExactPosition(position), new JsonObject(), null);
     }
 
     static Operation exact(String task, String node, String status, int position, JsonObject nodeLog) {
-      return new Operation(task, node, status, new ExactPosition(position), nodeLog);
+      return new Operation(task, node, status, new ExactPosition(position), nodeLog, null);
+    }
+
+    static Operation exact(String task, String node, String status, int position, Throwable error) {
+      return new Operation(task, node, status, new ExactPosition(position), new JsonObject(), error);
     }
 
     static Operation range(String task, String node, String status, int minPosition,
         int maxPosition) {
       return new Operation(task, node, status, new RangePosition(minPosition, maxPosition),
-          null);
+          new JsonObject(), null);
     }
 
     static Operation range(String task, String node, String status, int minPosition,
         int maxPosition, JsonObject nodeLog) {
       return new Operation(task, node, status, new RangePosition(minPosition, maxPosition),
-          nodeLog);
+          nodeLog, null);
+    }
+
+    static Operation range(String task, String node, String status, int minPosition,
+        int maxPosition, Throwable error) {
+      return new Operation(task, node, status, new RangePosition(minPosition, maxPosition),
+          new JsonObject(), error);
     }
 
     public Position getPosition() {
       return position;
     }
 
-    public boolean matches(JsonObject operation) {
-      return task.equals(operation.getString("task")) &&
-          node.equals(operation.getString("node")) &&
-          status.equals(operation.getString("status")) &&
-          Objects.equals(nodeLog, operation.getJsonObject("nodeLog"));
+    public boolean matches(EventLogEntry operation) {
+      // to verify
+      return task.equals(operation.getTask()) &&
+          node.equals(operation.getNode()) &&
+          status.equals(operation.getStatus().name()) &&
+          Objects.equals(nodeLog, operation.getNodeLog()) &&
+          Objects.equals(error, operation.getError());
     }
 
     @Override
@@ -121,6 +132,7 @@ class FragmentEventLogVerifier {
           ", status='" + status + '\'' +
           ", position=" + position +
           ", nodeLog=" + nodeLog +
+          ", error=" + error +
           '}';
     }
   }
