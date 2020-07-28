@@ -77,7 +77,7 @@ class EventLogConverterTest {
     assertEquals(LoggedNodeStatus.SUCCESS, result.getStatus());
     assertNotNull(result.getResponse());
     assertEquals(SUCCESS_TRANSITION, result.getResponse().getTransition());
-    assertEquals(new JsonArray().add(nodeLog), result.getResponse().getInvocations());
+    assertEquals(nodeLog, result.getResponse().getLog());
   }
 
   @Test
@@ -96,7 +96,51 @@ class EventLogConverterTest {
     assertEquals(LoggedNodeStatus.ERROR, result.getStatus());
     assertNotNull(result.getResponse());
     assertEquals(ERROR_TRANSITION, result.getResponse().getTransition());
-    assertEquals(new JsonArray().add(nodeLog), result.getResponse().getInvocations());
+    assertEquals(nodeLog, result.getResponse().getLog());
+  }
+
+    @Test
+    @DisplayName("Expect status=ERROR when single error log entry with throwable for node")
+    void fillWithSingleExceptionLogEntry() {
+        Exception error = new IllegalArgumentException("a");
+
+        EventLogEntry[] logs = new EventLogEntry[]{
+            EventLogEntry.exception(TASK_NAME, NODE_ID, ERROR_TRANSITION, error),
+            EventLogEntry.success(TASK_NAME, OTHER_NODE_ID, successFragmentResult()),
+            EventLogEntry.error(TASK_NAME, OTHER_NODE_ID, "timeout"),
+        };
+        EventLogConverter tested = givenLogConverter(logs);
+
+        NodeExecutionData result = tested.getExecutionData(NODE_ID);
+
+        assertEquals(LoggedNodeStatus.ERROR, result.getStatus());
+        assertNotNull(result.getResponse());
+        assertEquals(ERROR_TRANSITION, result.getResponse().getTransition());
+        assertEquals(Collections.singletonList(error), result.getResponse().getErrors());
+    }
+
+
+    @Test
+  @DisplayName("Expect status=ERROR when single error log entry with throwable for node")
+  void fillWithSingleCompositeExceptionLogEntry() {
+    CompositeException composite = new CompositeException(
+        new IllegalArgumentException("a"),
+        new IllegalArgumentException("b")
+    );
+
+    EventLogEntry[] logs = new EventLogEntry[]{
+        EventLogEntry.exception(TASK_NAME, NODE_ID, ERROR_TRANSITION, composite),
+        EventLogEntry.success(TASK_NAME, OTHER_NODE_ID, successFragmentResult()),
+        EventLogEntry.error(TASK_NAME, OTHER_NODE_ID, "timeout"),
+    };
+    EventLogConverter tested = givenLogConverter(logs);
+
+    NodeExecutionData result = tested.getExecutionData(NODE_ID);
+
+    assertEquals(LoggedNodeStatus.ERROR, result.getStatus());
+    assertNotNull(result.getResponse());
+    assertEquals(ERROR_TRANSITION, result.getResponse().getTransition());
+    assertEquals(composite.getExceptions(), result.getResponse().getErrors());
   }
 
   @Test
@@ -114,7 +158,7 @@ class EventLogConverterTest {
     assertEquals(LoggedNodeStatus.OTHER, result.getStatus());
     assertNotNull(result.getResponse());
     assertEquals("custom", result.getResponse().getTransition());
-    assertEquals(new JsonArray().add(nodeLog()), result.getResponse().getInvocations());
+    assertEquals(nodeLog(), result.getResponse().getLog());
   }
 
   @Test
@@ -133,7 +177,7 @@ class EventLogConverterTest {
     assertEquals(LoggedNodeStatus.SUCCESS, result.getStatus());
     assertNotNull(result.getResponse());
     assertEquals(SUCCESS_TRANSITION, result.getResponse().getTransition());
-    assertEquals(new JsonArray().add(nodeLog()), result.getResponse().getInvocations());
+    assertEquals(nodeLog(), result.getResponse().getLog());
   }
 
   @Test
@@ -152,7 +196,7 @@ class EventLogConverterTest {
     assertEquals(LoggedNodeStatus.ERROR, result.getStatus());
     assertNotNull(result.getResponse());
     assertEquals(ERROR_TRANSITION, result.getResponse().getTransition());
-    assertEquals(new JsonArray().add(new JsonObject()), result.getResponse().getInvocations());
+    assertEquals(new JsonObject(), result.getResponse().getLog());
   }
 
   EventLogConverter givenEmptyLogConverter() {

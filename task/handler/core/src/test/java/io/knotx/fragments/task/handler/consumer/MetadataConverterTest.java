@@ -116,8 +116,10 @@ class MetadataConverterTest {
   @Test
   @DisplayName("Expect missing node metadata when transition returned in log that was not described")
   void shouldProduceCorrectJsonForMissingNodeCase() {
+    JsonObject nodeLog = simpleNodeLog();
+
     EventLogEntry[] logs = new EventLogEntry[]{
-        EventLogEntry.error(TASK_NAME, ROOT_NODE, ERROR_TRANSITION),
+        EventLogEntry.error(TASK_NAME, ROOT_NODE, ERROR_TRANSITION, nodeLog),
         EventLogEntry.unsupported(TASK_NAME, ROOT_NODE, ERROR_TRANSITION)
     };
 
@@ -138,7 +140,7 @@ class MetadataConverterTest {
             .put(ERROR_TRANSITION, jsonForMissingNode(missingNodeId)))
         .put("response", new JsonObject()
             .put("transition", ERROR_TRANSITION)
-            .put("invocations", new JsonArray().add(new JsonObject())));
+            .put("log", nodeLog));
 
     assertJsonEquals(expected, output);
   }
@@ -161,7 +163,7 @@ class MetadataConverterTest {
         .put("status", LoggedNodeStatus.SUCCESS)
         .put("response", new JsonObject()
             .put("transition", SUCCESS_TRANSITION)
-            .put("invocations", wrap(simpleNodeLog())));
+            .put("log", simpleNodeLog()));
 
     assertJsonEquals(expected, output);
   }
@@ -303,14 +305,14 @@ class MetadataConverterTest {
     JsonObject expected = jsonForActionNode("a-node")
         .put("response", new JsonObject()
             .put("transition", SUCCESS_TRANSITION)
-            .put("invocations", wrap(simpleNodeLog())))
+            .put("log", simpleNodeLog()))
         .put("status", LoggedNodeStatus.SUCCESS)
         .put("on", new JsonObject()
             .put(ERROR_TRANSITION, jsonForActionNode("c-node"))
             .put(SUCCESS_TRANSITION, jsonForNode("b-composite", "subtasks")
                 .put("response", new JsonObject()
                     .put("transition", ERROR_TRANSITION)
-                    .put("invocations", new JsonArray().add(new JsonObject())))
+                    .put("log", new JsonObject()))
                 .put("status", LoggedNodeStatus.ERROR)
                 .put("type", NodeType.COMPOSITE)
                 .put("label", "composite")
@@ -319,7 +321,7 @@ class MetadataConverterTest {
                     .put(ERROR_TRANSITION, jsonForActionNode("f-node")
                         .put("response", new JsonObject()
                             .put("transition", SUCCESS_TRANSITION)
-                            .put("invocations", wrap(simpleNodeLog())))
+                            .put("log", simpleNodeLog()))
                         .put("status", LoggedNodeStatus.SUCCESS)
                     )
                 )
@@ -327,7 +329,7 @@ class MetadataConverterTest {
                     jsonForActionNode("b1-subgraph")
                         .put("response", new JsonObject()
                             .put("transition", SUCCESS_TRANSITION)
-                            .put("invocations", wrap(simpleNodeLog())))
+                            .put("log", simpleNodeLog()))
                         .put("status", LoggedNodeStatus.SUCCESS),
                     jsonForActionNode("b2-subgraph")
                         .put("on", new JsonObject()
@@ -335,7 +337,7 @@ class MetadataConverterTest {
                             .put("_fallback", jsonForMissingNode(missingNodeId)))
                         .put("response", new JsonObject()
                             .put("transition", "_fallback")
-                            .put("invocations", wrap(complexNodeLog())))
+                            .put("log", complexNodeLog()))
                         .put("status", LoggedNodeStatus.OTHER)
                 )))
             ));

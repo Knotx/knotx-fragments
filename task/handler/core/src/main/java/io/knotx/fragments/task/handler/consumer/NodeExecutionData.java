@@ -17,6 +17,8 @@ package io.knotx.fragments.task.handler.consumer;
 
 import io.knotx.fragments.task.handler.log.api.model.LoggedNodeStatus;
 import io.vertx.core.json.JsonArray;
+import io.vertx.core.json.JsonObject;
+import java.util.List;
 
 class NodeExecutionData {
 
@@ -53,26 +55,41 @@ class NodeExecutionData {
     return response;
   }
 
-  void setResponse(String transaction, JsonArray invocations) {
-    this.response = new Response(transaction, invocations);
+  void setResponse(String transaction, JsonObject log, List<Throwable> errors) {
+    this.response = new Response(transaction, log, errors);
   }
 
   static class Response {
 
     private final String transition;
-    private final JsonArray invocations;
+    private final JsonObject log;
+    private final List<Throwable> errors;
 
-    Response(String transition, JsonArray invocations) {
+    Response(String transition, JsonObject log, List<Throwable> errors) {
       this.transition = transition;
-      this.invocations = invocations;
+      this.log = log;
+      this.errors = errors;
     }
 
     String getTransition() {
       return transition;
     }
 
-    JsonArray getInvocations() {
-      return invocations;
+    JsonObject getLog() {
+      return log;
+    }
+
+    List<Throwable> getErrors() {
+      return errors;
+    }
+
+    @Override
+    public String toString() {
+      return "Response{" +
+          "transition='" + transition + '\'' +
+          ", log=" + log +
+          ", errors=" + errors +
+          '}';
     }
   }
 

@@ -18,7 +18,7 @@ package io.knotx.fragments.task.handler.log.api.model;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import io.knotx.fragments.api.FragmentResult;
-import io.vertx.core.json.JsonArray;
+import io.vertx.core.json.JsonObject;
 import org.junit.jupiter.api.Test;
 
 class GraphNodeResponseLogTest {
@@ -28,16 +28,16 @@ class GraphNodeResponseLogTest {
     // given
     String transition = FragmentResult.SUCCESS_TRANSITION;
 
-    JsonArray invocations = new JsonArray().add("invocation");
+    JsonObject log = new JsonObject().put("debug", "true");
 
-    GraphNodeResponseLog log = GraphNodeResponseLog
-        .newInstance(transition, invocations);
+    GraphNodeResponseLog origin = GraphNodeResponseLog
+        .newInstance(transition, log);
 
     // when
-    GraphNodeResponseLog result = new GraphNodeResponseLog(log.toJson());
+    GraphNodeResponseLog tested = new GraphNodeResponseLog(origin.toJson());
 
     // then
-    assertEquals(transition, result.getTransition());
-    assertEquals(invocations, result.getInvocations());
+    assertEquals(transition, tested.getTransition());
+    assertEquals(log, tested.getLog());
   }
 }

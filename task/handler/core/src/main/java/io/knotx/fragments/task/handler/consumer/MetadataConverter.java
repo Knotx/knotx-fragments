@@ -69,7 +69,7 @@ class MetadataConverter {
     if (metadataResponse != null) {
       graphLog
           .setResponse(GraphNodeResponseLog.newInstance(metadataResponse.getTransition(),
-              metadataResponse.getInvocations()));
+              metadataResponse.getLog()));
     }
   }
 
