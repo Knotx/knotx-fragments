@@ -17,6 +17,7 @@ package io.knotx.fragments.task.handler.log.api.model;
 
 import io.vertx.codegen.annotations.DataObject;
 import io.vertx.core.json.JsonObject;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
@@ -30,10 +31,12 @@ public class GraphNodeResponseLog {
   private JsonObject log;
   private List<GraphNodeErrorLog> errors;
 
-  public static GraphNodeResponseLog newInstance(String transition, JsonObject log) {
+  public static GraphNodeResponseLog newInstance(String transition, JsonObject log,
+      List<GraphNodeErrorLog> errors) {
     return new GraphNodeResponseLog()
         .setTransition(transition)
-        .setLog(log);
+        .setLog(log)
+        .setErrors(errors);
   }
 
   public GraphNodeResponseLog() {
@@ -75,7 +78,7 @@ public class GraphNodeResponseLog {
   }
 
   public GraphNodeResponseLog setLog(JsonObject log) {
-    this.log = log;
+    this.log = log == null ? new JsonObject() : log;
     return this;
   }
 
@@ -84,7 +87,7 @@ public class GraphNodeResponseLog {
   }
 
   public GraphNodeResponseLog setErrors(List<GraphNodeErrorLog> errors) {
-    this.errors = errors;
+    this.errors = errors == null ? Collections.emptyList() : errors;
     return this;
   }
 

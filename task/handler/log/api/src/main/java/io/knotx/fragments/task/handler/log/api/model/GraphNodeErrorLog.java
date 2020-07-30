@@ -18,7 +18,9 @@ package io.knotx.fragments.task.handler.log.api.model;
 import io.vertx.codegen.annotations.DataObject;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
+import java.util.Arrays;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 @DataObject(generateConverter = true)
 public class GraphNodeErrorLog {
@@ -29,6 +31,17 @@ public class GraphNodeErrorLog {
 
   public GraphNodeErrorLog() {
     // default constructor
+  }
+
+  public static GraphNodeErrorLog newInstance(Throwable error) {
+    final JsonArray stackTraceLogs = new JsonArray(Arrays.stream(error.getStackTrace())
+        .map(StackTraceElement::toString)
+        .collect(Collectors.toList()));
+
+    return new GraphNodeErrorLog()
+        .setClassName(error.getClass().getCanonicalName())
+        .setMessage(error.getMessage())
+        .setStacktrace(stackTraceLogs);
   }
 
   public GraphNodeErrorLog(JsonObject json) {

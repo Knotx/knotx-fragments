@@ -22,7 +22,6 @@ import io.knotx.fragments.task.engine.EventLogEntry;
 import io.knotx.fragments.task.engine.EventLogEntry.NodeStatus;
 import io.knotx.fragments.task.handler.log.api.model.LoggedNodeStatus;
 import io.reactivex.exceptions.CompositeException;
-import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import java.util.Collections;
 import org.apache.commons.lang3.StringUtils;
@@ -96,7 +95,7 @@ class EventLogConverter {
   }
 
   private List<Throwable> getErrors(List<EventLogEntry> logs) {
-    return getErrorsForExecution(logs)
+    return getLogForExecution(logs)
         .map(EventLogEntry::getError)
         .map(EventLogConverter::flat)
         .orElse(Collections.emptyList());
@@ -116,23 +115,17 @@ class EventLogConverter {
 
   private Optional<EventLogEntry> getLogForExecution(List<EventLogEntry> logs) {
     return logs.stream()
-        .filter(this::hasCorrectTransition)
+        .filter(this::skipUnsupportedEntries)
         .reduce((previous, current) -> current);
   }
 
   private Optional<EventLogEntry> getLogForStart(List<EventLogEntry> logs) {
     return logs.stream()
-        .filter(this::hasCorrectTransition)
+        .filter(this::skipUnsupportedEntries)
         .findFirst();
   }
 
-  private Optional<EventLogEntry> getErrorsForExecution(List<EventLogEntry> logs) {
-    return logs.stream()
-        .filter(log -> ERROR_TRANSITION.equals(log.getTransition()))
-        .reduce((previous, current) -> current);
-  }
-
-  private boolean hasCorrectTransition(EventLogEntry log) {
+  private boolean skipUnsupportedEntries(EventLogEntry log) {
     return !NodeStatus.UNSUPPORTED_TRANSITION.equals(log.getStatus());
   }
 

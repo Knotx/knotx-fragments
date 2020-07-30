@@ -15,21 +15,26 @@
  */
 package io.knotx.fragments.task.handler.consumer;
 
-import io.knotx.fragments.task.engine.FragmentEvent;
+import static io.knotx.fragments.api.FragmentResult.SUCCESS_TRANSITION;
+
 import io.knotx.fragments.task.api.NodeType;
+import io.knotx.fragments.task.engine.FragmentEvent;
 import io.knotx.fragments.task.factory.api.metadata.NodeMetadata;
 import io.knotx.fragments.task.factory.api.metadata.OperationMetadata;
 import io.knotx.fragments.task.factory.api.metadata.TaskMetadata;
 import io.knotx.fragments.task.handler.consumer.NodeExecutionData.Response;
+import io.knotx.fragments.task.handler.log.api.model.GraphNodeErrorLog;
 import io.knotx.fragments.task.handler.log.api.model.GraphNodeExecutionLog;
 import io.knotx.fragments.task.handler.log.api.model.GraphNodeOperationLog;
 import io.knotx.fragments.task.handler.log.api.model.GraphNodeResponseLog;
 import io.knotx.fragments.task.handler.log.api.model.LoggedNodeStatus;
-
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 import java.util.stream.Collectors;
-
-import static io.knotx.fragments.api.FragmentResult.SUCCESS_TRANSITION;
 
 class MetadataConverter {
 
@@ -60,7 +65,8 @@ class MetadataConverter {
     return graphLog;
   }
 
-  private void setGraphLogPropertiesFrom(GraphNodeExecutionLog graphLog, NodeExecutionData executionData) {
+  private void setGraphLogPropertiesFrom(GraphNodeExecutionLog graphLog,
+      NodeExecutionData executionData) {
     graphLog.setStatus(executionData.getStatus());
     graphLog.setStarted(executionData.getStarted());
     graphLog.setFinished(executionData.getFinished());
@@ -69,8 +75,14 @@ class MetadataConverter {
     if (metadataResponse != null) {
       graphLog
           .setResponse(GraphNodeResponseLog.newInstance(metadataResponse.getTransition(),
-              metadataResponse.getLog()));
+              metadataResponse.getLog(), getErrorLogs(metadataResponse)));
     }
+  }
+
+  private List<GraphNodeErrorLog> getErrorLogs(Response metadataResponse) {
+    return metadataResponse.getErrors().stream()
+        .map(error -> GraphNodeErrorLog.newInstance(error))
+        .collect(Collectors.toList());
   }
 
   private boolean containsUnsupportedTransitions(GraphNodeExecutionLog graphLog) {
@@ -81,7 +93,8 @@ class MetadataConverter {
   }
 
   private void addMissingNode(GraphNodeExecutionLog graphLog) {
-    GraphNodeExecutionLog missingNode = GraphNodeExecutionLog.newInstance(UUID.randomUUID().toString())
+    GraphNodeExecutionLog missingNode = GraphNodeExecutionLog
+        .newInstance(UUID.randomUUID().toString())
         .setType(NodeType.SINGLE)
         .setLabel("!")
         .setStarted(0)
