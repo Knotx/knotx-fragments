@@ -16,8 +16,9 @@
 package io.knotx.fragments.task.handler.log.api.model;
 
 import io.vertx.codegen.annotations.DataObject;
-import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
+import java.util.Collections;
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -27,12 +28,15 @@ import java.util.Objects;
 public class GraphNodeResponseLog {
 
   private String transition;
-  private JsonArray invocations;
+  private JsonObject log;
+  private List<GraphNodeErrorLog> errors;
 
-  public static GraphNodeResponseLog newInstance(String transition, JsonArray invocations) {
+  public static GraphNodeResponseLog newInstance(String transition, JsonObject log,
+      List<GraphNodeErrorLog> errors) {
     return new GraphNodeResponseLog()
         .setTransition(transition)
-        .setInvocations(invocations);
+        .setLog(log)
+        .setErrors(errors);
   }
 
   public GraphNodeResponseLog() {
@@ -65,16 +69,25 @@ public class GraphNodeResponseLog {
   }
 
   /**
-   * List of node invocation(s) logs.
+   * Node response log.
    *
-   * @return list of node invocation(s) logs
+   * @return node response log
    */
-  public JsonArray getInvocations() {
-    return invocations;
+  public JsonObject getLog() {
+    return log;
   }
 
-  public GraphNodeResponseLog setInvocations(JsonArray invocations) {
-    this.invocations = invocations;
+  public GraphNodeResponseLog setLog(JsonObject log) {
+    this.log = log == null ? new JsonObject() : log;
+    return this;
+  }
+
+  public List<GraphNodeErrorLog> getErrors() {
+    return errors;
+  }
+
+  public GraphNodeResponseLog setErrors(List<GraphNodeErrorLog> errors) {
+    this.errors = errors == null ? Collections.emptyList() : errors;
     return this;
   }
 
@@ -88,19 +101,21 @@ public class GraphNodeResponseLog {
     }
     GraphNodeResponseLog that = (GraphNodeResponseLog) o;
     return Objects.equals(transition, that.transition) &&
-        Objects.equals(invocations, that.invocations);
+        Objects.equals(log, that.log) &&
+        Objects.equals(errors, that.errors);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(transition, invocations);
+    return Objects.hash(transition, log, errors);
   }
 
   @Override
   public String toString() {
     return "GraphNodeResponseLog{" +
         "transition='" + transition + '\'' +
-        ", invocations=" + invocations +
+        ", log=" + log +
+        ", errors=" + errors +
         '}';
   }
 }

@@ -21,8 +21,9 @@ import static io.knotx.fragments.api.FragmentResult.SUCCESS_TRANSITION;
 import io.knotx.fragments.task.engine.EventLogEntry;
 import io.knotx.fragments.task.engine.EventLogEntry.NodeStatus;
 import io.knotx.fragments.task.handler.log.api.model.LoggedNodeStatus;
-import io.vertx.core.json.JsonArray;
+import io.reactivex.exceptions.CompositeException;
 import io.vertx.core.json.JsonObject;
+import java.util.Collections;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.List;
@@ -43,7 +44,7 @@ class EventLogConverter {
 
     NodeExecutionData result = new NodeExecutionData(getLoggedNodesStatus(logs));
     if (transition != null) {
-      result.setResponse(transition, inJsonArray(getNodeLog(logs)));
+      result.setResponse(transition, getNodeLog(logs), getErrors(logs));
     }
 
     result.setStarted(getStartTimestamp(logs));
@@ -93,10 +94,17 @@ class EventLogConverter {
         .orElse(null);
   }
 
+  private List<Throwable> getErrors(List<EventLogEntry> logs) {
+    return getLogForExecution(logs)
+        .map(EventLogEntry::getError)
+        .map(EventLogConverter::flat)
+        .orElse(Collections.emptyList());
+  }
+
   private JsonObject getNodeLog(List<EventLogEntry> logs) {
     return getLogForExecution(logs)
         .map(EventLogEntry::getNodeLog)
-        .orElse(null);
+        .orElse(new JsonObject());
   }
 
   private List<EventLogEntry> getLogEntriesFor(String id) {
@@ -107,26 +115,24 @@ class EventLogConverter {
 
   private Optional<EventLogEntry> getLogForExecution(List<EventLogEntry> logs) {
     return logs.stream()
-        .filter(this::hasCorrectTransition)
+        .filter(this::skipUnsupportedEntries)
         .reduce((previous, current) -> current);
   }
 
   private Optional<EventLogEntry> getLogForStart(List<EventLogEntry> logs) {
     return logs.stream()
-        .filter(this::hasCorrectTransition)
+        .filter(this::skipUnsupportedEntries)
         .findFirst();
   }
 
-  private boolean hasCorrectTransition(EventLogEntry log) {
+  private boolean skipUnsupportedEntries(EventLogEntry log) {
     return !NodeStatus.UNSUPPORTED_TRANSITION.equals(log.getStatus());
   }
 
-  private JsonArray inJsonArray(JsonObject instance) {
-    if (instance != null) {
-      return new JsonArray().add(instance);
-    } else {
-      return new JsonArray();
-    }
+  private static List<Throwable> flat(Throwable e) {
+    return e instanceof CompositeException ?
+        ((CompositeException) e).getExceptions() :
+        Collections.singletonList(e);
   }
 
 }

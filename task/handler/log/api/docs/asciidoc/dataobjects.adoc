@@ -30,6 +30,19 @@ Possible values: <code>UNPROCESSED</code>, <code>SUCCESS</code> and <code>FAILUR
 +++
 |===
 
+[[GraphNodeErrorLog]]
+== GraphNodeErrorLog
+
+
+[cols=">25%,25%,50%"]
+[frame="topbot"]
+|===
+^|Name | Type ^| Description
+|[[className]]`@className`|`String`|-
+|[[message]]`@message`|`String`|-
+|[[stacktrace]]`@stacktrace`|`Json array`|-
+|===
+
 [[GraphNodeExecutionLog]]
 == GraphNodeExecutionLog
 
@@ -112,8 +125,9 @@ Node factory name.
 [frame="topbot"]
 |===
 ^|Name | Type ^| Description
-|[[invocations]]`@invocations`|`Json array`|+++
-List of node invocation(s) logs.
+|[[errors]]`@errors`|`Array of link:dataobjects.html#GraphNodeErrorLog[GraphNodeErrorLog]`|-
+|[[log]]`@log`|`Json object`|+++
+Node response log.
 +++
 |[[transition]]`@transition`|`String`|+++
 Node response transition.

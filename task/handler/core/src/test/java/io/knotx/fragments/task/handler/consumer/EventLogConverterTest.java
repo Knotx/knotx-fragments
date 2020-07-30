@@ -24,7 +24,6 @@ import io.knotx.fragments.api.Fragment;
 import io.knotx.fragments.api.FragmentResult;
 import io.knotx.fragments.task.engine.EventLogEntry;
 import io.knotx.fragments.task.handler.log.api.model.LoggedNodeStatus;
-import io.netty.channel.ConnectTimeoutException;
 import io.reactivex.exceptions.CompositeException;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -67,8 +66,7 @@ class EventLogConverterTest {
     JsonObject nodeLog = nodeLog();
     EventLogEntry[] logs = new EventLogEntry[]{
         EventLogEntry.success(TASK_NAME, NODE_ID, successFragmentResult(nodeLog)),
-        EventLogEntry.success(TASK_NAME, OTHER_NODE_ID, successFragmentResult()),
-        EventLogEntry.exception(TASK_NAME, OTHER_NODE_ID, "timeout", new ConnectTimeoutException()),
+        EventLogEntry.success(TASK_NAME, OTHER_NODE_ID, successFragmentResult())
     };
     EventLogConverter tested = givenLogConverter(logs);
 
@@ -77,7 +75,7 @@ class EventLogConverterTest {
     assertEquals(LoggedNodeStatus.SUCCESS, result.getStatus());
     assertNotNull(result.getResponse());
     assertEquals(SUCCESS_TRANSITION, result.getResponse().getTransition());
-    assertEquals(new JsonArray().add(nodeLog), result.getResponse().getInvocations());
+    assertEquals(nodeLog, result.getResponse().getLog());
   }
 
   @Test
@@ -86,8 +84,7 @@ class EventLogConverterTest {
     JsonObject nodeLog = nodeLog();
     EventLogEntry[] logs = new EventLogEntry[]{
         EventLogEntry.error(TASK_NAME, NODE_ID, ERROR_TRANSITION, nodeLog),
-        EventLogEntry.success(TASK_NAME, OTHER_NODE_ID, successFragmentResult()),
-        EventLogEntry.error(TASK_NAME, OTHER_NODE_ID, "timeout"),
+        EventLogEntry.success(TASK_NAME, OTHER_NODE_ID, successFragmentResult())
     };
     EventLogConverter tested = givenLogConverter(logs);
 
@@ -96,7 +93,88 @@ class EventLogConverterTest {
     assertEquals(LoggedNodeStatus.ERROR, result.getStatus());
     assertNotNull(result.getResponse());
     assertEquals(ERROR_TRANSITION, result.getResponse().getTransition());
-    assertEquals(new JsonArray().add(nodeLog), result.getResponse().getInvocations());
+    assertEquals(nodeLog, result.getResponse().getLog());
+  }
+
+  @Test
+  @DisplayName("Expect status=ERROR when error and unsupported log entries for node")
+  void fillWithErrorAndUnsupportedLogEntries() {
+    JsonObject nodeLog = nodeLog();
+    EventLogEntry[] logs = new EventLogEntry[]{
+        EventLogEntry.error(TASK_NAME, NODE_ID, ERROR_TRANSITION, nodeLog),
+        EventLogEntry.unsupported(TASK_NAME, NODE_ID, ERROR_TRANSITION),
+        EventLogEntry.success(TASK_NAME, OTHER_NODE_ID, successFragmentResult())
+    };
+    EventLogConverter tested = givenLogConverter(logs);
+
+    NodeExecutionData result = tested.getExecutionData(NODE_ID);
+
+    assertEquals(LoggedNodeStatus.ERROR, result.getStatus());
+    assertNotNull(result.getResponse());
+    assertEquals(ERROR_TRANSITION, result.getResponse().getTransition());
+    assertEquals(nodeLog, result.getResponse().getLog());
+  }
+
+  @Test
+  @DisplayName("Expect status=ERROR when single exception log entry for node")
+  void fillWithSingleExceptionLogEntry() {
+    Throwable error = new IllegalArgumentException("error message");
+
+    EventLogEntry[] logs = new EventLogEntry[]{
+        EventLogEntry.exception(TASK_NAME, NODE_ID, ERROR_TRANSITION, error),
+        EventLogEntry.success(TASK_NAME, OTHER_NODE_ID, successFragmentResult())
+    };
+    EventLogConverter tested = givenLogConverter(logs);
+
+    NodeExecutionData result = tested.getExecutionData(NODE_ID);
+
+    assertEquals(LoggedNodeStatus.ERROR, result.getStatus());
+    assertNotNull(result.getResponse());
+    assertEquals(ERROR_TRANSITION, result.getResponse().getTransition());
+    assertEquals(Collections.singletonList(error), result.getResponse().getErrors());
+  }
+
+  @Test
+  @DisplayName("Expect status=ERROR when exception and unsupported log entries for node")
+  void fillWithExceptionAndUnsupportedLogEntries() {
+    Throwable error = new IllegalArgumentException("error message");
+
+    EventLogEntry[] logs = new EventLogEntry[]{
+        EventLogEntry.exception(TASK_NAME, NODE_ID, ERROR_TRANSITION, error),
+        EventLogEntry.unsupported(TASK_NAME, NODE_ID, ERROR_TRANSITION),
+        EventLogEntry.success(TASK_NAME, OTHER_NODE_ID, successFragmentResult())
+    };
+    EventLogConverter tested = givenLogConverter(logs);
+
+    NodeExecutionData result = tested.getExecutionData(NODE_ID);
+
+    assertEquals(LoggedNodeStatus.ERROR, result.getStatus());
+    assertNotNull(result.getResponse());
+    assertEquals(ERROR_TRANSITION, result.getResponse().getTransition());
+    assertEquals(Collections.singletonList(error), result.getResponse().getErrors());
+  }
+
+
+  @Test
+  @DisplayName("Expect status=ERROR when single error log entry with throwable for node")
+  void fillWithSingleCompositeExceptionLogEntry() {
+    CompositeException composite = new CompositeException(
+        new IllegalArgumentException("error message 1"),
+        new IllegalArgumentException("error message 2")
+    );
+
+    EventLogEntry[] logs = new EventLogEntry[]{
+        EventLogEntry.exception(TASK_NAME, NODE_ID, ERROR_TRANSITION, composite),
+        EventLogEntry.success(TASK_NAME, OTHER_NODE_ID, successFragmentResult())
+    };
+    EventLogConverter tested = givenLogConverter(logs);
+
+    NodeExecutionData result = tested.getExecutionData(NODE_ID);
+
+    assertEquals(LoggedNodeStatus.ERROR, result.getStatus());
+    assertNotNull(result.getResponse());
+    assertEquals(ERROR_TRANSITION, result.getResponse().getTransition());
+    assertEquals(composite.getExceptions(), result.getResponse().getErrors());
   }
 
   @Test
@@ -104,8 +182,7 @@ class EventLogConverterTest {
   void fillWithSingleSuccessCustomLogEntry() {
     EventLogEntry[] logs = new EventLogEntry[]{
         EventLogEntry.success(TASK_NAME, NODE_ID, successFragmentResult(nodeLog(), true)),
-        EventLogEntry.success(TASK_NAME, OTHER_NODE_ID, successFragmentResult()),
-        EventLogEntry.error(TASK_NAME, OTHER_NODE_ID, "timeout")
+        EventLogEntry.success(TASK_NAME, OTHER_NODE_ID, successFragmentResult())
     };
     EventLogConverter tested = givenLogConverter(logs);
 
@@ -114,7 +191,7 @@ class EventLogConverterTest {
     assertEquals(LoggedNodeStatus.OTHER, result.getStatus());
     assertNotNull(result.getResponse());
     assertEquals("custom", result.getResponse().getTransition());
-    assertEquals(new JsonArray().add(nodeLog()), result.getResponse().getInvocations());
+    assertEquals(nodeLog(), result.getResponse().getLog());
   }
 
   @Test
@@ -133,7 +210,7 @@ class EventLogConverterTest {
     assertEquals(LoggedNodeStatus.SUCCESS, result.getStatus());
     assertNotNull(result.getResponse());
     assertEquals(SUCCESS_TRANSITION, result.getResponse().getTransition());
-    assertEquals(new JsonArray().add(nodeLog()), result.getResponse().getInvocations());
+    assertEquals(nodeLog(), result.getResponse().getLog());
   }
 
   @Test
@@ -152,7 +229,7 @@ class EventLogConverterTest {
     assertEquals(LoggedNodeStatus.ERROR, result.getStatus());
     assertNotNull(result.getResponse());
     assertEquals(ERROR_TRANSITION, result.getResponse().getTransition());
-    assertEquals(new JsonArray().add(new JsonObject()), result.getResponse().getInvocations());
+    assertEquals(new JsonObject(), result.getResponse().getLog());
   }
 
   EventLogConverter givenEmptyLogConverter() {
