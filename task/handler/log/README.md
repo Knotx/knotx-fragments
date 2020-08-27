@@ -17,7 +17,7 @@ The [graph node execution log](#graph-node-execution-log) contains data about th
 traverse the entire graph.
 
 ### Graph Node Execution log
-[Graph node execution log](https://github.com/Knotx/knotx-fragments/blob/master/handler/consumer/api/docs/asciidoc/dataobjects.adoc#graphnodeexecutionlog) 
+[Graph node execution log](https://github.com/Knotx/knotx-fragments/blob/master/task/handler/log/api/docs/asciidoc/dataobjects.adoc#graphnodeexecutionlog) 
 represents a root node execution data. It combines knowledge from sources:
 - [Task definition](https://github.com/Knotx/knotx-fragments/tree/master/engine#task)
 - [Task metadata](https://github.com/Knotx/knotx-fragments/blob/master/handler/api/src/main/java/io/knotx/fragments/handler/api/metadata/TaskMetadata.java)
