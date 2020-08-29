@@ -16,15 +16,16 @@
 package io.knotx.fragments.action.library;
 
 import static io.knotx.commons.json.JsonObjectUtil.getJsonObject;
-import static io.vertx.core.Future.succeededFuture;
+import static io.knotx.fragments.action.library.helper.ValidationHelper.checkArgument;
 
-import io.knotx.fragments.api.Fragment;
 import io.knotx.fragments.action.api.Action;
 import io.knotx.fragments.action.api.ActionFactory;
+import io.knotx.fragments.action.api.SyncAction;
+import io.knotx.fragments.api.Fragment;
 import io.knotx.fragments.api.FragmentResult;
-import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
+
 import java.util.Objects;
 import java.util.Optional;
 
@@ -39,19 +40,22 @@ public class PayloadToBodyActionFactory implements ActionFactory {
 
   @Override
   public Action create(String alias, JsonObject config, Vertx vertx, Action doAction) {
-    checkArgument(doAction != null, "Payload to body action does not support doAction");
+    checkArgument(getName(), doAction != null, "Payload to body action does not support doAction");
 
-    return (fragmentContext, resultHandler) -> {
+    return (SyncAction) fragmentContext -> {
       Fragment fragment = fragmentContext.getFragment();
       String payloadKey = Objects.nonNull(config) ? config.getString(KEY) : null;
 
-      FragmentResult result = getBodyFromPayload(payloadKey, fragment.getPayload())
+      return getBodyFromPayload(payloadKey, fragment.getPayload())
           .map(body -> toFragmentResult(fragment, body))
           .orElse(new FragmentResult(fragment, FragmentResult.ERROR_TRANSITION));
-
-      Future<FragmentResult> resultFuture = succeededFuture(result);
-      resultFuture.onComplete(resultHandler);
     };
+  }
+
+  private Optional<String> getBodyFromPayload(String key, JsonObject payload) {
+    JsonObject body = Objects.isNull(key) ? payload : getJsonObject(key, payload);
+    return Optional.ofNullable(body)
+        .map(JsonObject::encodePrettily);
   }
 
   private FragmentResult toFragmentResult(Fragment fragment, String body) {
@@ -59,16 +63,4 @@ public class PayloadToBodyActionFactory implements ActionFactory {
     return new FragmentResult(fragment, FragmentResult.SUCCESS_TRANSITION);
   }
 
-  private Optional<String> getBodyFromPayload(String key, JsonObject payload) {
-    JsonObject body = Objects.isNull(key) ? payload : getJsonObject(key, payload);
-    return Optional.ofNullable(body)
-        .map(JsonObject::encodePrettily);
-
-  }
-
-  private void checkArgument(boolean condition, String message) {
-    if (condition) {
-      throw new IllegalArgumentException(message);
-    }
-  }
 }
