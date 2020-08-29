@@ -20,6 +20,7 @@ import static java.lang.String.format;
 import static java.lang.String.valueOf;
 import static java.time.Instant.now;
 
+import io.knotx.fragments.action.api.FutureAction;
 import io.knotx.fragments.api.Fragment;
 import io.knotx.fragments.action.library.exception.DoActionExecuteException;
 import io.knotx.fragments.action.library.helper.TimeCalculator;
@@ -31,13 +32,14 @@ import io.knotx.fragments.api.FragmentContext;
 import io.knotx.fragments.api.FragmentResult;
 import io.vertx.circuitbreaker.CircuitBreaker;
 import io.vertx.core.AsyncResult;
+import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.Promise;
 import io.vertx.core.json.JsonObject;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
-class CircuitBreakerAction implements Action {
+class CircuitBreakerAction implements FutureAction {
 
   static final String INVOCATION_COUNT_LOG_KEY = "invocationCount";
   static final String ERROR_LOG_KEY = "error";
@@ -59,14 +61,13 @@ class CircuitBreakerAction implements Action {
   }
 
   @Override
-  public void apply(FragmentContext fragmentContext,
-      Handler<AsyncResult<FragmentResult>> resultHandler) {
+  public Future<FragmentResult> applyForFuture(FragmentContext fragmentContext) {
     AtomicInteger counter = new AtomicInteger();
     ActionLogger actionLogger = ActionLogger.create(alias, actionLogLevel);
-    circuitBreaker.executeWithFallback(
+    return circuitBreaker.executeWithFallback(
         promise -> executeCommand(promise, fragmentContext, counter, actionLogger),
         throwable -> handleFallback(fragmentContext, throwable, counter, actionLogger)
-    ).onComplete(resultHandler);
+    );
   }
 
   private void executeCommand(Promise<FragmentResult> promise, FragmentContext fragmentContext,

@@ -57,6 +57,7 @@ class SyncFragmentOperationTest {
       assertTrue(asyncResult.succeeded());
       testContext.completeNow();
     });
+
   }
 
   @Test

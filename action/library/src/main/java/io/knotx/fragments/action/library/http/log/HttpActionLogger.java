@@ -26,9 +26,9 @@ import org.apache.commons.lang3.StringUtils;
 
 public class HttpActionLogger {
 
-  private HttpActionNodeLogger httpActionNodeLogger;
-  private EndpointOptions endpointOptions;
-  private String httpMethod;
+  private final HttpActionNodeLogger httpActionNodeLogger;
+  private final EndpointOptions endpointOptions;
+  private final String httpMethod;
 
   private EndpointRequest endpointRequest;
   private HttpResponseData httpResponseData;
