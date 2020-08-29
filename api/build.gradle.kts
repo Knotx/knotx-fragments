@@ -34,6 +34,8 @@ dependencies {
     implementation(group = "io.vertx", name = "vertx-service-proxy")
     implementation(group = "io.vertx", name = "vertx-rx-java2")
     implementation(group = "org.apache.commons", name = "commons-lang3")
+
+    testImplementation("io.knotx:knotx-junit5:${project.version}")
 }
 
 tasks {
