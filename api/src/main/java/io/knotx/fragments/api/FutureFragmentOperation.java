@@ -35,7 +35,7 @@ public interface FutureFragmentOperation extends FragmentOperation {
   }
 
   default Future<FragmentResult> applyWithResult(FragmentContext fragmentContext) {
-    Future<FragmentResult> result = apply(fragmentContext);
+    Future<FragmentResult> result = applyForFuture(fragmentContext);
     if (result != null) {
       return result;
     } else {
@@ -44,5 +44,6 @@ public interface FutureFragmentOperation extends FragmentOperation {
     }
   }
 
-  Future<FragmentResult> apply(FragmentContext fragmentContext);
+  Future<FragmentResult> applyForFuture(FragmentContext fragmentContext);
+
 }

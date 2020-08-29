@@ -20,7 +20,7 @@ import io.vertx.core.Future;
 public interface SyncFragmentOperation extends FutureFragmentOperation {
 
   @Override
-  default Future<FragmentResult> apply(FragmentContext fragmentContext) {
+  default Future<FragmentResult> applyForFuture(FragmentContext fragmentContext) {
     // Exception handling in super
     return Future.succeededFuture(applySync(fragmentContext));
   }
