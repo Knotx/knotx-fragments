@@ -39,6 +39,10 @@ public class ActionFactoryOptions {
     // default
   }
 
+  public ActionFactoryOptions(String factory, JsonObject config) {
+    this(factory, config, null);
+  }
+
   public ActionFactoryOptions(String factory, JsonObject config, String doAction) {
     ActionFactoryOptions actionFactoryOptions = new ActionFactoryOptions().setFactory(factory)
         .setConfig(config)

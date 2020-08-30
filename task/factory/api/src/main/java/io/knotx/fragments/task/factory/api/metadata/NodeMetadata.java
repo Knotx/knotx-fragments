@@ -20,15 +20,16 @@ import io.knotx.fragments.task.api.NodeType;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 public class NodeMetadata {
 
-  private String nodeId;
-  private String label;
-  private NodeType type;
-  private Map<String, String> transitions;
-  private List<String> nestedNodes;
-  private OperationMetadata operation;
+  private final String nodeId;
+  private final String label;
+  private final NodeType type;
+  private final Map<String, String> transitions;
+  private final List<String> nestedNodes;
+  private final OperationMetadata operation;
 
   public static NodeMetadata single(String nodeId, String label, Map<String, String> transitions, OperationMetadata operation) {
     return new NodeMetadata(nodeId, label, NodeType.SINGLE, transitions, Collections.emptyList(), operation);
@@ -77,6 +78,28 @@ public class NodeMetadata {
 
   public OperationMetadata getOperation() {
     return operation;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    NodeMetadata that = (NodeMetadata) o;
+    return Objects.equals(nodeId, that.nodeId) &&
+        Objects.equals(label, that.label) &&
+        type == that.type &&
+        Objects.equals(transitions, that.transitions) &&
+        Objects.equals(nestedNodes, that.nestedNodes) &&
+        Objects.equals(operation, that.operation);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(nodeId, label, type, transitions, nestedNodes, operation);
   }
 
   @Override

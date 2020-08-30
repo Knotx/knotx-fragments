@@ -15,8 +15,6 @@
  */
 package io.knotx.fragments.task.factory.generic.node.action;
 
-import static io.knotx.fragments.task.factory.api.metadata.NodeMetadata.single;
-
 import io.knotx.fragments.action.api.Action;
 import io.knotx.fragments.action.api.ActionFactory;
 import io.knotx.fragments.action.core.ActionFactoryOptions;
@@ -26,15 +24,16 @@ import io.knotx.fragments.api.FragmentResult;
 import io.knotx.fragments.task.api.Node;
 import io.knotx.fragments.task.api.single.SingleNode;
 import io.knotx.fragments.task.factory.api.metadata.NodeMetadata;
-import io.knotx.fragments.task.factory.api.metadata.OperationMetadata;
 import io.knotx.fragments.task.factory.generic.GraphNodeOptions;
 import io.knotx.fragments.task.factory.generic.NodeProvider;
 import io.knotx.fragments.task.factory.generic.node.NodeFactory;
 import io.knotx.fragments.task.factory.generic.node.NodeOptions;
+import io.knotx.fragments.task.factory.generic.node.action.metadata.ActionMetadataProvider;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.core.json.JsonObject;
 import io.vertx.reactivex.core.Vertx;
+
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -45,12 +44,13 @@ import java.util.function.Supplier;
 
 public class ActionNodeFactory implements NodeFactory {
 
+  private static final Supplier<Iterator<ActionFactory>> SPI_ACTION_SUPPLIER = () -> ServiceLoader
+      .load(ActionFactory.class).iterator();
+
   public static final String NAME = "action";
-  public static final String METADATA_ALIAS = "alias";
-  public static final String METADATA_ACTION_FACTORY = "actionFactory";
-  public static final String METADATA_ACTION_CONFIG = "actionConfig";
+
   private ActionProvider actionProvider;
-  private Map<String, ActionFactoryOptions> actionNameToOptions;
+  private ActionMetadataProvider actionMetadataProvider;
 
   @Override
   public String getName() {
@@ -59,69 +59,31 @@ public class ActionNodeFactory implements NodeFactory {
 
   @Override
   public ActionNodeFactory configure(JsonObject config, Vertx vertx) {
-    this.actionNameToOptions = new ActionNodeFactoryConfig(config).getActions();
-    Supplier<Iterator<ActionFactory>> actionFactoriesSupplier = () -> {
-      ServiceLoader<ActionFactory> factories = ServiceLoader.load(ActionFactory.class);
-      return factories.iterator();
-    };
-    actionProvider = new ActionProvider(actionFactoriesSupplier, actionNameToOptions, vertx);
+    Map<String, ActionFactoryOptions> actionNameToOptions = new ActionNodeFactoryConfig(config).getActions();
+    this.actionMetadataProvider = ActionMetadataProvider.create(NAME, actionNameToOptions);
+    this.actionProvider = new ActionProvider(SPI_ACTION_SUPPLIER, actionNameToOptions, vertx);
     return this;
   }
 
   @Override
   public Node initNode(GraphNodeOptions nodeOptions, Map<String, Node> edges,
-      NodeProvider nodeProvider) {
+                       NodeProvider nodeProvider) {
     // The implementation is for backwards compatibility of NodeFactory interface
     return initNode(nodeOptions.getNode(), edges, nodeProvider, new HashMap<>());
   }
 
   @Override
   public Node initNode(NodeOptions nodeOptions, Map<String, Node> edges, NodeProvider nodeProvider,
-      Map<String, NodeMetadata> nodesMetadata) {
-    ActionNodeConfig config = new ActionNodeConfig(nodeOptions.getConfig());
-    final String actionNodeId = UUID.randomUUID().toString();
+                       Map<String, NodeMetadata> nodesMetadata) {
+    String alias = new ActionNodeConfig(nodeOptions.getConfig()).getAction();
+    final String nodeId = UUID.randomUUID().toString();
 
-    Action action = actionProvider.get(config.getAction())
-        .orElseThrow(() -> new ActionNotFoundException(config.getAction()));
+    Action action = actionProvider.get(alias)
+        .orElseThrow(() -> new ActionNotFoundException(alias));
 
-    NodeMetadata metadata = createActionNodeMetadata(actionNodeId, edges, config);
-    nodesMetadata.put(actionNodeId, metadata);
+    NodeMetadata metadata = actionMetadataProvider.provideFor(nodeId, edges, alias);
+    nodesMetadata.put(nodeId, metadata);
 
-    return new SingleNode() {
-      @Override
-      public String getId() {
-        return actionNodeId;
-      }
-
-      @Override
-      public Optional<Node> next(String transition) {
-        return Optional.ofNullable(edges.get(transition));
-      }
-
-      @Override
-      public void apply(FragmentContext fragmentContext, Handler<AsyncResult<FragmentResult>> handler) {
-        action.apply(fragmentContext, handler);
-      }
-    };
-  }
-
-  private NodeMetadata createActionNodeMetadata(String actionNodeId, Map<String, Node> edges,
-      ActionNodeConfig config) {
-    Map<String, String> transitionMetadata = createTransitionMetadata(edges);
-    return single(actionNodeId, config.getAction(), transitionMetadata, createOperation(config));
-  }
-
-  private Map<String, String> createTransitionMetadata(Map<String, Node> edges) {
-    Map<String, String> transitionMetadata = new HashMap<>();
-    edges.forEach((transition, node) -> transitionMetadata.put(transition, node.getId()));
-    return transitionMetadata;
-  }
-
-  private OperationMetadata createOperation(ActionNodeConfig config) {
-    ActionFactoryOptions actionConfig = actionNameToOptions.get(config.getAction());
-    return new OperationMetadata(NAME, new JsonObject()
-        .put(METADATA_ALIAS, config.getAction())
-        .put(METADATA_ACTION_FACTORY, actionConfig.getFactory())
-        .put(METADATA_ACTION_CONFIG, actionConfig.getConfig()));
+    return new ActionNode(nodeId, edges, action);
   }
 }

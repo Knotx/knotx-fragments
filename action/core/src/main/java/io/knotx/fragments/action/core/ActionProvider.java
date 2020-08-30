@@ -38,8 +38,8 @@ public class ActionProvider {
   private final Map<String, ActionFactory> factories;
   private final Map<String, Action> cache;
 
-  private Map<String, ActionFactoryOptions> aliasToOptions;
-  private Vertx vertx;
+  private final Map<String, ActionFactoryOptions> aliasToOptions;
+  private final Vertx vertx;
 
   public ActionProvider(Supplier<Iterator<ActionFactory>> supplier,
       Map<String, ActionFactoryOptions> aliasToOptions, Vertx vertx) {
