@@ -81,7 +81,7 @@ public class FragmentResult {
   public FragmentResult(JsonObject json) {
     this.fragment = new Fragment(json.getJsonObject(FRAGMENT_KEY));
     this.transition = json.getString(TRANSITION_KEY);
-    this.log = json.getJsonObject(LOG_KEY) != null ? json.getJsonObject(LOG_KEY) : null;
+    this.log = json.getJsonObject(LOG_KEY);
     this.error = json.getJsonObject(FAILURE_KEY) != null ? new FragmentOperationFailure(
         json.getJsonObject(FAILURE_KEY)) : null;
   }
@@ -146,12 +146,13 @@ public class FragmentResult {
     FragmentResult that = (FragmentResult) o;
     return Objects.equals(fragment, that.fragment) &&
         Objects.equals(transition, that.transition) &&
-        Objects.equals(log, that.log);
+        Objects.equals(log, that.log) &&
+        Objects.equals(error, that.error);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(fragment, transition, log);
+    return Objects.hash(fragment, transition, log, error);
   }
 
   @Override
@@ -160,6 +161,7 @@ public class FragmentResult {
         "fragment=" + fragment +
         ", transition='" + transition + '\'' +
         ", log=" + log +
+        ", error=" + error +
         '}';
   }
 }

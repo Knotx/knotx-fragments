@@ -32,11 +32,11 @@ class FragmentOperationExceptionTest {
   @DisplayName("Expect all fields are deserialized")
   void expectAllFieldsDeserialized() {
     IllegalArgumentException error = new IllegalArgumentException(ERROR_MESSAGE);
-    FragmentOperationException original = FragmentOperationException
+    FragmentOperationError original = FragmentOperationError
         .newInstance(error);
 
     JsonObject serialized = original.toJson();
-    FragmentOperationException copy = new FragmentOperationException(serialized);
+    FragmentOperationError copy = new FragmentOperationError(serialized);
 
     assertEquals(IllegalArgumentException.class.getCanonicalName(), copy.getClassName());
     assertEquals(ERROR_MESSAGE, copy.getMessage());

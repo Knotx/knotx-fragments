@@ -46,17 +46,28 @@ Type of a Fragment. Different types of Fragments can be processed in separate wa
 |[[fragment]]`@fragment`|`link:dataobjects.html#Fragment[Fragment]`|-
 |===
 
-[[FragmentOperationException]]
-== FragmentOperationException
+[[FragmentOperationError]]
+== FragmentOperationError
 
+++++
+ It wraps an exception from link and
+ serialize it details to .
+++++
+'''
 
 [cols=">25%,25%,50%"]
 [frame="topbot"]
 |===
 ^|Name | Type ^| Description
-|[[className]]`@className`|`String`|-
-|[[message]]`@message`|`String`|-
-|[[stacktrace]]`@stacktrace`|`Array of String`|-
+|[[className]]`@className`|`String`|+++
+Gets an exception class name.
++++
+|[[message]]`@message`|`String`|+++
+Gets an exception details message.
++++
+|[[stacktrace]]`@stacktrace`|`Array of String`|+++
+Gets a list of serialized stactrace lines.
++++
 |===
 
 [[FragmentOperationFailure]]
@@ -68,7 +79,7 @@ Type of a Fragment. Different types of Fragments can be processed in separate wa
 |===
 ^|Name | Type ^| Description
 |[[code]]`@code`|`String`|-
-|[[exceptions]]`@exceptions`|`Array of link:dataobjects.html#FragmentOperationException[FragmentOperationException]`|-
+|[[exceptions]]`@exceptions`|`Array of link:dataobjects.html#FragmentOperationError[FragmentOperationError]`|-
 |[[message]]`@message`|`String`|-
 |===
 

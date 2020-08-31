@@ -16,66 +16,91 @@
 package io.knotx.fragments.api;
 
 import io.vertx.codegen.annotations.DataObject;
+import io.vertx.core.Handler;
 import io.vertx.core.json.JsonObject;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+/**
+ * It wraps an exception from {@link FragmentOperation#apply(FragmentContext, Handler)} and
+ * serialize it details to {@link JsonObject}.
+ */
 @DataObject(generateConverter = true)
-public class FragmentOperationException {
+public class FragmentOperationError {
 
   private String className;
   private String message;
   private List<String> stacktrace;
 
-  public static FragmentOperationException newInstance(Throwable error) {
+  /**
+   * Creates the new instance.
+   *
+   * @param error exception to serialize
+   */
+  public static FragmentOperationError newInstance(Throwable error) {
     final List<String> stackTraceLogs = Arrays.stream(error.getStackTrace())
         .map(StackTraceElement::toString)
         .collect(Collectors.toList());
 
-    return new FragmentOperationException()
+    return new FragmentOperationError()
         .setClassName(error.getClass().getCanonicalName())
         .setMessage(error.getMessage())
         .setStacktrace(stackTraceLogs);
   }
 
-  public FragmentOperationException() {
+  public FragmentOperationError() {
   }
 
-  public FragmentOperationException(JsonObject json) {
-    FragmentOperationExceptionConverter.fromJson(json, this);
+  public FragmentOperationError(JsonObject json) {
+    FragmentOperationErrorConverter.fromJson(json, this);
   }
 
   public JsonObject toJson() {
     JsonObject result = new JsonObject();
-    FragmentOperationExceptionConverter.toJson(this, result);
+    FragmentOperationErrorConverter.toJson(this, result);
     return result;
   }
 
+  /**
+   * Gets an exception class name.
+   *
+   * @return class name
+   */
   public String getClassName() {
     return className;
   }
 
-  public FragmentOperationException setClassName(String className) {
-    this.className = className;
-    return this;
-  }
-
+  /**
+   * Gets an exception details message.
+   *
+   * @return details message
+   */
   public String getMessage() {
     return message;
   }
 
-  public FragmentOperationException setMessage(String message) {
-    this.message = message;
-    return this;
-  }
-
+  /**
+   * Gets a list of serialized stactrace lines.
+   *
+   * @return stacktrace
+   */
   public List<String> getStacktrace() {
     return stacktrace;
   }
 
-  public FragmentOperationException setStacktrace(List<String> stacktrace) {
+  public FragmentOperationError setClassName(String className) {
+    this.className = className;
+    return this;
+  }
+
+  public FragmentOperationError setMessage(String message) {
+    this.message = message;
+    return this;
+  }
+
+  public FragmentOperationError setStacktrace(List<String> stacktrace) {
     this.stacktrace = stacktrace;
     return this;
   }
@@ -88,7 +113,7 @@ public class FragmentOperationException {
     if (o == null || getClass() != o.getClass()) {
       return false;
     }
-    FragmentOperationException that = (FragmentOperationException) o;
+    FragmentOperationError that = (FragmentOperationError) o;
     return Objects.equals(className, that.className) &&
         Objects.equals(message, that.message) &&
         Objects.equals(stacktrace, that.stacktrace);

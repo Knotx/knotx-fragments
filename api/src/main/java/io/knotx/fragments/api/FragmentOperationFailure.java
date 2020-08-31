@@ -22,6 +22,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @DataObject(generateConverter = true)
 public class FragmentOperationFailure {
@@ -30,7 +31,7 @@ public class FragmentOperationFailure {
 
   private String code;
   private String message;
-  private List<FragmentOperationException> exceptions;
+  private List<FragmentOperationError> exceptions;
 
   public static FragmentOperationFailure newInstance(String code, String message) {
     return new FragmentOperationFailure()
@@ -43,11 +44,11 @@ public class FragmentOperationFailure {
     return new FragmentOperationFailure()
         .setCode(GENERAL_EXCEPTION)
         .setMessage(error.getMessage())
-        .setExceptions(flatCompositeExceptions(error));
+        .setExceptions(getExceptionDescriptors(error));
   }
 
   public FragmentOperationFailure() {
-    // default constructor
+    // hidden constructor
   }
 
   public FragmentOperationFailure(JsonObject json) {
@@ -78,11 +79,11 @@ public class FragmentOperationFailure {
     return this;
   }
 
-  public List<FragmentOperationException> getExceptions() {
+  public List<FragmentOperationError> getExceptions() {
     return exceptions;
   }
 
-  public FragmentOperationFailure setExceptions(List<FragmentOperationException> exceptions) {
+  public FragmentOperationFailure setExceptions(List<FragmentOperationError> exceptions) {
     this.exceptions = exceptions;
     return this;
   }
@@ -115,14 +116,19 @@ public class FragmentOperationFailure {
         '}';
   }
 
-  private static List<FragmentOperationException> flatCompositeExceptions(Throwable error) {
-    List<FragmentOperationException> errors;
+  private static List<FragmentOperationError> getExceptionDescriptors(Throwable error) {
+    return Stream.of(error)
+        .map(FragmentOperationFailure::flatIfComposite)
+        .flatMap(List::stream)
+        .map(FragmentOperationError::newInstance)
+        .collect(Collectors.toList());
+  }
+
+  private static List<Throwable> flatIfComposite(Throwable error) {
     if (error instanceof CompositeException) {
-      errors = ((CompositeException) error).getExceptions().stream()
-          .map(FragmentOperationException::newInstance).collect(Collectors.toList());
+      return ((CompositeException) error).getExceptions();
     } else {
-      errors = Collections.singletonList(FragmentOperationException.newInstance(error));
+      return Collections.singletonList(error);
     }
-    return errors;
   }
 }
