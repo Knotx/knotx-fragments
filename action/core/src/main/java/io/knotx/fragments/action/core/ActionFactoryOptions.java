@@ -24,8 +24,8 @@ import java.util.Optional;
 import java.util.function.Supplier;
 
 /**
- * Options used during {@link ActionProvider#ActionProvider(Supplier, Map, Vertx)} initialization. Those
- * values are then passed to {@link io.knotx.fragments.action.api.ActionFactory#create(String,
+ * Options used during {@link ActionProvider#ActionProvider(Supplier, Map, Vertx)} initialization.
+ * Those values are then passed to {@link io.knotx.fragments.action.api.ActionFactory#create(String,
  * JsonObject, io.vertx.core.Vertx, Action)}.
  */
 @DataObject(generateConverter = true)
@@ -37,6 +37,10 @@ public class ActionFactoryOptions {
 
   public ActionFactoryOptions() {
     // default
+  }
+
+  public ActionFactoryOptions(String factory, JsonObject config) {
+    this(factory, config, null);
   }
 
   public ActionFactoryOptions(String factory, JsonObject config, String doAction) {

@@ -17,6 +17,8 @@ package io.knotx.fragments.task.factory.api.metadata;
 
 import io.vertx.core.json.JsonObject;
 
+import java.util.Objects;
+
 public class OperationMetadata {
 
   private final String factory;
@@ -46,5 +48,23 @@ public class OperationMetadata {
         "factory='" + factory + '\'' +
         ", data=" + data +
         '}';
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    OperationMetadata that = (OperationMetadata) o;
+    return Objects.equals(factory, that.factory) &&
+        Objects.equals(data, that.data);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(factory, data);
   }
 }
