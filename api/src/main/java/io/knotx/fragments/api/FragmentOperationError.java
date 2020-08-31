@@ -25,7 +25,7 @@ import java.util.stream.Collectors;
 
 /**
  * It wraps an exception from {@link FragmentOperation#apply(FragmentContext, Handler)} and
- * serialize it details to {@link JsonObject}.
+ * serialize its details to {@link JsonObject}.
  */
 @DataObject(generateConverter = true)
 public class FragmentOperationError {
@@ -82,7 +82,7 @@ public class FragmentOperationError {
   }
 
   /**
-   * Gets a list of serialized stactrace lines.
+   * Gets a list of serialized stacktrace lines.
    *
    * @return stacktrace
    */
