@@ -49,4 +49,9 @@ public class TestAction implements ActionFactory {
       resultFuture.onComplete(resultHandler);
     };
   }
+
+  @Override
+  public JsonObject getConfigurationDefaults() {
+    return new JsonObject();
+  }
 }

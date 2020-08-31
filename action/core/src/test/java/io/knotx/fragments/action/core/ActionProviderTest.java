@@ -249,6 +249,11 @@ class ActionProviderTest {
         }
       };
     }
+
+    @Override
+    public JsonObject getConfigurationDefaults() {
+      return new JsonObject();
+    }
   }
 
   @Cacheable
@@ -270,6 +275,11 @@ class ActionProviderTest {
           // empty
         }
       };
+    }
+
+    @Override
+    public JsonObject getConfigurationDefaults() {
+      return new JsonObject();
     }
   }
 }

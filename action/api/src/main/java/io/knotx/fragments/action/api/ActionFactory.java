@@ -33,13 +33,19 @@ public interface ActionFactory {
   /**
    * Creates an instance of {@link Action} class.
    *
-   * @param alias - action alias / name
-   * @param config - JSON configuration
-   * @param vertx - vertx instance
+   * @param alias    - action alias / name
+   * @param config   - JSON configuration
+   * @param vertx    - vertx instance
    * @param doAction action to be applied, if no action should be called in chain then it is
-   * <pre>null</pre>
+   *                 <pre>null</pre>
    * @return function to execute
    */
   Action create(String alias, JsonObject config, Vertx vertx, Action doAction);
 
+  /**
+   * Returns action default config combined with user-specific
+   *
+   * @return action config
+   */
+  JsonObject getConfigurationDefaults();
 }

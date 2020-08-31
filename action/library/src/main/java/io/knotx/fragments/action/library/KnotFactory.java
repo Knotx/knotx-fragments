@@ -26,6 +26,8 @@ import io.vertx.core.json.JsonObject;
 @Cacheable
 public class KnotFactory implements ActionFactory {
 
+  private JsonObject actionConfig;
+
   @Override
   public String getName() {
     return "knot";
@@ -34,6 +36,7 @@ public class KnotFactory implements ActionFactory {
   @Override
   public Action create(String alias, JsonObject config, Vertx vertx,
       Action doAction) {
+    this.actionConfig = config;
     String address = config.getString("address");
     DeliveryOptions deliveryOptions = new DeliveryOptions(
         config.getJsonObject("deliveryOptions") == null ? new JsonObject()
@@ -42,4 +45,8 @@ public class KnotFactory implements ActionFactory {
     return Knot.createProxyWithOptions(vertx, address, deliveryOptions);
   }
 
+  @Override
+  public JsonObject getConfigurationDefaults() {
+    return actionConfig;
+  }
 }

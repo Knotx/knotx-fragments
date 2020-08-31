@@ -31,6 +31,7 @@ import java.util.Optional;
 public class PayloadToBodyActionFactory implements ActionFactory {
 
   private static final String KEY = "key";
+  private JsonObject actionConfig;
 
   @Override
   public String getName() {
@@ -39,6 +40,7 @@ public class PayloadToBodyActionFactory implements ActionFactory {
 
   @Override
   public Action create(String alias, JsonObject config, Vertx vertx, Action doAction) {
+    this.actionConfig = config;
     checkArgument(doAction != null, "Payload to body action does not support doAction");
 
     return (fragmentContext, resultHandler) -> {
@@ -52,6 +54,11 @@ public class PayloadToBodyActionFactory implements ActionFactory {
       Future<FragmentResult> resultFuture = succeededFuture(result);
       resultFuture.onComplete(resultHandler);
     };
+  }
+
+  @Override
+  public JsonObject getConfigurationDefaults() {
+    return actionConfig;
   }
 
   private FragmentResult toFragmentResult(Fragment fragment, String body) {

@@ -15,6 +15,8 @@
  */
 package io.knotx.fragments.action.library.http;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -39,7 +41,8 @@ class HttpActionFactoryTest {
     HttpActionFactory actionFactory = new HttpActionFactory();
     JsonObject config = new JsonObject();
     assertThrows(ActionConfigurationException.class,
-        () -> actionFactory.create("", config, vertx, (fragmentContext, resultHandler) -> {})
+        () -> actionFactory.create("", config, vertx, (fragmentContext, resultHandler) -> {
+        })
     );
   }
 
@@ -83,5 +86,48 @@ class HttpActionFactoryTest {
     HttpActionFactory tested = new HttpActionFactory();
     JsonObject config = new JsonObject().put("httpMethod", method);
     assertThrows(ActionConfigurationException.class, () -> tested.create("", config, vertx, null));
+  }
+
+  @Test
+  @DisplayName("Should return valid JSON with configuration defaults")
+  void shouldReturnValidJsonWithConfigurationDefaults(Vertx vertx) {
+    HttpActionFactory httpActionFactory = new HttpActionFactory();
+    httpActionFactory.create("", new JsonObject(), vertx, null);
+    assertNotNull(httpActionFactory.getConfigurationDefaults());
+    assertEquals(6, httpActionFactory.getConfigurationDefaults().size());
+    JsonObject configDefaults = httpActionFactory.getConfigurationDefaults();
+    assertThatConfigDefaultsContainsAllEntries(configDefaults);
+    assertEquals("GET", configDefaults.getString("httpMethod"));
+    assertEquals(0, configDefaults.getLong("requestTimeoutMs"));
+    assertEquals(62, configDefaults.getJsonObject("webClientOptions").size());
+    assertEquals(5, configDefaults.getJsonObject("endpointOptions").size());
+    assertEquals(2, configDefaults.getJsonObject("responseOptions").size());
+  }
+
+  @Test
+  @DisplayName("Should return valid JSON with overwritten configuration")
+  void shouldReturnValidJsonWithOverwrittenConfiguration(Vertx vertx) {
+    HttpActionFactory httpActionFactory = new HttpActionFactory();
+    JsonObject actionConfig = new JsonObject()
+        .put("httpMethod", "POST")
+        .put("logLevel", "info")
+        .put("requestTimeoutMs", 3000);
+    httpActionFactory.create("", actionConfig, vertx, null);
+    assertNotNull(httpActionFactory.getConfigurationDefaults());
+    assertEquals(6, httpActionFactory.getConfigurationDefaults().size());
+    JsonObject configDefaults = httpActionFactory.getConfigurationDefaults();
+    assertThatConfigDefaultsContainsAllEntries(configDefaults);
+    assertEquals("POST", configDefaults.getString("httpMethod"));
+    assertEquals("info", configDefaults.getString("logLevel"));
+    assertEquals(3000, configDefaults.getLong("requestTimeoutMs"));
+  }
+
+  private void assertThatConfigDefaultsContainsAllEntries(JsonObject actionConfig) {
+    assertTrue(actionConfig.containsKey("httpMethod"));
+    assertTrue(actionConfig.containsKey("webClientOptions"));
+    assertTrue(actionConfig.containsKey("endpointOptions"));
+    assertTrue(actionConfig.containsKey("responseOptions"));
+    assertTrue(actionConfig.containsKey("requestTimeoutMs"));
+    assertTrue(actionConfig.containsKey("logLevel"));
   }
 }

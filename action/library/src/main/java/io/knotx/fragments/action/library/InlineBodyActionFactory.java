@@ -48,6 +48,7 @@ public class InlineBodyActionFactory implements ActionFactory {
   private static final String BODY_KEY = "body";
 
   private static final String DEFAULT_EMPTY_BODY = "";
+  private JsonObject actionConfig;
 
   @Override
   public String getName() {
@@ -64,6 +65,7 @@ public class InlineBodyActionFactory implements ActionFactory {
    */
   @Override
   public Action create(String alias, JsonObject config, Vertx vertx, Action doAction) {
+    this.actionConfig = config;
     if (doAction != null) {
       throw new IllegalArgumentException("Inline body action does not support doAction");
     }
@@ -73,6 +75,11 @@ public class InlineBodyActionFactory implements ActionFactory {
       substituteBodyInFragment(fragmentContext, config, actionLogger);
       successTransition(fragmentContext, actionLogger, resultHandler);
     };
+  }
+
+  @Override
+  public JsonObject getConfigurationDefaults() {
+    return actionConfig;
   }
 
   private void substituteBodyInFragment(FragmentContext fragmentContext, JsonObject config,

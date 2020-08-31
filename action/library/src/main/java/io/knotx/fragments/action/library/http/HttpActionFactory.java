@@ -42,6 +42,7 @@ public class HttpActionFactory implements ActionFactory {
       .of(GET, POST, PATCH, PUT, DELETE, HEAD);
 
   private final WebClientCache webClientCache = new WebClientCache();
+  private JsonObject actionConfig;
 
   @Override
   public String getName() {
@@ -51,12 +52,18 @@ public class HttpActionFactory implements ActionFactory {
   @Override
   public Action create(String alias, JsonObject config, Vertx vertx, Action doAction) {
     HttpActionOptions options = new HttpActionOptions(config);
+    this.actionConfig = options.toJson();
 
     validateNoDoAction(doAction, alias);
     validateHttpMethodSupported(options, alias);
 
     WebClient webClient = webClientCache.getOrCreate(vertx, options.getWebClientOptions());
     return tryToCreateAction(webClient, options, alias);
+  }
+
+  @Override
+  public JsonObject getConfigurationDefaults() {
+    return actionConfig;
   }
 
   private void validateNoDoAction(Action doAction, String alias) {
