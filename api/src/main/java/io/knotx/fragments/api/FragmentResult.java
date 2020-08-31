@@ -16,11 +16,9 @@
 package io.knotx.fragments.api;
 
 import io.vertx.codegen.annotations.DataObject;
-import java.util.Objects;
-
-import org.apache.commons.lang3.StringUtils;
-
 import io.vertx.core.json.JsonObject;
+import java.util.Objects;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * Result of the {@link FragmentOperation}.
@@ -34,17 +32,48 @@ public class FragmentResult {
   private static final String FRAGMENT_KEY = "fragment";
   private static final String TRANSITION_KEY = "transition";
   private static final String LOG_KEY = "log";
+  private static final String FAILURE_KEY = "error";
 
   private final Fragment fragment;
   private final String transition;
   private final JsonObject log;
+  private final FragmentOperationFailure error;
 
+  public static FragmentResult success(Fragment fragment, JsonObject log) {
+    return new FragmentResult(fragment, SUCCESS_TRANSITION, log);
+  }
+
+  public static FragmentResult success(Fragment fragment, String transition, JsonObject log) {
+    return new FragmentResult(fragment, transition, log);
+  }
+
+  public static FragmentResult fail(Fragment fragment, Throwable error) {
+    return new FragmentResult(fragment, ERROR_TRANSITION, null,
+        FragmentOperationFailure.newInstance(error));
+  }
+
+  public static FragmentResult fail(Fragment fragment, String errorCode, String errorMessage) {
+    return new FragmentResult(fragment, ERROR_TRANSITION, null,
+        FragmentOperationFailure.newInstance(errorCode, errorMessage));
+  }
+
+  private FragmentResult(Fragment fragment, String transition, JsonObject log,
+      FragmentOperationFailure error) {
+    this.fragment = fragment;
+    this.transition = transition;
+    this.log = log;
+    this.error = error;
+  }
+
+  @Deprecated
   public FragmentResult(Fragment fragment, String transition, JsonObject log) {
     this.fragment = fragment;
     this.transition = transition;
     this.log = log;
+    this.error = null;
   }
 
+  @Deprecated
   public FragmentResult(Fragment fragment, String transition) {
     this(fragment, transition, null);
   }
@@ -53,13 +82,16 @@ public class FragmentResult {
     this.fragment = new Fragment(json.getJsonObject(FRAGMENT_KEY));
     this.transition = json.getString(TRANSITION_KEY);
     this.log = json.getJsonObject(LOG_KEY);
+    this.error = json.getJsonObject(FAILURE_KEY) != null ? new FragmentOperationFailure(
+        json.getJsonObject(FAILURE_KEY)) : null;
   }
 
   public JsonObject toJson() {
     return new JsonObject()
         .put(FRAGMENT_KEY, fragment.toJson())
         .put(TRANSITION_KEY, transition)
-        .put(LOG_KEY, log);
+        .put(LOG_KEY, log)
+        .put(FAILURE_KEY, error != null ? error.toJson() : null);
   }
 
   /**
@@ -94,6 +126,15 @@ public class FragmentResult {
     return log;
   }
 
+  /**
+   * Failure cause.
+   *
+   * @return operation failure details
+   */
+  public FragmentOperationFailure getError() {
+    return error;
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) {
@@ -105,12 +146,13 @@ public class FragmentResult {
     FragmentResult that = (FragmentResult) o;
     return Objects.equals(fragment, that.fragment) &&
         Objects.equals(transition, that.transition) &&
-        Objects.equals(log, that.log);
+        Objects.equals(log, that.log) &&
+        Objects.equals(error, that.error);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(fragment, transition, log);
+    return Objects.hash(fragment, transition, log, error);
   }
 
   @Override
@@ -119,6 +161,7 @@ public class FragmentResult {
         "fragment=" + fragment +
         ", transition='" + transition + '\'' +
         ", log=" + log +
+        ", error=" + error +
         '}';
   }
 }
