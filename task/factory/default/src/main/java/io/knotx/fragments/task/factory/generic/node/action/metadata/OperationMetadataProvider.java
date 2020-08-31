@@ -18,10 +18,8 @@ package io.knotx.fragments.task.factory.generic.node.action.metadata;
 import io.knotx.fragments.action.core.ActionFactoryOptions;
 import io.knotx.fragments.task.factory.api.metadata.OperationMetadata;
 import io.vertx.core.json.JsonObject;
-import org.apache.commons.lang3.StringUtils;
-
-import java.util.Collections;
 import java.util.Map;
+import org.apache.commons.lang3.StringUtils;
 
 class OperationMetadataProvider {
 
@@ -29,7 +27,7 @@ class OperationMetadataProvider {
   private final ActionLookup actionLookup;
 
   static OperationMetadataProvider create(String nodeFactoryName,
-                                                 Map<String, ActionFactoryOptions> aliasToOptions) {
+      Map<String, ActionFactoryOptions> aliasToOptions) {
     return new OperationMetadataProvider(nodeFactoryName, new ActionLookup(aliasToOptions));
   }
 
@@ -49,7 +47,7 @@ class OperationMetadataProvider {
 
   private JsonObject getConfig(String alias) {
     Builder builder = new Builder();
-    for(ActionEntry entry : actionLookup.doActionsFrom(alias)) {
+    for (ActionEntry entry : actionLookup.doActionsFrom(alias)) {
       builder.append(entry);
     }
     return builder.build();
@@ -78,5 +76,4 @@ class OperationMetadataProvider {
       return root.isEmpty();
     }
   }
-
 }

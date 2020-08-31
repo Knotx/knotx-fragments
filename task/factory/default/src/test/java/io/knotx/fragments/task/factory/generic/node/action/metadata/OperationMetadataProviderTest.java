@@ -71,7 +71,8 @@ class OperationMetadataProviderTest {
   @Test
   @DisplayName("Expect null argument to yield empty data field")
   void nullAlias() {
-    OperationMetadataProvider tested = new OperationMetadataProvider(ActionNodeFactory.NAME, LOOKUP);
+    OperationMetadataProvider tested = new OperationMetadataProvider(ActionNodeFactory.NAME,
+        LOOKUP);
 
     OperationMetadata result = tested.provideFor(null);
 
@@ -81,7 +82,8 @@ class OperationMetadataProviderTest {
   @Test
   @DisplayName("Expect non-existing alias to yield single entry in data field")
   void nonExistingAlias() {
-    OperationMetadataProvider tested = new OperationMetadataProvider(ActionNodeFactory.NAME, LOOKUP);
+    OperationMetadataProvider tested = new OperationMetadataProvider(ActionNodeFactory.NAME,
+        LOOKUP);
 
     OperationMetadata result = tested.provideFor("alias-not-existing");
 
@@ -93,7 +95,8 @@ class OperationMetadataProviderTest {
   @Test
   @DisplayName("Expect two-level information when two elements returned and last is non-existing alias")
   void twoElementsLastInvalid() {
-    OperationMetadataProvider tested = new OperationMetadataProvider(ActionNodeFactory.NAME, LOOKUP);
+    OperationMetadataProvider tested = new OperationMetadataProvider(ActionNodeFactory.NAME,
+        LOOKUP);
 
     OperationMetadata result = tested.provideFor("alias-misconfigured");
 
@@ -106,7 +109,8 @@ class OperationMetadataProviderTest {
   @Test
   @DisplayName("Expect two-level information when two valid elements returned")
   void twoElementsReturned() {
-    OperationMetadataProvider tested = new OperationMetadataProvider(ActionNodeFactory.NAME, LOOKUP);
+    OperationMetadataProvider tested = new OperationMetadataProvider(ActionNodeFactory.NAME,
+        LOOKUP);
 
     OperationMetadata result = tested.provideFor("alias-B");
 
@@ -119,7 +123,8 @@ class OperationMetadataProviderTest {
   @Test
   @DisplayName("Expect three-level information when three valid elements returned")
   void threeElementsReturned() {
-    OperationMetadataProvider tested = new OperationMetadataProvider(ActionNodeFactory.NAME, LOOKUP);
+    OperationMetadataProvider tested = new OperationMetadataProvider(ActionNodeFactory.NAME,
+        LOOKUP);
 
     OperationMetadata result = tested.provideFor("alias-A");
 
@@ -129,6 +134,4 @@ class OperationMetadataProviderTest {
 
     assertJsonEquals(expected, result.getData());
   }
-
-
 }

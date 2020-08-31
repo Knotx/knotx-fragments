@@ -32,7 +32,7 @@ class ActionNode implements SingleNode {
   private final Map<String, Node> edges;
   private final Action action;
 
-   ActionNode(String id, Map<String, Node> edges, Action action) {
+  ActionNode(String id, Map<String, Node> edges, Action action) {
     this.id = id;
     this.edges = edges;
     this.action = action;
@@ -49,8 +49,8 @@ class ActionNode implements SingleNode {
   }
 
   @Override
-  public void apply(FragmentContext fragmentContext, Handler<AsyncResult<FragmentResult>> resultHandler) {
+  public void apply(FragmentContext fragmentContext,
+      Handler<AsyncResult<FragmentResult>> resultHandler) {
     action.apply(fragmentContext, resultHandler);
   }
-
 }

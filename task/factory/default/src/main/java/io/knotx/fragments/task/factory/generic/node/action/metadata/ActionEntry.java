@@ -40,15 +40,15 @@ public class ActionEntry {
       return new JsonObject();
     }
 
-    JsonObject config = new JsonObject()
+    JsonObject metadata = new JsonObject()
         .put(METADATA_ALIAS, alias);
 
     if (options != null) {
-      config.put(METADATA_ACTION_FACTORY, options.getFactory())
+      metadata.put(METADATA_ACTION_FACTORY, options.getFactory())
           .put(METADATA_ACTION_CONFIG, options.getConfig());
     }
 
-    return config;
+    return metadata;
   }
 
   @Override
@@ -76,5 +76,4 @@ public class ActionEntry {
         ", options=" + options +
         '}';
   }
-
 }

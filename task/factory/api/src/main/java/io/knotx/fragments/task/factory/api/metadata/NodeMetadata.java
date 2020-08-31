@@ -31,8 +31,10 @@ public class NodeMetadata {
   private final List<String> nestedNodes;
   private final OperationMetadata operation;
 
-  public static NodeMetadata single(String nodeId, String label, Map<String, String> transitions, OperationMetadata operation) {
-    return new NodeMetadata(nodeId, label, NodeType.SINGLE, transitions, Collections.emptyList(), operation);
+  public static NodeMetadata single(String nodeId, String label, Map<String, String> transitions,
+      OperationMetadata operation) {
+    return new NodeMetadata(nodeId, label, NodeType.SINGLE, transitions, Collections.emptyList(),
+        operation);
   }
 
   public static NodeMetadata composite(String nodeId, String label, Map<String, String> transitions,

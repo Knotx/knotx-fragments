@@ -29,7 +29,7 @@ import org.junit.jupiter.api.Test;
 import java.util.Collections;
 import java.util.function.Function;
 
-class ActionMetadataProviderTest {
+class ActionNodeMetadataProviderTest {
 
   private static final String NODE_ID = "some-node-id";
   private static final String ACTION_NODE_FACTORY = "custom-action-factory";
@@ -46,7 +46,7 @@ class ActionMetadataProviderTest {
   @Test
   @DisplayName("Expect edges transformed to transitions")
   void edgesToTransitions() {
-    ActionMetadataProvider tested = new ActionMetadataProvider(EMPTY_PROVIDER);
+    ActionNodeMetadataProvider tested = new ActionNodeMetadataProvider(EMPTY_PROVIDER);
 
     NodeMetadata result = tested.provideFor(NODE_ID, EDGES, "alias-not-existing");
 
@@ -56,7 +56,7 @@ class ActionMetadataProviderTest {
   @Test
   @DisplayName("Expect not existing alias to be populated as label")
   void notExistingAlias() {
-    ActionMetadataProvider tested = new ActionMetadataProvider(EMPTY_PROVIDER);
+    ActionNodeMetadataProvider tested = new ActionNodeMetadataProvider(EMPTY_PROVIDER);
 
     NodeMetadata result = tested.provideFor(NODE_ID, EDGES, "alias-not-existing");
 
@@ -66,7 +66,7 @@ class ActionMetadataProviderTest {
   @Test
   @DisplayName("Expect single node type")
   void singleNodeType() {
-    ActionMetadataProvider tested = new ActionMetadataProvider(EMPTY_PROVIDER);
+    ActionNodeMetadataProvider tested = new ActionNodeMetadataProvider(EMPTY_PROVIDER);
 
     NodeMetadata result = tested.provideFor(NODE_ID, EDGES, "alias-not-existing");
 
@@ -76,7 +76,7 @@ class ActionMetadataProviderTest {
   @Test
   @DisplayName("Expect empty nested nodes")
   void emptyNestedNodes() {
-    ActionMetadataProvider tested = new ActionMetadataProvider(EMPTY_PROVIDER);
+    ActionNodeMetadataProvider tested = new ActionNodeMetadataProvider(EMPTY_PROVIDER);
 
     NodeMetadata result = tested.provideFor(NODE_ID, EDGES, "alias-not-existing");
 
@@ -86,7 +86,7 @@ class ActionMetadataProviderTest {
   @Test
   @DisplayName("Expect node id populated")
   void nodeIdSet() {
-    ActionMetadataProvider tested = new ActionMetadataProvider(EMPTY_PROVIDER);
+    ActionNodeMetadataProvider tested = new ActionNodeMetadataProvider(EMPTY_PROVIDER);
 
     NodeMetadata result = tested.provideFor(NODE_ID, EDGES, "alias-not-existing");
 
@@ -96,7 +96,7 @@ class ActionMetadataProviderTest {
   @Test
   @DisplayName("Expect operation metadata returned by provider to be populated")
   void operationMetadata() {
-    ActionMetadataProvider tested = new ActionMetadataProvider(TEST_PROVIDER);
+    ActionNodeMetadataProvider tested = new ActionNodeMetadataProvider(TEST_PROVIDER);
 
     NodeMetadata result = tested.provideFor(NODE_ID, EDGES, TEST_ALIAS);
 

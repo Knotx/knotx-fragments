@@ -25,25 +25,26 @@ import io.knotx.fragments.task.factory.api.metadata.NodeMetadata;
 
 import java.util.Map;
 
-public class ActionMetadataProvider {
+public class ActionNodeMetadataProvider {
 
   private final OperationMetadataProvider operationMetadataProvider;
 
-  public static ActionMetadataProvider create(String nodeFactoryName,
-                                              Map<String, ActionFactoryOptions> aliasToOptions) {
-    return new ActionMetadataProvider(OperationMetadataProvider.create(nodeFactoryName, aliasToOptions));
+  public static ActionNodeMetadataProvider create(String nodeFactoryName,
+      Map<String, ActionFactoryOptions> aliasToOptions) {
+    return new ActionNodeMetadataProvider(
+        OperationMetadataProvider.create(nodeFactoryName, aliasToOptions));
   }
 
-  ActionMetadataProvider(OperationMetadataProvider operationMetadataProvider) {
+  ActionNodeMetadataProvider(OperationMetadataProvider operationMetadataProvider) {
     this.operationMetadataProvider = operationMetadataProvider;
   }
 
   public NodeMetadata provideFor(String nodeId, Map<String, Node> edges, String alias) {
-    return single(nodeId, alias, createTransitions(edges), operationMetadataProvider.provideFor(alias));
+    return single(nodeId, alias, createTransitions(edges),
+        operationMetadataProvider.provideFor(alias));
   }
 
   private Map<String, String> createTransitions(Map<String, Node> edges) {
     return Maps.transformValues(edges, Node::getId);
   }
-
 }

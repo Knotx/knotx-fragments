@@ -36,6 +36,7 @@ import io.knotx.fragments.task.factory.api.metadata.OperationMetadata;
 import io.knotx.fragments.task.factory.generic.GraphNodeOptions;
 import io.knotx.fragments.task.factory.generic.NodeProvider;
 import io.knotx.fragments.task.factory.generic.node.NodeOptions;
+import io.knotx.fragments.task.factory.generic.node.StubNode;
 import io.knotx.fragments.task.factory.generic.node.action.metadata.ActionEntry;
 import io.knotx.reactivex.fragments.api.FragmentOperation;
 import io.knotx.server.api.context.ClientRequest;
@@ -60,6 +61,7 @@ class ActionNodeFactoryTest {
 
   // ACTION
   private static final String ALIAS = "A";
+  public static final String DO_ACTION_ALIAS = "doActionAlias";
   private static final String ACTION_FACTORY_NAME = "test-action";
   private static final JsonObject ACTION_CONFIG = new JsonObject()
       .put("actionConfigKey", "actionConfigValue");
@@ -77,7 +79,7 @@ class ActionNodeFactoryTest {
     ActionNodeFactory tested = withNoActionsConfigured(vertx);
 
     assertThrows(ActionNotFoundException.class,
-                 () -> tested.initNode(nodeSelecting(ALIAS), NO_EDGES, emptyNodeProvider, emptyMetadata()));
+        () -> tested.initNode(nodeSelecting(ALIAS), NO_EDGES, emptyNodeProvider, emptyMetadata()));
   }
 
   @Test
@@ -86,7 +88,7 @@ class ActionNodeFactoryTest {
     ActionNodeFactory tested = withSingleActionConfigured("otherAction", vertx);
 
     assertThrows(ActionNotFoundException.class,
-                 () -> tested.initNode(nodeSelecting(ALIAS), NO_EDGES, emptyNodeProvider, emptyMetadata()));
+        () -> tested.initNode(nodeSelecting(ALIAS), NO_EDGES, emptyNodeProvider, emptyMetadata()));
   }
 
   @Test
@@ -121,8 +123,10 @@ class ActionNodeFactoryTest {
   void expectUniqueActionNodeId(Vertx vertx) {
     ActionNodeFactory tested = withSingleActionConfigured(ALIAS, vertx);
 
-    Node first = tested.initNode(nodeSelecting(ALIAS), NO_EDGES, emptyNodeProvider, emptyMetadata());
-    Node second = tested.initNode(nodeSelecting(ALIAS), NO_EDGES, emptyNodeProvider, emptyMetadata());
+    Node first = tested
+        .initNode(nodeSelecting(ALIAS), NO_EDGES, emptyNodeProvider, emptyMetadata());
+    Node second = tested
+        .initNode(nodeSelecting(ALIAS), NO_EDGES, emptyNodeProvider, emptyMetadata());
 
     assertNotEquals(first.getId(), second.getId());
   }
@@ -153,10 +157,10 @@ class ActionNodeFactoryTest {
     FragmentOperation.newInstance(singleNode)
         .rxApply(FRAGMENT_CONTEXT)
         .subscribe(response -> testContext.verify(() -> {
-                     assertEquals(SUCCESS_TRANSITION, response.getTransition());
-                     testContext.completeNow();
-                   }),
-                   testContext::failNow);
+              assertEquals(SUCCESS_TRANSITION, response.getTransition());
+              testContext.completeNow();
+            }),
+            testContext::failNow);
   }
 
   @Test
@@ -173,26 +177,69 @@ class ActionNodeFactoryTest {
         .put(ActionEntry.METADATA_ACTION_FACTORY, ACTION_FACTORY_NAME)
         .put(ActionEntry.METADATA_ACTION_CONFIG, ACTION_CONFIG);
 
-    OperationMetadata expectedOperation = new OperationMetadata(ActionNodeFactory.NAME, expectedConfig);
-    NodeMetadata expected = NodeMetadata.single(node.getId(), ALIAS, TRANSITIONS, expectedOperation);
+    OperationMetadata expectedOperation = new OperationMetadata(ActionNodeFactory.NAME,
+        expectedConfig);
+    NodeMetadata expected = NodeMetadata
+        .single(node.getId(), ALIAS, TRANSITIONS, expectedOperation);
+
+    assertEquals(1, nodesMetadata.size());
+    assertEquals(expected, nodesMetadata.get(node.getId()));
+  }
+
+  @Test
+  @DisplayName("Expect metadata to have doAction node details.")
+  void expectMetadataWithDoAction(Vertx vertx) {
+    ActionNodeFactory tested = withDoActionConfigured(ALIAS, DO_ACTION_ALIAS, vertx);
+
+    Map<String, NodeMetadata> nodesMetadata = new HashMap<>();
+
+    Node node = tested
+        .initNode(nodeSelecting(ALIAS), EDGES, nodeOptions -> new StubNode("doActionAlias"),
+            nodesMetadata);
+
+    JsonObject expectedConfig = new JsonObject()
+        .put(ActionEntry.METADATA_ALIAS, ALIAS)
+        .put(ActionEntry.METADATA_ACTION_FACTORY, ACTION_FACTORY_NAME)
+        .put(ActionEntry.METADATA_ACTION_CONFIG, ACTION_CONFIG)
+        .put(ActionEntry.METADATA_DO_ACTION,
+            new JsonObject().put(ActionEntry.METADATA_ALIAS, "doActionAlias"));
+
+    OperationMetadata expectedOperation = new OperationMetadata(ActionNodeFactory.NAME,
+        expectedConfig);
+    NodeMetadata expected = NodeMetadata
+        .single(node.getId(), ALIAS, TRANSITIONS, expectedOperation);
 
     assertEquals(1, nodesMetadata.size());
     assertEquals(expected, nodesMetadata.get(node.getId()));
   }
 
   private ActionNodeFactory withNoActionsConfigured(Vertx vertx) {
-    return new ActionNodeFactory().configure(new ActionNodeFactoryConfig(Collections.emptyMap()).toJson(), vertx);
+    return new ActionNodeFactory()
+        .configure(new ActionNodeFactoryConfig(Collections.emptyMap()).toJson(), vertx);
   }
 
   private ActionNodeFactory withSingleActionConfigured(String alias, Vertx vertx) {
     return new ActionNodeFactory().configure(factoryConfig(alias).toJson(), vertx);
   }
 
+  private ActionNodeFactory withDoActionConfigured(String alias, String doActionAlias,
+      Vertx vertx) {
+    return new ActionNodeFactory().configure(factoryConfig(alias, doActionAlias).toJson(), vertx);
+  }
+
   private ActionNodeFactoryConfig factoryConfig(String actionName) {
     return new ActionNodeFactoryConfig(Collections.singletonMap(actionName,
-                                                                new ActionFactoryOptions(new JsonObject())
-                                                                    .setFactory(ACTION_FACTORY_NAME)
-                                                                    .setConfig(ACTION_CONFIG)));
+        new ActionFactoryOptions(new JsonObject())
+            .setFactory(ACTION_FACTORY_NAME)
+            .setConfig(ACTION_CONFIG)));
+  }
+
+  private ActionNodeFactoryConfig factoryConfig(String actionName, String doActionName) {
+    return new ActionNodeFactoryConfig(Collections.singletonMap(actionName,
+        new ActionFactoryOptions(new JsonObject())
+            .setFactory(ACTION_FACTORY_NAME)
+            .setConfig(ACTION_CONFIG)
+            .setDoAction(doActionName)));
   }
 
   private NodeOptions nodeSelecting(String actionAlias) {

@@ -4,8 +4,8 @@
 == ActionFactoryOptions
 
 ++++
- Options used during link initialization. Those
- values are then passed to link.
+ Options used during link initialization.
+ Those values are then passed to link.
 ++++
 '''
 

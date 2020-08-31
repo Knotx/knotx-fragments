@@ -51,7 +51,7 @@ Type of a Fragment. Different types of Fragments can be processed in separate wa
 
 ++++
  It wraps an exception from link and
- serialize it details to .
+ serialize its details to .
 ++++
 '''
 
@@ -66,7 +66,7 @@ Gets an exception class name.
 Gets an exception details message.
 +++
 |[[stacktrace]]`@stacktrace`|`Array of String`|+++
-Gets a list of serialized stactrace lines.
+Gets a list of serialized stacktrace lines.
 +++
 |===
 

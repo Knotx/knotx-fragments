@@ -34,17 +34,21 @@ public final class TestConstants {
   static final JsonObject FACTORY_CONFIG = new JsonObject()
       .put("some-option", "some-value");
 
-  static final ActionFactoryOptions ALIAS_A_OPTIONS = new ActionFactoryOptions("cb", FACTORY_CONFIG, "alias-B");
-  static final ActionFactoryOptions ALIAS_B_OPTIONS = new ActionFactoryOptions("cache", FACTORY_CONFIG,
-                                                                                       "alias-C");
-  static final ActionFactoryOptions ALIAS_C_OPTIONS = new ActionFactoryOptions("http", FACTORY_CONFIG);
+  static final ActionFactoryOptions ALIAS_A_OPTIONS = new ActionFactoryOptions("cb", FACTORY_CONFIG,
+      "alias-B");
+  static final ActionFactoryOptions ALIAS_B_OPTIONS = new ActionFactoryOptions("cache",
+      FACTORY_CONFIG,
+      "alias-C");
+  static final ActionFactoryOptions ALIAS_C_OPTIONS = new ActionFactoryOptions("http",
+      FACTORY_CONFIG);
   static final ActionFactoryOptions ALIAS_MISCONFIGURED_OPTIONS = new ActionFactoryOptions("cache",
-                                                                                           FACTORY_CONFIG, "alias-not-existing");
+      FACTORY_CONFIG, "alias-not-existing");
 
   static final ActionEntry ALIAS_A = new ActionEntry("alias-A", ALIAS_A_OPTIONS);
   static final ActionEntry ALIAS_B = new ActionEntry("alias-B", ALIAS_B_OPTIONS);
   static final ActionEntry ALIAS_C = new ActionEntry("alias-C", ALIAS_C_OPTIONS);
-  static final ActionEntry ALIAS_MISCONFIGURED = new ActionEntry("alias-misconfigured", ALIAS_MISCONFIGURED_OPTIONS);
+  static final ActionEntry ALIAS_MISCONFIGURED = new ActionEntry("alias-misconfigured",
+      ALIAS_MISCONFIGURED_OPTIONS);
   static final ActionEntry ALIAS_NOT_EXISTING = new ActionEntry("alias-not-existing", null);
 
   public static final Map<String, Node> EDGES = ImmutableMap.of(
@@ -60,5 +64,4 @@ public final class TestConstants {
       "_fallback", "next-fallback",
       "_custom", "next-custom"
   );
-
 }
