@@ -18,6 +18,7 @@ import org.nosphere.apache.rat.RatTask
 plugins {
     id("io.knotx.java-library")
     id("io.knotx.codegen")
+    id("io.knotx.unit-test")
     id("io.knotx.maven-publish")
     id("org.nosphere.apache.rat")
 }
