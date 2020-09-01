@@ -58,3 +58,64 @@ cross-cutting functionality e.g HTTP operation can gain the circuit breaker patt
 Below there is a list of core behaviours:
 - [Circuit Breaker Behaviour](https://github.com/Knotx/knotx-fragments/tree/master/action/library#circuit-breaker-behaviour) - it is a kind of quarantine for actions, it uses the [Vert.x Circuit Breaker](https://vertx.io/docs/vertx-circuit-breaker/java/) implementation
 - [In-memory Cache Behaviour](https://github.com/Knotx/knotx-fragments/tree/master/action/library#in-memory-cache-behaviour) - caches a fragment's payload to reduce the number of action invocations
+
+## How to implement a custom Action?
+[Action](#action) has asynchronous nature - it is a [fragment operation](https://github.com/Knotx/knotx-fragments/tree/master/api#fragment-operation).
+However, it can perform a synchronous and asynchronous logic. Knot.x provides template classes to simplify 
+custom actions implementations. See the examples below.  
+
+### Synchronous actions
+`SyncAction` simplifies the implementation of synchronous actions.
+
+```
+public class MySyncActionFactory implements ActionFactory {
+
+  @Override
+  public String getName() {
+    return "my-sync-action";
+  }
+  
+  @Override
+  public Action create(String alias, JsonObject config, Vertx vertx, Action doAction) {
+    return (SyncAction) fragmentContext -> FragmentResult.success(fragmentContext.getFragment());
+  }
+}
+```
+See `SyncFragmentOperationTest` for more details.
+
+### Asynchronous actions
+`FutureAction` and `SingleAction` simplify the implementation of asynchronous actions.
+
+#### Future actions
+```
+class MyFutureActionFactory implements ActionFactory {
+  
+  @Override
+  public String getName() {
+    return "myFutureAction";
+  }
+
+  @Override
+  public Action create(String alias, JsonObject config, Vertx vertx, Action doAction) {
+    return (FutureAction) context -> Future.succeededFuture(FragmentResult.success(context.getFragment()));
+  }
+}
+```
+See `FutureFragmentOperationTest` for more details.
+
+#### ReactiveX actions
+```
+class MySingleActionFactory implements ActionFactory {
+
+  @Override
+  public String getName() {
+    return "myFutureAction";
+  }
+
+  @Override
+  public Action create(String alias, JsonObject config, Vertx vertx, Action doAction) {
+    return (SingleAction) context -> Single.just(FragmentResult.success(context.getFragment()));
+  }
+}
+```
+See `SingleFragmentOperationTest` for more details.
