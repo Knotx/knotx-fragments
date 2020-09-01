@@ -23,6 +23,7 @@ import static io.knotx.fragments.action.library.InMemoryCacheAction.CACHE_PASS;
 import static io.knotx.fragments.action.library.InMemoryCacheAction.COMPUTED_VALUE;
 import static java.time.Instant.now;
 
+import io.knotx.fragments.action.api.log.ActionLogLevel;
 import io.knotx.fragments.action.api.log.ActionLogger;
 import io.knotx.fragments.action.library.helper.TimeCalculator;
 import io.knotx.fragments.api.FragmentResult;
@@ -34,7 +35,11 @@ class CacheActionLogger {
   private String key;
   private long retrieveStart;
 
-  public CacheActionLogger(ActionLogger actionLogger) {
+  static CacheActionLogger create(String alias, ActionLogLevel logLevel) {
+    return new CacheActionLogger(ActionLogger.create(alias, logLevel));
+  }
+
+  CacheActionLogger(ActionLogger actionLogger) {
     this.actionLogger = actionLogger;
   }
 
@@ -70,6 +75,10 @@ class CacheActionLogger {
   void onPass() {
     actionLogger.error(CACHE_PASS, new JsonObject()
         .put(CACHE_KEY, key));
+  }
+
+  void onError(Throwable error) {
+    actionLogger.error(error);
   }
 
   public JsonObject getLogAsJson() {

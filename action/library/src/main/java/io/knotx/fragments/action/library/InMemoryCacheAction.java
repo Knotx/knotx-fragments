@@ -16,13 +16,13 @@
 package io.knotx.fragments.action.library;
 
 import static io.knotx.fragments.action.library.helper.ValidationHelper.checkArgument;
+import static io.knotx.fragments.api.FragmentResult.fail;
 import static io.knotx.fragments.api.FragmentResult.success;
 
 import com.google.common.cache.Cache;
 import io.knotx.fragments.action.api.Action;
 import io.knotx.fragments.action.api.SingleAction;
 import io.knotx.fragments.action.api.log.ActionLogLevel;
-import io.knotx.fragments.action.api.log.ActionLogger;
 import io.knotx.fragments.api.Fragment;
 import io.knotx.fragments.api.FragmentContext;
 import io.knotx.fragments.api.FragmentResult;
@@ -33,7 +33,6 @@ import io.knotx.server.common.placeholders.SourceDefinitions;
 import io.reactivex.Maybe;
 import io.reactivex.Single;
 import io.vertx.core.json.JsonObject;
-import java.time.Instant;
 import org.apache.commons.lang3.StringUtils;
 
 public class InMemoryCacheAction implements SingleAction {
@@ -62,23 +61,20 @@ public class InMemoryCacheAction implements SingleAction {
 
   @Override
   public Single<FragmentResult> apply(FragmentContext fragmentContext) {
-    final ActionLogger actionLogger = ActionLogger.create("DUPA", logLevel); // TODO
-    CacheActionLogger logger = new CacheActionLogger(actionLogger);
+    CacheActionLogger logger = CacheActionLogger.create("Test", logLevel); // TODO
     final String cacheKey = getCacheKey(config, fragmentContext.getClientRequest());
     logger.onLookup(cacheKey);
 
     return getFromCache(fragmentContext, cacheKey, logger)
         .switchIfEmpty(callDoActionAndCache(fragmentContext, cacheKey, logger))
+        .doOnError(logger::onError)
         // all errors are transformed to _error transition
-        .onErrorReturn(
-            error -> handleFailure(fragmentContext, actionLogger, error));
+        .onErrorReturn(error -> handleFailure(fragmentContext, error, logger));
   }
 
-  private FragmentResult handleFailure(FragmentContext fragmentContext, ActionLogger actionLogger,
-      Throwable error) {
-    actionLogger.error(error);
-    return new FragmentResult(fragmentContext.getFragment(), FragmentResult.ERROR_TRANSITION,
-        actionLogger.toLog().toJson());
+  private FragmentResult handleFailure(FragmentContext fragmentContext, Throwable error,
+      CacheActionLogger logger) {
+    return fail(fragmentContext.getFragment(), logger.getLogAsJson(), error);
   }
 
   private Maybe<FragmentResult> getFromCache(FragmentContext fragmentContext, String cacheKey,

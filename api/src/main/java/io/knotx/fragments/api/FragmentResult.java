@@ -60,6 +60,11 @@ public class FragmentResult {
         FragmentOperationFailure.newInstance(error));
   }
 
+  public static FragmentResult fail(Fragment fragment, JsonObject log, Throwable error) {
+    return new FragmentResult(fragment, ERROR_TRANSITION, log,
+        FragmentOperationFailure.newInstance(error));
+  }
+
   public static FragmentResult fail(Fragment fragment, String errorCode, String errorMessage) {
     return new FragmentResult(fragment, ERROR_TRANSITION, null,
         FragmentOperationFailure.newInstance(errorCode, errorMessage));
