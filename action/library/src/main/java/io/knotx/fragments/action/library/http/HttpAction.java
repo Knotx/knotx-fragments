@@ -15,6 +15,8 @@
  */
 package io.knotx.fragments.action.library.http;
 
+import static io.knotx.fragments.api.FragmentResult.success;
+
 import io.knotx.fragments.action.api.SingleAction;
 import io.knotx.fragments.action.api.log.ActionLogLevel;
 import io.knotx.fragments.action.library.http.log.HttpActionLogger;
@@ -80,7 +82,7 @@ public class HttpAction implements SingleAction {
 
   private FragmentResult composeFragmentResult(Fragment fragment, HttpActionResult result, HttpActionLogger httpActionLogger) {
     fragment.appendPayload(actionAlias, result.getActionPayload().toJson());
-    return new FragmentResult(fragment, result.getTransition(), httpActionLogger.getJsonNodeLog());
+    return success(fragment, result.getTransition(), httpActionLogger.getJsonNodeLog());
   }
 
   private static FragmentResult errorTransition(FragmentContext fragmentContext,

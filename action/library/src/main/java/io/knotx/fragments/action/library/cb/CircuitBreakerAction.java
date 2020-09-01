@@ -16,24 +16,23 @@
 package io.knotx.fragments.action.library.cb;
 
 import static io.knotx.fragments.action.library.cb.CircuitBreakerActionFactory.FALLBACK_TRANSITION;
+import static io.knotx.fragments.api.FragmentResult.success;
 import static java.lang.String.format;
 import static java.lang.String.valueOf;
 import static java.time.Instant.now;
 
-import io.knotx.fragments.action.api.FutureAction;
-import io.knotx.fragments.api.Fragment;
-import io.knotx.fragments.action.library.exception.DoActionExecuteException;
-import io.knotx.fragments.action.library.helper.TimeCalculator;
 import io.knotx.fragments.action.api.Action;
+import io.knotx.fragments.action.api.FutureAction;
 import io.knotx.fragments.action.api.log.ActionLog;
 import io.knotx.fragments.action.api.log.ActionLogLevel;
 import io.knotx.fragments.action.api.log.ActionLogger;
+import io.knotx.fragments.action.library.exception.DoActionExecuteException;
+import io.knotx.fragments.action.library.helper.TimeCalculator;
+import io.knotx.fragments.api.Fragment;
 import io.knotx.fragments.api.FragmentContext;
 import io.knotx.fragments.api.FragmentResult;
 import io.vertx.circuitbreaker.CircuitBreaker;
-import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
-import io.vertx.core.Handler;
 import io.vertx.core.Promise;
 import io.vertx.core.json.JsonObject;
 import java.util.Set;
@@ -49,7 +48,6 @@ class CircuitBreakerAction implements FutureAction {
   private final Action doAction;
   private final Set<String> errorTransitions;
   private final ActionLogLevel actionLogLevel;
-
 
   CircuitBreakerAction(CircuitBreaker circuitBreaker, Action doAction, String alias,
       ActionLogLevel actionLogLevel, Set<String> errorTransitions) {
@@ -116,8 +114,8 @@ class CircuitBreakerAction implements FutureAction {
       AtomicInteger counter, long startTime, ActionLogger actionLogger) {
     actionLogger.info(INVOCATION_COUNT_LOG_KEY, valueOf(counter.get()));
     actionLogger.doActionLog(TimeCalculator.executionTime(startTime), result.getLog());
-    f.complete(new FragmentResult(result.getFragment(), result.getTransition(),
-        actionLogger.toLog().toJson()));
+    f.complete(
+        success(result.getFragment(), result.getTransition(), actionLogger.toLog().toJson()));
   }
 
   private static FragmentResult handleFallback(FragmentContext fragmentContext,

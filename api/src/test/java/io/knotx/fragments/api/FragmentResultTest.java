@@ -27,32 +27,59 @@ class FragmentResultTest {
 
   private static final Fragment FRAGMENT = new Fragment("snippet",
       new JsonObject().put("configKey", "configValue"), "body value");
-  public static final JsonObject NODE_LOG = new JsonObject().put("nodeLogKey", "nodeLogValue");
+  public static final JsonObject EMPTY_LOG = new JsonObject();
+  public static final JsonObject LOG = new JsonObject().put("nodeLogKey", "nodeLogValue");
+  public static final String CUSTOM = "custom";
 
   @Test
-  @DisplayName("Expect success transition when success")
-  void expectFragmentAndNodeLogWhenSuccess() {
-    FragmentResult origin = FragmentResult.success(FRAGMENT, NODE_LOG);
+  @DisplayName("Expect success transition and log when success")
+  void expectSuccessTransitionAndLogWhenSuccess() {
+    FragmentResult origin = FragmentResult.success(FRAGMENT, LOG);
     FragmentResult copy = new FragmentResult(origin.toJson());
 
     assertEquals(origin, copy);
     assertEquals(FRAGMENT, copy.getFragment());
     assertEquals(SUCCESS_TRANSITION, copy.getTransition());
-    assertEquals(NODE_LOG, copy.getLog());
+    assertEquals(LOG, copy.getLog());
     assertNull(copy.getError());
   }
 
   @Test
-  @DisplayName("Expect custom transition success with custom")
-  void expectFragmentAndCustomTransitionAndNodeLogWhenSuccessWithCustomTransition() {
-    String customTransition = "custom";
-    FragmentResult origin = FragmentResult.success(FRAGMENT, customTransition, NODE_LOG);
+  @DisplayName("Expect success transition and empty log when success without log")
+  void expectSuccessTransitionAndEmptyLogWhenSuccess() {
+    FragmentResult origin = FragmentResult.success(FRAGMENT);
     FragmentResult copy = new FragmentResult(origin.toJson());
 
     assertEquals(origin, copy);
     assertEquals(FRAGMENT, copy.getFragment());
-    assertEquals(customTransition, copy.getTransition());
-    assertEquals(NODE_LOG, copy.getLog());
+    assertEquals(SUCCESS_TRANSITION, copy.getTransition());
+    assertEquals(EMPTY_LOG, copy.getLog());
+    assertNull(copy.getError());
+  }
+
+  @Test
+  @DisplayName("Expect custom transition and log when success with custom transition")
+  void expectCustomTransitionAndLogWhenSuccessWithCustomTransition() {
+    FragmentResult origin = FragmentResult.success(FRAGMENT, CUSTOM, LOG);
+    FragmentResult copy = new FragmentResult(origin.toJson());
+
+    assertEquals(origin, copy);
+    assertEquals(FRAGMENT, copy.getFragment());
+    assertEquals(CUSTOM, copy.getTransition());
+    assertEquals(LOG, copy.getLog());
+    assertNull(copy.getError());
+  }
+
+  @Test
+  @DisplayName("Expect custom transition and empty log when success with custom transition without log")
+  void expectCustomTransitionAndEmptyLogWhenSuccess() {
+    FragmentResult origin = FragmentResult.success(FRAGMENT, CUSTOM);
+    FragmentResult copy = new FragmentResult(origin.toJson());
+
+    assertEquals(origin, copy);
+    assertEquals(FRAGMENT, copy.getFragment());
+    assertEquals(CUSTOM, copy.getTransition());
+    assertEquals(EMPTY_LOG, copy.getLog());
     assertNull(copy.getError());
   }
 

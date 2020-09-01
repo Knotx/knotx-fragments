@@ -35,12 +35,11 @@ class SyncFragmentOperationTest {
   private static final Fragment FRAGMENT = new Fragment("", new JsonObject(), "");
   private static final FragmentContext FRAGMENT_CONTEXT = new FragmentContext(FRAGMENT,
       new ClientRequest());
-  public static final JsonObject EMPTY_LOG = new JsonObject();
 
   @Test
   @DisplayName("Expect succeeded AsyncResult when operation succeeds")
   void succeedingOperation(VertxTestContext testContext) throws InterruptedException {
-    SyncFragmentOperation tested = fragmentContext -> FragmentResult.success(FRAGMENT, EMPTY_LOG);
+    SyncFragmentOperation tested = fragmentContext -> FragmentResult.success(FRAGMENT);
 
     callOperation(testContext, tested, asyncResult -> {
       assertTrue(asyncResult.succeeded());

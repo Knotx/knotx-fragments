@@ -33,7 +33,6 @@ import java.util.Optional;
 public class PayloadToBodyActionFactory implements ActionFactory {
 
   private static final String KEY = "key";
-  public static final JsonObject EMPTY_LOG = new JsonObject();
 
   @Override
   public String getName() {
@@ -62,6 +61,6 @@ public class PayloadToBodyActionFactory implements ActionFactory {
 
   private FragmentResult toFragmentResult(Fragment fragment, String body) {
     fragment.setBody(body);
-    return success(fragment, EMPTY_LOG);
+    return success(fragment);
   }
 }

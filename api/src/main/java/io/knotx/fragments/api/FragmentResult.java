@@ -39,8 +39,16 @@ public class FragmentResult {
   private final JsonObject log;
   private final FragmentOperationFailure error;
 
+  public static FragmentResult success(Fragment fragment) {
+    return success(fragment, new JsonObject());
+  }
+
+  public static FragmentResult success(Fragment fragment, String transition) {
+    return success(fragment, transition, new JsonObject());
+  }
+
   public static FragmentResult success(Fragment fragment, JsonObject log) {
-    return new FragmentResult(fragment, SUCCESS_TRANSITION, log);
+    return success(fragment, SUCCESS_TRANSITION, log);
   }
 
   public static FragmentResult success(Fragment fragment, String transition, JsonObject log) {
