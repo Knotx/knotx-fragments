@@ -15,7 +15,7 @@
  */
 package io.knotx.fragments.action.library;
 
-import static io.knotx.fragments.action.library.helper.ValidationHelper.checkArgument;
+import static io.knotx.commons.validation.ValidationHelper.checkArgument;
 import static io.knotx.fragments.api.FragmentResult.success;
 
 import io.knotx.fragments.action.api.Action;
@@ -24,8 +24,8 @@ import io.knotx.fragments.action.api.Cacheable;
 import io.knotx.fragments.action.api.SyncAction;
 import io.knotx.fragments.action.api.log.ActionLogLevel;
 import io.knotx.fragments.action.api.log.ActionLogger;
+import io.knotx.fragments.action.library.exception.ActionConfigurationException;
 import io.knotx.fragments.api.FragmentContext;
-import io.knotx.fragments.api.FragmentResult;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
 
@@ -65,7 +65,7 @@ public class InlineBodyActionFactory implements ActionFactory {
    */
   @Override
   public Action create(String alias, JsonObject config, Vertx vertx, Action doAction) {
-    checkArgument(getName(), doAction != null, "Inline body action does not support doAction");
+    checkArgument(doAction != null, () -> new ActionConfigurationException(alias, "Inline body action does not support doAction"));
 
     ActionLogLevel logLevel = ActionLogLevel.fromConfig(config, ActionLogLevel.ERROR);
 
