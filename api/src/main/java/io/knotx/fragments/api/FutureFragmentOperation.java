@@ -22,7 +22,8 @@ import io.vertx.core.Handler;
 public interface FutureFragmentOperation extends FragmentOperation {
 
   @Override
-  default void apply(FragmentContext fragmentContext, Handler<AsyncResult<FragmentResult>> resultHandler) {
+  default void apply(FragmentContext fragmentContext,
+      Handler<AsyncResult<FragmentResult>> resultHandler) {
     tryApply(fragmentContext).onComplete(resultHandler);
   }
 
@@ -40,10 +41,10 @@ public interface FutureFragmentOperation extends FragmentOperation {
       return result;
     } else {
       return Future.failedFuture(new IllegalStateException(
-          "FutureFragmentOperation " + this.getClass().getName() + " returned a null Future<FragmentResult>."));
+          "FutureFragmentOperation " + this.getClass().getName()
+              + " returned a null Future<FragmentResult>."));
     }
   }
 
   Future<FragmentResult> applyForFuture(FragmentContext fragmentContext);
-
 }

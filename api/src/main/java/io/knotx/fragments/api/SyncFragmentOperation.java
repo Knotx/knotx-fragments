@@ -26,5 +26,4 @@ public interface SyncFragmentOperation extends FutureFragmentOperation {
   }
 
   FragmentResult applySync(FragmentContext fragmentContext);
-
 }

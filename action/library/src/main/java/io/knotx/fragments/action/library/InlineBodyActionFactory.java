@@ -16,6 +16,7 @@
 package io.knotx.fragments.action.library;
 
 import static io.knotx.fragments.action.library.helper.ValidationHelper.checkArgument;
+import static io.knotx.fragments.api.FragmentResult.success;
 
 import io.knotx.fragments.action.api.Action;
 import io.knotx.fragments.action.api.ActionFactory;
@@ -73,13 +74,12 @@ public class InlineBodyActionFactory implements ActionFactory {
 
       substituteBodyInFragment(fragmentContext, config, actionLogger);
 
-      return new FragmentResult(fragmentContext.getFragment(), FragmentResult.SUCCESS_TRANSITION,
-                                actionLogger.toLog().toJson());
+      return success(fragmentContext.getFragment(), actionLogger.toLog().toJson());
     };
   }
 
   private void substituteBodyInFragment(FragmentContext fragmentContext, JsonObject config,
-                                        ActionLogger actionLogger) {
+      ActionLogger actionLogger) {
     String originalBody = fragmentContext.getFragment().getBody();
     String newBody = config.getString("body", DEFAULT_EMPTY_BODY);
     fragmentContext.getFragment()

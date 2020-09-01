@@ -17,6 +17,7 @@ package io.knotx.fragments.action.library;
 
 import static io.knotx.commons.json.JsonObjectUtil.getJsonObject;
 import static io.knotx.fragments.action.library.helper.ValidationHelper.checkArgument;
+import static io.knotx.fragments.api.FragmentResult.success;
 
 import io.knotx.fragments.action.api.Action;
 import io.knotx.fragments.action.api.ActionFactory;
@@ -32,6 +33,7 @@ import java.util.Optional;
 public class PayloadToBodyActionFactory implements ActionFactory {
 
   private static final String KEY = "key";
+  public static final JsonObject EMPTY_LOG = new JsonObject();
 
   @Override
   public String getName() {
@@ -60,7 +62,6 @@ public class PayloadToBodyActionFactory implements ActionFactory {
 
   private FragmentResult toFragmentResult(Fragment fragment, String body) {
     fragment.setBody(body);
-    return new FragmentResult(fragment, FragmentResult.SUCCESS_TRANSITION);
+    return success(fragment, EMPTY_LOG);
   }
-
 }

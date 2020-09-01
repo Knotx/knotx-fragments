@@ -15,7 +15,6 @@
  */
 package io.knotx.fragments.api;
 
-import static io.knotx.fragments.api.FragmentResult.SUCCESS_TRANSITION;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -25,22 +24,23 @@ import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.VertxTestContext;
+import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-
-import java.util.concurrent.TimeUnit;
 
 @ExtendWith(KnotxExtension.class)
 class SyncFragmentOperationTest {
 
   private static final Fragment FRAGMENT = new Fragment("", new JsonObject(), "");
-  private static final FragmentContext FRAGMENT_CONTEXT = new FragmentContext(FRAGMENT, new ClientRequest());
+  private static final FragmentContext FRAGMENT_CONTEXT = new FragmentContext(FRAGMENT,
+      new ClientRequest());
+  public static final JsonObject EMPTY_LOG = new JsonObject();
 
   @Test
   @DisplayName("Expect succeeded AsyncResult when operation succeeds")
   void succeedingOperation(VertxTestContext testContext) throws InterruptedException {
-    SyncFragmentOperation tested = fragmentContext -> new FragmentResult(FRAGMENT, SUCCESS_TRANSITION);
+    SyncFragmentOperation tested = fragmentContext -> FragmentResult.success(FRAGMENT, EMPTY_LOG);
 
     callOperation(testContext, tested, asyncResult -> {
       assertTrue(asyncResult.succeeded());
@@ -76,10 +76,8 @@ class SyncFragmentOperationTest {
   }
 
   private void callOperation(VertxTestContext testContext, FragmentOperation operation,
-                             Handler<AsyncResult<FragmentResult>> assertions) throws InterruptedException {
+      Handler<AsyncResult<FragmentResult>> assertions) throws InterruptedException {
     operation.apply(FRAGMENT_CONTEXT, assertions);
     testContext.awaitCompletion(1000, TimeUnit.MILLISECONDS);
   }
-
-
 }

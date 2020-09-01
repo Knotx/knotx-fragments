@@ -28,5 +28,4 @@ public final class ValidationHelper {
       throw new ActionConfigurationException(alias, message);
     }
   }
-
 }
