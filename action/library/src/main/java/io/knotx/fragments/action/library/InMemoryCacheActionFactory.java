@@ -67,12 +67,12 @@ import java.util.concurrent.TimeUnit;
 @Cacheable
 public class InMemoryCacheActionFactory implements ActionFactory {
 
-  private static final String CACHE_KEY = "cache_key";
-  private static final String CACHED_VALUE = "cached_value";
-  private static final String COMPUTED_VALUE = "computed_value";
-  private static final String CACHE_MISS = "cache_miss";
-  private static final String CACHE_HIT = "cache_hit";
-  private static final String CACHE_PASS = "cache_pass";
+  public static final String CACHE_KEY = "cache_key";
+  public static final String CACHED_VALUE = "cached_value";
+  public static final String COMPUTED_VALUE = "computed_value";
+  public static final String CACHE_MISS = "cache_miss";
+  public static final String CACHE_HIT = "cache_hit";
+  public static final String CACHE_PASS = "cache_pass";
 
   private static final long DEFAULT_MAXIMUM_SIZE = 1000;
   private static final long DEFAULT_TTL = 5000;
