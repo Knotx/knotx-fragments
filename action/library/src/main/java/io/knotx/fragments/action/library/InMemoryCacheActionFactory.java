@@ -16,6 +16,8 @@
 package io.knotx.fragments.action.library;
 
 
+import static io.knotx.fragments.api.FragmentResult.success;
+
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import io.knotx.fragments.api.Fragment;
@@ -82,9 +84,10 @@ public class InMemoryCacheActionFactory implements ActionFactory {
   public Action create(String alias, JsonObject config, Vertx vertx, Action doAction) {
 
     return new Action() {
-      private Cache<String, Object> cache = createCache(config);
-      private String payloadKey = getPayloadKey(config);
-      private ActionLogLevel logLevel = ActionLogLevel.fromConfig(config, ActionLogLevel.ERROR);
+      private final Cache<String, Object> cache = createCache(config);
+      private final String payloadKey = getPayloadKey(config);
+      private final ActionLogLevel logLevel = ActionLogLevel
+          .fromConfig(config, ActionLogLevel.ERROR);
 
       @Override
       public void apply(FragmentContext fragmentContext,
@@ -156,13 +159,12 @@ public class InMemoryCacheActionFactory implements ActionFactory {
       }
 
       private FragmentResult toResultWithLog(ActionLogger actionLogger, Fragment fragment) {
-        return new FragmentResult(fragment, FragmentResult.SUCCESS_TRANSITION,
-            actionLogger.toLog().toJson());
+        return success(fragment, actionLogger.toLog().toJson());
       }
 
       private FragmentResult toResultWithLog(ActionLogger actionLogger,
           FragmentResult fragmentResult) {
-        return new FragmentResult(fragmentResult.getFragment(), fragmentResult.getTransition(),
+        return success(fragmentResult.getFragment(), fragmentResult.getTransition(),
             actionLogger.toLog().toJson());
       }
     };

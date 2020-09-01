@@ -15,16 +15,17 @@
  */
 package io.knotx.fragments.action.library;
 
+import static io.knotx.fragments.action.library.helper.ValidationHelper.checkArgument;
+import static io.knotx.fragments.api.FragmentResult.success;
+
 import io.knotx.fragments.action.api.Action;
 import io.knotx.fragments.action.api.ActionFactory;
 import io.knotx.fragments.action.api.Cacheable;
+import io.knotx.fragments.action.api.SyncAction;
 import io.knotx.fragments.action.api.log.ActionLogLevel;
 import io.knotx.fragments.action.api.log.ActionLogger;
 import io.knotx.fragments.api.FragmentContext;
 import io.knotx.fragments.api.FragmentResult;
-import io.vertx.core.AsyncResult;
-import io.vertx.core.Future;
-import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
 
@@ -64,14 +65,16 @@ public class InlineBodyActionFactory implements ActionFactory {
    */
   @Override
   public Action create(String alias, JsonObject config, Vertx vertx, Action doAction) {
-    if (doAction != null) {
-      throw new IllegalArgumentException("Inline body action does not support doAction");
-    }
-    return (fragmentContext, resultHandler) -> {
-      ActionLogLevel logLevel = ActionLogLevel.fromConfig(config, ActionLogLevel.ERROR);
+    checkArgument(getName(), doAction != null, "Inline body action does not support doAction");
+
+    ActionLogLevel logLevel = ActionLogLevel.fromConfig(config, ActionLogLevel.ERROR);
+
+    return (SyncAction) fragmentContext -> {
       ActionLogger actionLogger = ActionLogger.create(alias, logLevel);
+
       substituteBodyInFragment(fragmentContext, config, actionLogger);
-      successTransition(fragmentContext, actionLogger, resultHandler);
+
+      return success(fragmentContext.getFragment(), actionLogger.toLog().toJson());
     };
   }
 
@@ -87,14 +90,6 @@ public class InlineBodyActionFactory implements ActionFactory {
   private void logSubstitution(ActionLogger actionLogger, String originalBody, String newBody) {
     actionLogger.info(ORIGINAL_BODY_KEY, originalBody);
     actionLogger.info(BODY_KEY, newBody);
-  }
-
-  private void successTransition(FragmentContext fragmentContext, ActionLogger actionLogger,
-      Handler<AsyncResult<FragmentResult>> resultHandler) {
-    Future<FragmentResult> resultFuture = Future.succeededFuture(
-        new FragmentResult(fragmentContext.getFragment(), FragmentResult.SUCCESS_TRANSITION,
-            actionLogger.toLog().toJson()));
-    resultFuture.onComplete(resultHandler);
   }
 
 }
