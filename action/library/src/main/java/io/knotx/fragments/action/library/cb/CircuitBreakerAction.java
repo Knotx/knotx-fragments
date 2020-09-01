@@ -15,6 +15,7 @@
  */
 package io.knotx.fragments.action.library.cb;
 
+import static io.knotx.commons.time.TimeCalculator.millisFrom;
 import static io.knotx.fragments.action.library.cb.CircuitBreakerActionFactory.FALLBACK_TRANSITION;
 import static io.knotx.fragments.api.FragmentResult.success;
 import static java.lang.String.format;
@@ -27,7 +28,6 @@ import io.knotx.fragments.action.api.log.ActionLog;
 import io.knotx.fragments.action.api.log.ActionLogLevel;
 import io.knotx.fragments.action.api.log.ActionLogger;
 import io.knotx.fragments.action.library.exception.DoActionExecuteException;
-import io.knotx.fragments.action.library.helper.TimeCalculator;
 import io.knotx.fragments.api.Fragment;
 import io.knotx.fragments.api.FragmentContext;
 import io.knotx.fragments.api.FragmentResult;
@@ -35,6 +35,7 @@ import io.vertx.circuitbreaker.CircuitBreaker;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
 import io.vertx.core.json.JsonObject;
+
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -106,14 +107,14 @@ class CircuitBreakerAction implements FutureAction {
 
   private static void handleFail(Promise<FragmentResult> promise, JsonObject nodeLog,
       long startTime, Throwable error, ActionLogger actionLogger) {
-    actionLogger.failureDoActionLog(TimeCalculator.executionTime(startTime), nodeLog);
+    actionLogger.failureDoActionLog(millisFrom(startTime), nodeLog);
     promise.fail(error);
   }
 
   private static void handleSuccess(Promise<FragmentResult> f, FragmentResult result,
       AtomicInteger counter, long startTime, ActionLogger actionLogger) {
     actionLogger.info(INVOCATION_COUNT_LOG_KEY, valueOf(counter.get()));
-    actionLogger.doActionLog(TimeCalculator.executionTime(startTime), result.getLog());
+    actionLogger.doActionLog(millisFrom(startTime), result.getLog());
     f.complete(
         success(result.getFragment(), result.getTransition(), actionLogger.toLog().toJson()));
   }

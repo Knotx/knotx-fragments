@@ -16,19 +16,21 @@
 package io.knotx.fragments.action.library;
 
 
+import static io.knotx.commons.time.TimeCalculator.millisFrom;
+import static io.knotx.commons.validation.ValidationHelper.checkArgument;
 import static io.knotx.fragments.action.api.log.ActionLogLevel.fromConfig;
-import static io.knotx.fragments.action.library.helper.ValidationHelper.checkArgument;
 import static io.knotx.fragments.api.FragmentResult.success;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+
 import io.knotx.fragments.action.api.Action;
 import io.knotx.fragments.action.api.ActionFactory;
 import io.knotx.fragments.action.api.Cacheable;
 import io.knotx.fragments.action.api.SingleAction;
 import io.knotx.fragments.action.api.log.ActionLogLevel;
 import io.knotx.fragments.action.api.log.ActionLogger;
-import io.knotx.fragments.action.library.helper.TimeCalculator;
+import io.knotx.fragments.action.library.exception.ActionConfigurationException;
 import io.knotx.fragments.api.Fragment;
 import io.knotx.fragments.api.FragmentContext;
 import io.knotx.fragments.api.FragmentResult;
@@ -40,9 +42,10 @@ import io.reactivex.Maybe;
 import io.reactivex.Single;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
+import org.apache.commons.lang3.StringUtils;
+
 import java.time.Instant;
 import java.util.concurrent.TimeUnit;
-import org.apache.commons.lang3.StringUtils;
 
 /**
  * Payload Cache Action factory class. It can be initialized with a configuration:
@@ -74,7 +77,6 @@ public class InMemoryCacheActionFactory implements ActionFactory {
   private static final long DEFAULT_MAXIMUM_SIZE = 1000;
   private static final long DEFAULT_TTL = 5000;
 
-
   @Override
   public String getName() {
     return "in-memory-cache";
@@ -84,13 +86,19 @@ public class InMemoryCacheActionFactory implements ActionFactory {
   public Action create(String alias, JsonObject config, Vertx vertx, Action doAction) {
     final Cache<String, Object> cache = createCache(config);
     final String payloadKey = getPayloadKey(config);
+    final String cacheKeySchema = getCacheKeySchema(config);
     final ActionLogLevel logLevel = fromConfig(config, ActionLogLevel.ERROR);
+
+    checkArgument(StringUtils.isBlank(payloadKey),
+                  () -> new ActionConfigurationException(alias, "In Memory Cache Action requires payloadKey value in configuration."));
+    checkArgument(StringUtils.isBlank(cacheKeySchema),
+                  () -> new ActionConfigurationException(alias, "In Memory Cache Action requires cacheKey value in configuration."));
 
     return new SingleAction() {
       @Override
       public Single<FragmentResult> apply(FragmentContext fragmentContext) {
         final ActionLogger actionLogger = ActionLogger.create(alias, logLevel);
-        final String cacheKey = getCacheKey(config, fragmentContext.getClientRequest());
+        final String cacheKey = getCacheKey(cacheKeySchema, fragmentContext.getClientRequest());
 
         return getFromCache(fragmentContext, cacheKey, actionLogger)
             .switchIfEmpty(callDoActionAndCache(fragmentContext, cacheKey, actionLogger))
@@ -172,17 +180,15 @@ public class InMemoryCacheActionFactory implements ActionFactory {
   }
 
   private String getPayloadKey(JsonObject config) {
-    String result = config.getString("payloadKey");
-    checkArgument(getName(), StringUtils.isBlank(result),
-        "Action requires payloadKey value in configuration.");
-    return result;
+    return config.getString("payloadKey");
   }
 
-  private String getCacheKey(JsonObject config, ClientRequest clientRequest) {
-    String key = config.getString("cacheKey");
-    checkArgument(getName(), StringUtils.isBlank(key),
-        "Action requires cacheKey value in configuration.");
-    return PlaceholdersResolver.resolveAndEncode(key, buildSourceDefinitions(clientRequest));
+  private String getCacheKeySchema(JsonObject config) {
+    return config.getString("cacheKey");
+  }
+
+  private String getCacheKey(String cacheKeySchema, ClientRequest clientRequest) {
+    return PlaceholdersResolver.resolveAndEncode(cacheKeySchema, buildSourceDefinitions(clientRequest));
   }
 
   private SourceDefinitions buildSourceDefinitions(ClientRequest clientRequest) {
@@ -208,7 +214,7 @@ public class InMemoryCacheActionFactory implements ActionFactory {
 
   private static void logDoAction(ActionLogger actionLogger, long startTime,
       FragmentResult fragmentResult) {
-    long executionTime = TimeCalculator.executionTime(startTime);
+    long executionTime = millisFrom(startTime);
     if (isSuccessTransition(fragmentResult)) {
       actionLogger.doActionLog(executionTime, fragmentResult.getLog());
     } else {

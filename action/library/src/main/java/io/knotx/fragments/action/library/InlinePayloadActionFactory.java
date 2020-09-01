@@ -15,7 +15,7 @@
  */
 package io.knotx.fragments.action.library;
 
-import static io.knotx.fragments.action.library.helper.ValidationHelper.checkArgument;
+import static io.knotx.commons.validation.ValidationHelper.checkArgument;
 import static io.knotx.fragments.api.FragmentResult.success;
 
 import io.knotx.fragments.action.api.Action;
@@ -24,6 +24,7 @@ import io.knotx.fragments.action.api.Cacheable;
 import io.knotx.fragments.action.api.SyncAction;
 import io.knotx.fragments.action.api.log.ActionLogLevel;
 import io.knotx.fragments.action.api.log.ActionLogger;
+import io.knotx.fragments.action.library.exception.ActionConfigurationException;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
 
@@ -52,9 +53,10 @@ public class InlinePayloadActionFactory implements ActionFactory {
    */
   @Override
   public Action create(String alias, JsonObject config, Vertx vertx, Action doAction) {
-    checkArgument(getName(), !config.containsKey(PAYLOAD_KEY),
-        "Inline Payload Action requires payload parameter");
-    checkArgument(getName(), doAction != null, "Inline Payload Action does not support doAction");
+    checkArgument(!config.containsKey(PAYLOAD_KEY),
+                  () -> new ActionConfigurationException(alias, "Inline Payload Action requires payload parameter"));
+    checkArgument(doAction != null,
+                  () -> new ActionConfigurationException(alias, "Inline Payload Action does not support doAction"));
 
     ActionLogLevel logLevel = ActionLogLevel.fromConfig(config, ActionLogLevel.ERROR);
     String key = config.getString(ALIAS_KEY, alias);

@@ -15,13 +15,10 @@
  */
 package io.knotx.fragments.action.library;
 
-import static io.knotx.commons.json.JsonObjectUtil.getJsonObject;
-import static io.knotx.fragments.action.library.helper.ValidationHelper.checkArgument;
-import static io.knotx.fragments.api.FragmentResult.success;
-
 import io.knotx.fragments.action.api.Action;
 import io.knotx.fragments.action.api.ActionFactory;
 import io.knotx.fragments.action.api.SyncAction;
+import io.knotx.fragments.action.library.exception.ActionConfigurationException;
 import io.knotx.fragments.api.Fragment;
 import io.knotx.fragments.api.FragmentResult;
 import io.vertx.core.Vertx;
@@ -29,6 +26,10 @@ import io.vertx.core.json.JsonObject;
 
 import java.util.Objects;
 import java.util.Optional;
+
+import static io.knotx.commons.json.JsonObjectUtil.getJsonObject;
+import static io.knotx.commons.validation.ValidationHelper.checkArgument;
+import static io.knotx.fragments.api.FragmentResult.success;
 
 public class PayloadToBodyActionFactory implements ActionFactory {
 
@@ -41,7 +42,8 @@ public class PayloadToBodyActionFactory implements ActionFactory {
 
   @Override
   public Action create(String alias, JsonObject config, Vertx vertx, Action doAction) {
-    checkArgument(getName(), doAction != null, "Payload to body action does not support doAction");
+    checkArgument(doAction != null,
+            () -> new ActionConfigurationException(alias, "Payload to body action does not support doAction"));
 
     return (SyncAction) fragmentContext -> {
       Fragment fragment = fragmentContext.getFragment();
