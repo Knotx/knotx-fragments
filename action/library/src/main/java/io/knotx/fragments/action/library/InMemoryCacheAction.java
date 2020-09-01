@@ -19,7 +19,6 @@ import static io.knotx.fragments.action.library.helper.ValidationHelper.checkArg
 import static io.knotx.fragments.api.FragmentResult.fail;
 import static io.knotx.fragments.api.FragmentResult.success;
 
-import com.google.common.cache.Cache;
 import io.knotx.fragments.action.api.Action;
 import io.knotx.fragments.action.api.SingleAction;
 import io.knotx.fragments.action.api.log.ActionLogLevel;
@@ -44,13 +43,13 @@ public class InMemoryCacheAction implements SingleAction {
   public static final String CACHE_HIT = "cache_hit";
   public static final String CACHE_PASS = "cache_pass";
 
-  private final Cache<String, Object> cache;
+  private final Cache cache;
   private final String payloadKey;
   private final ActionLogLevel logLevel;
   private final Action doAction;
   private final JsonObject config;
 
-  public InMemoryCacheAction(Cache<String, Object> cache, String payloadKey,
+  public InMemoryCacheAction(Cache cache, String payloadKey,
       ActionLogLevel logLevel, Action doAction, JsonObject config) {
     this.cache = cache;
     this.payloadKey = payloadKey;
@@ -80,7 +79,7 @@ public class InMemoryCacheAction implements SingleAction {
   private Maybe<FragmentResult> getFromCache(FragmentContext fragmentContext, String cacheKey,
       CacheActionLogger logger) {
     return Maybe.just(cacheKey)
-        .flatMap(this::findInCache)
+        .flatMap(cache::get)
         .doOnSuccess(logger::onHit)
         .map(cachedValue -> fragmentContext.getFragment()
             .appendPayload(payloadKey, cachedValue))
@@ -98,15 +97,6 @@ public class InMemoryCacheAction implements SingleAction {
     return SourceDefinitions.builder()
         .addClientRequestSource(clientRequest)
         .build();
-  }
-
-  private Maybe<Object> findInCache(String key) {
-    Object cachedValue = cache.getIfPresent(key);
-    if (cachedValue == null) {
-      return Maybe.empty();
-    } else {
-      return Maybe.just(cachedValue);
-    }
   }
 
   private Single<FragmentResult> callDoActionAndCache(FragmentContext fragmentContext,
