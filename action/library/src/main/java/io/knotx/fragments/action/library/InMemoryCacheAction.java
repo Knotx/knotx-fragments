@@ -23,7 +23,6 @@ import io.knotx.fragments.action.api.Action;
 import io.knotx.fragments.action.api.SingleAction;
 import io.knotx.fragments.action.api.log.ActionLogLevel;
 import io.knotx.fragments.action.api.log.ActionLogger;
-import io.knotx.fragments.action.library.helper.TimeCalculator;
 import io.knotx.fragments.api.Fragment;
 import io.knotx.fragments.api.FragmentContext;
 import io.knotx.fragments.api.FragmentResult;
@@ -64,10 +63,12 @@ public class InMemoryCacheAction implements SingleAction {
   @Override
   public Single<FragmentResult> apply(FragmentContext fragmentContext) {
     final ActionLogger actionLogger = ActionLogger.create("DUPA", logLevel); // TODO
+    CacheActionLogger logger = new CacheActionLogger(actionLogger);
     final String cacheKey = getCacheKey(config, fragmentContext.getClientRequest());
+    logger.onLookup(cacheKey);
 
-    return getFromCache(fragmentContext, cacheKey, actionLogger)
-        .switchIfEmpty(callDoActionAndCache(fragmentContext, cacheKey, actionLogger))
+    return getFromCache(fragmentContext, cacheKey, logger)
+        .switchIfEmpty(callDoActionAndCache(fragmentContext, cacheKey, logger))
         // all errors are transformed to _error transition
         .onErrorReturn(
             error -> handleFailure(fragmentContext, actionLogger, error));
@@ -81,13 +82,13 @@ public class InMemoryCacheAction implements SingleAction {
   }
 
   private Maybe<FragmentResult> getFromCache(FragmentContext fragmentContext, String cacheKey,
-      ActionLogger actionLogger) {
+      CacheActionLogger logger) {
     return Maybe.just(cacheKey)
         .flatMap(this::findInCache)
-        .doOnSuccess(cachedValue -> logCacheHit(actionLogger, cacheKey, cachedValue))
+        .doOnSuccess(logger::onHit)
         .map(cachedValue -> fragmentContext.getFragment()
             .appendPayload(payloadKey, cachedValue))
-        .map(fragment -> toResultWithLog(actionLogger, fragment));
+        .map(fragment -> toResultWithLog(logger, fragment));
   }
 
   private String getCacheKey(JsonObject config, ClientRequest clientRequest) {
@@ -114,23 +115,23 @@ public class InMemoryCacheAction implements SingleAction {
 
   private Single<FragmentResult> callDoActionAndCache(FragmentContext fragmentContext,
       String cacheKey,
-      ActionLogger actionLogger) {
-    long startTime = Instant.now().toEpochMilli();
+      CacheActionLogger actionLogger) {
+    actionLogger.onRetrieveStart();
     return FragmentOperation.newInstance(doAction)
         .rxApply(fragmentContext)
-        .doOnSuccess(fr -> logDoAction(actionLogger, startTime, fr))
+        .doOnSuccess(actionLogger::onRetrieveEnd)
         .doOnSuccess(fr -> savePayloadToCache(actionLogger, cacheKey, fr))
         .map(fr -> toResultWithLog(actionLogger, fr));
   }
 
-  private void savePayloadToCache(ActionLogger actionLogger, String cacheKey,
+  private void savePayloadToCache(CacheActionLogger logger, String cacheKey,
       FragmentResult fragmentResult) {
     if (isCacheable(fragmentResult)) {
       Object resultPayload = getAppendedPayload(fragmentResult);
       cache.put(cacheKey, resultPayload);
-      logCacheMiss(actionLogger, cacheKey, resultPayload);
+      logger.onMiss(resultPayload);
     } else {
-      logCachePass(actionLogger, cacheKey);
+      logger.onPass();
     }
   }
 
@@ -146,39 +147,14 @@ public class InMemoryCacheAction implements SingleAction {
         .getPayload().getMap().get(payloadKey);
   }
 
-  private FragmentResult toResultWithLog(ActionLogger actionLogger, Fragment fragment) {
-    return success(fragment, actionLogger.toLog().toJson());
+  private FragmentResult toResultWithLog(CacheActionLogger logger, Fragment fragment) {
+    return success(fragment, logger.getLogAsJson());
   }
 
-  private FragmentResult toResultWithLog(ActionLogger actionLogger,
+  private FragmentResult toResultWithLog(CacheActionLogger logger,
       FragmentResult fragmentResult) {
     return success(fragmentResult.getFragment(), fragmentResult.getTransition(),
-        actionLogger.toLog().toJson());
-  }
-
-  private static void logDoAction(ActionLogger actionLogger, long startTime,
-      FragmentResult fragmentResult) {
-    long executionTime = TimeCalculator.executionTime(startTime);
-    if (isSuccessTransition(fragmentResult)) {
-      actionLogger.doActionLog(executionTime, fragmentResult.getLog());
-    } else {
-      actionLogger.failureDoActionLog(executionTime, fragmentResult.getLog());
-    }
-  }
-
-  private static void logCacheHit(ActionLogger actionLogger, String cacheKey, Object cachedValue) {
-    actionLogger.info(CACHE_HIT,
-        new JsonObject().put(CACHE_KEY, cacheKey).put(CACHED_VALUE, cachedValue));
-  }
-
-  private static void logCacheMiss(ActionLogger actionLogger, String cacheKey,
-      Object computedValue) {
-    actionLogger.info(CACHE_MISS,
-        new JsonObject().put(CACHE_KEY, cacheKey).put(COMPUTED_VALUE, computedValue));
-  }
-
-  private static void logCachePass(ActionLogger actionLogger, String cacheKey) {
-    actionLogger.error(CACHE_PASS, new JsonObject().put(CACHE_KEY, cacheKey));
+        logger.getLogAsJson());
   }
 
   private static boolean isSuccessTransition(FragmentResult fragmentResult) {
