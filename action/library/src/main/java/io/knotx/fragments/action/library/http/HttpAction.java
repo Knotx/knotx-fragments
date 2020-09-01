@@ -15,30 +15,30 @@
  */
 package io.knotx.fragments.action.library.http;
 
-import io.knotx.fragments.api.Fragment;
+import static io.knotx.fragments.api.FragmentResult.success;
+
+import io.knotx.fragments.action.api.SingleAction;
+import io.knotx.fragments.action.api.log.ActionLogLevel;
 import io.knotx.fragments.action.library.http.log.HttpActionLogger;
 import io.knotx.fragments.action.library.http.options.EndpointOptions;
 import io.knotx.fragments.action.library.http.options.HttpActionOptions;
+import io.knotx.fragments.action.library.http.payload.ActionPayload;
 import io.knotx.fragments.action.library.http.request.EndpointRequestComposer;
 import io.knotx.fragments.action.library.http.response.EndpointResponse;
 import io.knotx.fragments.action.library.http.response.EndpointResponseProcessor;
-import io.knotx.fragments.action.api.Action;
-import io.knotx.fragments.action.api.log.ActionLogLevel;
+import io.knotx.fragments.api.Fragment;
 import io.knotx.fragments.api.FragmentContext;
 import io.knotx.fragments.api.FragmentResult;
-import io.knotx.fragments.action.library.http.payload.ActionPayload;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.reactivex.Single;
 import io.reactivex.exceptions.Exceptions;
-import io.vertx.core.AsyncResult;
-import io.vertx.core.Future;
-import io.vertx.core.Handler;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import io.vertx.reactivex.ext.web.client.WebClient;
+
 import java.util.concurrent.TimeoutException;
 
-public class HttpAction implements Action {
+public class HttpAction implements SingleAction {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(HttpAction.class);
 
@@ -62,16 +62,7 @@ public class HttpAction implements Action {
   }
 
   @Override
-  public void apply(FragmentContext fragmentContext,
-      Handler<AsyncResult<FragmentResult>> resultHandler) {
-    Single.just(fragmentContext)
-        .flatMap(this::process)
-        .map(Future::succeededFuture)
-        .map(future -> future.onComplete(resultHandler))
-        .subscribe();
-  }
-
-  private Single<FragmentResult> process(FragmentContext fragmentContext) {
+  public Single<FragmentResult> apply(FragmentContext fragmentContext) {
     HttpActionLogger httpActionLogger = HttpActionLogger
         .create(actionAlias, logLevel, endpointOptions, httpMethod);
     return Single.just(fragmentContext)
@@ -91,7 +82,7 @@ public class HttpAction implements Action {
 
   private FragmentResult composeFragmentResult(Fragment fragment, HttpActionResult result, HttpActionLogger httpActionLogger) {
     fragment.appendPayload(actionAlias, result.getActionPayload().toJson());
-    return new FragmentResult(fragment, result.getTransition(), httpActionLogger.getJsonNodeLog());
+    return success(fragment, result.getTransition(), httpActionLogger.getJsonNodeLog());
   }
 
   private static FragmentResult errorTransition(FragmentContext fragmentContext,
@@ -109,8 +100,8 @@ public class HttpAction implements Action {
   }
 
   public static class HttpActionResult {
-    private ActionPayload actionPayload;
-    private String transition;
+    private final ActionPayload actionPayload;
+    private final String transition;
 
     public HttpActionResult(ActionPayload actionPayload, String transition) {
       this.actionPayload = actionPayload;

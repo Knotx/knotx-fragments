@@ -16,28 +16,28 @@
 package io.knotx.fragments.action.library;
 
 
+import static io.knotx.fragments.action.api.log.ActionLogLevel.fromConfig;
+import static io.knotx.fragments.action.library.helper.ValidationHelper.checkArgument;
 import static io.knotx.fragments.api.FragmentResult.success;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import io.knotx.fragments.api.Fragment;
 import io.knotx.fragments.action.api.Action;
 import io.knotx.fragments.action.api.ActionFactory;
 import io.knotx.fragments.action.api.Cacheable;
+import io.knotx.fragments.action.api.SingleAction;
 import io.knotx.fragments.action.api.log.ActionLogLevel;
 import io.knotx.fragments.action.api.log.ActionLogger;
+import io.knotx.fragments.action.library.helper.TimeCalculator;
+import io.knotx.fragments.api.Fragment;
 import io.knotx.fragments.api.FragmentContext;
 import io.knotx.fragments.api.FragmentResult;
-import io.knotx.fragments.action.library.helper.TimeCalculator;
 import io.knotx.reactivex.fragments.api.FragmentOperation;
 import io.knotx.server.api.context.ClientRequest;
 import io.knotx.server.common.placeholders.PlaceholdersResolver;
 import io.knotx.server.common.placeholders.SourceDefinitions;
 import io.reactivex.Maybe;
 import io.reactivex.Single;
-import io.vertx.core.AsyncResult;
-import io.vertx.core.Future;
-import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
 import java.time.Instant;
@@ -82,27 +82,21 @@ public class InMemoryCacheActionFactory implements ActionFactory {
 
   @Override
   public Action create(String alias, JsonObject config, Vertx vertx, Action doAction) {
+    final Cache<String, Object> cache = createCache(config);
+    final String payloadKey = getPayloadKey(config);
+    final ActionLogLevel logLevel = fromConfig(config, ActionLogLevel.ERROR);
 
-    return new Action() {
-      private final Cache<String, Object> cache = createCache(config);
-      private final String payloadKey = getPayloadKey(config);
-      private final ActionLogLevel logLevel = ActionLogLevel
-          .fromConfig(config, ActionLogLevel.ERROR);
-
+    return new SingleAction() {
       @Override
-      public void apply(FragmentContext fragmentContext,
-          Handler<AsyncResult<FragmentResult>> resultHandler) {
-        ActionLogger actionLogger = ActionLogger.create(alias, logLevel);
-        String cacheKey = getCacheKey(config, fragmentContext.getClientRequest());
+      public Single<FragmentResult> apply(FragmentContext fragmentContext) {
+        final ActionLogger actionLogger = ActionLogger.create(alias, logLevel);
+        final String cacheKey = getCacheKey(config, fragmentContext.getClientRequest());
 
-        getFromCache(fragmentContext, cacheKey, actionLogger)
+        return getFromCache(fragmentContext, cacheKey, actionLogger)
             .switchIfEmpty(callDoActionAndCache(fragmentContext, cacheKey, actionLogger))
             // all errors are transformed to _error transition
             .onErrorReturn(
-                error -> handleFailure(fragmentContext, actionLogger, error))
-            .map(Future::succeededFuture)
-            .doOnSuccess(future -> future.onComplete(resultHandler))
-            .subscribe();
+                error -> handleFailure(fragmentContext, actionLogger, error));
       }
 
       private Maybe<FragmentResult> getFromCache(FragmentContext fragmentContext, String cacheKey,
@@ -179,18 +173,15 @@ public class InMemoryCacheActionFactory implements ActionFactory {
 
   private String getPayloadKey(JsonObject config) {
     String result = config.getString("payloadKey");
-    if (StringUtils.isBlank(result)) {
-      throw new IllegalArgumentException(
-          "Action requires payloadKey value in configuration.");
-    }
+    checkArgument(getName(), StringUtils.isBlank(result),
+        "Action requires payloadKey value in configuration.");
     return result;
   }
 
   private String getCacheKey(JsonObject config, ClientRequest clientRequest) {
     String key = config.getString("cacheKey");
-    if (StringUtils.isBlank(key)) {
-      throw new IllegalArgumentException("Action requires cacheKey value in configuration.");
-    }
+    checkArgument(getName(), StringUtils.isBlank(key),
+        "Action requires cacheKey value in configuration.");
     return PlaceholdersResolver.resolveAndEncode(key, buildSourceDefinitions(clientRequest));
   }
 

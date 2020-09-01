@@ -3,12 +3,16 @@ All notable changes to `knotx-fragments` will be documented in this file.
 
 ## Unreleased
 List of changes that are finished but not yet released in any final version.
-- [PR-174](https://github.com/Knotx/knotx-stack/pull/172) - Add node processing errors to the [graph node response log](https://github.com/Knotx/knotx-fragments/blob/master/task/handler/log/api/docs/asciidoc/dataobjects.adoc#graphnoderesponselog).
-- [PR-172](https://github.com/Knotx/knotx-stack/pull/172) - Add a task node processing exception to event log. Remove unused 'TIMEOUT' node status. Update node unit tests.
-- [PR-170](https://github.com/Knotx/knotx-stack/pull/170) - Upgrade to Vert.x `3.9.1`, replace deprecated `setHandler` with `onComplete`.
+- [PR-188](https://github.com/Knotx/knotx-fragments/pull/188) - Exposes nested doActions' (possibly chained) configuration in `OperationMetadata`.
+- [PR-187](https://github.com/Knotx/knotx-fragments/pull/187) - Provides `SingleFragmentOperation` to simplify implementation of RXfied actions.
+- [PR-186](https://github.com/Knotx/knotx-fragments/pull/186) - Provides `FutureFragmentOperation` and `SyncFragmentOperation` to simplify implementation of asynchronous and synchronous actions.
+- [PR-181](https://github.com/Knotx/knotx-fragments/pull/181) - It introduces an error log to `FragmentResult` for handling failures. All `FragmentResult`constructors are deprecated now.
+- [PR-174](https://github.com/Knotx/knotx-fragments/pull/172) - Add node processing errors to the [graph node response log](https://github.com/Knotx/knotx-fragments/blob/master/task/handler/log/api/docs/asciidoc/dataobjects.adoc#graphnoderesponselog).
+- [PR-172](https://github.com/Knotx/knotx-fragments/pull/172) - Add a task node processing exception to event log. Remove unused 'TIMEOUT' node status. Update node unit tests.
+- [PR-170](https://github.com/Knotx/knotx-fragments/pull/170) - Upgrade to Vert.x `3.9.1`, replace deprecated `setHandler` with `onComplete`.
                 
 ## 2.2.1
-- [PR-165](https://github.com/Knotx/knotx-stack/pull/165) - Knotx/knotx-fragments#161 enable passing status code from handlers to end user
+- [PR-165](https://github.com/Knotx/knotx-fragments/pull/165) - Knotx/knotx-fragments#161 enable passing status code from handlers to end user
                 
 ## 2.2.0
 - [PR-154](https://github.com/Knotx/knotx-fragments/pull/154) - Cleanup Fragments modules: renamed modules (`Actions` and all Task related once) to be more self-descriptive. Remove hidden API dependencies.

@@ -25,7 +25,7 @@ class HttpActionNodeLogger {
   private static final String RESPONSE = "response";
   private static final String RESPONSE_BODY = "responseBody";
 
-  private ActionLogger actionLogger;
+  private final ActionLogger actionLogger;
 
   private HttpActionNodeLogger(ActionLogger actionLogger) {
     this.actionLogger = actionLogger;
