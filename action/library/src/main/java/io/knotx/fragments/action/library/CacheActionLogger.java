@@ -15,12 +15,6 @@
  */
 package io.knotx.fragments.action.library;
 
-import static io.knotx.fragments.action.library.InMemoryCacheAction.CACHED_VALUE;
-import static io.knotx.fragments.action.library.InMemoryCacheAction.CACHE_HIT;
-import static io.knotx.fragments.action.library.InMemoryCacheAction.CACHE_KEY;
-import static io.knotx.fragments.action.library.InMemoryCacheAction.CACHE_MISS;
-import static io.knotx.fragments.action.library.InMemoryCacheAction.CACHE_PASS;
-import static io.knotx.fragments.action.library.InMemoryCacheAction.COMPUTED_VALUE;
 import static java.time.Instant.now;
 
 import io.knotx.fragments.action.api.log.ActionLogLevel;
@@ -29,7 +23,14 @@ import io.knotx.fragments.action.library.helper.TimeCalculator;
 import io.knotx.fragments.api.FragmentResult;
 import io.vertx.core.json.JsonObject;
 
-class CacheActionLogger {
+public class CacheActionLogger {
+
+  public static final String CACHE_KEY = "cache_key";
+  public static final String CACHED_VALUE = "cached_value";
+  public static final String COMPUTED_VALUE = "computed_value";
+  public static final String CACHE_MISS = "cache_miss";
+  public static final String CACHE_HIT = "cache_hit";
+  public static final String CACHE_PASS = "cache_pass";
 
   private final ActionLogger actionLogger;
   private String key;

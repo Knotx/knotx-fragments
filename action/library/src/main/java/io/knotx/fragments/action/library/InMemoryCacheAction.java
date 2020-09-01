@@ -36,13 +36,6 @@ import org.apache.commons.lang3.StringUtils;
 
 public class InMemoryCacheAction implements SingleAction {
 
-  public static final String CACHE_KEY = "cache_key";
-  public static final String CACHED_VALUE = "cached_value";
-  public static final String COMPUTED_VALUE = "computed_value";
-  public static final String CACHE_MISS = "cache_miss";
-  public static final String CACHE_HIT = "cache_hit";
-  public static final String CACHE_PASS = "cache_pass";
-
   private final Cache cache;
   private final String payloadKey;
   private final ActionLogLevel logLevel;
