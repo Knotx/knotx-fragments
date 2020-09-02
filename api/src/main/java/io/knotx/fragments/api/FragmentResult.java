@@ -91,6 +91,10 @@ public class FragmentResult {
     this(fragment, transition, null);
   }
 
+  public FragmentResult copyWithNewLog(JsonObject log) {
+    return new FragmentResult(this.fragment, this.transition, log, this.error);
+  }
+
   public FragmentResult(JsonObject json) {
     this.fragment = new Fragment(json.getJsonObject(FRAGMENT_KEY));
     this.transition = json.getString(TRANSITION_KEY);

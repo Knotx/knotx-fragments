@@ -15,129 +15,69 @@
  */
 package io.knotx.fragments.action.library;
 
-import static io.knotx.fragments.action.library.helper.ValidationHelper.checkArgument;
 import static io.knotx.fragments.api.FragmentResult.fail;
-import static io.knotx.fragments.api.FragmentResult.success;
 
 import io.knotx.fragments.action.api.Action;
 import io.knotx.fragments.action.api.SingleAction;
 import io.knotx.fragments.action.api.log.ActionLogLevel;
-import io.knotx.fragments.api.Fragment;
 import io.knotx.fragments.api.FragmentContext;
 import io.knotx.fragments.api.FragmentResult;
 import io.knotx.reactivex.fragments.api.FragmentOperation;
-import io.knotx.server.api.context.ClientRequest;
 import io.knotx.server.common.placeholders.PlaceholdersResolver;
 import io.knotx.server.common.placeholders.SourceDefinitions;
-import io.reactivex.Maybe;
 import io.reactivex.Single;
-import io.vertx.core.json.JsonObject;
-import org.apache.commons.lang3.StringUtils;
 
 public class InMemoryCacheAction implements SingleAction {
 
-  private final Cache cache;
-  private final String payloadKey;
   private final ActionLogLevel logLevel;
-  private final Action doAction;
-  private final JsonObject config;
+  private final String keySchema;
+  private final String alias;
 
-  public InMemoryCacheAction(Cache cache, String payloadKey,
-      ActionLogLevel logLevel, Action doAction, JsonObject config) {
-    this.cache = cache;
-    this.payloadKey = payloadKey;
+  private final Action doAction;
+
+  private final CacheLookup lookup;
+  private final CacheStore store;
+
+  public InMemoryCacheAction(Cache cache, String payloadKey, String keySchema, String alias,
+      ActionLogLevel logLevel, Action doAction) {
+    this.alias = alias;
+    this.keySchema = keySchema;
     this.logLevel = logLevel;
     this.doAction = doAction;
-    this.config = config;
+    this.lookup = new CacheLookup(cache, payloadKey);
+    this.store = new CacheStore(cache, payloadKey);
   }
 
   @Override
   public Single<FragmentResult> apply(FragmentContext fragmentContext) {
-    CacheActionLogger logger = CacheActionLogger.create("Test", logLevel); // TODO
-    final String cacheKey = getCacheKey(config, fragmentContext.getClientRequest());
-    logger.onLookup(cacheKey);
+    CacheActionLogger logger = CacheActionLogger.create(alias, logLevel);
+    String cacheKey = createCacheKey(fragmentContext);
 
-    return getFromCache(fragmentContext, cacheKey, logger)
-        .switchIfEmpty(callDoActionAndCache(fragmentContext, cacheKey, logger))
+    return lookup.find(cacheKey, logger)
+        .map(value -> lookup.toResponse(fragmentContext, value))
+        .switchIfEmpty(retrieve(fragmentContext, logger)
+            .doOnSuccess(result -> store.save(logger, cacheKey, result)))
         .doOnError(logger::onError)
-        // all errors are transformed to _error transition
-        .onErrorReturn(error -> handleFailure(fragmentContext, error, logger));
+        .onErrorReturn(error -> fail(fragmentContext.getFragment(), error))
+        .map(result -> result.copyWithNewLog(logger.getLogAsJson()));
   }
 
-  private FragmentResult handleFailure(FragmentContext fragmentContext, Throwable error,
-      CacheActionLogger logger) {
-    return fail(fragmentContext.getFragment(), logger.getLogAsJson(), error);
+  private Single<FragmentResult> retrieve(FragmentContext context, CacheActionLogger logger) {
+    return Single.just(doAction)
+        .map(FragmentOperation::newInstance)
+        .doOnSuccess(action -> logger.onRetrieveStart())
+        .flatMap(action -> action.rxApply(context))
+        .doOnSuccess(logger::onRetrieveEnd);
   }
 
-  private Maybe<FragmentResult> getFromCache(FragmentContext fragmentContext, String cacheKey,
-      CacheActionLogger logger) {
-    return Maybe.just(cacheKey)
-        .flatMap(cache::get)
-        .doOnSuccess(logger::onHit)
-        .map(cachedValue -> fragmentContext.getFragment()
-            .appendPayload(payloadKey, cachedValue))
-        .map(fragment -> toResultWithLog(logger, fragment));
+  private String createCacheKey(FragmentContext context) {
+    return PlaceholdersResolver.resolveAndEncode(keySchema, buildSourceDefinitions(context));
   }
 
-  private String getCacheKey(JsonObject config, ClientRequest clientRequest) {
-    String key = config.getString("cacheKey");
-    checkArgument("TODO", StringUtils.isBlank(key), // TODO
-        "Action requires cacheKey value in configuration.");
-    return PlaceholdersResolver.resolveAndEncode(key, buildSourceDefinitions(clientRequest));
-  }
-
-  private SourceDefinitions buildSourceDefinitions(ClientRequest clientRequest) {
+  private SourceDefinitions buildSourceDefinitions(FragmentContext context) {
     return SourceDefinitions.builder()
-        .addClientRequestSource(clientRequest)
+        .addClientRequestSource(context.getClientRequest())
         .build();
-  }
-
-  private Single<FragmentResult> callDoActionAndCache(FragmentContext fragmentContext,
-      String cacheKey,
-      CacheActionLogger actionLogger) {
-    actionLogger.onRetrieveStart();
-    return FragmentOperation.newInstance(doAction)
-        .rxApply(fragmentContext)
-        .doOnSuccess(actionLogger::onRetrieveEnd)
-        .doOnSuccess(fr -> savePayloadToCache(actionLogger, cacheKey, fr))
-        .map(fr -> toResultWithLog(actionLogger, fr));
-  }
-
-  private void savePayloadToCache(CacheActionLogger logger, String cacheKey,
-      FragmentResult fragmentResult) {
-    if (isCacheable(fragmentResult)) {
-      Object resultPayload = getAppendedPayload(fragmentResult);
-      cache.put(cacheKey, resultPayload);
-      logger.onMiss(resultPayload);
-    } else {
-      logger.onPass();
-    }
-  }
-
-  private boolean isCacheable(FragmentResult fragmentResult) {
-    return isSuccessTransition(fragmentResult)
-        && fragmentResult.getFragment()
-        .getPayload()
-        .containsKey(payloadKey);
-  }
-
-  private Object getAppendedPayload(FragmentResult fragmentResult) {
-    return fragmentResult.getFragment()
-        .getPayload().getMap().get(payloadKey);
-  }
-
-  private FragmentResult toResultWithLog(CacheActionLogger logger, Fragment fragment) {
-    return success(fragment, logger.getLogAsJson());
-  }
-
-  private FragmentResult toResultWithLog(CacheActionLogger logger,
-      FragmentResult fragmentResult) {
-    return success(fragmentResult.getFragment(), fragmentResult.getTransition(),
-        logger.getLogAsJson());
-  }
-
-  private static boolean isSuccessTransition(FragmentResult fragmentResult) {
-    return FragmentResult.SUCCESS_TRANSITION.equals(fragmentResult.getTransition());
   }
 
 }

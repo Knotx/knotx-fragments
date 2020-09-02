@@ -55,16 +55,15 @@ public class InMemoryCacheActionFactory implements ActionFactory {
   @Override
   public Action create(String alias, JsonObject config, Vertx vertx, Action doAction) {
     final Cache cache = new InMemoryCache(config.getJsonObject("cache"));
-    final String payloadKey = getPayloadKey(config);
+    final String payloadKey = config.getString("payloadKey");
+    final String cacheKeySchema = config.getString("cacheKey");
     final ActionLogLevel logLevel = fromConfig(config, ActionLogLevel.ERROR);
 
-    return new InMemoryCacheAction(cache, payloadKey, logLevel, doAction, config);
-  }
-
-  private String getPayloadKey(JsonObject config) {
-    String result = config.getString("payloadKey");
-    checkArgument(getName(), StringUtils.isBlank(result),
+    checkArgument(getName(), StringUtils.isBlank(payloadKey),
         "Action requires payloadKey value in configuration.");
-    return result;
+    checkArgument(getName(), StringUtils.isBlank(cacheKeySchema),
+        "Action requires cacheKey value in configuration.");
+
+    return new InMemoryCacheAction(cache, payloadKey, cacheKeySchema, alias, logLevel, doAction);
   }
 }
