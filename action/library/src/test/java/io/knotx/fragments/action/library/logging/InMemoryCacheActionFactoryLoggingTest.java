@@ -17,12 +17,12 @@
  */
 package io.knotx.fragments.action.library.logging;
 
-import static io.knotx.fragments.action.library.cache.CacheActionLogger.CACHED_VALUE;
-import static io.knotx.fragments.action.library.cache.CacheActionLogger.CACHE_HIT;
-import static io.knotx.fragments.action.library.cache.CacheActionLogger.CACHE_KEY;
-import static io.knotx.fragments.action.library.cache.CacheActionLogger.CACHE_MISS;
-import static io.knotx.fragments.action.library.cache.CacheActionLogger.CACHE_PASS;
-import static io.knotx.fragments.action.library.cache.CacheActionLogger.COMPUTED_VALUE;
+import static io.knotx.fragments.action.library.cache.operations.CacheActionLogger.CACHED_VALUE;
+import static io.knotx.fragments.action.library.cache.operations.CacheActionLogger.CACHE_HIT;
+import static io.knotx.fragments.action.library.cache.operations.CacheActionLogger.CACHE_KEY;
+import static io.knotx.fragments.action.library.cache.operations.CacheActionLogger.CACHE_MISS;
+import static io.knotx.fragments.action.library.cache.operations.CacheActionLogger.CACHE_PASS;
+import static io.knotx.fragments.action.library.cache.operations.CacheActionLogger.COMPUTED_VALUE;
 import static io.knotx.fragments.api.FragmentResult.ERROR_TRANSITION;
 import static io.knotx.fragments.api.FragmentResult.SUCCESS_TRANSITION;
 import static io.knotx.junit5.assertions.KnotxAssertions.assertJsonEquals;

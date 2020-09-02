@@ -16,19 +16,13 @@
 package io.knotx.fragments.action.library;
 
 
-import static io.knotx.fragments.action.api.log.ActionLogLevel.fromConfig;
-import static io.knotx.fragments.action.library.helper.ValidationHelper.checkArgument;
-
 import io.knotx.fragments.action.api.Action;
 import io.knotx.fragments.action.api.ActionFactory;
 import io.knotx.fragments.action.api.Cacheable;
-import io.knotx.fragments.action.api.log.ActionLogLevel;
-import io.knotx.fragments.action.library.cache.Cache;
-import io.knotx.fragments.action.library.cache.CacheAction;
-import io.knotx.fragments.action.library.cache.inmemory.InMemoryCache;
+import io.knotx.fragments.action.library.cache.CacheActionFactory;
+import io.knotx.fragments.action.library.cache.CacheActionOptions;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
-import org.apache.commons.lang3.StringUtils;
 
 /**
  * Payload Cache Action factory class. It can be initialized with a configuration:
@@ -57,16 +51,19 @@ public class InMemoryCacheActionFactory implements ActionFactory {
 
   @Override
   public Action create(String alias, JsonObject config, Vertx vertx, Action doAction) {
-    final Cache cache = new InMemoryCache(config.getJsonObject("cache"));
-    final String payloadKey = config.getString("payloadKey");
-    final String cacheKeySchema = config.getString("cacheKey");
-    final ActionLogLevel logLevel = fromConfig(config, ActionLogLevel.ERROR);
+    CacheActionOptions correctedOptions = new CacheActionOptions(config);
+    correctedOptions.setType("in-memory");
+    populateLegacyOptions(config, correctedOptions.getCache());
 
-    checkArgument(getName(), StringUtils.isBlank(payloadKey),
-        "Action requires payloadKey value in configuration.");
-    checkArgument(getName(), StringUtils.isBlank(cacheKeySchema),
-        "Action requires cacheKey value in configuration.");
+    return new CacheActionFactory().create(alias, correctedOptions.toJson(), vertx, doAction);
+  }
 
-    return new CacheAction(cache, payloadKey, cacheKeySchema, alias, logLevel, doAction);
+  private void populateLegacyOptions(JsonObject source, JsonObject target) {
+    if(source.containsKey("ttl")) {
+      target.put("ttlMs", source.getLong("ttl"));
+    }
+    if(source.containsKey("maximumSize")) {
+      target.put("maximumSize", source.getLong("maximumSize"));
+    }
   }
 }

@@ -15,35 +15,27 @@
  */
 package io.knotx.fragments.action.library.cache.inmemory;
 
-import com.google.common.cache.CacheBuilder;
 import io.knotx.fragments.action.library.cache.Cache;
-import io.reactivex.Maybe;
-import java.util.concurrent.TimeUnit;
+import io.knotx.fragments.action.library.cache.CacheFactory;
+import io.vertx.core.json.JsonObject;
 
-public class InMemoryCache implements Cache {
+public class InMemoryCacheFactory implements CacheFactory {
 
-  private final com.google.common.cache.Cache<String, Object> cache;
+  private static final long DEFAULT_MAXIMUM_SIZE = 1000;
+  private static final long DEFAULT_TTL_MS = 5000;
 
-  public InMemoryCache(long maxSize, long ttlMs) {
-    cache = CacheBuilder.newBuilder()
-        .maximumSize(maxSize)
-        .expireAfterWrite(ttlMs, TimeUnit.MILLISECONDS)
-        .build();
+  @Override
+  public String getType() {
+    return "in-memory";
   }
 
   @Override
-  public Maybe<Object> get(String key) {
-    Object cachedValue = cache.getIfPresent(key);
-    if (cachedValue == null) {
-      return Maybe.empty();
-    } else {
-      return Maybe.just(cachedValue);
-    }
+  public Cache create(JsonObject config) {
+    long maxSize =
+        config == null ? DEFAULT_MAXIMUM_SIZE : config.getLong("maximumSize", DEFAULT_MAXIMUM_SIZE);
+    long ttlMs = config == null ? DEFAULT_TTL_MS : config.getLong("ttlMs", DEFAULT_TTL_MS);
+    // TODO: create data object for this
+    return new InMemoryCache(maxSize, ttlMs);
   }
 
-  @Override
-  public void put(String key, Object value) {
-    cache.put(key, value);
-  }
-  
 }

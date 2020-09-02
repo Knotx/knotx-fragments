@@ -13,16 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.knotx.fragments.action.library.cache;
+package io.knotx.fragments.action.library.cache.operations;
 
 import static io.knotx.fragments.api.FragmentResult.success;
 
+import io.knotx.fragments.action.library.cache.Cache;
 import io.knotx.fragments.api.Fragment;
 import io.knotx.fragments.api.FragmentContext;
 import io.knotx.fragments.api.FragmentResult;
 import io.reactivex.Maybe;
 
-class CacheLookup {
+public class CacheLookup {
 
   private final Cache cache;
   private final String payloadKey;
@@ -32,14 +33,14 @@ class CacheLookup {
     this.payloadKey = payloadKey;
   }
 
-  Maybe<Object> find(String cacheKey, CacheActionLogger logger) {
+  public Maybe<Object> find(String cacheKey, CacheActionLogger logger) {
     return Maybe.just(cacheKey)
         .doOnSuccess(logger::onLookup)
         .flatMap(cache::get)
         .doOnSuccess(logger::onHit);
   }
 
-  FragmentResult toResponse(FragmentContext original, Object cachedValue) {
+  public FragmentResult toResponse(FragmentContext original, Object cachedValue) {
     return success(putInPayload(original, cachedValue));
   }
 

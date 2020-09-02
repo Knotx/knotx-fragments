@@ -50,6 +50,21 @@
 |[[message]]`@message`|`String`|-
 |===
 
+[[CacheActionOptions]]
+== CacheActionOptions
+
+
+[cols=">25%,25%,50%"]
+[frame="topbot"]
+|===
+^|Name | Type ^| Description
+|[[cache]]`@cache`|`Json object`|-
+|[[cacheKey]]`@cacheKey`|`String`|-
+|[[logLevel]]`@logLevel`|`String`|-
+|[[payloadKey]]`@payloadKey`|`String`|-
+|[[type]]`@type`|`String`|-
+|===
+
 [[CircuitBreakerActionFactoryOptions]]
 == CircuitBreakerActionFactoryOptions
 

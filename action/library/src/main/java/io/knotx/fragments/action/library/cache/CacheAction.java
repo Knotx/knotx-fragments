@@ -15,17 +15,22 @@
  */
 package io.knotx.fragments.action.library.cache;
 
+import static io.knotx.fragments.action.library.helper.FragmentPlaceholders.buildSourceDefinitions;
+import static io.knotx.fragments.action.library.helper.ValidationHelper.checkArgument;
 import static io.knotx.fragments.api.FragmentResult.fail;
 
 import io.knotx.fragments.action.api.Action;
 import io.knotx.fragments.action.api.SingleAction;
 import io.knotx.fragments.action.api.log.ActionLogLevel;
+import io.knotx.fragments.action.library.cache.operations.CacheActionLogger;
+import io.knotx.fragments.action.library.cache.operations.CacheLookup;
+import io.knotx.fragments.action.library.cache.operations.CacheStore;
 import io.knotx.fragments.api.FragmentContext;
 import io.knotx.fragments.api.FragmentResult;
 import io.knotx.reactivex.fragments.api.FragmentOperation;
 import io.knotx.server.common.placeholders.PlaceholdersResolver;
-import io.knotx.server.common.placeholders.SourceDefinitions;
 import io.reactivex.Single;
+import org.apache.commons.lang3.StringUtils;
 
 public class CacheAction implements SingleAction {
 
@@ -38,14 +43,18 @@ public class CacheAction implements SingleAction {
   private final CacheLookup lookup;
   private final CacheStore store;
 
-  public CacheAction(Cache cache, String payloadKey, String keySchema, String alias,
-      ActionLogLevel logLevel, Action doAction) {
+  public CacheAction(Cache cache, CacheActionOptions options, String alias, Action doAction) {
+    checkArgument(alias, StringUtils.isBlank(options.getPayloadKey()),
+        "Action requires payloadKey value in configuration.");
+    checkArgument(alias, StringUtils.isBlank(options.getCacheKey()),
+        "Action requires cacheKey value in configuration.");
+    // TODO: validate other arguments?
     this.alias = alias;
-    this.keySchema = keySchema;
-    this.logLevel = logLevel;
     this.doAction = doAction;
-    this.lookup = new CacheLookup(cache, payloadKey);
-    this.store = new CacheStore(cache, payloadKey);
+    this.keySchema = options.getCacheKey();
+    this.logLevel = ActionLogLevel.fromConfig(options.getLogLevel(), ActionLogLevel.ERROR);
+    this.lookup = new CacheLookup(cache, options.getPayloadKey());
+    this.store = new CacheStore(cache, options.getPayloadKey());
   }
 
   @Override
@@ -72,12 +81,6 @@ public class CacheAction implements SingleAction {
 
   private String createCacheKey(FragmentContext context) {
     return PlaceholdersResolver.resolveAndEncode(keySchema, buildSourceDefinitions(context));
-  }
-
-  private SourceDefinitions buildSourceDefinitions(FragmentContext context) {
-    return SourceDefinitions.builder()
-        .addClientRequestSource(context.getClientRequest())
-        .build();
   }
 
 }

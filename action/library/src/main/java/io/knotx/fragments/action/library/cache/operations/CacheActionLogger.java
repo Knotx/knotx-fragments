@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.knotx.fragments.action.library.cache;
+package io.knotx.fragments.action.library.cache.operations;
 
 import static java.time.Instant.now;
 
@@ -36,7 +36,7 @@ public class CacheActionLogger {
   private String key;
   private long retrieveStart;
 
-  static CacheActionLogger create(String alias, ActionLogLevel logLevel) {
+  public static CacheActionLogger create(String alias, ActionLogLevel logLevel) {
     return new CacheActionLogger(ActionLogger.create(alias, logLevel));
   }
 
@@ -48,11 +48,11 @@ public class CacheActionLogger {
     this.key = key;
   }
 
-  void onRetrieveStart() {
+  public void onRetrieveStart() {
     this.retrieveStart = now().toEpochMilli();
   }
 
-  void onRetrieveEnd(FragmentResult fragmentResult) {
+  public void onRetrieveEnd(FragmentResult fragmentResult) {
     long executionTime = TimeCalculator.executionTime(retrieveStart);
     if (isSuccessTransition(fragmentResult)) {
       actionLogger.doActionLog(executionTime, fragmentResult.getLog());
@@ -78,7 +78,7 @@ public class CacheActionLogger {
         .put(CACHE_KEY, key));
   }
 
-  void onError(Throwable error) {
+  public void onError(Throwable error) {
     actionLogger.error(error);
   }
 

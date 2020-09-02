@@ -13,21 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.knotx.fragments.action.library.cache;
+package io.knotx.fragments.action.library.cache.operations;
 
+import io.knotx.fragments.action.library.cache.Cache;
 import io.knotx.fragments.api.FragmentResult;
 
-class CacheStore {
+public class CacheStore {
 
   private final Cache cache;
   private final String payloadKey;
 
-  CacheStore(Cache cache, String payloadKey) {
+  public CacheStore(Cache cache, String payloadKey) {
     this.cache = cache;
     this.payloadKey = payloadKey;
   }
 
-  void save(CacheActionLogger logger, String cacheKey, FragmentResult fragmentResult) {
+  public void save(CacheActionLogger logger, String cacheKey, FragmentResult fragmentResult) {
     if (isCacheable(fragmentResult)) {
       Object resultPayload = getAppendedPayload(fragmentResult);
       cache.put(cacheKey, resultPayload);
