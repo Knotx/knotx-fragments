@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.knotx.fragments.action.library;
+package io.knotx.fragments.action.library.cache;
 
 import static io.knotx.fragments.api.FragmentResult.fail;
 
@@ -27,7 +27,7 @@ import io.knotx.server.common.placeholders.PlaceholdersResolver;
 import io.knotx.server.common.placeholders.SourceDefinitions;
 import io.reactivex.Single;
 
-public class InMemoryCacheAction implements SingleAction {
+public class CacheAction implements SingleAction {
 
   private final ActionLogLevel logLevel;
   private final String keySchema;
@@ -38,7 +38,7 @@ public class InMemoryCacheAction implements SingleAction {
   private final CacheLookup lookup;
   private final CacheStore store;
 
-  public InMemoryCacheAction(Cache cache, String payloadKey, String keySchema, String alias,
+  public CacheAction(Cache cache, String payloadKey, String keySchema, String alias,
       ActionLogLevel logLevel, Action doAction) {
     this.alias = alias;
     this.keySchema = keySchema;

@@ -23,6 +23,9 @@ import io.knotx.fragments.action.api.Action;
 import io.knotx.fragments.action.api.ActionFactory;
 import io.knotx.fragments.action.api.Cacheable;
 import io.knotx.fragments.action.api.log.ActionLogLevel;
+import io.knotx.fragments.action.library.cache.Cache;
+import io.knotx.fragments.action.library.cache.CacheAction;
+import io.knotx.fragments.action.library.cache.inmemory.InMemoryCache;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
 import org.apache.commons.lang3.StringUtils;
@@ -64,6 +67,6 @@ public class InMemoryCacheActionFactory implements ActionFactory {
     checkArgument(getName(), StringUtils.isBlank(cacheKeySchema),
         "Action requires cacheKey value in configuration.");
 
-    return new InMemoryCacheAction(cache, payloadKey, cacheKeySchema, alias, logLevel, doAction);
+    return new CacheAction(cache, payloadKey, cacheKeySchema, alias, logLevel, doAction);
   }
 }

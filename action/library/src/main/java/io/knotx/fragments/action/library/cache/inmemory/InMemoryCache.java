@@ -13,9 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.knotx.fragments.action.library;
+package io.knotx.fragments.action.library.cache.inmemory;
 
 import com.google.common.cache.CacheBuilder;
+import io.knotx.fragments.action.library.cache.Cache;
 import io.reactivex.Maybe;
 import io.vertx.core.json.JsonObject;
 import java.util.concurrent.TimeUnit;
