@@ -51,19 +51,10 @@ public class InMemoryCacheActionFactory implements ActionFactory {
 
   @Override
   public Action create(String alias, JsonObject config, Vertx vertx, Action doAction) {
-    CacheActionOptions correctedOptions = new CacheActionOptions(config);
-    correctedOptions.setType("in-memory");
-    populateLegacyOptions(config, correctedOptions.getCache());
+    CacheActionOptions correctedOptions = new CacheActionOptions(config)
+        .setType("in-memory");
 
     return new CacheActionFactory().create(alias, correctedOptions.toJson(), vertx, doAction);
   }
 
-  private void populateLegacyOptions(JsonObject source, JsonObject target) {
-    if(source.containsKey("ttl")) {
-      target.put("ttlMs", source.getLong("ttl"));
-    }
-    if(source.containsKey("maximumSize")) {
-      target.put("maximumSize", source.getLong("maximumSize"));
-    }
-  }
 }
