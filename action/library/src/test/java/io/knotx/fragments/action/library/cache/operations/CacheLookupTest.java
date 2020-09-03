@@ -50,20 +50,6 @@ class CacheLookupTest {
   }
 
   @Test
-  @DisplayName("Expect successful Maybe returned when value present in cache")
-  void valuePresent(VertxTestContext testContext) {
-    CacheLookup tested = new CacheLookup(SAMPLE_CACHE.get(), PAYLOAD_KEY);
-
-    tested.find("someKey", logger)
-        .subscribe(value -> testContext.verify(() -> {
-              assertEquals(SOME_VALUE, value);
-              testContext.completeNow();
-            }),
-            testContext::failNow,
-            () -> testContext.failNow(new RuntimeException("Expected success")));
-  }
-
-  @Test
   @DisplayName("Expect cache hit logged on INFO level")
   void cacheHit(VertxTestContext testContext) {
     CacheLookup tested = new CacheLookup(SAMPLE_CACHE.get(), PAYLOAD_KEY);
@@ -77,6 +63,20 @@ class CacheLookupTest {
     tested.find("someKey", logger)
         .subscribe(value -> testContext.verify(() -> {
               assertJsonEquals(expected, logger.getLogAsJson());
+              testContext.completeNow();
+            }),
+            testContext::failNow,
+            () -> testContext.failNow(new RuntimeException("Expected success")));
+  }
+
+  @Test
+  @DisplayName("Expect successful Maybe returned when value present in cache")
+  void valuePresent(VertxTestContext testContext) {
+    CacheLookup tested = new CacheLookup(SAMPLE_CACHE.get(), PAYLOAD_KEY);
+
+    tested.find("someKey", logger)
+        .subscribe(value -> testContext.verify(() -> {
+              assertEquals(SOME_VALUE, value);
               testContext.completeNow();
             }),
             testContext::failNow,

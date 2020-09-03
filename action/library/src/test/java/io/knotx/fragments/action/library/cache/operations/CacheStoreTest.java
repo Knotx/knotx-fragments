@@ -1,5 +1,6 @@
 package io.knotx.fragments.action.library.cache.operations;
 
+import static io.knotx.fragments.action.library.cache.TestUtils.CACHE_KEY;
 import static io.knotx.fragments.action.library.cache.TestUtils.PAYLOAD_KEY;
 import static io.knotx.fragments.action.library.cache.TestUtils.SOME_VALUE;
 import static org.mockito.ArgumentMatchers.any;
@@ -18,8 +19,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 class CacheStoreTest {
-
-  private static final String CACHE_KEY = "cacheKey";
 
   @Mock
   private Cache cache;

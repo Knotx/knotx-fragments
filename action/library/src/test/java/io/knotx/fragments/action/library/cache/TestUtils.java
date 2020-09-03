@@ -25,6 +25,7 @@ import java.util.function.Supplier;
 
 public final class TestUtils {
 
+  public static final String CACHE_KEY = "cacheKey";
   public static final String ACTION_ALIAS = "alias";
   public static final String PAYLOAD_KEY = "payloadKey";
   public static final JsonObject SOME_VALUE = new JsonObject().put("configuration", "value");
