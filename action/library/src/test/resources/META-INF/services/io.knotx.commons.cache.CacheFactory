@@ -13,3 +13,4 @@
 #  limitations under the License.
 
 io.knotx.commons.cache.inmemory.InMemoryCacheFactory
+io.knotx.fragments.action.library.cache.EmptyCacheFactory
