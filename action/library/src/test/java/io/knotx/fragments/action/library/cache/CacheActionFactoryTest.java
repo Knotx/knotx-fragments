@@ -72,7 +72,7 @@ class CacheActionFactoryTest {
   }
 
   @Test
-  @DisplayName("Expect factory to has Cacheable annotation")
+  @DisplayName("Expect factory to have Cacheable annotation")
   void factoryCacheable() {
     assertTrue(tested.getClass().isAnnotationPresent(Cacheable.class));
   }

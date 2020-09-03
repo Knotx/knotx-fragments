@@ -43,7 +43,7 @@ public class CacheActionFactory implements ActionFactory {
     CacheActionOptions options = new CacheActionOptions(config);
     Cache cache = createCache(alias, options, vertx);
 
-    return new CacheAction(cache, options, alias, doAction);
+    return CacheAction.create(cache, options, alias, doAction);
   }
 
   private Cache createCache(String alias, CacheActionOptions options, Vertx vertx) {

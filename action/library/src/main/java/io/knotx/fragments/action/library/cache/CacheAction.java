@@ -44,18 +44,32 @@ public class CacheAction implements SingleAction {
   private final CacheLookup lookup;
   private final CacheStore store;
 
-  public CacheAction(Cache cache, CacheActionOptions options, String alias, Action doAction) {
+  public static CacheAction create(Cache cache, CacheActionOptions options, String alias,
+      Action doAction) {
     checkArgument(alias, StringUtils.isBlank(options.getPayloadKey()),
-        "Action requires payloadKey value in configuration.");
+        "CacheAction requires payloadKey value in configuration.");
     checkArgument(alias, StringUtils.isBlank(options.getCacheKey()),
-        "Action requires cacheKey value in configuration.");
-    // TODO: validate other arguments?
+        "CacheAction requires cacheKey value in configuration.");
+    checkArgument(alias, doAction == null,
+        "CacheAction requires doAction configured but none provided");
+    return new CacheAction(
+        alias,
+        options.getCacheKey(),
+        doAction,
+        ActionLogLevel.fromConfig(options.getLogLevel(), ActionLogLevel.ERROR),
+        new CacheLookup(cache, options.getPayloadKey()),
+        new CacheStore(cache, options.getPayloadKey())
+    );
+  }
+
+  public CacheAction(String alias, String keySchema, Action doAction, ActionLogLevel logLevel,
+      CacheLookup lookup, CacheStore store) {
     this.alias = alias;
     this.doAction = doAction;
-    this.keySchema = options.getCacheKey();
-    this.logLevel = ActionLogLevel.fromConfig(options.getLogLevel(), ActionLogLevel.ERROR);
-    this.lookup = new CacheLookup(cache, options.getPayloadKey());
-    this.store = new CacheStore(cache, options.getPayloadKey());
+    this.keySchema = keySchema;
+    this.logLevel = logLevel;
+    this.lookup = lookup;
+    this.store = store;
   }
 
   @Override
