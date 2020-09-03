@@ -1,5 +1,21 @@
+/*
+ * Copyright (C) 2019 Knot.x Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package io.knotx.fragments.action.library.cache;
 
+import static io.knotx.fragments.action.library.cache.TestUtils.ACTION_ALIAS;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -16,7 +32,6 @@ import org.junit.jupiter.api.Test;
 
 class CacheActionFactoryTest {
 
-  private static final String ALIAS = "alias";
   private static final Action IDLE_DO_ACTION = (SyncAction) context -> FragmentResult
       .success(new Fragment("", new JsonObject(), ""));
 
@@ -31,27 +46,27 @@ class CacheActionFactoryTest {
   @DisplayName("Expect exception when CacheFactory of requested type not found via SPI")
   void notFoundCacheFactory() {
     assertThrows(ActionConfigurationException.class,
-        () -> tested.create(ALIAS, validConfig("non-existing"), null, IDLE_DO_ACTION));
+        () -> tested.create(ACTION_ALIAS, validConfig("non-existing"), null, IDLE_DO_ACTION));
   }
 
   @Test
   @DisplayName("Expect exception is propagated when thrown by CacheFactory")
   void invalidCacheConfigThrows() {
     assertThrows(IllegalArgumentException.class, () ->
-        tested.create(ALIAS, invalidCacheConfig(), null, IDLE_DO_ACTION));
+        tested.create(ACTION_ALIAS, invalidCacheConfig(), null, IDLE_DO_ACTION));
   }
 
   @Test
   @DisplayName("Expect exception is propagated when thrown by CacheAction constructor")
   void invalidActionConfigThrows() {
     assertThrows(IllegalArgumentException.class, () ->
-        tested.create(ALIAS, invalidActionConfig(), null, IDLE_DO_ACTION));
+        tested.create(ACTION_ALIAS, invalidActionConfig(), null, IDLE_DO_ACTION));
   }
 
   @Test
   @DisplayName("Expect CacheAction returned when config is valid")
   void validConfig() {
-    Action action = tested.create(ALIAS, validConfig("empty-cache"), null, IDLE_DO_ACTION);
+    Action action = tested.create(ACTION_ALIAS, validConfig("empty-cache"), null, IDLE_DO_ACTION);
 
     assertTrue(action instanceof CacheAction);
   }
