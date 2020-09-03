@@ -28,6 +28,9 @@ public class CacheActionOptions {
   private String type;
   private JsonObject cache = new JsonObject();
 
+  public CacheActionOptions() {
+  }
+
   public CacheActionOptions(JsonObject json) {
     CacheActionOptionsConverter.fromJson(json, this);
   }
@@ -42,40 +45,45 @@ public class CacheActionOptions {
     return payloadKey;
   }
 
-  public void setPayloadKey(String payloadKey) {
+  public CacheActionOptions setPayloadKey(String payloadKey) {
     this.payloadKey = payloadKey;
+    return this;
   }
 
   public String getCacheKey() {
     return cacheKey;
   }
 
-  public void setCacheKey(String cacheKey) {
+  public CacheActionOptions setCacheKey(String cacheKey) {
     this.cacheKey = cacheKey;
+    return this;
   }
 
   public String getLogLevel() {
     return logLevel;
   }
 
-  public void setLogLevel(String logLevel) {
+  public CacheActionOptions setLogLevel(String logLevel) {
     this.logLevel = logLevel;
+    return this;
   }
 
   public String getType() {
     return type;
   }
 
-  public void setType(String type) {
+  public CacheActionOptions setType(String type) {
     this.type = type;
+    return this;
   }
 
   public JsonObject getCache() {
     return cache;
   }
 
-  public void setCache(JsonObject cache) {
+  public CacheActionOptions setCache(JsonObject cache) {
     this.cache = cache;
+    return this;
   }
 
   @Override

@@ -19,6 +19,7 @@ import com.google.common.collect.ImmutableList;
 import io.knotx.fragments.action.api.Action;
 import io.knotx.fragments.action.api.ActionFactory;
 import io.knotx.fragments.action.api.Cacheable;
+import io.knotx.fragments.action.library.exception.ActionConfigurationException;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
 import java.util.List;
@@ -38,16 +39,18 @@ public class CacheActionFactory implements ActionFactory {
   @Override
   public Action create(String alias, JsonObject config, Vertx vertx, Action doAction) {
     CacheActionOptions options = new CacheActionOptions(config);
-    Cache cache = createCache(options);
+    Cache cache = createCache(alias, options);
 
     return new CacheAction(cache, options, alias, doAction);
   }
 
-  private Cache createCache(CacheActionOptions options) {
-    return factories.stream()
-        .filter(factory -> factory.getType().equals(options.getType()))
+  private Cache createCache(String alias, CacheActionOptions options) {
+    CacheFactory factory = factories.stream()
+        .filter(f -> f.getType().equals(options.getType()))
         .findFirst()
-        .map(factory -> factory.create(options.getCache()))
-        .orElseThrow(RuntimeException::new); // TODO ActionConfigurationException
+        .orElseThrow(() -> new ActionConfigurationException(alias, String
+            .format("Requested CacheFactory of type [%s] not found via ServiceLoader (SPI)",
+                options.getType())));
+    return factory.create(options.getCache());
   }
 }
