@@ -28,9 +28,6 @@ public class CacheActionOptions {
   private String type;
   private JsonObject cache = new JsonObject();
 
-  public CacheActionOptions() {
-  }
-
   public CacheActionOptions(JsonObject json) {
     CacheActionOptionsConverter.fromJson(json, this);
   }

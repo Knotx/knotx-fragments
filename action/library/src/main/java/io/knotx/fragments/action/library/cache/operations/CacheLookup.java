@@ -17,7 +17,7 @@ package io.knotx.fragments.action.library.cache.operations;
 
 import static io.knotx.fragments.api.FragmentResult.success;
 
-import io.knotx.fragments.action.library.cache.Cache;
+import io.knotx.commons.cache.Cache;
 import io.knotx.fragments.api.Fragment;
 import io.knotx.fragments.api.FragmentContext;
 import io.knotx.fragments.api.FragmentResult;

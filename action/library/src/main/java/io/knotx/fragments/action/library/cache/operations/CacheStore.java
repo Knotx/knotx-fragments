@@ -15,7 +15,7 @@
  */
 package io.knotx.fragments.action.library.cache.operations;
 
-import io.knotx.fragments.action.library.cache.Cache;
+import io.knotx.commons.cache.Cache;
 import io.knotx.fragments.api.FragmentResult;
 
 public class CacheStore {

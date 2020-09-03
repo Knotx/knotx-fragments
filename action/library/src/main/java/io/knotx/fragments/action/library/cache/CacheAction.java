@@ -19,6 +19,7 @@ import static io.knotx.fragments.action.library.helper.FragmentPlaceholders.buil
 import static io.knotx.fragments.action.library.helper.ValidationHelper.checkArgument;
 import static io.knotx.fragments.api.FragmentResult.fail;
 
+import io.knotx.commons.cache.Cache;
 import io.knotx.fragments.action.api.Action;
 import io.knotx.fragments.action.api.SingleAction;
 import io.knotx.fragments.action.api.log.ActionLogLevel;

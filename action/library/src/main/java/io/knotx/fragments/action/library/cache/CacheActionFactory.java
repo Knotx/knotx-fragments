@@ -16,6 +16,8 @@
 package io.knotx.fragments.action.library.cache;
 
 import com.google.common.collect.ImmutableList;
+import io.knotx.commons.cache.Cache;
+import io.knotx.commons.cache.CacheFactory;
 import io.knotx.fragments.action.api.Action;
 import io.knotx.fragments.action.api.ActionFactory;
 import io.knotx.fragments.action.api.Cacheable;
