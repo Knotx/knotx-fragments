@@ -1,0 +1,93 @@
+package io.knotx.fragments.action.library.cache.operations;
+
+import static io.knotx.fragments.action.library.cache.TestUtils.PAYLOAD_KEY;
+import static io.knotx.fragments.action.library.cache.TestUtils.SOME_VALUE;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+
+import io.knotx.commons.cache.Cache;
+import io.knotx.fragments.api.Fragment;
+import io.knotx.fragments.api.FragmentResult;
+import io.vertx.core.json.JsonObject;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+@ExtendWith(MockitoExtension.class)
+class CacheStoreTest {
+
+  private static final String CACHE_KEY = "cacheKey";
+
+  @Mock
+  private Cache cache;
+
+  @Mock
+  private CacheActionLogger logger;
+
+  @Test
+  @DisplayName("Expect appended payload stored in cache and MISS logged")
+  void successWithPayload() {
+    CacheStore tested = new CacheStore(cache, PAYLOAD_KEY);
+
+    tested.save(logger, CACHE_KEY, successResultWithPayload(SOME_VALUE));
+
+    verify(cache, times(1)).put(CACHE_KEY, SOME_VALUE);
+    verify(logger, times(1)).onMiss(SOME_VALUE);
+  }
+
+  @Test
+  @DisplayName("Expect null payload stored in cache and MISS logged")
+  void successWithNull() {
+    CacheStore tested = new CacheStore(cache, PAYLOAD_KEY);
+
+    tested.save(logger, CACHE_KEY, successResultWithPayload(null));
+
+    verify(cache, times(1)).put(CACHE_KEY, null);
+    verify(logger, times(1)).onMiss(null);
+  }
+
+  @Test
+  @DisplayName("Expect cache untouched when no payload and PASS logged")
+  void successNoPayload() {
+    CacheStore tested = new CacheStore(cache, PAYLOAD_KEY);
+
+    tested.save(logger, CACHE_KEY, successResultNoPayload());
+
+    verify(cache, times(0)).put(any(), any());
+    verify(logger, times(1)).onPass();
+  }
+
+  @Test
+  @DisplayName("Expect failed FragmentResult's payload not stored and PASS logged")
+  void failureWithPayload() {
+    CacheStore tested = new CacheStore(cache, PAYLOAD_KEY);
+
+    tested.save(logger, CACHE_KEY, errorResultWithPayload());
+
+    verify(cache, times(0)).put(any(), any());
+    verify(logger, times(1)).onPass();
+  }
+
+  private FragmentResult successResultNoPayload() {
+    return FragmentResult.success(new Fragment("some-id", new JsonObject(), ""));
+  }
+
+  private FragmentResult successResultWithPayload(JsonObject payload) {
+    return FragmentResult.success(
+        new Fragment("some-id", new JsonObject(), "")
+            .appendPayload(PAYLOAD_KEY, payload)
+    );
+  }
+
+  private FragmentResult errorResultWithPayload() {
+    return FragmentResult.fail(
+        new Fragment("some-id", new JsonObject(), "")
+            .appendPayload(PAYLOAD_KEY, SOME_VALUE),
+        new RuntimeException()
+    );
+  }
+
+}
