@@ -29,6 +29,8 @@ public class CacheStore {
   }
 
   public void save(CacheActionLogger logger, String cacheKey, FragmentResult fragmentResult) {
+    // TODO: configurable behaviour in case of error in storage?
+    // TODO: should store null?
     if (isCacheable(fragmentResult)) {
       Object resultPayload = getAppendedPayload(fragmentResult);
       cache.put(cacheKey, resultPayload);

@@ -41,18 +41,18 @@ public class CacheActionFactory implements ActionFactory {
   @Override
   public Action create(String alias, JsonObject config, Vertx vertx, Action doAction) {
     CacheActionOptions options = new CacheActionOptions(config);
-    Cache cache = createCache(alias, options);
+    Cache cache = createCache(alias, options, vertx);
 
     return new CacheAction(cache, options, alias, doAction);
   }
 
-  private Cache createCache(String alias, CacheActionOptions options) {
+  private Cache createCache(String alias, CacheActionOptions options, Vertx vertx) {
     CacheFactory factory = factories.stream()
         .filter(f -> f.getType().equals(options.getType()))
         .findFirst()
         .orElseThrow(() -> new ActionConfigurationException(alias, String
             .format("Requested CacheFactory of type [%s] not found via ServiceLoader (SPI)",
                 options.getType())));
-    return factory.create(options.getCache());
+    return factory.create(options.getCache(), vertx);
   }
 }

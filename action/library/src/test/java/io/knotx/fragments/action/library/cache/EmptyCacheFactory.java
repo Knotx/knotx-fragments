@@ -19,6 +19,7 @@ import static io.knotx.fragments.action.library.cache.TestUtils.EMPTY_CACHE;
 
 import io.knotx.commons.cache.Cache;
 import io.knotx.commons.cache.CacheFactory;
+import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
 
 public class EmptyCacheFactory implements CacheFactory {
@@ -29,7 +30,7 @@ public class EmptyCacheFactory implements CacheFactory {
   }
 
   @Override
-  public Cache create(JsonObject config) {
+  public Cache create(JsonObject config, Vertx vertx) {
     if (config.containsKey("invalidOption")) {
       throw new IllegalArgumentException();
     }
