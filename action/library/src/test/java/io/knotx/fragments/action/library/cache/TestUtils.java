@@ -15,11 +15,18 @@
  */
 package io.knotx.fragments.action.library.cache;
 
+import static io.knotx.fragments.api.FragmentResult.ERROR_TRANSITION;
+import static io.knotx.fragments.api.FragmentResult.SUCCESS_TRANSITION;
+
 import io.knotx.commons.cache.Cache;
+import io.knotx.fragments.action.api.Action;
 import io.knotx.fragments.api.Fragment;
 import io.knotx.fragments.api.FragmentContext;
+import io.knotx.fragments.api.FragmentResult;
 import io.knotx.server.api.context.ClientRequest;
 import io.reactivex.Maybe;
+import io.vertx.core.Future;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import java.util.function.Supplier;
 
@@ -29,6 +36,14 @@ public final class TestUtils {
   public static final String ACTION_ALIAS = "alias";
   public static final String PAYLOAD_KEY = "payloadKey";
   public static final JsonObject SOME_VALUE = new JsonObject().put("configuration", "value");
+
+  public static final String INVOCATIONS_LOGS_KEY = "doActionLogs";
+
+  public static final JsonObject DO_ACTION_LOGS = new JsonObject()
+      .put("alias", "some-do-action")
+      .put("logs", new JsonObject()
+          .put("InnerInfo", "InnerValue"))
+      .put("doActionLogs", new JsonArray());
 
   private TestUtils() {
     // Utility class
@@ -85,6 +100,46 @@ public final class TestUtils {
   public static FragmentContext someFragmentContext() {
     return new FragmentContext(new Fragment("type", new JsonObject(), "initial body"),
         new ClientRequest());
+  }
+
+  public static Action doActionFatal(Supplier<RuntimeException> generator) {
+    return (fragmentContext, resultHandler) -> Future
+        .<FragmentResult>failedFuture(generator.get())
+        .onComplete(resultHandler);
+  }
+
+  public static Action doActionIdle() {
+    return (fragmentContext, resultHandler) -> {
+      Fragment fragment = fragmentContext.getFragment();
+      Future
+          .succeededFuture(new FragmentResult(fragment, SUCCESS_TRANSITION, DO_ACTION_LOGS))
+          .onComplete(resultHandler);
+    };
+  }
+
+  public static Action doActionError() {
+    return (fragmentContext, resultHandler) -> {
+      Fragment fragment = fragmentContext.getFragment();
+      Future
+          .succeededFuture(new FragmentResult(fragment, ERROR_TRANSITION, DO_ACTION_LOGS))
+          .onComplete(resultHandler);
+    };
+  }
+
+  public static Action doActionAppending() {
+    return (fragmentContext, resultHandler) -> {
+      Fragment fragment = fragmentContext.getFragment();
+      fragment.appendPayload(PAYLOAD_KEY, SOME_VALUE);
+      Future
+          .succeededFuture(new FragmentResult(fragment, SUCCESS_TRANSITION))
+          .onComplete(resultHandler);
+    };
+  }
+
+  public static Action doActionReturning(FragmentResult fragmentResult) {
+    return (fragmentContext, resultHandler) -> Future
+        .succeededFuture(fragmentResult)
+        .onComplete(resultHandler);
   }
 
 }

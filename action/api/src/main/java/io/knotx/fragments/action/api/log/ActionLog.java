@@ -21,6 +21,7 @@ import static java.util.stream.Collectors.toList;
 import io.vertx.codegen.annotations.DataObject;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.StreamSupport;
 
@@ -48,14 +49,17 @@ public class ActionLog {
   }
 
   public ActionLog(JsonObject actionLog) {
-    this.alias = actionLog.getString("alias");
-    this.logs = actionLog.getJsonObject("logs");
+    this.alias = actionLog.containsKey("alias") ? actionLog.getString("alias") : "";
+    this.logs = actionLog.containsKey("logs") ? actionLog.getJsonObject("logs") : new JsonObject();
     this.doActionLogs = toInvocationLogList(actionLog);
   }
 
   private List<ActionInvocationLog> toInvocationLogList(JsonObject actionLog) {
-    Iterable<Object> iterable = () -> actionLog.getJsonArray("doActionLogs").iterator();
-    return StreamSupport.stream(iterable.spliterator(), false)
+    JsonArray doActionLogs = actionLog.getJsonArray("doActionLogs");
+    if (doActionLogs == null) {
+      return Collections.emptyList();
+    }
+    return StreamSupport.stream(doActionLogs.spliterator(), false)
         .map(JsonObject::mapFrom)
         .map(ActionInvocationLog::new)
         .collect(toList());

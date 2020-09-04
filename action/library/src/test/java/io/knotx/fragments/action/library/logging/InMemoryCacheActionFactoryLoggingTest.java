@@ -17,30 +17,31 @@
  */
 package io.knotx.fragments.action.library.logging;
 
+import static io.knotx.fragments.action.library.cache.TestUtils.DO_ACTION_LOGS;
+import static io.knotx.fragments.action.library.cache.TestUtils.INVOCATIONS_LOGS_KEY;
+import static io.knotx.fragments.action.library.cache.TestUtils.PAYLOAD_KEY;
+import static io.knotx.fragments.action.library.cache.TestUtils.SOME_VALUE;
+import static io.knotx.fragments.action.library.cache.TestUtils.doActionAppending;
+import static io.knotx.fragments.action.library.cache.TestUtils.doActionError;
+import static io.knotx.fragments.action.library.cache.TestUtils.doActionFatal;
+import static io.knotx.fragments.action.library.cache.TestUtils.doActionIdle;
+import static io.knotx.fragments.action.library.cache.TestUtils.someFragmentContext;
 import static io.knotx.fragments.action.library.cache.operations.CacheActionLogger.CACHED_VALUE;
 import static io.knotx.fragments.action.library.cache.operations.CacheActionLogger.CACHE_HIT;
 import static io.knotx.fragments.action.library.cache.operations.CacheActionLogger.CACHE_KEY;
 import static io.knotx.fragments.action.library.cache.operations.CacheActionLogger.CACHE_MISS;
 import static io.knotx.fragments.action.library.cache.operations.CacheActionLogger.CACHE_PASS;
 import static io.knotx.fragments.action.library.cache.operations.CacheActionLogger.COMPUTED_VALUE;
-import static io.knotx.fragments.api.FragmentResult.ERROR_TRANSITION;
-import static io.knotx.fragments.api.FragmentResult.SUCCESS_TRANSITION;
 import static io.knotx.junit5.assertions.KnotxAssertions.assertJsonEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.knotx.fragments.action.api.Action;
 import io.knotx.fragments.action.library.InMemoryCacheActionFactory;
-import io.knotx.fragments.api.Fragment;
-import io.knotx.fragments.api.FragmentContext;
-import io.knotx.fragments.api.FragmentResult;
 import io.knotx.junit5.KnotxExtension;
-import io.knotx.server.api.context.ClientRequest;
-import io.vertx.core.Future;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.VertxTestContext;
 import java.util.function.Consumer;
-import java.util.function.Supplier;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -55,18 +56,8 @@ class InMemoryCacheActionFactoryLoggingTest {
 
   private static final String EXAMPLE_CACHE_KEY = "cProduct";
   private static final String ACTION_ALIAS = "action";
-  private static final String PAYLOAD_KEY = "product";
   private static final String LOG_LEVEL_KEY = "logLevel";
   private static final String LOGS_KEY = "logs";
-  private static final String INVOCATIONS_LOGS_KEY = "doActionLogs";
-
-  private static final JsonObject DO_ACTION_LOGS = new JsonObject()
-      .put("alias", "some-do-action")
-      .put("logs", new JsonObject()
-          .put("InnerInfo", "InnerValue"))
-      .put("doActionLogs", new JsonArray());
-
-  private static final JsonObject PAYLOAD = new JsonObject().put("someKey", "someValue");
 
   private static final JsonObject ACTION_CONFIG = new JsonObject().put("payloadKey", PAYLOAD_KEY)
       .put("cacheKey", EXAMPLE_CACHE_KEY);
@@ -74,7 +65,7 @@ class InMemoryCacheActionFactoryLoggingTest {
   @Test
   @DisplayName("Expect cache miss not logged on ERROR level")
   void cacheMissNotOnError(VertxTestContext testContext) {
-    Action tested = cache(targetAppending(), ERROR);
+    Action tested = cache(doActionAppending(), ERROR);
 
     applyOnce(testContext, tested, log -> assertTrue(log.getJsonObject(LOGS_KEY).isEmpty()));
   }
@@ -82,7 +73,7 @@ class InMemoryCacheActionFactoryLoggingTest {
   @Test
   @DisplayName("Expect cache hit not logged on ERROR level")
   void cacheHitNotOnError(VertxTestContext testContext) {
-    Action tested = cache(targetAppending(), ERROR);
+    Action tested = cache(doActionAppending(), ERROR);
 
     applyTwice(testContext, tested,
         secondLog -> assertTrue(secondLog.getJsonObject(LOGS_KEY).isEmpty()));
@@ -91,7 +82,7 @@ class InMemoryCacheActionFactoryLoggingTest {
   @Test
   @DisplayName("Expect successful doAction's log not on ERROR level")
   void successfulDoActionLogsNotOnError(VertxTestContext testContext) {
-    Action tested = cache(targetIdle(), ERROR);
+    Action tested = cache(doActionIdle(), ERROR);
 
     applyOnce(testContext, tested,
         log -> assertTrue(log.getJsonArray(INVOCATIONS_LOGS_KEY).isEmpty()));
@@ -100,12 +91,12 @@ class InMemoryCacheActionFactoryLoggingTest {
   @Test
   @DisplayName("Expect cache miss logged on INFO level")
   void cacheMissOnInfo(VertxTestContext testContext) {
-    Action tested = cache(targetAppending(), INFO);
+    Action tested = cache(doActionAppending(), INFO);
 
     JsonObject expected = new JsonObject()
         .put(LOGS_KEY, new JsonObject()
             .put(CACHE_MISS, new JsonObject()
-                .put(COMPUTED_VALUE, PAYLOAD)));
+                .put(COMPUTED_VALUE, SOME_VALUE)));
 
     applyOnce(testContext, tested, log -> assertJsonEquals(expected, log));
   }
@@ -113,13 +104,13 @@ class InMemoryCacheActionFactoryLoggingTest {
   @Test
   @DisplayName("Expect cache hit logged on INFO level")
   void cacheHitOnInfo(VertxTestContext testContext) {
-    Action tested = cache(targetAppending(), INFO);
+    Action tested = cache(doActionAppending(), INFO);
 
     JsonObject expected = new JsonObject()
         .put(LOGS_KEY, new JsonObject()
             .put(CACHE_HIT, new JsonObject()
                 .put(CACHE_KEY, EXAMPLE_CACHE_KEY)
-                .put(CACHED_VALUE, PAYLOAD)));
+                .put(CACHED_VALUE, SOME_VALUE)));
 
     applyTwice(testContext, tested, secondLog -> assertJsonEquals(expected, secondLog));
   }
@@ -127,7 +118,7 @@ class InMemoryCacheActionFactoryLoggingTest {
   @Test
   @DisplayName("Expect successful doAction's log on INFO level")
   void successfulDoActionLogsOnInfo(VertxTestContext testContext) {
-    Action tested = cache(targetIdle(), INFO);
+    Action tested = cache(doActionIdle(), INFO);
 
     JsonObject expected = new JsonObject()
         .put(INVOCATIONS_LOGS_KEY, new JsonArray()
@@ -142,7 +133,7 @@ class InMemoryCacheActionFactoryLoggingTest {
   @ValueSource(strings = {INFO, ERROR})
   @DisplayName("Expect failed doAction's log on INFO and ERROR levels")
   void failingDoActionLogsOnInfoAndError(String level, VertxTestContext testContext) {
-    Action tested = cache(targetError(), level);
+    Action tested = cache(doActionError(), level);
 
     JsonObject expected = new JsonObject()
         .put(INVOCATIONS_LOGS_KEY, new JsonArray()
@@ -157,7 +148,7 @@ class InMemoryCacheActionFactoryLoggingTest {
   @ValueSource(strings = {INFO, ERROR})
   @DisplayName("Expect cache pass logged on INFO and ERROR levels")
   void cachePassOnInfoAndError(String level, VertxTestContext testContext) {
-    Action tested = cache(targetIdle(), level);
+    Action tested = cache(doActionIdle(), level);
 
     JsonObject expected = new JsonObject()
         .put(LOGS_KEY, new JsonObject()
@@ -172,7 +163,7 @@ class InMemoryCacheActionFactoryLoggingTest {
   @DisplayName("Expect doAction's exception logged on INFO and ERROR levels")
   void failingDoActionExceptionOnInfoAndError(String level, VertxTestContext testContext) {
     Action tested = cache(
-        targetFatal(() -> new IllegalStateException("Application failed!")), level);
+        doActionFatal(() -> new IllegalStateException("Application failed!")), level);
 
     JsonObject expected = new JsonObject()
         .put(LOGS_KEY, new JsonObject()
@@ -194,40 +185,6 @@ class InMemoryCacheActionFactoryLoggingTest {
     return ACTION_CONFIG.copy().put(LOG_LEVEL_KEY, logLevel);
   }
 
-  private Action targetFatal(Supplier<RuntimeException> generator) {
-    return (fragmentContext, resultHandler) -> Future
-        .<FragmentResult>failedFuture(generator.get())
-        .onComplete(resultHandler);
-  }
-
-  private Action targetIdle() {
-    return (fragmentContext, resultHandler) -> {
-      Fragment fragment = fragmentContext.getFragment();
-      Future
-          .succeededFuture(new FragmentResult(fragment, SUCCESS_TRANSITION, DO_ACTION_LOGS))
-          .onComplete(resultHandler);
-    };
-  }
-
-  private Action targetError() {
-    return (fragmentContext, resultHandler) -> {
-      Fragment fragment = fragmentContext.getFragment();
-      Future
-          .succeededFuture(new FragmentResult(fragment, ERROR_TRANSITION, DO_ACTION_LOGS))
-          .onComplete(resultHandler);
-    };
-  }
-
-  private Action targetAppending() {
-    return (fragmentContext, resultHandler) -> {
-      Fragment fragment = fragmentContext.getFragment();
-      fragment.appendPayload(PAYLOAD_KEY, InMemoryCacheActionFactoryLoggingTest.PAYLOAD);
-      Future
-          .succeededFuture(new FragmentResult(fragment, SUCCESS_TRANSITION))
-          .onComplete(resultHandler);
-    };
-  }
-
   private void applyOnce(VertxTestContext testContext, Action tested,
       Consumer<JsonObject> assertions) {
     tested.apply(someFragmentContext(), result -> testContext.verify(() -> {
@@ -243,11 +200,6 @@ class InMemoryCacheActionFactoryLoggingTest {
           secondAssertions.accept(secondResult.result().getLog());
           testContext.completeNow();
         })));
-  }
-
-  private FragmentContext someFragmentContext() {
-    return new FragmentContext(new Fragment("type", new JsonObject(), "initial body"),
-        new ClientRequest());
   }
 
 }
