@@ -19,6 +19,7 @@ import static io.knotx.fragments.action.library.cache.TestUtils.ACTION_ALIAS;
 import static io.knotx.fragments.action.library.cache.TestUtils.CACHE_KEY;
 import static io.knotx.fragments.action.library.cache.TestUtils.DO_ACTION_LOGS;
 import static io.knotx.fragments.action.library.cache.TestUtils.INVOCATIONS_LOGS_KEY;
+import static io.knotx.fragments.action.library.cache.TestUtils.LOGS_KEY;
 import static io.knotx.fragments.action.library.cache.TestUtils.PAYLOAD_KEY;
 import static io.knotx.fragments.action.library.cache.TestUtils.SOME_VALUE;
 import static io.knotx.fragments.action.library.cache.TestUtils.doActionAppending;
@@ -212,6 +213,48 @@ class CacheActionTest {
         });
   }
 
+  @Test
+  @DisplayName("Expect lookup failure to be ignored and logged when flag configured")
+  void lookupFailureIgnoredWhenConfigured(VertxTestContext testContext) {
+    lookupFailing();
+    FragmentResult doActionResult = successResult();
+    Action tested = create(CACHE_KEY, doActionReturning(doActionResult), false, true);
+
+    JsonObject expectedLog = new JsonObject()
+        .put(LOGS_KEY, new JsonObject()
+            .put("errors", new JsonArray()
+                .add(new JsonObject().put("className", RuntimeException.class.getName()))));
+
+    apply(testContext, tested,
+        result -> {
+          assertEquals(doActionResult.getFragment(), result.result().getFragment());
+          assertEquals(doActionResult.getTransition(), result.result().getTransition());
+          assertJsonEquals(expectedLog, result.result().getLog());
+        });
+  }
+
+  @Test
+  @DisplayName("Expect exception in storage to be ignored and logged when flag configured")
+  void saveFailureIgnoredWhenConfigured(VertxTestContext testContext) {
+    lookupEmpty();
+    storeFailing();
+    FragmentResult doActionResult = successResult();
+    Action tested = create(CACHE_KEY, doActionReturning(doActionResult), true, false);
+
+    JsonObject expectedLog = new JsonObject()
+        .put(LOGS_KEY, new JsonObject()
+            .put("errors", new JsonArray()
+                .add(new JsonObject().put("className", RuntimeException.class.getName()))));
+
+    apply(testContext, tested,
+        result -> {
+          assertEquals(doActionResult.getFragment(), result.result().getFragment());
+          assertEquals(doActionResult.getTransition(), result.result().getTransition());
+          assertJsonEquals(expectedLog, result.result().getLog());
+        });
+  }
+
+
   private Action mockedDoAction() {
     return mockedDoAction(doActionIdle());
   }
@@ -242,7 +285,8 @@ class CacheActionTest {
     );
   }
 
-  private Action create(String cacheKey, Action doAction, boolean failWhenLookupFails, boolean failWhenStoreFails) {
+  private Action create(String cacheKey, Action doAction, boolean failWhenLookupFails,
+      boolean failWhenStoreFails) {
     return new CacheAction(
         ACTION_ALIAS,
         cacheKey,

@@ -19,6 +19,7 @@ package io.knotx.fragments.action.library.logging;
 
 import static io.knotx.fragments.action.library.cache.TestUtils.DO_ACTION_LOGS;
 import static io.knotx.fragments.action.library.cache.TestUtils.INVOCATIONS_LOGS_KEY;
+import static io.knotx.fragments.action.library.cache.TestUtils.LOGS_KEY;
 import static io.knotx.fragments.action.library.cache.TestUtils.PAYLOAD_KEY;
 import static io.knotx.fragments.action.library.cache.TestUtils.SOME_VALUE;
 import static io.knotx.fragments.action.library.cache.TestUtils.doActionAppending;
@@ -57,7 +58,6 @@ class InMemoryCacheActionFactoryLoggingTest {
   private static final String EXAMPLE_CACHE_KEY = "cProduct";
   private static final String ACTION_ALIAS = "action";
   private static final String LOG_LEVEL_KEY = "logLevel";
-  private static final String LOGS_KEY = "logs";
 
   private static final JsonObject ACTION_CONFIG = new JsonObject().put("payloadKey", PAYLOAD_KEY)
       .put("cacheKey", EXAMPLE_CACHE_KEY);

@@ -15,9 +15,6 @@
  */
 package io.knotx.fragments.action.library.cache;
 
-import static io.knotx.fragments.api.FragmentResult.ERROR_TRANSITION;
-import static io.knotx.fragments.api.FragmentResult.SUCCESS_TRANSITION;
-
 import io.knotx.commons.cache.Cache;
 import io.knotx.fragments.action.api.Action;
 import io.knotx.fragments.api.Fragment;
@@ -33,6 +30,7 @@ import java.util.function.Supplier;
 public final class TestUtils {
 
   public static final String CACHE_KEY = "cacheKey";
+  public static final String LOGS_KEY = "logs";
   public static final String ACTION_ALIAS = "alias";
   public static final String PAYLOAD_KEY = "payloadKey";
   public static final JsonObject SOME_VALUE = new JsonObject().put("configuration", "value");
@@ -112,7 +110,7 @@ public final class TestUtils {
     return (fragmentContext, resultHandler) -> {
       Fragment fragment = fragmentContext.getFragment();
       Future
-          .succeededFuture(new FragmentResult(fragment, SUCCESS_TRANSITION, DO_ACTION_LOGS))
+          .succeededFuture(FragmentResult.success(fragment, DO_ACTION_LOGS))
           .onComplete(resultHandler);
     };
   }
@@ -121,7 +119,7 @@ public final class TestUtils {
     return (fragmentContext, resultHandler) -> {
       Fragment fragment = fragmentContext.getFragment();
       Future
-          .succeededFuture(new FragmentResult(fragment, ERROR_TRANSITION, DO_ACTION_LOGS))
+          .succeededFuture(FragmentResult.fail(fragment, DO_ACTION_LOGS, new RuntimeException()))
           .onComplete(resultHandler);
     };
   }
@@ -131,7 +129,7 @@ public final class TestUtils {
       Fragment fragment = fragmentContext.getFragment();
       fragment.appendPayload(PAYLOAD_KEY, SOME_VALUE);
       Future
-          .succeededFuture(new FragmentResult(fragment, SUCCESS_TRANSITION))
+          .succeededFuture(FragmentResult.success(fragment))
           .onComplete(resultHandler);
     };
   }
