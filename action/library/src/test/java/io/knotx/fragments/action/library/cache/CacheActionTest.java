@@ -236,7 +236,22 @@ class CacheActionTest {
         doAction,
         ActionLogLevel.INFO,
         lookup,
-        store
+        store,
+        true,
+        true
+    );
+  }
+
+  private Action create(String cacheKey, Action doAction, boolean failWhenLookupFails, boolean failWhenStoreFails) {
+    return new CacheAction(
+        ACTION_ALIAS,
+        cacheKey,
+        doAction,
+        ActionLogLevel.INFO,
+        lookup,
+        store,
+        failWhenLookupFails,
+        failWhenStoreFails
     );
   }
 

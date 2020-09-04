@@ -60,6 +60,8 @@
 ^|Name | Type ^| Description
 |[[cache]]`@cache`|`Json object`|-
 |[[cacheKey]]`@cacheKey`|`String`|-
+|[[failWhenLookupFails]]`@failWhenLookupFails`|`Boolean`|-
+|[[failWhenStoreFails]]`@failWhenStoreFails`|`Boolean`|-
 |[[logLevel]]`@logLevel`|`String`|-
 |[[payloadKey]]`@payloadKey`|`String`|-
 |[[type]]`@type`|`String`|-

@@ -22,6 +22,8 @@ import java.util.Objects;
 @DataObject(generateConverter = true)
 public class CacheActionOptions {
 
+  private boolean failWhenLookupFails = true;
+  private boolean failWhenStoreFails = true;
   private String payloadKey;
   private String cacheKey;
   private String logLevel;
@@ -36,6 +38,24 @@ public class CacheActionOptions {
     JsonObject output = new JsonObject();
     CacheActionOptionsConverter.toJson(this, output);
     return output;
+  }
+
+  public boolean isFailWhenLookupFails() {
+    return failWhenLookupFails;
+  }
+
+  public CacheActionOptions setFailWhenLookupFails(boolean failWhenLookupFails) {
+    this.failWhenLookupFails = failWhenLookupFails;
+    return this;
+  }
+
+  public boolean isFailWhenStoreFails() {
+    return failWhenStoreFails;
+  }
+
+  public CacheActionOptions setFailWhenStoreFails(boolean failWhenStoreFails) {
+    this.failWhenStoreFails = failWhenStoreFails;
+    return this;
   }
 
   public String getPayloadKey() {
@@ -92,7 +112,9 @@ public class CacheActionOptions {
       return false;
     }
     CacheActionOptions that = (CacheActionOptions) o;
-    return Objects.equals(payloadKey, that.payloadKey) &&
+    return failWhenLookupFails == that.failWhenLookupFails &&
+        failWhenStoreFails == that.failWhenStoreFails &&
+        Objects.equals(payloadKey, that.payloadKey) &&
         Objects.equals(cacheKey, that.cacheKey) &&
         Objects.equals(logLevel, that.logLevel) &&
         Objects.equals(type, that.type) &&
@@ -101,14 +123,17 @@ public class CacheActionOptions {
 
   @Override
   public int hashCode() {
-    return Objects.hash(payloadKey, cacheKey, logLevel, type, cache);
+    return Objects
+        .hash(failWhenLookupFails, failWhenStoreFails, payloadKey, cacheKey, logLevel, type, cache);
   }
 
   @Override
   public String toString() {
     return "CacheActionOptions{" +
-        "payloadKey='" + payloadKey + '\'' +
-        ", cacheKeySchema='" + cacheKey + '\'' +
+        "failWhenLookupFails=" + failWhenLookupFails +
+        ", failWhenStoreFails=" + failWhenStoreFails +
+        ", payloadKey='" + payloadKey + '\'' +
+        ", cacheKey='" + cacheKey + '\'' +
         ", logLevel='" + logLevel + '\'' +
         ", type='" + type + '\'' +
         ", cache=" + cache +

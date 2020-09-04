@@ -30,10 +30,14 @@ import io.knotx.fragments.api.FragmentContext;
 import io.knotx.fragments.api.FragmentResult;
 import io.knotx.reactivex.fragments.api.FragmentOperation;
 import io.knotx.server.common.placeholders.PlaceholdersResolver;
+import io.reactivex.Maybe;
 import io.reactivex.Single;
 import org.apache.commons.lang3.StringUtils;
 
 public class CacheAction implements SingleAction {
+
+  private final boolean failWhenLookupFails;
+  private final boolean failWhenStoreFails;
 
   private final ActionLogLevel logLevel;
   private final String keySchema;
@@ -58,18 +62,22 @@ public class CacheAction implements SingleAction {
         doAction,
         ActionLogLevel.fromConfig(options.getLogLevel(), ActionLogLevel.ERROR),
         new CacheLookup(cache, options.getPayloadKey()),
-        new CacheStore(cache, options.getPayloadKey())
+        new CacheStore(cache, options.getPayloadKey()),
+        options.isFailWhenLookupFails(),
+        options.isFailWhenStoreFails()
     );
   }
 
   public CacheAction(String alias, String keySchema, Action doAction, ActionLogLevel logLevel,
-      CacheLookup lookup, CacheStore store) {
+      CacheLookup lookup, CacheStore store, boolean failWhenLookupFails, boolean failWhenStoreFails) {
     this.alias = alias;
     this.doAction = doAction;
     this.keySchema = keySchema;
     this.logLevel = logLevel;
     this.lookup = lookup;
     this.store = store;
+    this.failWhenLookupFails = failWhenLookupFails;
+    this.failWhenStoreFails = failWhenStoreFails;
   }
 
   @Override
@@ -77,11 +85,16 @@ public class CacheAction implements SingleAction {
     CacheActionLogger logger = CacheActionLogger.create(alias, logLevel);
     String cacheKey = createCacheKey(fragmentContext);
 
+    // Should we complete when lookup completes?
+    // Should we ignore store errors?
+
     return lookup.find(cacheKey, logger)
         .map(value -> lookup.toResponse(fragmentContext, value))
-        .switchIfEmpty(retrieve(fragmentContext, logger)
-            .doOnSuccess(result -> store.save(logger, cacheKey, result)))
         .doOnError(logger::onError)
+        .onErrorResumeNext(this::handleLookupError)
+        .switchIfEmpty(retrieve(fragmentContext, logger)
+            .doOnSuccess(result -> safeSave(logger, cacheKey, result))
+            .doOnError(logger::onError))
         .onErrorReturn(error -> fail(fragmentContext.getFragment(), error))
         .map(result -> result.copyWithNewLog(logger.getLogAsJson()));
   }
@@ -96,6 +109,26 @@ public class CacheAction implements SingleAction {
 
   private String createCacheKey(FragmentContext context) {
     return PlaceholdersResolver.resolveAndEncode(keySchema, buildSourceDefinitions(context));
+  }
+
+  private Maybe<FragmentResult> handleLookupError(Throwable error) {
+    if (failWhenLookupFails) {
+      return Maybe.error(error);
+    } else {
+      return Maybe.empty();
+    }
+  }
+
+  private void safeSave(CacheActionLogger logger, String cacheKey, FragmentResult result) {
+    try {
+      store.save(logger, cacheKey, result);
+    } catch (Throwable e) {
+      if (failWhenStoreFails) {
+        throw e;
+      } else {
+        logger.onError(e);
+      }
+    }
   }
 
 }
