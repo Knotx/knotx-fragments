@@ -94,8 +94,8 @@ public class CacheAction implements SingleAction {
         .doOnError(logger::onError)
         .onErrorResumeNext(this::handleLookupError)
         .switchIfEmpty(retrieve(fragmentContext, logger)
-            .doOnError(logger::onError))
-        .doOnSuccess(result -> safeSave(logger, cacheKey, result))
+            .doOnError(logger::onError)
+            .doOnSuccess(result -> safeSave(logger, cacheKey, result)))
         .onErrorReturn(error -> fail(fragmentContext.getFragment(), error))
         .map(result -> result.copyWithNewLog(logger.getLogAsJson()));
   }

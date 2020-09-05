@@ -95,8 +95,29 @@ class CacheActionTest {
   }
 
   @Test
+  @DisplayName("Expect doAction not called when value in lookup")
+  void doActionNotCalledWhenValueInLookup(VertxTestContext testContext) {
+    lookupSucceeding();
+    Action doAction = mockedDoAction();
+    Action tested = create(doAction);
+
+    apply(testContext, tested,
+        result -> verify(doAction, times(0)).apply(any(), any()));
+  }
+
+  @Test
+  @DisplayName("Expect cache store not called when value in lookup")
+  void valueNotStoredWhenValueInLookup(VertxTestContext testContext) {
+    lookupSucceeding();
+    Action tested = create(doActionIdle());
+
+    apply(testContext, tested,
+        result -> verify(store, times(0)).save(any(), any(), any()));
+  }
+
+  @Test
   @DisplayName("Expect doAction is called when no value in lookup")
-  void doActionCalledWhen(VertxTestContext testContext) {
+  void doActionCalledWhenNoValueInLookup(VertxTestContext testContext) {
     lookupEmpty();
     Action doAction = mockedDoAction();
     Action tested = create(doAction);
