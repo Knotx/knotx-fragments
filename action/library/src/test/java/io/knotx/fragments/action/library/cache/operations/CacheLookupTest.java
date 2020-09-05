@@ -30,6 +30,7 @@ import io.knotx.fragments.api.FragmentResult;
 import io.knotx.junit5.KnotxExtension;
 import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.VertxTestContext;
+import java.util.function.Consumer;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -44,17 +45,11 @@ class CacheLookupTest {
   private CacheActionLogger logger;
 
   @Test
-  @DisplayName("Expect cache hit logged on INFO level")
+  @DisplayName("Expect cache hit logged")
   void cacheHit(VertxTestContext testContext) {
     CacheLookup tested = new CacheLookup(SAMPLE_CACHE.get(), PAYLOAD_KEY);
 
-    tested.find("someKey", logger)
-        .subscribe(value -> testContext.verify(() -> {
-              verify(logger, times(1)).onHit(SOME_VALUE);
-              testContext.completeNow();
-            }),
-            testContext::failNow,
-            () -> testContext.failNow(new RuntimeException("Expected success")));
+    expectSuccess(testContext, tested, value -> verify(logger, times(1)).onHit(SOME_VALUE));
   }
 
   @Test
@@ -62,13 +57,7 @@ class CacheLookupTest {
   void valuePresent(VertxTestContext testContext) {
     CacheLookup tested = new CacheLookup(SAMPLE_CACHE.get(), PAYLOAD_KEY);
 
-    tested.find("someKey", logger)
-        .subscribe(value -> testContext.verify(() -> {
-              assertEquals(SOME_VALUE, value);
-              testContext.completeNow();
-            }),
-            testContext::failNow,
-            () -> testContext.failNow(new RuntimeException("Expected success")));
+    expectSuccess(testContext, tested, value -> assertEquals(SOME_VALUE, value));
   }
 
   @Test
@@ -76,10 +65,7 @@ class CacheLookupTest {
   void cacheEmpty(VertxTestContext testContext) {
     CacheLookup tested = new CacheLookup(EMPTY_CACHE.get(), PAYLOAD_KEY);
 
-    tested.find("someKey", logger)
-        .subscribe(value -> testContext.failNow(new RuntimeException()),
-            testContext::failNow,
-            testContext::completeNow);
+    expectEmpty(testContext, tested);
   }
 
   @Test
@@ -87,10 +73,7 @@ class CacheLookupTest {
   void cacheError(VertxTestContext testContext) {
     CacheLookup tested = new CacheLookup(ERROR_CACHE.get(), PAYLOAD_KEY);
 
-    tested.find("someKey", logger)
-        .subscribe(value -> testContext.failNow(new RuntimeException("Expected error")),
-            error -> testContext.completeNow(),
-            () -> testContext.failNow(new RuntimeException("Expected error")));
+    expectError(testContext, tested);
   }
 
   @Test
@@ -98,10 +81,7 @@ class CacheLookupTest {
   void cacheThrows(VertxTestContext testContext) {
     CacheLookup tested = new CacheLookup(THROWING_CACHE.get(), PAYLOAD_KEY);
 
-    tested.find("someKey", logger)
-        .subscribe(value -> testContext.failNow(new RuntimeException("Expected error")),
-            error -> testContext.completeNow(),
-            () -> testContext.failNow(new RuntimeException("Expected error")));
+    expectError(testContext, tested);
   }
 
   @Test
@@ -113,6 +93,31 @@ class CacheLookupTest {
     FragmentResult result = tested.toResponse(someFragmentContext(), SOME_VALUE);
 
     assertEquals(expected, result.getFragment().getPayload());
+  }
+
+  private void expectSuccess(VertxTestContext testContext, CacheLookup tested,
+      Consumer<Object> assertions) {
+    tested.find("some-key", logger)
+        .subscribe(value -> testContext.verify(() -> {
+              assertions.accept(value);
+              testContext.completeNow();
+            }),
+            testContext::failNow,
+            () -> testContext.failNow(new RuntimeException("Expected success")));
+  }
+
+  private void expectEmpty(VertxTestContext testContext, CacheLookup tested) {
+    tested.find("some-key", logger)
+        .subscribe(value -> testContext.failNow(new RuntimeException("Expected error")),
+            testContext::failNow,
+            testContext::completeNow);
+  }
+
+  private void expectError(VertxTestContext testContext, CacheLookup tested) {
+    tested.find("some-key", logger)
+        .subscribe(value -> testContext.failNow(new RuntimeException("Expected error")),
+            error -> testContext.completeNow(),
+            () -> testContext.failNow(new RuntimeException("Expected error")));
   }
 
 }
