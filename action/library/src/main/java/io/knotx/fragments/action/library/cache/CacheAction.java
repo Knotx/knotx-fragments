@@ -85,9 +85,6 @@ public class CacheAction implements SingleAction {
     CacheActionLogger logger = CacheActionLogger.create(alias, logLevel);
     String cacheKey = createCacheKey(fragmentContext);
 
-    // Should we complete when lookup completes?
-    // Should we ignore store errors?
-
     return lookup.find(cacheKey, logger)
         .map(value -> lookup.toResponse(fragmentContext, value))
         .doOnError(logger::onError)
