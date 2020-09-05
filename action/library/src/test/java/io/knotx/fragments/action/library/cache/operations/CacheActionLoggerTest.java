@@ -107,7 +107,7 @@ class CacheActionLoggerTest {
   }
 
   @Test
-  @DisplayName("Expect calculated retrieval time shorter that test's")
+  @DisplayName("Expect calculated retrieval time shorter than the test's")
   void timeCalculation() throws InterruptedException {
     tested.onLookup(CACHE_KEY);
 
