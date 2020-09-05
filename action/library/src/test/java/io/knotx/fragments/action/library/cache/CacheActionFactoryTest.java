@@ -65,7 +65,7 @@ class CacheActionFactoryTest {
 
   @Test
   @DisplayName("Expect CacheAction returned when config is valid")
-  void validConfig() {
+  void validConfigProducesValidAction() {
     Action action = tested.create(ACTION_ALIAS, validConfig("empty-cache"), null, IDLE_DO_ACTION);
 
     assertTrue(action instanceof CacheAction);
