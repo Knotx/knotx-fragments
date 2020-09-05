@@ -15,8 +15,8 @@
  */
 package io.knotx.fragments.action.library.cache;
 
+import static io.knotx.commons.validation.ValidationHelper.checkArgument;
 import static io.knotx.fragments.action.library.helper.FragmentPlaceholders.buildSourceDefinitions;
-import static io.knotx.fragments.action.library.helper.ValidationHelper.checkArgument;
 import static io.knotx.fragments.api.FragmentResult.fail;
 
 import io.knotx.commons.cache.Cache;
@@ -26,6 +26,7 @@ import io.knotx.fragments.action.api.log.ActionLogLevel;
 import io.knotx.fragments.action.library.cache.operations.CacheActionLogger;
 import io.knotx.fragments.action.library.cache.operations.CacheLookup;
 import io.knotx.fragments.action.library.cache.operations.CacheStore;
+import io.knotx.fragments.action.library.exception.ActionConfigurationException;
 import io.knotx.fragments.api.FragmentContext;
 import io.knotx.fragments.api.FragmentResult;
 import io.knotx.reactivex.fragments.api.FragmentOperation;
@@ -50,12 +51,14 @@ public class CacheAction implements SingleAction {
 
   public static CacheAction create(Cache cache, CacheActionOptions options, String alias,
       Action doAction) {
-    checkArgument(alias, StringUtils.isBlank(options.getPayloadKey()),
-        "CacheAction requires payloadKey value in configuration.");
-    checkArgument(alias, StringUtils.isBlank(options.getCacheKey()),
-        "CacheAction requires cacheKey value in configuration.");
-    checkArgument(alias, doAction == null,
-        "CacheAction requires doAction configured but none provided");
+    checkArgument(StringUtils.isBlank(options.getPayloadKey()),
+        () -> new ActionConfigurationException(alias,
+            "CacheAction requires payloadKey value in configuration."));
+    checkArgument(StringUtils.isBlank(options.getCacheKey()),
+        () -> new ActionConfigurationException(alias,
+            "CacheAction requires cacheKey value in configuration."));
+    checkArgument(doAction == null, () -> new ActionConfigurationException(alias,
+        "CacheAction requires doAction configured but none provided"));
     return new CacheAction(
         alias,
         options.getCacheKey(),
@@ -69,7 +72,8 @@ public class CacheAction implements SingleAction {
   }
 
   public CacheAction(String alias, String keySchema, Action doAction, ActionLogLevel logLevel,
-      CacheLookup lookup, CacheStore store, boolean failWhenLookupFails, boolean failWhenStoreFails) {
+      CacheLookup lookup, CacheStore store, boolean failWhenLookupFails,
+      boolean failWhenStoreFails) {
     this.alias = alias;
     this.doAction = doAction;
     this.keySchema = keySchema;

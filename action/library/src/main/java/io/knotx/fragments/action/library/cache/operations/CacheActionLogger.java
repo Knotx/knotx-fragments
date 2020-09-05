@@ -17,9 +17,9 @@ package io.knotx.fragments.action.library.cache.operations;
 
 import static java.time.Instant.now;
 
+import io.knotx.commons.time.TimeCalculator;
 import io.knotx.fragments.action.api.log.ActionLogLevel;
 import io.knotx.fragments.action.api.log.ActionLogger;
-import io.knotx.fragments.action.library.helper.TimeCalculator;
 import io.knotx.fragments.api.FragmentResult;
 import io.vertx.core.json.JsonObject;
 
@@ -53,7 +53,7 @@ public class CacheActionLogger {
   }
 
   public void onRetrieveEnd(FragmentResult fragmentResult) {
-    long executionTime = TimeCalculator.executionTime(retrieveStart);
+    long executionTime = TimeCalculator.millisFrom(retrieveStart);
     if (isSuccessTransition(fragmentResult)) {
       actionLogger.doActionLog(executionTime, fragmentResult.getLog());
     } else {
