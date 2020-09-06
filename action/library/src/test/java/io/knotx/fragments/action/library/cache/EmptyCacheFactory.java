@@ -15,7 +15,7 @@
  */
 package io.knotx.fragments.action.library.cache;
 
-import static io.knotx.fragments.action.library.cache.TestUtils.EMPTY_CACHE;
+import static io.knotx.fragments.action.library.cache.CacheTestUtils.EMPTY_CACHE;
 
 import io.knotx.commons.cache.Cache;
 import io.knotx.commons.cache.CacheFactory;

@@ -15,19 +15,18 @@
  */
 package io.knotx.fragments.action.library.cache;
 
+import static io.knotx.fragments.action.library.TestUtils.someFragment;
+
 import io.knotx.commons.cache.Cache;
 import io.knotx.fragments.action.api.Action;
-import io.knotx.fragments.api.Fragment;
-import io.knotx.fragments.api.FragmentContext;
+import io.knotx.fragments.action.api.SyncAction;
 import io.knotx.fragments.api.FragmentResult;
-import io.knotx.server.api.context.ClientRequest;
 import io.reactivex.Maybe;
-import io.vertx.core.Future;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import java.util.function.Supplier;
 
-public final class TestUtils {
+public final class CacheTestUtils {
 
   public static final String CACHE_KEY = "cacheKey";
   public static final String LOGS_KEY = "logs";
@@ -43,7 +42,7 @@ public final class TestUtils {
           .put("InnerInfo", "InnerValue"))
       .put("doActionLogs", new JsonArray());
 
-  private TestUtils() {
+  private CacheTestUtils() {
     // Utility class
   }
 
@@ -95,49 +94,38 @@ public final class TestUtils {
     }
   };
 
-  public static FragmentContext someFragmentContext() {
-    return new FragmentContext(new Fragment("type", new JsonObject(), "initial body"),
-        new ClientRequest());
-  }
-
-  public static Action doActionFatal(Supplier<RuntimeException> generator) {
-    return (fragmentContext, resultHandler) -> Future
-        .<FragmentResult>failedFuture(generator.get())
-        .onComplete(resultHandler);
-  }
-
-  public static Action doActionIdle() {
-    return (fragmentContext, resultHandler) -> {
-      Fragment fragment = fragmentContext.getFragment();
-      Future
-          .succeededFuture(FragmentResult.success(fragment, DO_ACTION_LOGS))
-          .onComplete(resultHandler);
+  public static Action doActionFailed(Supplier<RuntimeException> generator) {
+    return (SyncAction) fragmentContext -> {
+      throw generator.get();
     };
+  }
+
+  public static Action doActionIdleWithLogs() {
+    return (SyncAction) fragmentContext -> FragmentResult
+        .success(fragmentContext.getFragment(), DO_ACTION_LOGS);
   }
 
   public static Action doActionError() {
-    return (fragmentContext, resultHandler) -> {
-      Fragment fragment = fragmentContext.getFragment();
-      Future
-          .succeededFuture(FragmentResult.fail(fragment, DO_ACTION_LOGS, new RuntimeException()))
-          .onComplete(resultHandler);
-    };
+    return (SyncAction) fragmentContext -> FragmentResult
+        .fail(fragmentContext.getFragment(), DO_ACTION_LOGS, new RuntimeException());
   }
 
   public static Action doActionAppending() {
-    return (fragmentContext, resultHandler) -> {
-      Fragment fragment = fragmentContext.getFragment();
-      fragment.appendPayload(PAYLOAD_KEY, SOME_VALUE);
-      Future
-          .succeededFuture(FragmentResult.success(fragment))
-          .onComplete(resultHandler);
-    };
+    return (SyncAction) fragmentContext -> FragmentResult
+        .success(fragmentContext.getFragment().appendPayload(PAYLOAD_KEY, SOME_VALUE));
   }
 
   public static Action doActionReturning(FragmentResult fragmentResult) {
-    return (fragmentContext, resultHandler) -> Future
-        .succeededFuture(fragmentResult)
-        .onComplete(resultHandler);
+    return (SyncAction) fragmentContext -> fragmentResult;
+  }
+
+  public static FragmentResult successResultWithPayload(Object payload) {
+    return FragmentResult.success(someFragment().appendPayload(PAYLOAD_KEY, payload));
+  }
+
+  public static FragmentResult errorResultWithPayload(Object payload) {
+    return FragmentResult
+        .fail(someFragment().appendPayload(PAYLOAD_KEY, payload), new RuntimeException());
   }
 
 }

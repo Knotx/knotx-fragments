@@ -15,8 +15,11 @@
  */
 package io.knotx.fragments.action.library.cache.operations;
 
-import static io.knotx.fragments.action.library.cache.TestUtils.CACHE_KEY;
-import static io.knotx.fragments.action.library.cache.TestUtils.SOME_VALUE;
+import static io.knotx.commons.time.TimeCalculator.millisFrom;
+import static io.knotx.fragments.action.library.TestUtils.failedResult;
+import static io.knotx.fragments.action.library.TestUtils.successResult;
+import static io.knotx.fragments.action.library.cache.CacheTestUtils.CACHE_KEY;
+import static io.knotx.fragments.action.library.cache.CacheTestUtils.SOME_VALUE;
 import static java.time.Instant.now;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -25,8 +28,6 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 import io.knotx.fragments.action.api.log.ActionLogger;
-import io.knotx.fragments.api.Fragment;
-import io.knotx.fragments.api.FragmentResult;
 import io.vertx.core.json.JsonObject;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.BeforeEach;
@@ -112,23 +113,24 @@ class CacheActionLoggerTest {
     tested.onLookup(CACHE_KEY);
 
     long startTime = now().toEpochMilli();
+    log50msExecution();
+    long testDuration = millisFrom(startTime);
+
+    long loggedDuration = getLoggedDuration();
+
+    assertTrue(loggedDuration <= testDuration);
+  }
+
+  private void log50msExecution() throws InterruptedException {
     tested.onRetrieveStart();
     TimeUnit.MILLISECONDS.sleep(50);
     tested.onRetrieveEnd(successResult());
-    long testDuration = now().toEpochMilli() - startTime;
+  }
 
+  private Long getLoggedDuration() {
     ArgumentCaptor<Long> duration = ArgumentCaptor.forClass(Long.class);
     verify(actionLogger, times(1)).doActionLog(duration.capture(), any());
-
-    assertTrue(duration.getValue() <= testDuration);
-  }
-
-  private FragmentResult successResult() {
-    return FragmentResult.success(new Fragment("", new JsonObject(), ""));
-  }
-
-  private FragmentResult failedResult() {
-    return FragmentResult.fail(new Fragment("", new JsonObject(), ""), new RuntimeException());
+    return duration.getValue();
   }
 
 }

@@ -15,17 +15,19 @@
  */
 package io.knotx.fragments.action.library.cache;
 
-import static io.knotx.fragments.action.library.cache.TestUtils.ACTION_ALIAS;
-import static io.knotx.fragments.action.library.cache.TestUtils.CACHE_KEY;
-import static io.knotx.fragments.action.library.cache.TestUtils.DO_ACTION_LOGS;
-import static io.knotx.fragments.action.library.cache.TestUtils.INVOCATIONS_LOGS_KEY;
-import static io.knotx.fragments.action.library.cache.TestUtils.LOGS_KEY;
-import static io.knotx.fragments.action.library.cache.TestUtils.PAYLOAD_KEY;
-import static io.knotx.fragments.action.library.cache.TestUtils.SOME_VALUE;
-import static io.knotx.fragments.action.library.cache.TestUtils.doActionAppending;
-import static io.knotx.fragments.action.library.cache.TestUtils.doActionFatal;
-import static io.knotx.fragments.action.library.cache.TestUtils.doActionIdle;
-import static io.knotx.fragments.action.library.cache.TestUtils.doActionReturning;
+import static io.knotx.fragments.action.library.TestUtils.successResult;
+import static io.knotx.fragments.action.library.TestUtils.verifyActionResult;
+import static io.knotx.fragments.action.library.cache.CacheTestUtils.ACTION_ALIAS;
+import static io.knotx.fragments.action.library.cache.CacheTestUtils.CACHE_KEY;
+import static io.knotx.fragments.action.library.cache.CacheTestUtils.DO_ACTION_LOGS;
+import static io.knotx.fragments.action.library.cache.CacheTestUtils.INVOCATIONS_LOGS_KEY;
+import static io.knotx.fragments.action.library.cache.CacheTestUtils.LOGS_KEY;
+import static io.knotx.fragments.action.library.cache.CacheTestUtils.PAYLOAD_KEY;
+import static io.knotx.fragments.action.library.cache.CacheTestUtils.SOME_VALUE;
+import static io.knotx.fragments.action.library.cache.CacheTestUtils.doActionAppending;
+import static io.knotx.fragments.action.library.cache.CacheTestUtils.doActionFailed;
+import static io.knotx.fragments.action.library.cache.CacheTestUtils.doActionIdleWithLogs;
+import static io.knotx.fragments.action.library.cache.CacheTestUtils.doActionReturning;
 import static io.knotx.fragments.api.FragmentResult.ERROR_TRANSITION;
 import static io.knotx.junit5.assertions.KnotxAssertions.assertJsonEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -45,15 +47,13 @@ import io.knotx.fragments.action.library.cache.operations.CacheStore;
 import io.knotx.fragments.api.Fragment;
 import io.knotx.fragments.api.FragmentContext;
 import io.knotx.fragments.api.FragmentResult;
-import io.knotx.junit5.KnotxExtension;
 import io.knotx.server.api.context.ClientRequest;
 import io.reactivex.Maybe;
-import io.vertx.core.AsyncResult;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
+import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
 import io.vertx.reactivex.core.MultiMap;
-import java.util.function.Consumer;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -61,7 +61,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-@ExtendWith(KnotxExtension.class)
+@ExtendWith(VertxExtension.class)
 class CacheActionTest {
 
   private static final String KEY_WITH_PLACEHOLDERS = "{header.x}-{param.y}-{payload.z}-{config.p}";
@@ -77,9 +77,9 @@ class CacheActionTest {
   @DisplayName("Expect cache key is interpolated")
   void cacheKeyInterpolated(VertxTestContext testContext) {
     lookupSucceeding();
-    Action tested = create(KEY_WITH_PLACEHOLDERS, doActionIdle());
+    Action tested = create(KEY_WITH_PLACEHOLDERS, doActionIdleWithLogs());
 
-    apply(testContext, tested,
+    verifyActionResult(testContext, tested, richContext(),
         result -> verify(lookup, times(1)).find(eq(KEY_INTERPOLATED), any()));
   }
 
@@ -87,9 +87,9 @@ class CacheActionTest {
   @DisplayName("Expect value returned from lookup is populated")
   void valueFromCachePopulated(VertxTestContext testContext) {
     lookupSucceeding();
-    Action tested = create(doActionIdle());
+    Action tested = create(doActionIdleWithLogs());
 
-    apply(testContext, tested,
+    verifyActionResult(testContext, tested,
         result -> assertEquals(SOME_VALUE, result.result().getFragment().getPayload()
             .getJsonObject(PAYLOAD_KEY)));
   }
@@ -101,7 +101,7 @@ class CacheActionTest {
     Action doAction = mockedDoAction();
     Action tested = create(doAction);
 
-    apply(testContext, tested,
+    verifyActionResult(testContext, tested,
         result -> verify(doAction, times(0)).apply(any(), any()));
   }
 
@@ -109,9 +109,9 @@ class CacheActionTest {
   @DisplayName("Expect cache store not called when value in lookup")
   void valueNotStoredWhenValueInLookup(VertxTestContext testContext) {
     lookupSucceeding();
-    Action tested = create(doActionIdle());
+    Action tested = create(doActionIdleWithLogs());
 
-    apply(testContext, tested,
+    verifyActionResult(testContext, tested,
         result -> verify(store, times(0)).save(any(), any(), any()));
   }
 
@@ -122,7 +122,7 @@ class CacheActionTest {
     Action doAction = mockedDoAction();
     Action tested = create(doAction);
 
-    apply(testContext, tested,
+    verifyActionResult(testContext, tested,
         result -> verify(doAction, times(1)).apply(any(), any()));
   }
 
@@ -130,7 +130,7 @@ class CacheActionTest {
   @DisplayName("Expect doAction call is logged")
   void doActionCallLogged(VertxTestContext testContext) {
     lookupEmpty();
-    Action tested = create(doActionIdle());
+    Action tested = create(doActionIdleWithLogs());
 
     JsonObject expected = new JsonObject()
         .put(INVOCATIONS_LOGS_KEY, new JsonArray()
@@ -138,7 +138,7 @@ class CacheActionTest {
                 .put("success", true)
                 .put("doActionLog", DO_ACTION_LOGS)));
 
-    apply(testContext, tested,
+    verifyActionResult(testContext, tested,
         result -> assertJsonEquals(expected, result.result().getLog()));
   }
 
@@ -149,7 +149,7 @@ class CacheActionTest {
     FragmentResult returned = successResult();
     Action tested = create(doActionReturning(returned));
 
-    apply(testContext, tested,
+    verifyActionResult(testContext, tested,
         result -> verify(store, times(1)).save(any(), eq(CACHE_KEY), eq(returned)));
   }
 
@@ -160,7 +160,7 @@ class CacheActionTest {
     FragmentResult returned = successResult();
     Action tested = create(doActionReturning(returned));
 
-    apply(testContext, tested,
+    verifyActionResult(testContext, tested,
         result -> {
           assertEquals(returned.getFragment(), result.result().getFragment());
           assertEquals(returned.getTransition(), result.result().getTransition());
@@ -174,7 +174,7 @@ class CacheActionTest {
     Action doAction = mockedDoAction();
     Action tested = create(doAction);
 
-    apply(testContext, tested,
+    verifyActionResult(testContext, tested,
         result -> verify(doAction, times(0)).apply(any(), any()));
   }
 
@@ -182,9 +182,9 @@ class CacheActionTest {
   @DisplayName("Expect throwing doAction prevents from storing information")
   void doActionFailurePreventsStoring(VertxTestContext testContext) {
     lookupEmpty();
-    Action tested = create(doActionFatal(RuntimeException::new));
+    Action tested = create(doActionFailed(RuntimeException::new));
 
-    apply(testContext, tested,
+    verifyActionResult(testContext, tested,
         result -> verify(store, times(0)).save(any(), any(), any()));
   }
 
@@ -194,9 +194,9 @@ class CacheActionTest {
     lookupFailing();
     FragmentContext original = richContext();
     FragmentContext copy = new FragmentContext(original.toJson());
-    Action tested = create(doActionIdle());
+    Action tested = create(doActionIdleWithLogs());
 
-    apply(testContext, tested, copy,
+    verifyActionResult(testContext, tested, copy,
         result -> {
           assertEquals(original.getFragment(), result.result().getFragment());
           assertEquals(ERROR_TRANSITION, result.result().getTransition());
@@ -209,9 +209,9 @@ class CacheActionTest {
     lookupEmpty();
     FragmentContext original = richContext();
     FragmentContext copy = new FragmentContext(original.toJson());
-    Action tested = create(doActionFatal(RuntimeException::new));
+    Action tested = create(doActionFailed(RuntimeException::new));
 
-    apply(testContext, tested, copy,
+    verifyActionResult(testContext, tested, copy,
         result -> {
           assertEquals(original.getFragment(), result.result().getFragment());
           assertEquals(ERROR_TRANSITION, result.result().getTransition());
@@ -227,7 +227,7 @@ class CacheActionTest {
     FragmentContext copy = new FragmentContext(original.toJson());
     Action tested = create(doActionAppending());
 
-    apply(testContext, tested, copy,
+    verifyActionResult(testContext, tested, copy,
         result -> {
           assertEquals(original.getFragment(), result.result().getFragment());
           assertEquals(ERROR_TRANSITION, result.result().getTransition());
@@ -246,7 +246,7 @@ class CacheActionTest {
             .put("errors", new JsonArray()
                 .add(new JsonObject().put("className", RuntimeException.class.getName()))));
 
-    apply(testContext, tested,
+    verifyActionResult(testContext, tested,
         result -> {
           assertEquals(doActionResult.getFragment(), result.result().getFragment());
           assertEquals(doActionResult.getTransition(), result.result().getTransition());
@@ -267,7 +267,7 @@ class CacheActionTest {
             .put("errors", new JsonArray()
                 .add(new JsonObject().put("className", RuntimeException.class.getName()))));
 
-    apply(testContext, tested,
+    verifyActionResult(testContext, tested,
         result -> {
           assertEquals(doActionResult.getFragment(), result.result().getFragment());
           assertEquals(doActionResult.getTransition(), result.result().getTransition());
@@ -277,7 +277,7 @@ class CacheActionTest {
 
 
   private Action mockedDoAction() {
-    return mockedDoAction(doActionIdle());
+    return mockedDoAction(doActionIdleWithLogs());
   }
 
   private Action mockedDoAction(Action wrapped) {
@@ -320,25 +320,11 @@ class CacheActionTest {
     );
   }
 
-  private void apply(VertxTestContext testContext, Action action, FragmentContext context,
-      Consumer<AsyncResult<FragmentResult>> assertions) {
-    action.apply(context, result ->
-        testContext.verify(() -> {
-          assertions.accept(result);
-          testContext.completeNow();
-        }));
-  }
-
-  private void apply(VertxTestContext testContext, Action action,
-      Consumer<AsyncResult<FragmentResult>> assertions) {
-    apply(testContext, action, richContext(), assertions);
-  }
-
   private void lookupSucceeding() {
-    when(lookup.find(any(), any())).thenReturn(Maybe.just(TestUtils.SOME_VALUE));
-    when(lookup.toResponse(any(), eq((Object) TestUtils.SOME_VALUE)))
+    when(lookup.find(any(), any())).thenReturn(Maybe.just(CacheTestUtils.SOME_VALUE));
+    when(lookup.toResponse(any(), eq((Object) CacheTestUtils.SOME_VALUE)))
         .thenReturn(FragmentResult.success(new Fragment("", new JsonObject(), "")
-            .appendPayload(PAYLOAD_KEY, TestUtils.SOME_VALUE)));
+            .appendPayload(PAYLOAD_KEY, CacheTestUtils.SOME_VALUE)));
   }
 
   private void lookupEmpty() {
@@ -361,10 +347,6 @@ class CacheActionTest {
             .setHeaders(MultiMap.caseInsensitiveMultiMap().add("x", "header"))
             .setParams(MultiMap.caseInsensitiveMultiMap().add("y", "param"))
     );
-  }
-
-  private FragmentResult successResult() {
-    return FragmentResult.success(new Fragment("", new JsonObject(), ""));
   }
 
 }

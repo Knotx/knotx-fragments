@@ -20,8 +20,8 @@ import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
+import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
@@ -31,11 +31,14 @@ import io.knotx.fragments.action.library.http.request.EndpointRequest;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
+import io.vertx.junit5.Timeout;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
 import io.vertx.reactivex.core.MultiMap;
+import io.vertx.reactivex.core.buffer.Buffer;
+import io.vertx.reactivex.ext.web.client.HttpResponse;
 import io.vertx.reactivex.ext.web.client.WebClient;
-import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 import java.util.stream.Stream;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.AfterEach;
@@ -49,6 +52,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
 @ExtendWith(VertxExtension.class)
+@Timeout(value = 60, timeUnit = SECONDS)
 class EndpointInvokerIntegrationTest {
 
   private static Stream<Arguments> headersWithSpecialCharsInValues() {
@@ -73,10 +77,14 @@ class EndpointInvokerIntegrationTest {
 
   private WireMockServer server;
 
+  private EndpointInvoker tested;
+
   @BeforeEach
-  void setUp() {
+  void setUp(Vertx vertx) {
+    WebClient webClient = WebClient.create(io.vertx.reactivex.core.Vertx.newInstance(vertx));
     server = new WireMockServer(WireMockConfiguration.options().dynamicPort());
     server.start();
+    tested = new EndpointInvoker(webClient, createOptions());
   }
 
   @AfterEach
@@ -91,106 +99,63 @@ class EndpointInvokerIntegrationTest {
       "/some&%%/path"
   })
   @DisplayName("Expect 400 Bad Request response for path that is not encoded by EndpointInvoker")
-  void shouldNotEncodePath(String path, Vertx vertx, VertxTestContext testContext)
-      throws InterruptedException {
+  void shouldNotEncodePath(String path, VertxTestContext testContext) {
     // given
-    EndpointRequest endpointRequest = new EndpointRequest(path, MultiMap.caseInsensitiveMultiMap());
-    configureServer(path);
-    WebClient webClient = WebClient.create(io.vertx.reactivex.core.Vertx.newInstance(vertx));
+    serverRespondingOn(path);
 
-    EndpointInvoker tested = new EndpointInvoker(webClient, createOptions());
+    EndpointRequest endpointRequest = new EndpointRequest(path, noHeaders());
 
     // when, then
-    tested.invokeEndpoint(endpointRequest).subscribe(
-        response -> {
-          testContext.verify(() -> assertEquals(400, response.statusCode()));
-          testContext.completeNow();
-        },
-        testContext::failNow
-    );
-    assertTrue(testContext.awaitCompletion(60, TimeUnit.SECONDS));
+    expectResponse(testContext, endpointRequest,
+        response -> assertEquals(400, response.statusCode()));
   }
 
   @ParameterizedTest
   @MethodSource("headersWithSpecialCharsInValues")
   @DisplayName("Expect 200 response for headers values that are not encoded by EndpointInvoker")
-  void shouldAcceptNotEncodedHeaderValues(String headerName, String headerValue, Vertx vertx,
-      VertxTestContext testContext)
-      throws InterruptedException {
+  void shouldAcceptNotEncodedHeaderValues(String headerName, String headerValue,
+      VertxTestContext testContext) {
     // given
-    MultiMap headers = MultiMap.caseInsensitiveMultiMap().add(headerName, headerValue);
+    serverRespondingGiven(headerName, headerValue);
 
-    EndpointRequest endpointRequest = new EndpointRequest("/", headers);
-    WebClient webClient = WebClient.create(io.vertx.reactivex.core.Vertx.newInstance(vertx));
-    configureServer(headerName, headerValue);
-
-    EndpointInvoker tested = new EndpointInvoker(webClient, createOptions());
+    EndpointRequest request = new EndpointRequest("/", oneHeader(headerName, headerValue));
 
     // when, then
-    tested.invokeEndpoint(endpointRequest).subscribe(
-        response -> {
-          testContext.verify(() -> assertEquals(200, response.statusCode()));
-          testContext.completeNow();
-        },
-        testContext::failNow
-    );
-    assertTrue(testContext.awaitCompletion(60, TimeUnit.SECONDS));
+    expectResponse(testContext, request,
+        response -> assertEquals(200, response.statusCode()));
   }
 
   @ParameterizedTest
   @MethodSource("headersWithIllegalCharsInNames")
   @DisplayName("Expect exception raised by WebClient when header name is illegal")
-  void shouldNotAllowIllegalHeaders(String headerName, String headerValue, Vertx vertx,
-      VertxTestContext testContext) throws InterruptedException {
+  void shouldNotAllowIllegalHeaders(String headerName, String headerValue,
+      VertxTestContext testContext) {
     // given
-    MultiMap headers = MultiMap.caseInsensitiveMultiMap().add(headerName, headerValue);
-
-    EndpointRequest endpointRequest = new EndpointRequest("/", headers);
-    WebClient webClient = WebClient.create(io.vertx.reactivex.core.Vertx.newInstance(vertx));
-
-    EndpointInvoker tested = new EndpointInvoker(webClient, createOptions());
+    EndpointRequest request = new EndpointRequest("/", oneHeader(headerName, headerValue));
 
     // when, then
-    tested.invokeEndpoint(endpointRequest).subscribe(
-        response -> testContext.failNow(new IllegalStateException(String
-            .format("Exception not thrown for parameters [%s] [%s]", headerName, headerValue))),
-        error -> {
-          assertEquals(IllegalArgumentException.class, error.getClass());
-          testContext.completeNow();
-        }
-    );
-    assertTrue(testContext.awaitCompletion(60, TimeUnit.SECONDS));
+    expectError(testContext, request,
+        error -> assertEquals(IllegalArgumentException.class, error.getClass()));
   }
 
   @Test
   @DisplayName("Expect WebClient to ignore header with empty name, but WireMockServer expecting it")
-  void shouldIgnoreEmptyHeaderButServerExpects(Vertx vertx, VertxTestContext testContext)
-      throws InterruptedException {
+  void shouldIgnoreEmptyHeaderButServerExpects(VertxTestContext testContext) {
     // given
-    MultiMap headers = MultiMap.caseInsensitiveMultiMap().add(StringUtils.EMPTY, "some-value");
-    configureServer(StringUtils.EMPTY, "some-value");
+    serverRespondingGiven(StringUtils.EMPTY, "some-value");
 
-    EndpointRequest endpointRequest = new EndpointRequest("/", headers);
-    WebClient webClient = WebClient.create(io.vertx.reactivex.core.Vertx.newInstance(vertx));
-
-    EndpointInvoker tested = new EndpointInvoker(webClient, createOptions());
+    EndpointRequest request = new EndpointRequest("/", oneHeader(StringUtils.EMPTY, "some-value"));
 
     // when, then
-    tested.invokeEndpoint(endpointRequest).subscribe(
-        response -> {
-          testContext.verify(() -> assertEquals(404, response.statusCode()));
-          testContext.completeNow();
-        },
-        testContext::failNow
-    );
-    assertTrue(testContext.awaitCompletion(60, TimeUnit.SECONDS));
+    expectResponse(testContext, request,
+        response -> assertEquals(404, response.statusCode()));
   }
 
-  private void configureServer(String path) {
+  private void serverRespondingOn(String path) {
     server.stubFor(get(urlEqualTo(path)).willReturn(aResponse().withStatus(200)));
   }
 
-  private void configureServer(String headerName, String headerValue) {
+  private void serverRespondingGiven(String headerName, String headerValue) {
     server.stubFor(get(urlEqualTo("/")).withHeader(headerName, equalTo(headerValue))
         .willReturn(aResponse().withStatus(200)));
   }
@@ -202,6 +167,36 @@ class EndpointInvokerIntegrationTest {
 
     return new HttpActionOptions()
         .setEndpointOptions(options);
+  }
+
+  private MultiMap noHeaders() {
+    return MultiMap.caseInsensitiveMultiMap();
+  }
+
+  private MultiMap oneHeader(String headerName, String headerValue) {
+    return MultiMap.caseInsensitiveMultiMap().add(headerName, headerValue);
+  }
+
+  private void expectResponse(VertxTestContext testContext, EndpointRequest request,
+      Consumer<HttpResponse<Buffer>> assertions) {
+    tested.invokeEndpoint(request)
+        .subscribe(result -> testContext.verify(() -> {
+              assertions.accept(result);
+              testContext.completeNow();
+            }),
+            testContext::failNow);
+  }
+
+  private void expectError(VertxTestContext testContext, EndpointRequest request,
+      Consumer<Throwable> assertions) {
+    tested.invokeEndpoint(request).subscribe(
+        response -> testContext.failNow(new IllegalStateException(
+            "Exception not thrown but expected")),
+        error -> testContext.verify(() -> {
+          assertions.accept(error);
+          testContext.completeNow();
+        })
+    );
   }
 
 }

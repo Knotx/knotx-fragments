@@ -15,17 +15,17 @@
  */
 package io.knotx.fragments.action.library.cache.operations;
 
-import static io.knotx.fragments.action.library.cache.TestUtils.CACHE_KEY;
-import static io.knotx.fragments.action.library.cache.TestUtils.PAYLOAD_KEY;
-import static io.knotx.fragments.action.library.cache.TestUtils.SOME_VALUE;
+import static io.knotx.fragments.action.library.TestUtils.successResult;
+import static io.knotx.fragments.action.library.cache.CacheTestUtils.CACHE_KEY;
+import static io.knotx.fragments.action.library.cache.CacheTestUtils.PAYLOAD_KEY;
+import static io.knotx.fragments.action.library.cache.CacheTestUtils.SOME_VALUE;
+import static io.knotx.fragments.action.library.cache.CacheTestUtils.errorResultWithPayload;
+import static io.knotx.fragments.action.library.cache.CacheTestUtils.successResultWithPayload;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 import io.knotx.commons.cache.Cache;
-import io.knotx.fragments.api.Fragment;
-import io.knotx.fragments.api.FragmentResult;
-import io.vertx.core.json.JsonObject;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -68,7 +68,7 @@ class CacheStoreTest {
   void successNoPayload() {
     CacheStore tested = new CacheStore(cache, PAYLOAD_KEY);
 
-    tested.save(logger, CACHE_KEY, successResultNoPayload());
+    tested.save(logger, CACHE_KEY, successResult());
 
     verify(cache, times(0)).put(any(), any());
     verify(logger, times(1)).onPass();
@@ -79,29 +79,10 @@ class CacheStoreTest {
   void failureWithPayload() {
     CacheStore tested = new CacheStore(cache, PAYLOAD_KEY);
 
-    tested.save(logger, CACHE_KEY, errorResultWithPayload());
+    tested.save(logger, CACHE_KEY, errorResultWithPayload(SOME_VALUE));
 
     verify(cache, times(0)).put(any(), any());
     verify(logger, times(1)).onPass();
-  }
-
-  private FragmentResult successResultNoPayload() {
-    return FragmentResult.success(new Fragment("some-id", new JsonObject(), ""));
-  }
-
-  private FragmentResult successResultWithPayload(JsonObject payload) {
-    return FragmentResult.success(
-        new Fragment("some-id", new JsonObject(), "")
-            .appendPayload(PAYLOAD_KEY, payload)
-    );
-  }
-
-  private FragmentResult errorResultWithPayload() {
-    return FragmentResult.fail(
-        new Fragment("some-id", new JsonObject(), "")
-            .appendPayload(PAYLOAD_KEY, SOME_VALUE),
-        new RuntimeException()
-    );
   }
 
 }

@@ -15,7 +15,7 @@
  */
 package io.knotx.fragments.action.library.cache;
 
-import static io.knotx.fragments.action.library.cache.TestUtils.ACTION_ALIAS;
+import static io.knotx.fragments.action.library.cache.CacheTestUtils.ACTION_ALIAS;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 

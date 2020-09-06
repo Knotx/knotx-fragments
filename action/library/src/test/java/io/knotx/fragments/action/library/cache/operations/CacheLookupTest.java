@@ -15,20 +15,20 @@
  */
 package io.knotx.fragments.action.library.cache.operations;
 
-import static io.knotx.fragments.action.library.cache.TestUtils.EMPTY_CACHE;
-import static io.knotx.fragments.action.library.cache.TestUtils.ERROR_CACHE;
-import static io.knotx.fragments.action.library.cache.TestUtils.PAYLOAD_KEY;
-import static io.knotx.fragments.action.library.cache.TestUtils.SAMPLE_CACHE;
-import static io.knotx.fragments.action.library.cache.TestUtils.SOME_VALUE;
-import static io.knotx.fragments.action.library.cache.TestUtils.THROWING_CACHE;
-import static io.knotx.fragments.action.library.cache.TestUtils.someFragmentContext;
+import static io.knotx.fragments.action.library.TestUtils.someContext;
+import static io.knotx.fragments.action.library.cache.CacheTestUtils.EMPTY_CACHE;
+import static io.knotx.fragments.action.library.cache.CacheTestUtils.ERROR_CACHE;
+import static io.knotx.fragments.action.library.cache.CacheTestUtils.PAYLOAD_KEY;
+import static io.knotx.fragments.action.library.cache.CacheTestUtils.SAMPLE_CACHE;
+import static io.knotx.fragments.action.library.cache.CacheTestUtils.SOME_VALUE;
+import static io.knotx.fragments.action.library.cache.CacheTestUtils.THROWING_CACHE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 import io.knotx.fragments.api.FragmentResult;
-import io.knotx.junit5.KnotxExtension;
 import io.vertx.core.json.JsonObject;
+import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
 import java.util.function.Consumer;
 import org.junit.jupiter.api.DisplayName;
@@ -38,7 +38,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-@ExtendWith(KnotxExtension.class)
+@ExtendWith(VertxExtension.class)
 class CacheLookupTest {
 
   @Mock
@@ -90,7 +90,7 @@ class CacheLookupTest {
     CacheLookup tested = new CacheLookup(EMPTY_CACHE.get(), PAYLOAD_KEY);
 
     JsonObject expected = new JsonObject().put(PAYLOAD_KEY, SOME_VALUE);
-    FragmentResult result = tested.toResponse(someFragmentContext(), SOME_VALUE);
+    FragmentResult result = tested.toResponse(someContext(), SOME_VALUE);
 
     assertEquals(expected, result.getFragment().getPayload());
   }
