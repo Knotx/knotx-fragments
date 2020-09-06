@@ -59,7 +59,7 @@ class ActionProviderTest {
   @DisplayName("Expect no action when empty or null action alias defined.")
   void getWithNoAction(Vertx vertx) {
     // given
-    ActionProvider tested = new ActionProvider(Collections::emptyListIterator,
+    ActionProvider tested = new ActionProvider(Collections::emptyList,
         Collections.emptyMap(), vertx);
 
     // when
@@ -73,7 +73,7 @@ class ActionProviderTest {
   @DisplayName("Expect no action when no action alias defined in configuration.")
   void getWithNoEntries(Vertx vertx) {
     // given
-    ActionProvider tested = new ActionProvider(Collections::emptyListIterator,
+    ActionProvider tested = new ActionProvider(Collections::emptyList,
         Collections.emptyMap(), vertx);
 
     // when
@@ -90,7 +90,7 @@ class ActionProviderTest {
     Map<String, ActionFactoryOptions> proxies = Collections
         .singletonMap(PROXY_ALIAS, createFactoryOptions("eb", null));
 
-    ActionProvider tested = new ActionProvider(Collections::emptyListIterator,
+    ActionProvider tested = new ActionProvider(Collections::emptyList,
         proxies, vertx);
 
     // when
@@ -110,7 +110,7 @@ class ActionProviderTest {
     List<ActionFactory> factories = Collections
         .singletonList(new TestCacheableOperationFactory());
 
-    ActionProvider tested = new ActionProvider(factories::iterator, proxies,
+    ActionProvider tested = new ActionProvider(() -> factories, proxies,
         vertx);
 
     // when
@@ -128,7 +128,7 @@ class ActionProviderTest {
         .singletonMap(PROXY_ALIAS, createFactoryOptions(PROXY_FACTORY_NAME));
     List<ActionFactory> factories = Collections.singletonList(new TestCacheableOperationFactory());
 
-    ActionProvider tested = new ActionProvider(factories::iterator, proxies, vertx);
+    ActionProvider tested = new ActionProvider(() -> factories, proxies, vertx);
 
     // when
     Optional<Action> operation = tested.get(PROXY_ALIAS);
@@ -147,7 +147,7 @@ class ActionProviderTest {
     List<ActionFactory> factories = Collections
         .singletonList(new TestOperationFactory());
 
-    ActionProvider tested = new ActionProvider(factories::iterator, proxies, vertx);
+    ActionProvider tested = new ActionProvider(() -> factories, proxies, vertx);
 
     // when
     Optional<Action> firstOperation = tested.get(PROXY_ALIAS);
@@ -169,7 +169,7 @@ class ActionProviderTest {
     List<ActionFactory> factories = Collections
         .singletonList(new TestCacheableOperationFactory());
 
-    ActionProvider tested = new ActionProvider(factories::iterator, proxies,
+    ActionProvider tested = new ActionProvider(() -> factories, proxies,
         vertx);
 
     // when
@@ -209,7 +209,7 @@ class ActionProviderTest {
     );
     List<ActionFactory> factories = Arrays.asList(proxyFactory, proxyFactorySecond);
 
-    ActionProvider tested = new ActionProvider(factories::iterator, proxies,
+    ActionProvider tested = new ActionProvider(() -> factories, proxies,
         vertx);
 
     // when

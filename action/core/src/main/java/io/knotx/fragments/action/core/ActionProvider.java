@@ -41,7 +41,7 @@ public class ActionProvider {
   private final Map<String, ActionFactoryOptions> aliasToOptions;
   private final Vertx vertx;
 
-  public ActionProvider(Supplier<Iterator<ActionFactory>> supplier,
+  public ActionProvider(Supplier<Iterable<ActionFactory>> supplier,
       Map<String, ActionFactoryOptions> aliasToOptions, Vertx vertx) {
     this.aliasToOptions = aliasToOptions;
     this.vertx = vertx;
@@ -101,9 +101,9 @@ public class ActionProvider {
   }
 
   private Map<String, ActionFactory> loadFactories(
-      Supplier<Iterator<ActionFactory>> factoriesSupplier) {
+      Supplier<Iterable<ActionFactory>> factoriesSupplier) {
     Map<String, ActionFactory> result = new HashMap<>();
-    factoriesSupplier.get().forEachRemaining(factory -> result.put(factory.getName(), factory));
+    factoriesSupplier.get().forEach(factory -> result.put(factory.getName(), factory));
     LOGGER.debug("Action Factories: {}", result);
     return result;
   }
