@@ -3,6 +3,7 @@ All notable changes to `knotx-fragments` will be documented in this file.
 
 ## Unreleased
 List of changes that are finished but not yet released in any final version.
+- [PR-195](https://github.com/Knotx/knotx-fragments/pull/195) - Simplifies `ActionProvider`'s constructor
 - [PR-194](https://github.com/Knotx/knotx-fragments/pull/194) - Generalizes `InMemoryCacheAction` to support different `Cache` implementations. Provides test refactoring.
 - [PR-188](https://github.com/Knotx/knotx-fragments/pull/188) - Exposes nested doActions' (possibly chained) configuration in `OperationMetadata`.
 - [PR-187](https://github.com/Knotx/knotx-fragments/pull/187) - Provides `SingleFragmentOperation` to simplify implementation of RXfied actions.
