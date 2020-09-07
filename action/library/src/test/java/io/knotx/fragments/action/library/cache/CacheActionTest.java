@@ -15,12 +15,14 @@
  */
 package io.knotx.fragments.action.library.cache;
 
+import static io.knotx.fragments.action.api.log.ActionInvocationLog.LOG;
+import static io.knotx.fragments.action.api.log.ActionInvocationLog.SUCCESS;
+import static io.knotx.fragments.action.api.log.ActionLog.INVOCATIONS;
 import static io.knotx.fragments.action.library.TestUtils.successResult;
 import static io.knotx.fragments.action.library.TestUtils.verifyActionResult;
 import static io.knotx.fragments.action.library.cache.CacheTestUtils.ACTION_ALIAS;
+import static io.knotx.fragments.action.library.cache.CacheTestUtils.ACTION_LOG;
 import static io.knotx.fragments.action.library.cache.CacheTestUtils.CACHE_KEY;
-import static io.knotx.fragments.action.library.cache.CacheTestUtils.DO_ACTION_LOGS;
-import static io.knotx.fragments.action.library.cache.CacheTestUtils.INVOCATIONS_LOGS_KEY;
 import static io.knotx.fragments.action.library.cache.CacheTestUtils.LOGS_KEY;
 import static io.knotx.fragments.action.library.cache.CacheTestUtils.PAYLOAD_KEY;
 import static io.knotx.fragments.action.library.cache.CacheTestUtils.SOME_VALUE;
@@ -133,10 +135,10 @@ class CacheActionTest {
     Action tested = create(doActionIdleWithLogs());
 
     JsonObject expected = new JsonObject()
-        .put(INVOCATIONS_LOGS_KEY, new JsonArray()
+        .put(INVOCATIONS, new JsonArray()
             .add(new JsonObject()
-                .put("success", true)
-                .put("doActionLog", DO_ACTION_LOGS)));
+                .put(SUCCESS, true)
+                .put(LOG, ACTION_LOG)));
 
     verifyActionResult(testContext, tested,
         result -> assertJsonEquals(expected, result.result().getLog()));

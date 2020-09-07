@@ -94,7 +94,7 @@ class CacheActionLoggerTest {
     tested.onRetrieveStart();
     tested.onRetrieveEnd(successResult());
 
-    verify(actionLogger, times(1)).doActionLog(anyLong(), any());
+    verify(actionLogger, times(1)).invocation(anyLong(), any());
   }
 
   @Test
@@ -104,7 +104,7 @@ class CacheActionLoggerTest {
     tested.onRetrieveStart();
     tested.onRetrieveEnd(failedResult());
 
-    verify(actionLogger, times(1)).failureDoActionLog(anyLong(), any());
+    verify(actionLogger, times(1)).failedInvocation(anyLong(), any());
   }
 
   @Test
@@ -129,7 +129,7 @@ class CacheActionLoggerTest {
 
   private Long getLoggedDuration() {
     ArgumentCaptor<Long> duration = ArgumentCaptor.forClass(Long.class);
-    verify(actionLogger, times(1)).doActionLog(duration.capture(), any());
+    verify(actionLogger, times(1)).invocation(duration.capture(), any());
     return duration.getValue();
   }
 

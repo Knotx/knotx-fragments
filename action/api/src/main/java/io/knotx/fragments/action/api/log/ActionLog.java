@@ -21,12 +21,15 @@ import static java.util.stream.Collectors.toList;
 import io.vertx.codegen.annotations.DataObject;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
-import java.util.Collections;
 import java.util.List;
 import java.util.stream.StreamSupport;
 
 @DataObject
 public class ActionLog {
+
+  public static final String ALIAS = "alias";
+  public static final String LOGS = "logs";
+  public static final String INVOCATIONS = "invocations";
 
   /**
    * Configurable action name.
@@ -40,26 +43,23 @@ public class ActionLog {
    * Behaviours envelop other actions. They can invoke enveloped actions many times (in case of
    * failure). This is an array that holds details about these invocations.
    */
-  private final List<ActionInvocationLog> doActionLogs;
+  private final List<ActionInvocationLog> invocations;
 
-  public ActionLog(String alias, JsonObject logs, List<ActionInvocationLog> doActionLogs) {
+  public ActionLog(String alias, JsonObject logs, List<ActionInvocationLog> invocations) {
     this.alias = alias;
     this.logs = logs;
-    this.doActionLogs = doActionLogs;
+    this.invocations = invocations;
   }
 
   public ActionLog(JsonObject actionLog) {
-    this.alias = actionLog.containsKey("alias") ? actionLog.getString("alias") : "";
-    this.logs = actionLog.containsKey("logs") ? actionLog.getJsonObject("logs") : new JsonObject();
-    this.doActionLogs = toInvocationLogList(actionLog);
+    this.alias = actionLog.getString(ALIAS, "");
+    this.logs = actionLog.getJsonObject(LOGS, new JsonObject());
+    this.invocations = toInvocationLogList(actionLog);
   }
 
   private List<ActionInvocationLog> toInvocationLogList(JsonObject actionLog) {
-    JsonArray doActionLogs = actionLog.getJsonArray("doActionLogs");
-    if (doActionLogs == null) {
-      return Collections.emptyList();
-    }
-    return StreamSupport.stream(doActionLogs.spliterator(), false)
+    JsonArray invocations = actionLog.getJsonArray(INVOCATIONS, new JsonArray());
+    return StreamSupport.stream(invocations.spliterator(), false)
         .map(JsonObject::mapFrom)
         .map(ActionInvocationLog::new)
         .collect(toList());
@@ -74,24 +74,26 @@ public class ActionLog {
   }
 
   public List<ActionInvocationLog> getInvocationLogs() {
-    return unmodifiableList(doActionLogs);
+    return unmodifiableList(invocations);
   }
 
   public JsonObject toJson() {
-    return new JsonObject().put("alias", alias).put("logs", getLogs())
-        .put("doActionLogs", toDoActionArray());
+    return new JsonObject()
+        .put(ALIAS, alias)
+        .put(LOGS, getLogs())
+        .put(INVOCATIONS, toInvocationsArray());
   }
 
   @Override
   public String toString() {
     return "ActionLog{" +
         "alias='" + alias + '\'' +
-        ", log=" + logs +
-        ", doActionLogs=" + doActionLogs +
+        ", logs=" + logs +
+        ", invocations=" + invocations +
         '}';
   }
 
-  private JsonArray toDoActionArray() {
+  private JsonArray toInvocationsArray() {
     return getInvocationLogs().stream()
         .map(ActionInvocationLog::toJson)
         .collect(JsonArray::new,

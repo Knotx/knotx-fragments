@@ -366,11 +366,11 @@ class CircuitBreakerActionFactoryTest {
 
             ActionInvocationLog invocationLog1 = doActionsLogs.get(0);
             assertFalse(invocationLog1.isSuccess());
-            assertNull(invocationLog1.getDoActionLog());
+            assertNull(invocationLog1.getLog());
 
             ActionInvocationLog invocationLog2 = doActionsLogs.get(1);
             assertTrue(invocationLog2.isSuccess());
-            assertNotNull(invocationLog2.getDoActionLog());
+            assertNotNull(invocationLog2.getLog());
           });
           testContext.completeNow();
         }, testContext, vertx);
@@ -396,11 +396,11 @@ class CircuitBreakerActionFactoryTest {
 
             ActionInvocationLog invocationLog1 = doActionsLogs.get(0);
             assertFalse(invocationLog1.isSuccess());
-            assertNotNull(invocationLog1.getDoActionLog());
+            assertNotNull(invocationLog1.getLog());
 
             ActionInvocationLog invocationLog2 = doActionsLogs.get(1);
             assertTrue(invocationLog2.isSuccess());
-            assertNotNull(invocationLog2.getDoActionLog());
+            assertNotNull(invocationLog2.getLog());
 
           });
           testContext.completeNow();
@@ -429,11 +429,11 @@ class CircuitBreakerActionFactoryTest {
 
             ActionInvocationLog invocationLog1 = doActionsLogs.get(0);
             assertFalse(invocationLog1.isSuccess());
-            assertNull(invocationLog1.getDoActionLog());
+            assertNull(invocationLog1.getLog());
 
             ActionInvocationLog invocationLog2 = doActionsLogs.get(1);
             assertFalse(invocationLog2.isSuccess());
-            assertNotNull(invocationLog2.getDoActionLog());
+            assertNotNull(invocationLog2.getLog());
           });
           testContext.completeNow();
         }, testContext, vertx);
@@ -459,7 +459,7 @@ class CircuitBreakerActionFactoryTest {
             assertEquals("2", invocationCount);
             ActionInvocationLog invocationLog1 = doActionsLogs.get(0);
             assertFalse(invocationLog1.isSuccess());
-            assertNull(invocationLog1.getDoActionLog());
+            assertNull(invocationLog1.getLog());
           });
           testContext.completeNow();
         }, testContext, vertx);
@@ -487,7 +487,7 @@ class CircuitBreakerActionFactoryTest {
 
             ActionInvocationLog invocationLog1 = doActionsLogs.get(0);
             assertFalse(invocationLog1.isSuccess());
-            assertNull(invocationLog1.getDoActionLog());
+            assertNull(invocationLog1.getLog());
           });
           testContext.completeNow();
         }, testContext, vertx

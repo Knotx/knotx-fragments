@@ -15,6 +15,9 @@
  */
 package io.knotx.fragments.action.library.cache;
 
+import static io.knotx.fragments.action.api.log.ActionLog.ALIAS;
+import static io.knotx.fragments.action.api.log.ActionLog.INVOCATIONS;
+import static io.knotx.fragments.action.api.log.ActionLog.LOGS;
 import static io.knotx.fragments.action.library.TestUtils.someFragment;
 
 import io.knotx.commons.cache.Cache;
@@ -34,13 +37,11 @@ public final class CacheTestUtils {
   public static final String PAYLOAD_KEY = "payloadKey";
   public static final JsonObject SOME_VALUE = new JsonObject().put("configuration", "value");
 
-  public static final String INVOCATIONS_LOGS_KEY = "doActionLogs";
-
-  public static final JsonObject DO_ACTION_LOGS = new JsonObject()
-      .put("alias", "some-do-action")
-      .put("logs", new JsonObject()
+  public static final JsonObject ACTION_LOG = new JsonObject()
+      .put(ALIAS, "some-do-action")
+      .put(LOGS, new JsonObject()
           .put("InnerInfo", "InnerValue"))
-      .put("doActionLogs", new JsonArray());
+      .put(INVOCATIONS, new JsonArray());
 
   private CacheTestUtils() {
     // Utility class
@@ -102,12 +103,12 @@ public final class CacheTestUtils {
 
   public static Action doActionIdleWithLogs() {
     return (SyncAction) fragmentContext -> FragmentResult
-        .success(fragmentContext.getFragment(), DO_ACTION_LOGS);
+        .success(fragmentContext.getFragment(), ACTION_LOG);
   }
 
   public static Action doActionError() {
     return (SyncAction) fragmentContext -> FragmentResult
-        .fail(fragmentContext.getFragment(), DO_ACTION_LOGS, new RuntimeException());
+        .fail(fragmentContext.getFragment(), ACTION_LOG, new RuntimeException());
   }
 
   public static Action doActionAppending() {

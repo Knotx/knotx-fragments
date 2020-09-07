@@ -107,14 +107,14 @@ class CircuitBreakerAction implements FutureAction {
 
   private static void handleFail(Promise<FragmentResult> promise, JsonObject nodeLog,
       long startTime, Throwable error, ActionLogger actionLogger) {
-    actionLogger.failureDoActionLog(millisFrom(startTime), nodeLog);
+    actionLogger.failedInvocation(millisFrom(startTime), nodeLog);
     promise.fail(error);
   }
 
   private static void handleSuccess(Promise<FragmentResult> f, FragmentResult result,
       AtomicInteger counter, long startTime, ActionLogger actionLogger) {
     actionLogger.info(INVOCATION_COUNT_LOG_KEY, valueOf(counter.get()));
-    actionLogger.doActionLog(millisFrom(startTime), result.getLog());
+    actionLogger.invocation(millisFrom(startTime), result.getLog());
     f.complete(
         success(result.getFragment(), result.getTransition(), actionLogger.toLog().toJson()));
   }

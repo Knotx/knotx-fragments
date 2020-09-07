@@ -55,9 +55,9 @@ public class CacheActionLogger {
   public void onRetrieveEnd(FragmentResult fragmentResult) {
     long executionTime = TimeCalculator.millisFrom(retrieveStart);
     if (isSuccessTransition(fragmentResult)) {
-      actionLogger.doActionLog(executionTime, fragmentResult.getLog());
+      actionLogger.invocation(executionTime, fragmentResult.getLog());
     } else {
-      actionLogger.failureDoActionLog(executionTime, fragmentResult.getLog());
+      actionLogger.failedInvocation(executionTime, fragmentResult.getLog());
     }
   }
 
