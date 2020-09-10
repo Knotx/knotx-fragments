@@ -15,6 +15,8 @@
  */
 package io.knotx.fragments.action.library.http.request;
 
+import static io.knotx.fragments.action.library.helper.FragmentPlaceholders.buildSourceDefinitions;
+
 import io.knotx.fragments.api.FragmentContext;
 import io.knotx.server.common.placeholders.PlaceholdersResolver;
 import io.knotx.server.common.placeholders.SourceDefinitions;
@@ -26,9 +28,6 @@ import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 
 class EndpointPlaceholdersResolver {
-
-  private static final String PLACEHOLDER_PREFIX_PAYLOAD = "payload";
-  private static final String PLACEHOLDER_PREFIX_CONFIG = "config";
 
   private final SourceDefinitions sourceDefinitions;
 
@@ -48,16 +47,6 @@ class EndpointPlaceholdersResolver {
 
   String resolveAndEncode(String input) {
     return PlaceholdersResolver.resolveAndEncode(input, sourceDefinitions);
-  }
-
-  private SourceDefinitions buildSourceDefinitions(FragmentContext context) {
-    return SourceDefinitions.builder()
-        .addClientRequestSource(context.getClientRequest())
-        .addJsonObjectSource(context.getFragment()
-            .getPayload(), PLACEHOLDER_PREFIX_PAYLOAD)
-        .addJsonObjectSource(context.getFragment()
-            .getConfiguration(), PLACEHOLDER_PREFIX_CONFIG)
-        .build();
   }
 
   private String resolveNotEmpty(String input) {

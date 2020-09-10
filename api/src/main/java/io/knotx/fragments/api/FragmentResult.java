@@ -60,6 +60,11 @@ public class FragmentResult {
         FragmentOperationFailure.newInstance(error));
   }
 
+  public static FragmentResult fail(Fragment fragment, JsonObject log, Throwable error) {
+    return new FragmentResult(fragment, ERROR_TRANSITION, log,
+        FragmentOperationFailure.newInstance(error));
+  }
+
   public static FragmentResult fail(Fragment fragment, String errorCode, String errorMessage) {
     return new FragmentResult(fragment, ERROR_TRANSITION, null,
         FragmentOperationFailure.newInstance(errorCode, errorMessage));
@@ -84,6 +89,10 @@ public class FragmentResult {
   @Deprecated
   public FragmentResult(Fragment fragment, String transition) {
     this(fragment, transition, null);
+  }
+
+  public FragmentResult copyWithNewLog(JsonObject log) {
+    return new FragmentResult(this.fragment, this.transition, log, this.error);
   }
 
   public FragmentResult(JsonObject json) {

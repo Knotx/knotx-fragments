@@ -15,12 +15,12 @@
  */
 package io.knotx.fragments.action.library.http;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
 import io.vertx.core.Vertx;
 import io.vertx.ext.web.client.WebClientOptions;
 import io.vertx.junit5.VertxExtension;
-import io.vertx.junit5.VertxTestContext;
 import io.vertx.reactivex.ext.web.client.WebClient;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -39,7 +39,7 @@ class WebClientCacheTest {
 
   @Test
   @DisplayName("Should provide different WebClient instance when configuration is different")
-  void testDifferentConfigurations(VertxTestContext testContext, Vertx vertx) {
+  void testDifferentConfigurations(Vertx vertx) {
     WebClientOptions optionsA = new WebClientOptions().setSsl(true).setDefaultPort(80);
     WebClientOptions optionsB = new WebClientOptions().setSsl(false).setDefaultPort(8080);
 
@@ -47,12 +47,11 @@ class WebClientCacheTest {
     WebClient webClientB = webClientCache.getOrCreate(vertx, optionsB);
 
     assertNotEquals(webClientA, webClientB);
-    testContext.completeNow();
   }
 
   @Test
   @DisplayName("Should provide same WebClient instance when configuration is equivalent")
-  void testEqualConfigurations(VertxTestContext testContext, Vertx vertx) {
+  void testEqualConfigurations(Vertx vertx) {
     WebClientOptions optionsA = new WebClientOptions().setSsl(true).setDefaultPort(80);
     WebClientOptions optionsB = new WebClientOptions().setSsl(true).setDefaultPort(80);
 
@@ -60,7 +59,6 @@ class WebClientCacheTest {
     WebClient webClientB = webClientCache.getOrCreate(vertx, optionsB);
 
     assertEquals(webClientA, webClientB);
-    testContext.completeNow();
   }
 
 }

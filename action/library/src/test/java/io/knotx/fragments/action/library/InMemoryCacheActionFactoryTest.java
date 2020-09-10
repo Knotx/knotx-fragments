@@ -15,240 +15,159 @@
  */
 package io.knotx.fragments.action.library;
 
+import static io.knotx.fragments.action.library.TestUtils.ACTION_ALIAS;
+import static io.knotx.fragments.action.library.TestUtils.someContext;
+import static io.knotx.fragments.action.library.TestUtils.someFragment;
+import static io.knotx.fragments.action.library.TestUtils.successResult;
+import static io.knotx.fragments.action.library.TestUtils.verifyActionResult;
+import static io.knotx.fragments.action.library.TestUtils.verifyTwoActionResults;
 import static io.knotx.fragments.api.FragmentResult.ERROR_TRANSITION;
+import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import io.knotx.fragments.action.library.InMemoryCacheActionFactory;
-import io.knotx.fragments.api.Fragment;
 import io.knotx.fragments.action.api.Action;
+import io.knotx.fragments.action.api.SyncAction;
 import io.knotx.fragments.api.FragmentContext;
 import io.knotx.fragments.api.FragmentResult;
-import io.knotx.junit5.KnotxExtension;
 import io.knotx.server.api.context.ClientRequest;
-import io.vertx.core.Future;
 import io.vertx.core.json.JsonObject;
+import io.vertx.junit5.Timeout;
+import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
 import io.vertx.reactivex.core.MultiMap;
 import java.util.UUID;
-import java.util.concurrent.TimeUnit;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
-@ExtendWith(KnotxExtension.class)
+@ExtendWith(VertxExtension.class)
+@Timeout(value = 5, timeUnit = SECONDS)
 class InMemoryCacheActionFactoryTest {
 
   private static final String EXPECTED_PAYLOAD_DATA = "some content";
-  private static final String ACTION_ALIAS = "action";
   private static final String PAYLOAD_KEY = "product";
 
-  private static final JsonObject ACTION_CONFIG = new JsonObject().put("payloadKey", PAYLOAD_KEY)
+  private static final JsonObject ACTION_CONFIG = new JsonObject()
+      .put("payloadKey", PAYLOAD_KEY)
       .put("cacheKey", "cProduct");
-
-  private Fragment firstFragment;
-  private Fragment secondFragment;
-
-  @BeforeEach
-  void setUp() {
-    firstFragment = new Fragment("type", new JsonObject(), "initial body");
-    secondFragment = new Fragment("type", new JsonObject(), "initial body");
-  }
 
   @DisplayName("Success result when doAction ends with _success transition.")
   @Test
-  void callActionWithSuccessTransition(VertxTestContext testContext) throws Throwable {
+  void callActionWithSuccessTransition(VertxTestContext testContext) {
     // given
-    Action doAction = (fragmentContext, resultHandler) -> Future
-        .succeededFuture(new FragmentResult(firstFragment, FragmentResult.SUCCESS_TRANSITION))
-        .onComplete(resultHandler);
+    Action doAction = (SyncAction) fragmentContext -> successResult();
 
     Action tested = new InMemoryCacheActionFactory()
-        .create(ACTION_ALIAS, ACTION_CONFIG, null, doAction);
+        .create(ACTION_ALIAS, ACTION_CONFIG.copy(), null, doAction);
 
     // when
-    tested.apply(new FragmentContext(firstFragment, new ClientRequest()),
-        result -> {
-          // then
-          testContext.verify(() -> assertTrue(result.succeeded()));
-          testContext.completeNow();
-        });
-
-    assertTrue(testContext.awaitCompletion(5, TimeUnit.SECONDS));
-    if (testContext.failed()) {
-      throw testContext.causeOfFailure();
-    }
+    verifyActionResult(testContext, tested,
+        result -> assertTrue(result.succeeded()));
   }
 
   @DisplayName("_error transition when doAction ends with _error transition.")
   @Test
-  void callActionWithErrorTransition(VertxTestContext testContext) throws Throwable {
+  void callActionWithErrorTransition(VertxTestContext testContext) {
     // given
-    Action doAction = (fragmentContext, resultHandler) -> Future
-        .succeededFuture(new FragmentResult(firstFragment, ERROR_TRANSITION))
-        .onComplete(resultHandler);
+    Action doAction = (SyncAction) fragmentContext -> FragmentResult
+        .fail(someFragment(), "code", "message");
 
     Action tested = new InMemoryCacheActionFactory()
-        .create(ACTION_ALIAS, ACTION_CONFIG, null, doAction);
+        .create(ACTION_ALIAS, ACTION_CONFIG.copy(), null, doAction);
 
-    // when
-    tested.apply(new FragmentContext(firstFragment, new ClientRequest()),
-        result -> {
-          // then
-          testContext.verify(() -> {
-            assertTrue(result.succeeded());
-            assertEquals(ERROR_TRANSITION, result.result().getTransition());
-          });
-          testContext.completeNow();
-        });
-
-    assertTrue(testContext.awaitCompletion(5, TimeUnit.SECONDS));
-    if (testContext.failed()) {
-      throw testContext.causeOfFailure();
-    }
+    // when, then
+    verifyActionResult(testContext, tested, result -> {
+      assertTrue(result.succeeded());
+      assertEquals(ERROR_TRANSITION, result.result().getTransition());
+    });
   }
 
   @DisplayName("Failed result when doAction throws an exception")
   @Test
-  void callActionThatThrowsException(VertxTestContext testContext) throws Throwable {
+  void callActionThatThrowsException(VertxTestContext testContext) {
     // given
-    Action doAction = (fragmentContext, resultHandler) -> Future
-        .<FragmentResult>failedFuture(new IllegalStateException())
-        .onComplete(resultHandler);
+    Action doAction = (SyncAction) fragmentContext -> {
+      throw new IllegalStateException();
+    };
 
     Action tested = new InMemoryCacheActionFactory()
-        .create(ACTION_ALIAS, ACTION_CONFIG, null, doAction);
+        .create(ACTION_ALIAS, ACTION_CONFIG.copy(), null, doAction);
 
-    // when
-    tested.apply(new FragmentContext(firstFragment, new ClientRequest()),
-        result -> {
-          // then
-          testContext.verify(() -> {
-            assertEquals(ERROR_TRANSITION, result.result().getTransition());
-            JsonObject logs = result.result().getLog().getJsonObject("logs");
-            assertEquals(IllegalStateException.class.getCanonicalName(),
-                logs.getJsonArray("errors").getJsonObject(0).getString("className"));
-          });
-          testContext.completeNow();
-        });
-
-    assertTrue(testContext.awaitCompletion(5, TimeUnit.SECONDS));
-    if (testContext.failed()) {
-      throw testContext.causeOfFailure();
-    }
+    // when, then
+    verifyActionResult(testContext, tested, result -> {
+      assertEquals(ERROR_TRANSITION, result.result().getTransition());
+      JsonObject logs = result.result().getLog().getJsonObject("logs");
+      assertEquals(IllegalStateException.class.getCanonicalName(),
+          logs.getJsonArray("errors").getJsonObject(0).getString("className"));
+    });
   }
 
   @DisplayName("Payload contains data specified by payloadKey when doAction adds payloadKey.")
   @Test
-  void callActionWithPayloadUpdate(VertxTestContext testContext) throws Throwable {
+  void callActionWithPayloadUpdate(VertxTestContext testContext) {
     // given
     JsonObject expectedPayloadValue = new JsonObject().put("someKey", "someValue");
-    Action doAction = (fragmentContext, resultHandler) -> {
-      Fragment fragment = fragmentContext.getFragment();
-      fragment.appendPayload(PAYLOAD_KEY, expectedPayloadValue);
-      Future
-          .succeededFuture(new FragmentResult(fragment, FragmentResult.SUCCESS_TRANSITION))
-          .onComplete(resultHandler);
-    };
+    Action doAction = (SyncAction) fragmentContext -> FragmentResult
+        .success(fragmentContext.getFragment().appendPayload(PAYLOAD_KEY, expectedPayloadValue));
 
     Action tested = new InMemoryCacheActionFactory()
-        .create(ACTION_ALIAS, ACTION_CONFIG, null, doAction);
+        .create(ACTION_ALIAS, ACTION_CONFIG.copy(), null, doAction);
 
-    // when
-    tested.apply(new FragmentContext(firstFragment, new ClientRequest()),
-        result -> {
-          // then
-          testContext.verify(() -> {
-            JsonObject payload = result.result().getFragment().getPayload();
-            assertTrue(payload.containsKey(PAYLOAD_KEY));
-            assertEquals(expectedPayloadValue, payload.getJsonObject(PAYLOAD_KEY));
-          });
-          testContext.completeNow();
-        });
-
-    assertTrue(testContext.awaitCompletion(5, TimeUnit.SECONDS));
-    if (testContext.failed()) {
-      throw testContext.causeOfFailure();
-    }
+    // when, then
+    verifyActionResult(testContext, tested, result -> {
+      JsonObject payload = result.result().getFragment().getPayload();
+      assertTrue(payload.containsKey(PAYLOAD_KEY));
+      assertEquals(expectedPayloadValue, payload.getJsonObject(PAYLOAD_KEY));
+    });
   }
 
   @DisplayName("doAction invoked twice when cache is disabled (maximum size is 0)")
   @Test
-  void callDoActionTwice(VertxTestContext testContext) throws Throwable {
+  void callDoActionTwice(VertxTestContext testContext) {
     // given
-    Action doAction = (fragmentContext, resultHandler) -> {
-      Fragment fragment = fragmentContext.getFragment();
-      fragment.appendPayload(PAYLOAD_KEY, uniqueValue(fragmentContext.hashCode()));
-      Future
-          .succeededFuture(new FragmentResult(fragment, FragmentResult.SUCCESS_TRANSITION))
-          .onComplete(resultHandler);
-    };
+    Action doAction = (SyncAction) fragmentContext -> FragmentResult
+        .success(fragmentContext.getFragment()
+            .appendPayload(PAYLOAD_KEY, uniqueValue(fragmentContext.hashCode())));
 
     Action tested = new InMemoryCacheActionFactory()
-        .create(ACTION_ALIAS, ACTION_CONFIG
+        .create(ACTION_ALIAS, ACTION_CONFIG.copy()
             .put("cache", new JsonObject().put("maximumSize", 0)), null, doAction);
 
     // when
-    tested.apply(new FragmentContext(firstFragment, new ClientRequest()),
-        firstResult -> tested.apply(new FragmentContext(secondFragment, new ClientRequest()),
-            secondResult -> {
-              testContext.verify(() -> assertNotEquals(
-                  firstResult.result().getFragment().getPayload().getMap().get(PAYLOAD_KEY),
-                  secondResult.result().getFragment().getPayload().getMap().get(PAYLOAD_KEY)));
-              testContext.completeNow();
-            }));
-
-    assertTrue(testContext.awaitCompletion(5, TimeUnit.SECONDS));
-    if (testContext.failed()) {
-      throw testContext.causeOfFailure();
-    }
+    verifyTwoActionResults(testContext, tested, someContext(), someContext(),
+        (firstResult, secondResult) -> assertNotEquals(
+            firstResult.result().getFragment().getPayload().getMap().get(PAYLOAD_KEY),
+            secondResult.result().getFragment().getPayload().getMap().get(PAYLOAD_KEY)));
   }
 
   @DisplayName("doAction invoked once when cache is enabled and cacheKeys are the same")
   @Test
-  void callDoActionOnce(VertxTestContext testContext) throws Throwable {
+  void callDoActionOnce(VertxTestContext testContext) {
     // given
-    Action doAction = (fragmentContext, resultHandler) -> {
-      Fragment fragment = fragmentContext.getFragment();
-      fragment.appendPayload(PAYLOAD_KEY, uniqueValue(fragmentContext.hashCode()));
-      Future
-          .succeededFuture(new FragmentResult(fragment, FragmentResult.SUCCESS_TRANSITION))
-          .onComplete(resultHandler);
-    };
+    Action doAction = (SyncAction) fragmentContext -> FragmentResult.success(
+        fragmentContext.getFragment()
+            .appendPayload(PAYLOAD_KEY, uniqueValue(fragmentContext.hashCode())));
 
     Action tested = new InMemoryCacheActionFactory()
-        .create(ACTION_ALIAS, ACTION_CONFIG
+        .create(ACTION_ALIAS, ACTION_CONFIG.copy()
             .put("cache", new JsonObject()), null, doAction);
 
-    // when
-    tested.apply(new FragmentContext(firstFragment, new ClientRequest()),
-        firstResult -> tested.apply(new FragmentContext(secondFragment, new ClientRequest()),
-            secondResult -> {
-              testContext.verify(() -> assertEquals(
-                  firstResult.result().getFragment().getPayload().getMap().get(PAYLOAD_KEY),
-                  secondResult.result().getFragment().getPayload().getMap().get(PAYLOAD_KEY)));
-              testContext.completeNow();
-            }));
-
-    assertTrue(testContext.awaitCompletion(5, TimeUnit.SECONDS));
-    if (testContext.failed()) {
-      throw testContext.causeOfFailure();
-    }
+    // when, then
+    verifyTwoActionResults(testContext, tested, someContext(), someContext(),
+        (firstResult, secondResult) -> assertEquals(
+            firstResult.result().getFragment().getPayload().getMap().get(PAYLOAD_KEY),
+            secondResult.result().getFragment().getPayload().getMap().get(PAYLOAD_KEY)));
   }
 
   @DisplayName("Different payload values when cache key uses requests data that are different.")
   @Test
-  void callActionsDifferentCacheKeys(VertxTestContext testContext) throws Throwable {
+  void callActionsDifferentCacheKeys(VertxTestContext testContext) {
     // given
-    Action doAction = (fragmentContext, resultHandler) -> {
-      Fragment fragment = fragmentContext.getFragment();
-      fragment.appendPayload(PAYLOAD_KEY, uniqueValue(fragmentContext.hashCode()));
-      Future
-          .succeededFuture(new FragmentResult(fragment, FragmentResult.SUCCESS_TRANSITION))
-          .onComplete(resultHandler);
-    };
+    Action doAction = (SyncAction) fragmentContext -> FragmentResult.success(
+        fragmentContext.getFragment()
+            .appendPayload(PAYLOAD_KEY, uniqueValue(fragmentContext.hashCode())));
 
     Action tested = new InMemoryCacheActionFactory()
         .create(ACTION_ALIAS,
@@ -258,24 +177,15 @@ class InMemoryCacheActionFactoryTest {
             null, doAction);
 
     // when
-    FragmentContext firstRequestContext = new FragmentContext(firstFragment,
+    FragmentContext firstRequestContext = new FragmentContext(someFragment(),
         new ClientRequest().setParams(MultiMap.caseInsensitiveMultiMap().add("id", "product1")));
-    FragmentContext secondRequestContext = new FragmentContext(secondFragment,
+    FragmentContext secondRequestContext = new FragmentContext(someFragment(),
         new ClientRequest().setParams(MultiMap.caseInsensitiveMultiMap().add("id", "product2")));
 
-    tested.apply(firstRequestContext,
-        firstResult -> tested.apply(secondRequestContext,
-            secondResult -> {
-              testContext.verify(() -> assertNotEquals(
-                  firstResult.result().getFragment().getPayload().getMap().get(PAYLOAD_KEY),
-                  secondResult.result().getFragment().getPayload().getMap().get(PAYLOAD_KEY)));
-              testContext.completeNow();
-            }));
-
-    assertTrue(testContext.awaitCompletion(5, TimeUnit.SECONDS));
-    if (testContext.failed()) {
-      throw testContext.causeOfFailure();
-    }
+    verifyTwoActionResults(testContext, tested, firstRequestContext, secondRequestContext,
+        (firstResult, secondResult) -> assertNotEquals(
+            firstResult.result().getFragment().getPayload().getMap().get(PAYLOAD_KEY),
+            secondResult.result().getFragment().getPayload().getMap().get(PAYLOAD_KEY)));
   }
 
   @DisplayName("Error not cached.")
@@ -283,17 +193,12 @@ class InMemoryCacheActionFactoryTest {
   void callDoActionWithErrorAndDoActionWithSuccess(VertxTestContext testContext) throws Throwable {
     // given
     JsonObject expectedPayloadValue = new JsonObject().put("someKey", "someValue");
-    Action doAction = (fragmentContext, resultHandler) -> {
+    Action doAction = (SyncAction) fragmentContext -> {
       if (fragmentContext.getClientRequest().getParams().contains("error")) {
-        Future
-            .<FragmentResult>failedFuture(new IllegalStateException())
-            .onComplete(resultHandler);
+        throw new IllegalStateException();
       } else {
-        Fragment fragment = fragmentContext.getFragment();
-        fragment.appendPayload(PAYLOAD_KEY, expectedPayloadValue);
-        Future
-            .succeededFuture(new FragmentResult(fragment, FragmentResult.SUCCESS_TRANSITION))
-            .onComplete(resultHandler);
+        return FragmentResult.success(
+            fragmentContext.getFragment().appendPayload(PAYLOAD_KEY, expectedPayloadValue));
       }
     };
 
@@ -305,23 +210,14 @@ class InMemoryCacheActionFactoryTest {
             null, doAction);
 
     // when
-    FragmentContext errorRequestContext = new FragmentContext(firstFragment,
+    FragmentContext errorRequestContext = new FragmentContext(someFragment(),
         new ClientRequest().setParams(MultiMap.caseInsensitiveMultiMap().add("error", "expected")));
-    FragmentContext successRequestContext = new FragmentContext(secondFragment,
+    FragmentContext successRequestContext = new FragmentContext(someFragment(),
         new ClientRequest());
 
-    tested.apply(errorRequestContext,
-        firstResult -> tested.apply(successRequestContext,
-            secondResult -> {
-              testContext.verify(() -> assertEquals(expectedPayloadValue,
-                  secondResult.result().getFragment().getPayload().getMap().get(PAYLOAD_KEY)));
-              testContext.completeNow();
-            }));
-
-    assertTrue(testContext.awaitCompletion(5, TimeUnit.SECONDS));
-    if (testContext.failed()) {
-      throw testContext.causeOfFailure();
-    }
+    verifyTwoActionResults(testContext, tested, errorRequestContext, successRequestContext,
+        (firstResult, secondResult) -> assertEquals(expectedPayloadValue,
+            secondResult.result().getFragment().getPayload().getMap().get(PAYLOAD_KEY)));
   }
 
   private String uniqueValue(int contextHash) {

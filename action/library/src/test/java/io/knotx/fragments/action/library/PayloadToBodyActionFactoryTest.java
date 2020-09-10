@@ -15,94 +15,85 @@
  */
 package io.knotx.fragments.action.library;
 
+import static io.knotx.fragments.action.library.TestUtils.ACTION_ALIAS;
+import static io.knotx.fragments.action.library.TestUtils.doActionIdle;
+import static io.knotx.fragments.action.library.TestUtils.someFragmentWithPayload;
+import static io.knotx.fragments.action.library.TestUtils.verifyActionResult;
+import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import io.knotx.fragments.action.library.PayloadToBodyActionFactory;
-import io.knotx.fragments.api.Fragment;
 import io.knotx.fragments.action.api.Action;
-import io.knotx.fragments.api.FragmentContext;
-import io.knotx.junit5.KnotxExtension;
-import io.knotx.server.api.context.ClientRequest;
 import io.vertx.core.json.JsonObject;
+import io.vertx.junit5.Timeout;
+import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
-import java.util.concurrent.TimeUnit;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
-@ExtendWith(KnotxExtension.class)
+@ExtendWith(VertxExtension.class)
+@Timeout(value = 5, timeUnit = SECONDS)
 public class PayloadToBodyActionFactoryTest {
 
-  private static final String ACTION_ALIAS = "action";
   private static final String PAYLOAD_KEY = "key";
 
   private static final JsonObject USER = new JsonObject().put("name", "kovalsky");
   private static final JsonObject NESTED_PAYLOAD = new JsonObject().put("user", USER);
   private static final JsonObject PAYLOAD = new JsonObject().put("key", NESTED_PAYLOAD);
-  private static final Fragment FRAGMENT = new Fragment("type", new JsonObject(),
-      "").mergeInPayload(PAYLOAD);
 
+  private PayloadToBodyActionFactory tested;
+
+  @BeforeEach
+  void setUp() {
+    tested = new PayloadToBodyActionFactory();
+  }
 
   @Test
   @DisplayName("Expect IllegalArgumentException when doAction specified.")
   void createActionWithDoAction() {
+    // given
+    JsonObject config = new JsonObject()
+        .put(PAYLOAD_KEY, "key");
+
     // when, then
-    assertThrows(IllegalArgumentException.class, () -> new PayloadToBodyActionFactory()
-        .create(ACTION_ALIAS, new JsonObject().put("key", PAYLOAD_KEY), null,
-            (fragmentContext, resultHandler) -> {
-            }));
+    assertThrows(IllegalArgumentException.class,
+        () -> tested.create(ACTION_ALIAS, config, null, doActionIdle()));
   }
 
   @Test
   @DisplayName("Expect body with nested payload under paylod key.")
-  void applyActionWithActionAlias(VertxTestContext testContext) throws Throwable {
+  void applyActionWithActionAlias(VertxTestContext testContext) {
     // given
-    Action action = new PayloadToBodyActionFactory()
-        .create(ACTION_ALIAS, new JsonObject().put(PAYLOAD_KEY, "key"), null, null);
+    JsonObject config = new JsonObject()
+        .put(PAYLOAD_KEY, "key");
 
-    // when
-    action.apply(new FragmentContext(FRAGMENT, new ClientRequest()),
-        result -> {
-          // then
-          testContext.verify(() -> {
-            String body = result.result().getFragment().getBody();
-            assertTrue(result.succeeded());
-            assertEquals(new JsonObject(body), NESTED_PAYLOAD);
-          });
+    Action action = tested.create(ACTION_ALIAS, config, null, null);
 
-          testContext.completeNow();
-        });
-
-    assertTrue(testContext.awaitCompletion(5, TimeUnit.SECONDS));
-    if (testContext.failed()) {
-      throw testContext.causeOfFailure();
-    }
+    // when, then
+    verifyActionResult(testContext, action, someFragmentWithPayload(PAYLOAD), result -> {
+      assertTrue(result.succeeded());
+      String body = result.result().getFragment().getBody();
+      assertEquals(NESTED_PAYLOAD, new JsonObject(body));
+    });
   }
 
   @Test
-  @DisplayName("Expect body with user payload under paylod key.user.")
-  void applyActionWithNestedKey(VertxTestContext testContext) throws Throwable {
+  @DisplayName("Expect body with user payload under payload key.user.")
+  void applyActionWithNestedKey(VertxTestContext testContext) {
     // given
-    Action action = new PayloadToBodyActionFactory()
-        .create(ACTION_ALIAS, new JsonObject().put(PAYLOAD_KEY, "key.user"), null, null);
+    JsonObject config = new JsonObject()
+        .put(PAYLOAD_KEY, "key.user");
 
-    // when
-    action.apply(new FragmentContext(FRAGMENT, new ClientRequest()),
-        result -> {
-          // then
-          testContext.verify(() -> {
-            String body = result.result().getFragment().getBody();
-            assertTrue(result.succeeded());
-            assertEquals(new JsonObject(body), USER);
-          });
-          testContext.completeNow();
-        });
+    Action action = tested.create(ACTION_ALIAS, config, null, null);
 
-    assertTrue(testContext.awaitCompletion(5, TimeUnit.SECONDS));
-    if (testContext.failed()) {
-      throw testContext.causeOfFailure();
-    }
+    // when, then
+    verifyActionResult(testContext, action, someFragmentWithPayload(PAYLOAD), result -> {
+      assertTrue(result.succeeded());
+      String body = result.result().getFragment().getBody();
+      assertEquals(USER, new JsonObject(body));
+    });
   }
 }

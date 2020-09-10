@@ -315,16 +315,22 @@ Please note that not every call can be visible in `invocation log` entry.
 
 ### In-memory Cache Behaviour
 It wraps a simple action with cache. It caches a payload values added by a `doAction` action and 
-puts cached values in next invocations. It uses in-memory Guava cache implementation. The 
+puts cached values in next invocations.
+
+Cache implementation is selected the by `type` option. Knot.x provides OOTB `in-memory` cache factory using Guava cache.
+Custom types can be added by implementing `CacheFactory` interface and making it available via Service Provider Interface (just like `ActionFactory` implementations).
+
+The in-memory cache uses Guava cache implementation. The 
 configuration looks like:
 ```hocon
-factory = "in-memory-cache"
+factory = "cache"
 config {
   cache {
     maximumSize = 1000
     # in milliseconds
     ttl = 5000
   }
+  type = "in-memory"
   cacheKey = "product-{param.id}"
   payloadKey = product
   logLevel = error
@@ -335,11 +341,11 @@ Please note that cacheKey can be parametrized with request data like params, hea
 [Knot.x HTTP Server Common Placeholders](https://github.com/Knotx/knotx-server-http/tree/master/common/placeholders)
 documentation for more details.
 
-#### In-Memory Cache Behaviour log
+#### Cache Behaviour log
 
-In-Memory Cache logs most activities when `logLevel` option is set to `info`.
+Cache logs most activities when `logLevel` option is set to `info`.
 
-In-Memory Cache logs the following events:
+Cache logs the following events:
 
  - `cache_hit` - occurs when there is an associated value in the cache
     - `cache_key`
@@ -350,7 +356,7 @@ In-Memory Cache logs the following events:
  - `cache_pass` - occurs when there is no associated value in the cache and `doAction` returns with no cacheable data or an error transition. In either case, this event gets logged on `error` log level. 
     - `cache_key`
 
-In-Memory Cache log includes logs produced by the `doAction`. Each 
+Cache log includes logs produced by the `doAction`. Each 
 `invocation log` has entries:
 
  - `duration` - how long takes execution of action - in milisecond
