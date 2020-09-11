@@ -213,6 +213,17 @@ When `loglevel` is set to `info`, the action is getting logged:
 - `key` - payload key
 - `value` - payload value
 
+### Copy Payload Key Action
+Copy Payload Key Action copies data inside Fragment's payload. Its configuration looks like:
+```hocon
+factory = copy-payload-key
+config {
+  from = "some.possibly.nested.origin._result"
+  to = "destination.possibly.nested"
+}
+```
+If no data is present in payload under `from` key, the action has no effect on `Fragment`.
+
 ### Payload To Body Action
 Payload To Body Action copies to Fragment body specified payload key value. Its configuration looks like:
 ```hocon
