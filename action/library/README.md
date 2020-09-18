@@ -1,58 +1,150 @@
 # Action Library
-It is a core [actions](https://github.com/Knotx/knotx-fragments/tree/master/action#action) and
-[behaviours](https://github.com/Knotx/knotx-fragments/tree/master/action#behaviour) library.
+It is a core [actions](https://github.com/Knotx/knotx-fragments/tree/master/action#action) and [behaviours](https://github.com/Knotx/knotx-fragments/tree/master/action#behaviour) 
+library.
 
 ## Action
-This section contains user documentation for the Knot.x fragments core actions.
+It is a list of core actions:
+- [HTTP Action](#http-action) - invokes a web API and stores a response body in a fragment's payload
+- [Inline Body Action](#inline-body-action) - replaces a fragment's body with the configured value
+- [Inline Payload Action](#inline-payload-action) - adds a JSON data into a fragment's payload
+- [CopyPayloadKeyActionFactory](#copy-payload-key-action) - copies data inside Fragment's payload
+- [Payload To Body Action](https://github.com/Knotx/knotx-fragments/tree/master/action/library#payload-to-body-action) - rewrites a fragment's payload to the body
 
 ### HTTP Action
-HTTP Action connects to the external WEB endpoint that responds with JSON and saves the response into the 
-[Fragment's](https://github.com/Knotx/knotx-fragments/tree/master/api#knotx-fragment-api) `payload`.
+HTTP Action calls a Web API (e.g. RESTful API), decodes the response body (e.g. text to JSON object) and finally stores all response details in a fragment's 
+payload. It [supports](#supported-http-methods) `GET`, `POST`, `PUT`, `PATCH`, `DELETE` and `HEAD` HTTP methods.
 
 #### How does it work
-HTTP Action uses HTTP Client to connect to the external WEB endpoint. It expects HTTP response with
-JSON body. To configure endpoint you will have to provide `domain` and `port` and additionally
-a request `path` to the WEB endpoint. The `path` parameter could contain placeholders that will be
-resolved with the logic described above.
-After the result from the external WEB endpoint is obtained, it is merged with processed
-[Fragment's](https://github.com/Knotx/knotx-fragments/tree/master/api#knotx-fragment-api) `payload`
-and returned in the [`FragmentResult`](https://github.com/Knotx/knotx-fragments/blob/master/handler/api/docs/asciidoc/dataobjects.adoc#FragmentResult)
-together with Transition.
+It uses [Vert.x Web Client](https://vertx.io/docs/vertx-web-client/java/), an asynchronous HTTP and HTTP/2 client, to call web APIs and handle responses. All 
+request/response interaction aspects are fully configurable:
+- web API domain, port and path
+- response body decoding (plain String, Json object or Json Array)
+- success criteria (it uses [Vert.x Web Client response predicates](https://vertx.io/docs/vertx-web-client/java/#response-predicates))
 
-##### Parametrized services calls
-Http Action supports request parameters, `@payload` and `@configuration` resolving for the `path` parameter which defines the final request URI.
-Read more about placeholders in the [Knot.x Server Common Placeholders](https://github.com/Knotx/knotx-server-http/tree/master/common/placeholders#available-request-placeholders-support).
-
-The `@payload` and `@configuration` are values stored in [Fragment](https://github.com/Knotx/knotx-fragments/tree/master/api#knotx-fragment-api).
-For this structures use corresponding prefixes: `payload` and `config` 
-
-#### How to use
-Define HTTP Action using `http` factory and providing configs `endpointOptions` and `responseOptions` in the Fragment's Handler
-`actions` section.
-
-```hocon
-actions {
-  book {
-    factory = http
-    config {
-      endpointOptions {
-        path = /service/mock/book.json
-        domain = localhost
-        port = 3000
-        allowedRequestHeaders = ["Content-Type"]
-      }
-      responseOptions {
-        predicates = [JSON]
-        forceJson = false
-      }       
+The sample configuration for fetching resources (`/products`) from REST API:
+```
+fetch-products {
+  factory = http
+  config {
+    httpMethod = GET # this is the default so can be skipped
+    endpointOptions {
+      path = /products
+      domain = localhost
+      port = 8080
+      allowedRequestHeaders = ["Content-Type"]
+    }
+    responseOptions {
+      predicates = [SC_SUCCESS, JSON]
+      forceJson = false
     }
   }
 }
 ```
 
-- `endpointOptions` config describes quite basic request parameters as `path`, `domain`, `port` and `allowedRequestHeaders` which
-are necessary to perform http request 
-- `responseOptions` config is responsible for handling incoming request properly. Here we can specify `predicates` - it's array
+The action does the HTTP `GET` request to `http://localhost:8080/products`. By default, a Vert.x Web Client request ends with an error only if something wrong 
+happens at the network level. The response options (success conditions) indicate that we expect:
+- `2xx` response status code
+- `content-type` response header is `application.json`
+- response body is a json object or json array
+
+Please note that all client (`4xx`) and server (`5xx`) error response status codes fail the action.  
+
+For the above example, when all processing ends with success, and the response body contains:
+```
+[
+  {
+    "id": "sku-01",
+    "name": "Vert.x in Action"
+  },
+  {
+    "id": "sku-02",
+    "name": "Knot.x in Action"
+  }
+]
+```
+
+the action fragment result will contain:
+- transition is `_success`
+- fragment's payload with `_request`, `_response` and `_result` details (under the action alias/name (`fetch-products`) key):
+```
+"fetch-products": {
+  "_request": {
+    "type": "HTTP",
+    "source": "/products",
+    "metadata": {
+      "headers": {}
+    }
+  },
+  "_response": {
+    "success": true,
+    "metadata": {
+      "statusCode": "200",
+      "headers": {
+        "Content-Type": [
+          "application/json; charset=UTF-8"
+        ],
+        "Transfer-Encoding": [
+          "chunked"
+        ],
+        "Server": [
+          "Jetty(9.2.24.v20180105)"
+        ]
+      }
+    }
+  },
+  "_result": [
+    {
+      "id": "sku-01",
+      "name": "Vert.x in Action"
+    },
+    {
+      "id": "sku-02",
+      "name": "Knot.x in Action"
+    }
+  ]
+}
+```
+
+#### Supported HTTP methods
+HTTP Action supports `GET`, `POST`, `PUT`, `PATCH`, `DELETE` and `HEAD` HTTP methods.
+This is specified using `httpMethod` option (defaults to `GET`).
+
+For `POST`, `PUT` and `PATCH` methods, request body is sent. A body can be specified either as String or as a JSON, using `body` and `bodyJson` parameters 
+under `endpointOptions`. 
+
+#### Parametrized options
+It is possible to perform interpolation using values from the original **request** and **fragment** (configuration or payload).
+
+The available interpolation values:
+- `{param.x}`, `{header.x}`, `{uri.*}`, `{slingUri.*}`, more details [here](https://github.com/Knotx/knotx-server-http/tree/master/common/placeholders#available-request-placeholders-support)
+- `{payload.x.y}` - is a fragment's payload with key `x.y`
+- `{config.x}` - is a fragment configuration value under the key `x`
+
+##### Endpoint path
+All path placeholders are substituted with encoded values according to the RFC standard. 
+However, there are two exceptions:
+- space character is substituted by `%20` instead of `+`.
+- slash character `/` remains as it is.
+
+The sample usage:
+```
+endpointOptions.path = /users/{payload.fetch-user-info._result.id}
+```
+
+##### Request body
+Please note that unlike for path, placeholders in body will not be URL-encoded.
+To enable body interpolation, set `interpolateBody` flag under `endpointOptions` to `true`.
+
+The sample usage:
+```
+endpointOptions.bodyJson = {
+  user-data-id = "{payload.fetch-user-info._result.id}"
+}
+endpointOptions.interpolateBody = true
+```
+
+#### Success criteria
+The `responseOptions` config is responsible for handling responses properly. Here we can specify `predicates` - it's array
 containing Vert.x response predicates, to get more familiar with it, please visit [this page](https://vertx.io/blog/http-response-validation-with-the-vert-x-web-client/).
 You may find all available predicates [here](https://vertx.io/docs/apidocs/io/vertx/ext/web/client/predicate/ResponsePredicate.html).
 Providing `JSON` predicate causes `Content-Type` check - when `Content-Type` won't be equal to `application/json` we'll get
@@ -74,89 +166,7 @@ Table below shows the behaviour of HttpAction depending on provided `responseOpt
 | application/text | false     | JSON           | JSON | _error     | -        |
 | application/text | true      | JSON           | JSON | _error     | -        |
 
-##### Http Action log
-HTTP Action adds details about the request, response and occurred errors to [node log](https://github.com/Knotx/knotx-fragments/tree/master/engine#node-log). 
-If the log level is `ERROR`, then only failing situations are logged: exception occurs during processing, response predicate is not valid, or status code is between 400 and 600. 
-For the `INFO` log level all items are logged.
-
-Node log is presented as `JSON` and has the following structure:
-```json
-{
-  "request": REQUEST_DATA,
-  "response": RESPONSE_DATA,
-  "responseBody": RESPONSE_BODY,
-  "errors": LIST_OF_ERRORS
-}
-```
-`REQUEST_DATA` contains the following entries:
- ```json
-{
-  "path": "/api/endpoint",
-  "requestHeaders": {
-    "Content-Type": "application/json"
-  },
-  "requestBody": ""
-}
-```
-`RESPONSE_DATA` contains the following entries:
-```json
-{
-  "httpVersion": "HTTP_1_1",
-  "statusCode": "200",
-  "statusMessage": "OK",
-  "headers": {
-    "Content-Type": "application/json"
-  },
-  "trailers": {
-  },
-  "httpMethod": "GET",
-  "requestPath": "http://localhost/api/endpoint"
-}
-```
-`RESPONSE_BODY` contains the response received from service, it's text value.
-
-`LIST_OF_ERRORS` looks like the following:
-```json
-[
-  {
-    "className": "io.vertx.core.eventbus.ReplyException",
-    "message": "Expect content type application/text to be one of application/json"
-  },
-  {
-    "className": "some other exception...",
-    "message": "some other message..."
-  }
-]
-```
-The table below presents expected entries in node log on particular log levels depending on service response:
-
-| Response                                   | Log level  | Log entries   |
-| ------------------------------------------ | ---------- | ------------------------------------------ |
-| `_success`                                 | INFO       | REQUEST_DATA, RESPONSE_DATA, RESPONSE_BODY |
-| `_success`                                 | ERROR      |                                            |
-| exception occurs and `_error`              | INFO       | REQUEST_DATA, LIST_OF_ERRORS               |
-| exception occurs and `_error`              | ERROR      | REQUEST_DATA, LIST_OF_ERRORS               |
-| `_error` (e.g service responds with `500`) | INFO       | REQUEST_DATA, RESPONSE_DATA, RESPONSE_BODY, LIST_OF_ERRORS |
-| `_error` (e.g service responds with `500`) | ERROR       | REQUEST_DATA, RESPONSE_DATA, LIST_OF_ERRORS                |
-| request composition fails and `_error`     | INFO, ERROR | LIST_OF_ERRORS                |
-
-The HTTP Action always calls the handler with a succeeded future. The future always has a `_success` or an `_error` transition and contains a node log. 
-
-##### Supported HTTP methods
-
-Currently Knot.x supports `GET`, `POST`, `PUT`, `PATCH`, `DELETE` and `HEAD` HTTP methods.
-This is specified using `httpMethod` option under `config` node of HttpAction (defaults to `GET`).
-
-For `POST`, `PUT` and `PATCH` methods, request body is sent. 
-Body can be specified either as String or as a JSON, using `body` and `bodyJson` parameters under `endpointOptions`.
-It is possible to perform interpolation using values from the original request, Fragment's configuration or Fragment's payload.
-For details, see [Knot.x Server Common Placeholders](https://github.com/Knotx/knotx-server-http/tree/master/common/placeholders#available-request-placeholders-support).
-Please note that unlike for path, placeholders in body will not be URL-encoded.
- 
-To enable body interpolation, set `interpolateBody` flag under `endpointOptions` to `true`.
-
-##### Encoding
-
+#### Encoding
 Currently, only placeholders in a path are URL-encoded. Any other value is passed as-is, i.e.:
 - path schema
 - body schema + resolved placeholders
@@ -169,8 +179,6 @@ Values used for path interpolation **must not** be encoded (otherwise a double e
 
 Client request's values used for interpolation are already in a raw form (when decoded by Knot.x HTTP Server).
 
-##### Detailed configuration
-All configuration options are explained in details in the [Config Options Cheetsheet](https://github.com/Knotx/knotx-fragments/tree/master/handler/core/docs/asciidoc/dataobjects.adoc).
 
 ### Inline Body Action
 Inline Body Action replaces Fragment body with specified one. Its configuration looks like:
@@ -251,7 +259,9 @@ and key value `someKey.someNestedKey` body value will look like:
 ```
 
 ## Behaviour
-The core behaviours section.
+It is a list of core actions:
+- [Circuit Breaker Be](#circuit-breaker-behaviour) - wraps an action with circuit breaker
+- [In-memory Cache Behaviour](#in-memory-cache-behaviour) - adds cache for wrapped action
 
 ### Circuit Breaker Behaviour
 It envelopes an action with the [Circuit Breaker implementation from Vert.x](https://vertx.io/docs/vertx-circuit-breaker/java/).
