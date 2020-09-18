@@ -28,9 +28,7 @@ import io.knotx.fragments.task.factory.generic.node.NodeOptions;
 import io.knotx.fragments.task.factory.generic.node.action.metadata.ActionNodeMetadataProvider;
 import io.vertx.core.json.JsonObject;
 import io.vertx.reactivex.core.Vertx;
-
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.ServiceLoader;
 import java.util.UUID;
@@ -38,8 +36,8 @@ import java.util.function.Supplier;
 
 public class ActionNodeFactory implements NodeFactory {
 
-  private static final Supplier<Iterator<ActionFactory>> SPI_ACTION_SUPPLIER = () -> ServiceLoader
-      .load(ActionFactory.class).iterator();
+  private static final Supplier<Iterable<ActionFactory>> SPI_ACTION_SUPPLIER = () -> ServiceLoader
+      .load(ActionFactory.class);
 
   public static final String NAME = "action";
 
