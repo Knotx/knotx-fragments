@@ -16,7 +16,7 @@
 package io.knotx.fragments.action.api.log;
 
 
-import static io.knotx.fragments.action.api.log.ActionInvocationLog.DO_ACTION_LOG;
+import static io.knotx.fragments.action.api.log.ActionInvocationLog.LOG;
 import static io.knotx.fragments.action.api.log.ActionInvocationLog.DURATION;
 import static io.knotx.fragments.action.api.log.ActionInvocationLog.SUCCESS;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -39,8 +39,8 @@ class ActionInvocationLogTest {
     ActionInvocationLog invocationLog = new ActionInvocationLog(json);
 
     //then
-    assertNull(invocationLog.getDoActionLog());
-    assertNull(invocationLog.toJson().getJsonObject(DO_ACTION_LOG));
+    assertNull(invocationLog.getLog());
+    assertNull(invocationLog.toJson().getJsonObject(LOG));
   }
 
   @Test
@@ -50,13 +50,13 @@ class ActionInvocationLogTest {
     ActionLog al = new ActionLog("alias", new JsonObject(), Collections.emptyList());
     JsonObject json = new JsonObject().put(DURATION, 1L)
         .put(SUCCESS, true)
-        .put(DO_ACTION_LOG, al.toJson());
+        .put(LOG, al.toJson());
 
     //when
     ActionInvocationLog invocationLog = new ActionInvocationLog(json);
 
     //then
-    assertNotNull(invocationLog.getDoActionLog());
-    assertNotNull(invocationLog.toJson().getJsonObject(DO_ACTION_LOG));
+    assertNotNull(invocationLog.getLog());
+    assertNotNull(invocationLog.toJson().getJsonObject(LOG));
   }
 }

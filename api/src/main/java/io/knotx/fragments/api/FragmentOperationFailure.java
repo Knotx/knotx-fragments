@@ -15,7 +15,7 @@
  */
 package io.knotx.fragments.api;
 
-import io.reactivex.exceptions.CompositeException;
+import io.knotx.commons.error.ExceptionUtils;
 import io.vertx.codegen.annotations.DataObject;
 import io.vertx.core.json.JsonObject;
 import java.util.Collections;
@@ -118,17 +118,9 @@ public class FragmentOperationFailure {
 
   private static List<FragmentOperationError> getExceptionDescriptors(Throwable error) {
     return Stream.of(error)
-        .map(FragmentOperationFailure::flatIfComposite)
+        .map(ExceptionUtils::flatIfComposite)
         .flatMap(List::stream)
         .map(FragmentOperationError::newInstance)
         .collect(Collectors.toList());
-  }
-
-  private static List<Throwable> flatIfComposite(Throwable error) {
-    if (error instanceof CompositeException) {
-      return ((CompositeException) error).getExceptions();
-    } else {
-      return Collections.singletonList(error);
-    }
   }
 }

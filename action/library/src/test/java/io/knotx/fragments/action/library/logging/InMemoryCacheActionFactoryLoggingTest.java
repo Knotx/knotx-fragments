@@ -12,16 +12,16 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * The code comes from https://github.com/tomaszmichalak/vertx-rx-map-reduce.
  */
 package io.knotx.fragments.action.library.logging;
 
+import static io.knotx.fragments.action.api.log.ActionInvocationLog.LOG;
+import static io.knotx.fragments.action.api.log.ActionInvocationLog.SUCCESS;
+import static io.knotx.fragments.action.api.log.ActionLog.INVOCATIONS;
 import static io.knotx.fragments.action.library.TestUtils.someContext;
 import static io.knotx.fragments.action.library.TestUtils.verifyActionResult;
 import static io.knotx.fragments.action.library.TestUtils.verifyTwoActionResults;
-import static io.knotx.fragments.action.library.cache.CacheTestUtils.DO_ACTION_LOGS;
-import static io.knotx.fragments.action.library.cache.CacheTestUtils.INVOCATIONS_LOGS_KEY;
+import static io.knotx.fragments.action.library.cache.CacheTestUtils.ACTION_LOG;
 import static io.knotx.fragments.action.library.cache.CacheTestUtils.LOGS_KEY;
 import static io.knotx.fragments.action.library.cache.CacheTestUtils.PAYLOAD_KEY;
 import static io.knotx.fragments.action.library.cache.CacheTestUtils.SOME_VALUE;
@@ -40,7 +40,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.knotx.fragments.action.api.Action;
 import io.knotx.fragments.action.library.InMemoryCacheActionFactory;
-import io.knotx.junit5.KnotxExtension;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.VertxExtension;
@@ -89,7 +88,7 @@ class InMemoryCacheActionFactoryLoggingTest {
     Action tested = create(doActionIdleWithLogs(), ERROR);
 
     verifyLog(testContext, tested,
-        log -> assertTrue(log.getJsonArray(INVOCATIONS_LOGS_KEY).isEmpty()));
+        log -> assertTrue(log.getJsonArray(INVOCATIONS).isEmpty()));
   }
 
   @Test
@@ -125,10 +124,10 @@ class InMemoryCacheActionFactoryLoggingTest {
     Action tested = create(doActionIdleWithLogs(), INFO);
 
     JsonObject expected = new JsonObject()
-        .put(INVOCATIONS_LOGS_KEY, new JsonArray()
+        .put(INVOCATIONS, new JsonArray()
             .add(new JsonObject()
-                .put("success", true)
-                .put("doActionLog", DO_ACTION_LOGS)));
+                .put(SUCCESS, true)
+                .put(LOG, ACTION_LOG)));
 
     verifyLog(testContext, tested, log -> assertJsonEquals(expected, log));
   }
@@ -140,10 +139,10 @@ class InMemoryCacheActionFactoryLoggingTest {
     Action tested = create(doActionError(), level);
 
     JsonObject expected = new JsonObject()
-        .put(INVOCATIONS_LOGS_KEY, new JsonArray()
+        .put(INVOCATIONS, new JsonArray()
             .add(new JsonObject()
-                .put("success", false)
-                .put("doActionLog", DO_ACTION_LOGS)));
+                .put(SUCCESS, false)
+                .put(LOG, ACTION_LOG)));
 
     verifyLog(testContext, tested, log -> assertJsonEquals(expected, log));
   }

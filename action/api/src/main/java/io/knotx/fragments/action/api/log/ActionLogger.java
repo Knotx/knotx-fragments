@@ -17,13 +17,17 @@ package io.knotx.fragments.action.api.log;
 
 import static io.knotx.fragments.action.api.log.ActionLogLevel.INFO;
 
-import io.reactivex.exceptions.CompositeException;
+import io.knotx.commons.error.ExceptionUtils;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import java.time.Instant;
 import java.util.function.Function;
 
 public class ActionLogger {
+
+  public static final String ERRORS = "errors";
+  public static final String CLASS_NAME = "className";
+  public static final String MESSAGE = "message";
 
   private final ActionLogLevel actionLogLevel;
   private final ActionLogBuilder builder;
@@ -89,17 +93,7 @@ public class ActionLogger {
   }
 
   public void error(Throwable throwable) {
-    JsonArray exceptions = new JsonArray();
-    if (throwable instanceof CompositeException) {
-      ((CompositeException) throwable).getExceptions().forEach(e -> {
-        exceptions.add(new JsonObject().put("className", e.getClass().getCanonicalName())
-            .put("message", e.getMessage()));
-      });
-    } else {
-      exceptions.add(new JsonObject().put("className", throwable.getClass().getCanonicalName())
-          .put("message", throwable.getMessage()));
-    }
-    this.builder.addLog("errors", exceptions);
+    this.builder.addLog(ERRORS, toLogEntries(throwable));
   }
 
   public void error(String data) {
@@ -114,14 +108,27 @@ public class ActionLogger {
     return builder.build();
   }
 
-  public void doActionLog(long duration, JsonObject actionLog) {
+  public void invocation(long duration, JsonObject actionLog) {
     if (actionLogLevel == INFO) {
       this.builder.appendInvocationLogEntry(duration, toActionLogOrNull(actionLog));
     }
   }
 
-  public void failureDoActionLog(long duration, JsonObject actionLog) {
+  public void failedInvocation(long duration, JsonObject actionLog) {
     this.builder.appendFailureInvocationLogEntry(duration, toActionLogOrNull(actionLog));
+  }
+
+  private JsonArray toLogEntries(Throwable possiblyComposite) {
+    return ExceptionUtils.flatIfComposite(possiblyComposite)
+        .stream()
+        .map(this::toLogEntry)
+        .collect(JsonArray::new, JsonArray::add, JsonArray::addAll);
+  }
+
+  private JsonObject toLogEntry(Throwable throwable) {
+    return new JsonObject()
+        .put(CLASS_NAME, throwable.getClass().getCanonicalName())
+        .put(MESSAGE, throwable.getMessage());
   }
 
   private ActionLog toActionLogOrNull(JsonObject jsonObject) {

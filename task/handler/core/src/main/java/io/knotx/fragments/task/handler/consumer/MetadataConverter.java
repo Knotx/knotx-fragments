@@ -81,7 +81,7 @@ class MetadataConverter {
 
   private List<GraphNodeErrorLog> getErrorLogs(Response metadataResponse) {
     return metadataResponse.getErrors().stream()
-        .map(error -> GraphNodeErrorLog.newInstance(error))
+        .map(GraphNodeErrorLog::newInstance)
         .collect(Collectors.toList());
   }
 

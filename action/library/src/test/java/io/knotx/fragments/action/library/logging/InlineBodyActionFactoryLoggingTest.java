@@ -15,6 +15,8 @@
  */
 package io.knotx.fragments.action.library.logging;
 
+import static io.knotx.fragments.action.api.log.ActionLog.INVOCATIONS;
+import static io.knotx.fragments.action.api.log.ActionLog.LOGS;
 import static io.knotx.fragments.action.library.TestUtils.ACTION_ALIAS;
 import static io.knotx.fragments.action.library.TestUtils.someFragment;
 import static io.knotx.fragments.action.library.TestUtils.verifyActionResult;
@@ -37,9 +39,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 @Timeout(value = 5, timeUnit = SECONDS)
 class InlineBodyActionFactoryLoggingTest {
 
-  private static final String LOGS_KEY = "logs";
-  private static final String DO_ACTION_LOGS_KEY = "doActionLogs";
-
   private static final String BODY_TO_INLINE = "body to inline";
   private static final String INITIAL_BODY = "initial body";
 
@@ -58,7 +57,7 @@ class InlineBodyActionFactoryLoggingTest {
 
     // when
     verifyActionResult(testContext, action, someFragment().setBody(INITIAL_BODY), result -> {
-      JsonObject logs = result.result().getLog().getJsonObject(LOGS_KEY);
+      JsonObject logs = result.result().getLog().getJsonObject(LOGS);
       assertEquals(INITIAL_BODY, logs.getString(ORIGINAL_BODY_KEY));
       assertEquals(BODY_TO_INLINE, logs.getString(BODY_KEY));
     });
@@ -77,8 +76,8 @@ class InlineBodyActionFactoryLoggingTest {
     // when
     verifyActionResult(testContext, action, someFragment().setBody(INITIAL_BODY), result -> {
       JsonObject logs = result.result().getLog();
-      assertTrue(logs.getJsonObject(LOGS_KEY).isEmpty());
-      assertTrue(logs.getJsonArray(DO_ACTION_LOGS_KEY).isEmpty());
+      assertTrue(logs.getJsonObject(LOGS).isEmpty());
+      assertTrue(logs.getJsonArray(INVOCATIONS).isEmpty());
     });
   }
 

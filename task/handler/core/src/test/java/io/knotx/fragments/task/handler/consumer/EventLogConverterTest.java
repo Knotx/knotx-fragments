@@ -260,7 +260,7 @@ class EventLogConverterTest {
     return new JsonObject()
         .put("alias", "alias")
         .put("logs", new JsonObject())
-        .put("doActionLogs", new JsonArray());
+        .put("invocations", new JsonArray());
   }
 
 }

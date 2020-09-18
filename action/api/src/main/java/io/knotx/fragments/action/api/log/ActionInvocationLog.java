@@ -27,9 +27,9 @@ import io.vertx.core.json.JsonObject;
  */
 public class ActionInvocationLog {
 
-  static final String DURATION = "duration";
-  static final String SUCCESS = "success";
-  static final String DO_ACTION_LOG = "doActionLog";
+  public static final String DURATION = "duration";
+  public static final String SUCCESS = "success";
+  public static final String LOG = "log";
 
   /**
    * Action processing time in milliseconds.
@@ -44,18 +44,18 @@ public class ActionInvocationLog {
   /**
    * Enveloped action log.
    */
-  private final ActionLog doActionLog;
+  private final ActionLog log;
 
-  private ActionInvocationLog(long duration, boolean success, ActionLog doActionLog) {
+  private ActionInvocationLog(long duration, boolean success, ActionLog log) {
     this.duration = duration;
     this.success = success;
-    this.doActionLog = doActionLog;
+    this.log = log;
   }
 
   public ActionInvocationLog(JsonObject json) {
     this.duration = json.getLong(DURATION);
     this.success = json.getBoolean(SUCCESS);
-    this.doActionLog = toDoActionLog(json);
+    this.log = toLog(json);
   }
 
   static ActionInvocationLog success(long duration, ActionLog actionLog) {
@@ -74,14 +74,14 @@ public class ActionInvocationLog {
     return success;
   }
 
-  public ActionLog getDoActionLog() {
-    return doActionLog;
+  public ActionLog getLog() {
+    return log;
   }
 
   public JsonObject toJson() {
-    return new JsonObject().put("duration", duration)
-        .put("success", success)
-        .put("doActionLog", doActionLog != null ? doActionLog.toJson() : null);
+    return new JsonObject().put(DURATION, duration)
+        .put(SUCCESS, success)
+        .put(LOG, log != null ? log.toJson() : null);
   }
 
   @Override
@@ -95,12 +95,12 @@ public class ActionInvocationLog {
     ActionInvocationLog that = (ActionInvocationLog) o;
     return success == that.success &&
         Objects.equals(duration, that.duration) &&
-        Objects.equals(doActionLog, that.doActionLog);
+        Objects.equals(log, that.log);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(duration, success, doActionLog);
+    return Objects.hash(duration, success, log);
   }
 
   @Override
@@ -108,13 +108,13 @@ public class ActionInvocationLog {
     return "ActionInvocationLog{" +
         "duration=" + duration +
         ", success=" + success +
-        ", doActionLog=" + doActionLog +
+        ", log=" + log +
         '}';
   }
 
-  private ActionLog toDoActionLog(JsonObject json) {
+  private ActionLog toLog(JsonObject json) {
     return Optional.ofNullable(json)
-        .map(j -> j.getJsonObject(DO_ACTION_LOG))
+        .map(j -> j.getJsonObject(LOG))
         .map(ActionLog::new)
         .orElse(null);
   }
