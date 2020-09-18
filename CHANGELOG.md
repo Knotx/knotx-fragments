@@ -3,13 +3,14 @@ All notable changes to `knotx-fragments` will be documented in this file.
 
 ## Unreleased
 List of changes that are finished but not yet released in any final version.
-- [PR-196](https://github.com/Knotx/knotx-fragments/pull/196/files) - Rename `doActionLogs`  in [Actions](https://github.com/Knotx/knotx-fragments/tree/master/action)' log to `invocations`.
-- [PR-195](https://github.com/Knotx/knotx-fragments/pull/195) - Simplifies `ActionProvider`'s constructor.
-- [PR-194](https://github.com/Knotx/knotx-fragments/pull/194) - Generalizes `InMemoryCacheAction` to support different `Cache` implementations. Provides test refactoring.
-- [PR-188](https://github.com/Knotx/knotx-fragments/pull/188) - Exposes nested doActions' (possibly chained) configuration in `OperationMetadata`.
-- [PR-187](https://github.com/Knotx/knotx-fragments/pull/187) - Provides `SingleFragmentOperation` to simplify implementation of RXfied actions.
-- [PR-186](https://github.com/Knotx/knotx-fragments/pull/186) - Provides `FutureFragmentOperation` and `SyncFragmentOperation` to simplify implementation of asynchronous and synchronous actions.
-- [PR-181](https://github.com/Knotx/knotx-fragments/pull/181) - It introduces an error log to `FragmentResult` for handling failures. All `FragmentResult`constructors are deprecated now.
+- [PR-198](https://github.com/Knotx/knotx-fragments/pull/198) - Introduce `CopyPayloadKeyActionFactory` to enable coping inside Fragment's payload.
+- [PR-196](https://github.com/Knotx/knotx-fragments/pull/196) - Rename `doActionLogs`  in [Actions](https://github.com/Knotx/knotx-fragments/tree/master/action)' log to `invocations`.
+- [PR-195](https://github.com/Knotx/knotx-fragments/pull/195) - Simplifie `ActionProvider`'s constructor.
+- [PR-194](https://github.com/Knotx/knotx-fragments/pull/194) - Generalize `InMemoryCacheAction` to support different `Cache` implementations. Provides test refactoring.
+- [PR-188](https://github.com/Knotx/knotx-fragments/pull/188) - Expose nested doActions' (possibly chained) configuration in `OperationMetadata`.
+- [PR-187](https://github.com/Knotx/knotx-fragments/pull/187) - Provide `SingleFragmentOperation` to simplify implementation of RXfied actions.
+- [PR-186](https://github.com/Knotx/knotx-fragments/pull/186) - Provide `FutureFragmentOperation` and `SyncFragmentOperation` to simplify implementation of asynchronous and synchronous actions.
+- [PR-181](https://github.com/Knotx/knotx-fragments/pull/181) - Introduce an error log to `FragmentResult` for handling failures. All `FragmentResult`constructors are deprecated now.
 - [PR-174](https://github.com/Knotx/knotx-fragments/pull/172) - Add node processing errors to the [graph node response log](https://github.com/Knotx/knotx-fragments/blob/master/task/handler/log/api/docs/asciidoc/dataobjects.adoc#graphnoderesponselog).
 - [PR-172](https://github.com/Knotx/knotx-fragments/pull/172) - Add a task node processing exception to event log. Remove unused 'TIMEOUT' node status. Update node unit tests.
 - [PR-170](https://github.com/Knotx/knotx-fragments/pull/170) - Upgrade to Vert.x `3.9.1`, replace deprecated `setHandler` with `onComplete`.

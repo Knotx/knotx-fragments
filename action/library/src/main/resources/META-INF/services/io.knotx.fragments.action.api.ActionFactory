@@ -17,6 +17,7 @@ io.knotx.fragments.action.library.cb.CircuitBreakerActionFactory
 io.knotx.fragments.action.library.InMemoryCacheActionFactory
 
 # pre-defined actions
+io.knotx.fragments.action.library.CopyPayloadKeyActionFactory
 io.knotx.fragments.action.library.KnotFactory
 io.knotx.fragments.action.library.InlineBodyActionFactory
 io.knotx.fragments.action.library.InlinePayloadActionFactory
