@@ -18,6 +18,7 @@ package io.knotx.fragments.action.api.log;
 import static io.knotx.fragments.action.api.log.ActionInvocationLog.error;
 import static io.knotx.fragments.action.api.log.ActionInvocationLog.success;
 
+import io.knotx.fragments.action.api.invoker.ActionInvocation;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import java.util.ArrayList;
@@ -34,12 +35,12 @@ class ActionLogBuilder {
     this.invocations = new ArrayList<>();
   }
 
-  void appendInvocationLogEntry(long duration, ActionLog actionLog) {
-    invocations.add(success(duration, actionLog));
+  void appendInvocationLogEntry(ActionInvocation invocation) {
+    invocations.add(success(invocation));
   }
 
-  void appendFailureInvocationLogEntry(long duration, ActionLog actionLog) {
-    invocations.add(error(duration, actionLog));
+  void appendFailureInvocationLogEntry(ActionInvocation invocation) {
+    invocations.add(error(invocation));
   }
 
   void addLog(String key, String value) {
@@ -57,4 +58,5 @@ class ActionLogBuilder {
   ActionLog build() {
     return new ActionLog(alias, logs, invocations);
   }
+
 }

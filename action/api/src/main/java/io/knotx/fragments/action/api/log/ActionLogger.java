@@ -18,6 +18,7 @@ package io.knotx.fragments.action.api.log;
 import static io.knotx.fragments.action.api.log.ActionLogLevel.INFO;
 
 import io.knotx.commons.error.ExceptionUtils;
+import io.knotx.fragments.action.api.invoker.ActionInvocation;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import java.time.Instant;
@@ -108,14 +109,14 @@ public class ActionLogger {
     return builder.build();
   }
 
-  public void invocation(long duration, JsonObject actionLog) {
+  public void info(ActionInvocation invocation) {
     if (actionLogLevel == INFO) {
-      this.builder.appendInvocationLogEntry(duration, toActionLogOrNull(actionLog));
+      this.builder.appendInvocationLogEntry(invocation);
     }
   }
 
-  public void failedInvocation(long duration, JsonObject actionLog) {
-    this.builder.appendFailureInvocationLogEntry(duration, toActionLogOrNull(actionLog));
+  public void error(ActionInvocation invocation) {
+    this.builder.appendFailureInvocationLogEntry(invocation);
   }
 
   private JsonArray toLogEntries(Throwable possiblyComposite) {
@@ -131,7 +132,4 @@ public class ActionLogger {
         .put(MESSAGE, throwable.getMessage());
   }
 
-  private ActionLog toActionLogOrNull(JsonObject jsonObject) {
-    return jsonObject != null ? new ActionLog(jsonObject) : null;
-  }
 }

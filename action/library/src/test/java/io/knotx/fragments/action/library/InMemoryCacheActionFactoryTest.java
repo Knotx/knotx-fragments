@@ -15,6 +15,7 @@
  */
 package io.knotx.fragments.action.library;
 
+import static io.knotx.fragments.action.api.log.ActionLogger.ERRORS;
 import static io.knotx.fragments.action.library.TestUtils.ACTION_ALIAS;
 import static io.knotx.fragments.action.library.TestUtils.someContext;
 import static io.knotx.fragments.action.library.TestUtils.someFragment;
@@ -30,6 +31,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import io.knotx.fragments.action.api.Action;
 import io.knotx.fragments.action.api.SyncAction;
 import io.knotx.fragments.api.FragmentContext;
+import io.knotx.fragments.api.FragmentOperationError;
+import io.knotx.fragments.api.FragmentOperationFailure;
 import io.knotx.fragments.api.FragmentResult;
 import io.knotx.server.api.context.ClientRequest;
 import io.vertx.core.json.JsonObject;
@@ -37,6 +40,7 @@ import io.vertx.junit5.Timeout;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
 import io.vertx.reactivex.core.MultiMap;
+import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -88,7 +92,7 @@ class InMemoryCacheActionFactoryTest {
   @Test
   void callActionThatThrowsException(VertxTestContext testContext) {
     // given
-    Action doAction = (SyncAction) fragmentContext -> {
+    Action doAction = (context, handler) -> {
       throw new IllegalStateException();
     };
 
@@ -98,9 +102,10 @@ class InMemoryCacheActionFactoryTest {
     // when, then
     verifyActionResult(testContext, tested, result -> {
       assertEquals(ERROR_TRANSITION, result.result().getTransition());
-      JsonObject logs = result.result().getLog().getJsonObject("logs");
+      List<FragmentOperationError> errors = result.result().getError().getExceptions();
+      assertEquals(1, errors.size());
       assertEquals(IllegalStateException.class.getCanonicalName(),
-          logs.getJsonArray("errors").getJsonObject(0).getString("className"));
+          errors.get(0).getClassName());
     });
   }
 
@@ -190,7 +195,7 @@ class InMemoryCacheActionFactoryTest {
 
   @DisplayName("Error not cached.")
   @Test
-  void callDoActionWithErrorAndDoActionWithSuccess(VertxTestContext testContext) throws Throwable {
+  void callDoActionWithErrorAndDoActionWithSuccess(VertxTestContext testContext) {
     // given
     JsonObject expectedPayloadValue = new JsonObject().put("someKey", "someValue");
     Action doAction = (SyncAction) fragmentContext -> {

@@ -15,26 +15,21 @@
  */
 package io.knotx.fragments.action.library.cache.operations;
 
-import static io.knotx.commons.time.TimeCalculator.millisFrom;
-import static io.knotx.fragments.action.library.TestUtils.failedResult;
+import static io.knotx.fragments.action.library.TestUtils.someContext;
 import static io.knotx.fragments.action.library.TestUtils.successResult;
 import static io.knotx.fragments.action.library.cache.CacheTestUtils.CACHE_KEY;
 import static io.knotx.fragments.action.library.cache.CacheTestUtils.SOME_VALUE;
-import static java.time.Instant.now;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
+import io.knotx.fragments.action.api.invoker.ActionInvocation;
 import io.knotx.fragments.action.api.log.ActionLogger;
 import io.vertx.core.json.JsonObject;
-import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -91,46 +86,18 @@ class CacheActionLoggerTest {
   @DisplayName("Expect success retrieval logged as success")
   void successRetrieval() {
     tested.onLookup(CACHE_KEY);
-    tested.onRetrieveStart();
-    tested.onRetrieveEnd(successResult());
+    tested.onInvocationFinish(ActionInvocation.resultDelivered(1000, successResult()));
 
-    verify(actionLogger, times(1)).invocation(anyLong(), any());
+    verify(actionLogger, times(1)).info(any());
   }
 
   @Test
   @DisplayName("Expect failed retrieval logged as failure")
   void failedRetrieval() {
     tested.onLookup(CACHE_KEY);
-    tested.onRetrieveStart();
-    tested.onRetrieveEnd(failedResult());
+    tested.onInvocationFinish(ActionInvocation.exception(1000, new RuntimeException(), someContext()));
 
-    verify(actionLogger, times(1)).failedInvocation(anyLong(), any());
-  }
-
-  @Test
-  @DisplayName("Expect calculated retrieval time shorter than the test's")
-  void timeCalculation() throws InterruptedException {
-    tested.onLookup(CACHE_KEY);
-
-    long startTime = now().toEpochMilli();
-    log50msExecution();
-    long testDuration = millisFrom(startTime);
-
-    long loggedDuration = getLoggedDuration();
-
-    assertTrue(loggedDuration <= testDuration);
-  }
-
-  private void log50msExecution() throws InterruptedException {
-    tested.onRetrieveStart();
-    TimeUnit.MILLISECONDS.sleep(50);
-    tested.onRetrieveEnd(successResult());
-  }
-
-  private Long getLoggedDuration() {
-    ArgumentCaptor<Long> duration = ArgumentCaptor.forClass(Long.class);
-    verify(actionLogger, times(1)).invocation(duration.capture(), any());
-    return duration.getValue();
+    verify(actionLogger, times(1)).error(any(ActionInvocation.class));
   }
 
 }

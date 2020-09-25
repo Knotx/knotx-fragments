@@ -63,6 +63,19 @@ public final class TestUtils {
     return (SyncAction) fragmentContext -> FragmentResult.success(fragmentContext.getFragment());
   }
 
+  public static void verifyDeliveredResult(VertxTestContext testContext, Action action,
+      Consumer<FragmentResult> assertions) {
+    verifyDeliveredResult(testContext, action, someContext(), assertions);
+  }
+
+  public static void verifyDeliveredResult(VertxTestContext testContext, Action action,
+      FragmentContext input, Consumer<FragmentResult> assertions) {
+    action.apply(input, testContext.succeeding(result -> testContext.verify(() -> {
+      assertions.accept(result);
+      testContext.completeNow();
+    })));
+  }
+
   public static void verifyActionResult(VertxTestContext testContext, Action action,
       Consumer<AsyncResult<FragmentResult>> assertions) {
     verifyActionResult(testContext, action, someFragment(), assertions);
