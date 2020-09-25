@@ -20,6 +20,7 @@ import static io.knotx.fragments.action.api.log.ActionInvocationLog.SUCCESS;
 import static io.knotx.fragments.action.api.log.ActionLog.INVOCATIONS;
 import static io.knotx.fragments.action.library.TestUtils.someContext;
 import static io.knotx.fragments.action.library.TestUtils.verifyActionResult;
+import static io.knotx.fragments.action.library.TestUtils.verifyDeliveredResult;
 import static io.knotx.fragments.action.library.TestUtils.verifyTwoActionResults;
 import static io.knotx.fragments.action.library.cache.CacheTestUtils.ACTION_LOG;
 import static io.knotx.fragments.action.library.cache.CacheTestUtils.LOGS_KEY;
@@ -36,14 +37,17 @@ import static io.knotx.fragments.action.library.cache.operations.CacheActionLogg
 import static io.knotx.fragments.action.library.cache.operations.CacheActionLogger.CACHE_PASS;
 import static io.knotx.fragments.action.library.cache.operations.CacheActionLogger.COMPUTED_VALUE;
 import static io.knotx.junit5.assertions.KnotxAssertions.assertJsonEquals;
+import static org.junit.Assert.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.knotx.fragments.action.api.Action;
 import io.knotx.fragments.action.library.InMemoryCacheActionFactory;
+import io.knotx.fragments.api.FragmentOperationError;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
+import java.util.List;
 import java.util.function.Consumer;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -176,7 +180,12 @@ class InMemoryCacheActionFactoryLoggingTest {
                     .put("message", "Application failed!")
                 )));
 
-    verifyLog(testContext, tested, log -> assertJsonEquals(expected, log));
+    verifyDeliveredResult(testContext, tested, result -> {
+      List<FragmentOperationError> errors = result.getError().getExceptions();
+      assertEquals(1, errors.size());
+      assertEquals(IllegalStateException.class.getCanonicalName(), errors.get(0).getClassName());
+      assertEquals("Application failed!", errors.get(0).getMessage());
+    });
   }
 
   private Action create(Action doAction, String logLevel) {

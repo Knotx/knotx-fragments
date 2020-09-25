@@ -17,6 +17,7 @@ package io.knotx.fragments.api;
 
 import io.vertx.codegen.annotations.DataObject;
 import io.vertx.core.json.JsonObject;
+import java.util.Arrays;
 import java.util.Objects;
 import org.apache.commons.lang3.StringUtils;
 
@@ -28,6 +29,12 @@ public class FragmentResult {
 
   public static final String SUCCESS_TRANSITION = "_success";
   public static final String ERROR_TRANSITION = "_error";
+
+  // These are internal and should not be returned by action itself
+  // In graph they will be by default redirected to _error transition,
+  // But they indicate that the action did not end successfully
+  public static final String EXTERNAL_TIMEOUT_TRANSITION = "_external_timeout";
+  public static final String EXCEPTION_TRANSITION = "_exception";
 
   private static final String FRAGMENT_KEY = "fragment";
   private static final String TRANSITION_KEY = "transition";
@@ -68,6 +75,17 @@ public class FragmentResult {
   public static FragmentResult fail(Fragment fragment, String errorCode, String errorMessage) {
     return new FragmentResult(fragment, ERROR_TRANSITION, null,
         FragmentOperationFailure.newInstance(errorCode, errorMessage));
+  }
+
+  // Should be used only by caller to indicate synchronous or asynchronous exception
+  public static FragmentResult exception(FragmentContext original, Throwable error) {
+    return new FragmentResult(original.getFragment(), EXCEPTION_TRANSITION, null,
+        FragmentOperationFailure.newInstance(error));
+  }
+
+  // Should be used only by caller to indicate external timeout
+  public static FragmentResult externalTimeout(FragmentContext original) {
+    return new FragmentResult(original.getFragment(), EXTERNAL_TIMEOUT_TRANSITION, null);
   }
 
   private FragmentResult(Fragment fragment, String transition, JsonObject log,
@@ -150,6 +168,19 @@ public class FragmentResult {
    */
   public FragmentOperationFailure getError() {
     return error;
+  }
+
+  public boolean isSuccess() {
+    return StringUtils.isBlank(transition) || SUCCESS_TRANSITION.equals(transition);
+  }
+
+  public boolean isErroneous() {
+    return isExceptional() || ERROR_TRANSITION.equals(transition);
+  }
+
+  public boolean isExceptional() {
+    return Arrays.asList(EXCEPTION_TRANSITION, EXTERNAL_TIMEOUT_TRANSITION)
+        .contains(transition);
   }
 
   @Override

@@ -110,7 +110,7 @@ class TaskExecutionContext {
     FragmentEvent fragmentEvent = fragmentEventContext.getFragmentEvent();
     Status status = fragmentEvent.getStatus();
     String nextTransition = status.getDefaultTransition().orElse(null);
-    FragmentResult result = new FragmentResult(fragmentEvent.getFragment(), nextTransition);
+    FragmentResult result = FragmentResult.success(fragmentEvent.getFragment(), nextTransition);
     if (status == Status.SUCCESS) {
       handleSuccess(result);
     } else {
@@ -143,7 +143,7 @@ class TaskExecutionContext {
   void handleSuccess(FragmentResult fragmentResult) {
     FragmentEvent fragmentEvent = fragmentEventContext.getFragmentEvent();
     fragmentEvent.setStatus(Status.SUCCESS);
-    if (ERROR_TRANSITION.equals(fragmentResult.getTransition())) {
+    if (fragmentResult.isErroneous()) {
       fragmentEvent.log(EventLogEntry.error(taskName, currentNode.getId(), fragmentResult));
     } else {
       fragmentEvent.log(EventLogEntry.success(taskName, currentNode.getId(), fragmentResult));

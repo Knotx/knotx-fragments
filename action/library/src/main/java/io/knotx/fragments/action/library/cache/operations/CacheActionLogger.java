@@ -15,12 +15,9 @@
  */
 package io.knotx.fragments.action.library.cache.operations;
 
-import static java.time.Instant.now;
-
-import io.knotx.commons.time.TimeCalculator;
+import io.knotx.fragments.action.api.invoker.ActionInvocation;
 import io.knotx.fragments.action.api.log.ActionLogLevel;
 import io.knotx.fragments.action.api.log.ActionLogger;
-import io.knotx.fragments.api.FragmentResult;
 import io.vertx.core.json.JsonObject;
 
 public class CacheActionLogger {
@@ -34,7 +31,6 @@ public class CacheActionLogger {
 
   private final ActionLogger actionLogger;
   private String key;
-  private long retrieveStart;
 
   public static CacheActionLogger create(String alias, ActionLogLevel logLevel) {
     return new CacheActionLogger(ActionLogger.create(alias, logLevel));
@@ -48,17 +44,16 @@ public class CacheActionLogger {
     this.key = key;
   }
 
-  public void onRetrieveStart() {
-    this.retrieveStart = now().toEpochMilli();
+  public void onInvocationFinish(ActionInvocation invocation) {
+    if (isSuccess(invocation)) {
+      actionLogger.info(invocation);
+    } else {
+      actionLogger.error(invocation);
+    }
   }
 
-  public void onRetrieveEnd(FragmentResult fragmentResult) {
-    long executionTime = TimeCalculator.millisFrom(retrieveStart);
-    if (isSuccessTransition(fragmentResult)) {
-      actionLogger.invocation(executionTime, fragmentResult.getLog());
-    } else {
-      actionLogger.failedInvocation(executionTime, fragmentResult.getLog());
-    }
+  private boolean isSuccess(ActionInvocation invocation) {
+    return invocation.isResultDelivered() && invocation.getFragmentResult().isSuccess();
   }
 
   void onHit(Object cachedValue) {
@@ -86,7 +81,4 @@ public class CacheActionLogger {
     return actionLogger.toLog().toJson();
   }
 
-  private static boolean isSuccessTransition(FragmentResult fragmentResult) {
-    return FragmentResult.SUCCESS_TRANSITION.equals(fragmentResult.getTransition());
-  }
 }

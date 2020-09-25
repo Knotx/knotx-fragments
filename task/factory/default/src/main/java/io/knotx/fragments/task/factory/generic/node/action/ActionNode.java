@@ -15,18 +15,21 @@
  */
 package io.knotx.fragments.task.factory.generic.node.action;
 
+import static io.knotx.fragments.action.api.invoker.ActionInvoker.rxApply;
+
 import io.knotx.fragments.action.api.Action;
+import io.knotx.fragments.action.api.invoker.ActionInvocation;
 import io.knotx.fragments.api.FragmentContext;
 import io.knotx.fragments.api.FragmentResult;
+import io.knotx.fragments.api.SingleFragmentOperation;
 import io.knotx.fragments.task.api.Node;
 import io.knotx.fragments.task.api.single.SingleNode;
-import io.vertx.core.AsyncResult;
-import io.vertx.core.Handler;
+import io.reactivex.Single;
 
 import java.util.Map;
 import java.util.Optional;
 
-class ActionNode implements SingleNode {
+class ActionNode implements SingleNode, SingleFragmentOperation {
 
   private final String id;
   private final Map<String, Node> edges;
@@ -49,8 +52,9 @@ class ActionNode implements SingleNode {
   }
 
   @Override
-  public void apply(FragmentContext fragmentContext,
-      Handler<AsyncResult<FragmentResult>> resultHandler) {
-    action.apply(fragmentContext, resultHandler);
+  public Single<FragmentResult> apply(FragmentContext fragmentContext) {
+    return rxApply(action, fragmentContext)
+        .doOnSuccess(ActionInvocation::rethrowIfResultNotDelivered)
+        .map(ActionInvocation::getFragmentResult);
   }
 }

@@ -95,9 +95,11 @@ Gets a list of serialized stacktrace lines.
 [frame="topbot"]
 |===
 ^|Name | Type ^| Description
+|[[erroneous]]`@erroneous`|`Boolean`|-
 |[[error]]`@error`|`link:dataobjects.html#FragmentOperationFailure[FragmentOperationFailure]`|+++
 Failure cause.
 +++
+|[[exceptional]]`@exceptional`|`Boolean`|-
 |[[fragment]]`@fragment`|`link:dataobjects.html#Fragment[Fragment]`|+++
 A <code>Fragment</code> transformed or updated during applying the link.
 +++
@@ -105,6 +107,7 @@ A <code>Fragment</code> transformed or updated during applying the link.
 Log data produced by link. It is a JSON-based value specific to the
  operation.
 +++
+|[[success]]`@success`|`Boolean`|-
 |[[transition]]`@transition`|`String`|+++
 A text value state of link that determines next steps in business logic.
 +++
