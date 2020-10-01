@@ -16,11 +16,10 @@
 package io.knotx.fragments.task.handler;
 
 import io.knotx.fragments.api.Fragment;
-import io.knotx.fragments.task.engine.FragmentEventContext;
+import io.knotx.fragments.task.factory.api.TaskFactory;
 import io.knotx.fragments.task.factory.api.metadata.TaskWithMetadata;
 import io.knotx.fragments.task.handler.exception.TaskFactoryNotFoundException;
 import io.knotx.fragments.task.handler.spi.FactoryOptions;
-import io.knotx.fragments.task.factory.api.TaskFactory;
 import io.knotx.server.api.context.ClientRequest;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
@@ -45,9 +44,7 @@ class TaskProvider {
     factories = initFactories(factoryOptions);
   }
 
-  Optional<TaskWithMetadata> newInstance(FragmentEventContext eventContext) {
-    Fragment fragment = eventContext.getFragmentEvent().getFragment();
-    ClientRequest clientRequest = eventContext.getClientRequest();
+  Optional<TaskWithMetadata> newInstance(Fragment fragment, ClientRequest clientRequest) {
     return factories.stream()
         .filter(f -> f.accept(fragment, clientRequest))
         .findFirst()

@@ -15,91 +15,49 @@
  */
 package io.knotx.fragments.task.engine;
 
-import static io.knotx.reactivex.fragments.api.FragmentOperation.newInstance;
-
-import io.knotx.fragments.api.FragmentResult;
+import io.knotx.fragments.api.FragmentContext;
 import io.knotx.fragments.task.api.Node;
-import io.knotx.fragments.task.api.NodeType;
-import io.knotx.fragments.task.api.composite.CompositeNode;
-import io.knotx.fragments.task.api.single.SingleNode;
-import io.reactivex.Observable;
+import io.knotx.fragments.task.engine.node.NodeExecutor;
 import io.reactivex.Single;
 import io.vertx.core.Vertx;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
-import io.vertx.reactivex.RxHelper;
 
-class TaskEngine {
+public class TaskEngine {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(TaskEngine.class);
 
-  private final Vertx vertx;
+  private final NodeExecutor executor;
 
   TaskEngine(Vertx vertx) {
-    this.vertx = vertx;
+    executor = new NodeExecutor(vertx, this);
   }
 
-  Single<FragmentEvent> start(String taskName, Node rootNode, FragmentEventContext fec) {
-    TaskExecutionContext executionContext = new TaskExecutionContext(taskName, rootNode, fec);
-
-    return processTask(executionContext)
-        .map(ctx -> ctx.getFragmentEventContext().getFragmentEvent());
+  public Single<TaskResult> start(String taskName, Node rootNode, FragmentContext fragmentContext) {
+    return start(new TaskExecutionContext(taskName, fragmentContext, rootNode));
   }
 
-  private Single<TaskExecutionContext> processTask(TaskExecutionContext context) {
-    traceEvent(context);
-
-    return context.hasNext()
-        ? getResult(context).flatMap(fragmentResult -> {
-      context.updateResult(fragmentResult);
-      return processTask(context);
-    })
-        : Single.just(context);
+  Single<TaskResult> start(TaskExecutionContext executionContext) {
+    return processUntilFinished(executionContext)
+        .map(TaskExecutionContext::getResult)
+        .doOnError(executionContext::handleFatal);
   }
 
-  private Single<TaskExecutionContext> processTask(TaskExecutionContext context, Node currentNode) {
-    return processTask(new TaskExecutionContext(context, currentNode));
-  }
-
-  private Single<FragmentResult> getResult(TaskExecutionContext context) {
-    return NodeType.COMPOSITE == context.getCurrentNode().getType()
-        ? mapReduce(context)
-        : execute(context);
-  }
-
-  private Single<FragmentResult> execute(TaskExecutionContext context) {
-    return Single.just(context.getCurrentNode())
-        .map(SingleNode.class::cast)
-        .observeOn(RxHelper.blockingScheduler(vertx))
-        .flatMap(operation -> invokeOperation(operation, context))
-        .doOnSuccess(context::handleSuccess)
-        .onErrorResumeNext(context::handleError);
-  }
-
-  private Single<FragmentResult> invokeOperation(SingleNode operation, TaskExecutionContext context) {
-    return Single.just(context)
-        .doOnSuccess(this::operationStarted)
-        .flatMap(c -> newInstance(operation).rxApply(c.fragmentContextInstance()));
-  }
-
-  private void operationStarted(TaskExecutionContext taskExecutionContext) {
-    taskExecutionContext.handleStarted();
-  }
-
-  private Single<FragmentResult> mapReduce(TaskExecutionContext context) {
-    CompositeNode node = (CompositeNode) context.getCurrentNode();
-    operationStarted(context);
-
-    return Observable.fromIterable(node.getNodes())
-        .flatMap(graphNode -> processTask(context, graphNode).toObservable())
-        .reduce(context, TaskExecutionContext::merge)
-        .map(TaskExecutionContext::toFragmentResult);
+  Single<TaskExecutionContext> processUntilFinished(TaskExecutionContext context) {
+    if (context.finished()) {
+      return Single.just(context);
+    } else {
+      traceEvent(context);
+      return executor.executeCurrentNode(context)
+          .map(context::consumeResultAndShiftToNext)
+          .flatMap(this::processUntilFinished);
+    }
   }
 
   private void traceEvent(TaskExecutionContext context) {
     if (LOGGER.isTraceEnabled()) {
       LOGGER.trace("Fragment event [{}] is processed via graph node [{}].",
-          context.getFragmentEventContext().getFragmentEvent(),
+          context.getResult(),
           context.getCurrentNode());
     }
   }

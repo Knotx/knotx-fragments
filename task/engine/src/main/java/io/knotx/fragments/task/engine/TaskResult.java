@@ -20,31 +20,28 @@ import static io.knotx.fragments.api.FragmentResult.ERROR_TRANSITION;
 import static io.knotx.fragments.api.FragmentResult.SUCCESS_TRANSITION;
 
 import io.knotx.fragments.api.Fragment;
+import io.knotx.fragments.task.engine.node.NodeResult;
+import io.reactivex.annotations.NonNull;
 import java.util.Objects;
 import java.util.Optional;
 
-public class FragmentEvent {
+public class TaskResult {
 
   private final EventLog log;
   private Fragment fragment;
   private Status status;
 
-  public FragmentEvent(Fragment fragment) {
+  public TaskResult(String taskName, Fragment fragment) {
     this.fragment = fragment;
-    this.log = new EventLog();
+    this.log = new EventLog(taskName);
     this.status = Status.UNPROCESSED;
-  }
-
-  public FragmentEvent log(EventLogEntry logEntry) {
-    log.append(logEntry);
-    return this;
   }
 
   public Fragment getFragment() {
     return fragment;
   }
 
-  public FragmentEvent setFragment(Fragment fragment) {
+  public TaskResult setFragment(Fragment fragment) {
     this.fragment = fragment;
     return this;
   }
@@ -61,9 +58,45 @@ public class FragmentEvent {
     return status;
   }
 
-  public FragmentEvent setStatus(Status status) {
+  public TaskResult setStatus(Status status) {
     this.status = status;
     return this;
+  }
+
+  @NonNull
+  public synchronized TaskResult merge(TaskResult other) {
+    final Fragment otherFragment = other.getFragment();
+    fragment.mergeInPayload(otherFragment.getPayload()); // TODO: well, this is not a good merge strategy!
+
+    // reduce status and logs
+    status = reduceStatus(status, other.getStatus());
+    appendLog(other.getLog());
+
+    return this;
+  }
+
+  public void consume(NodeResult nodeResult) {
+    // no matter what happened before, after node finish we take what it returned (payload, body and status)
+    final Fragment otherFragment = nodeResult.getFragment();
+
+    fragment.clearPayload();
+    fragment.mergeInPayload(otherFragment.getPayload()); // payload gets overwritten!
+    fragment.setBody(otherFragment.getBody()); // body gets overwritten!
+
+    status = nodeResult.getStatus(); // status gets overwritten!
+  }
+
+  private Status reduceStatus(Status first, Status second) {
+    if(first == Status.FAILURE || second == Status.FAILURE) {
+      // FAILURE, * -> FAILURE
+      return Status.FAILURE;
+    } else if (first == Status.UNPROCESSED || second == Status.UNPROCESSED) {
+      // UNPROCESSED, UNPROCESSED -> UNPROCESSED
+      // UNPROCESSED, SUCCESS -> SUCCESS
+      return Status.SUCCESS;
+    }
+    // SUCCESS, SUCCESS -> SUCCESS
+    return Status.SUCCESS;
   }
 
   @Override
@@ -74,7 +107,7 @@ public class FragmentEvent {
     if (o == null || getClass() != o.getClass()) {
       return false;
     }
-    FragmentEvent that = (FragmentEvent) o;
+    TaskResult that = (TaskResult) o;
     return Objects.equals(log, that.log) &&
         Objects.equals(fragment, that.fragment) &&
         status == that.status;

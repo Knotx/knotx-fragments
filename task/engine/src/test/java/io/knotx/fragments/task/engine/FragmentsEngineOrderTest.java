@@ -21,13 +21,13 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import io.knotx.fragments.api.Fragment;
 import io.knotx.fragments.api.FragmentOperation;
 import io.knotx.fragments.api.FragmentResult;
+import io.knotx.fragments.api.SyncFragmentOperation;
 import io.knotx.fragments.task.api.Node;
 import io.knotx.fragments.task.api.Task;
 import io.knotx.junit5.util.RequestUtil;
 import io.knotx.server.api.context.ClientRequest;
 import io.reactivex.Single;
 import io.reactivex.functions.Consumer;
-import io.vertx.core.Future;
 import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
@@ -43,33 +43,30 @@ import org.junit.jupiter.api.extension.ExtendWith;
 class FragmentsEngineOrderTest {
 
   private static final FragmentOperation TIME_CONSUMING_OPERATION =
-      (fragmentContext, resultHandler) -> {
+      (SyncFragmentOperation) context -> {
         try {
           Thread.sleep(100);
         } catch (InterruptedException e) {
           e.printStackTrace();
         }
-        Future.succeededFuture(
-            new FragmentResult(fragmentContext.getFragment(), FragmentResult.SUCCESS_TRANSITION))
-            .onComplete(resultHandler);
+        return FragmentResult.success(context.getFragment());
       };
   private static final FragmentOperation SIMPLE_OPERATION =
-      (fragmentContext, resultHandler) -> Future.succeededFuture(
-          new FragmentResult(fragmentContext.getFragment(), FragmentResult.SUCCESS_TRANSITION))
-          .onComplete(resultHandler);
+      (SyncFragmentOperation) fragmentContext -> FragmentResult
+          .success(fragmentContext.getFragment());
 
   @Test
   @DisplayName("Expect fragments in incoming order")
   void expectCorrectOrder(VertxTestContext testContext, Vertx vertx)
       throws Throwable {
     // given
-    List<FragmentEventContextTaskAware> events = Arrays.asList(
+    List<FragmentContextTaskAware> events = Arrays.asList(
         initFragmentEventContextTaskAware("first fragment", TIME_CONSUMING_OPERATION),
         initFragmentEventContextTaskAware("second fragment", SIMPLE_OPERATION)
     );
 
     // when
-    Single<List<FragmentEvent>> result = new FragmentsEngine(vertx).execute(events);
+    Single<List<TaskResult>> result = new FragmentsEngine(vertx).execute(events);
 
     // then
     verifyExecution(result, fragmentEvents -> testContext.verify(() -> {
@@ -79,17 +76,16 @@ class FragmentsEngineOrderTest {
     }), testContext);
   }
 
-  private FragmentEventContextTaskAware initFragmentEventContextTaskAware(String fragmentBody,
+  private FragmentContextTaskAware initFragmentEventContextTaskAware(String fragmentBody,
       FragmentOperation operation) {
     Node graphNode = Nodes.single("id", operation);
     Fragment fragment = new Fragment("snippet", new JsonObject(), fragmentBody);
 
-    return new FragmentEventContextTaskAware(new Task("task", graphNode),
-        new FragmentEventContext(new FragmentEvent(fragment), new ClientRequest()));
+    return new FragmentContextTaskAware(new Task("task", graphNode), new ClientRequest(), fragment);
   }
 
-  void verifyExecution(Single<List<FragmentEvent>> result,
-      Consumer<List<FragmentEvent>> successConsumer,
+  void verifyExecution(Single<List<TaskResult>> result,
+      Consumer<List<TaskResult>> successConsumer,
       VertxTestContext testContext) throws Throwable {
     RequestUtil.subscribeToResult_shouldSucceed(testContext, result, successConsumer);
     assertTrue(testContext.awaitCompletion(5, TimeUnit.SECONDS));

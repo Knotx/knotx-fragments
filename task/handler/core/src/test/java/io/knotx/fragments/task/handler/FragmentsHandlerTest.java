@@ -22,8 +22,8 @@ import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.Mockito.doAnswer;
 
 import io.knotx.fragments.api.Fragment;
-import io.knotx.fragments.task.engine.FragmentEvent;
-import io.knotx.fragments.task.engine.FragmentEvent.Status;
+import io.knotx.fragments.task.engine.TaskResult;
+import io.knotx.fragments.task.engine.TaskResult.Status;
 import io.knotx.fragments.task.handler.exception.ConfigurationException;
 import io.knotx.fragments.task.handler.utils.RoutingContextStub;
 import io.knotx.junit5.util.HoconLoader;
@@ -91,16 +91,16 @@ class FragmentsHandlerTest {
       String expectedBody = "_success";
 
       //when
-      Single<List<FragmentEvent>> rxDoHandle = underTest
+      Single<List<TaskResult>> rxDoHandle = underTest
           .doHandle(underTest
               .createExecutionPlan(Collections.singletonList(fragment), new ClientRequest()));
 
       rxDoHandle.subscribe(
           result -> testContext.verify(() -> {
             // then
-            FragmentEvent fragmentEvent = result.get(0);
-            assertEquals(Status.SUCCESS, fragmentEvent.getStatus());
-            assertEquals(expectedBody, fragmentEvent.getFragment().getBody());
+            TaskResult taskResult = result.get(0);
+            assertEquals(Status.SUCCESS, taskResult.getStatus());
+            assertEquals(expectedBody, taskResult.getFragment().getBody());
             testContext.completeNow();
           }),
           testContext::failNow
@@ -142,7 +142,7 @@ class FragmentsHandlerTest {
       Fragment fragment = new Fragment("type", new JsonObject(), EMPTY_BODY);
 
       //when
-      Single<List<FragmentEvent>> rxDoHandle = underTest
+      Single<List<TaskResult>> rxDoHandle = underTest
           .doHandle(underTest
               .createExecutionPlan(Collections.singletonList(fragment), new ClientRequest()));
 

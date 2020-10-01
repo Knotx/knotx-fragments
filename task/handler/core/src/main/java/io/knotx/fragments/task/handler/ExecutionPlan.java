@@ -15,17 +15,13 @@
  */
 package io.knotx.fragments.task.handler;
 
-import static io.knotx.fragments.task.api.Task.UNDEFINED_TASK;
-
 import io.knotx.fragments.api.Fragment;
-import io.knotx.fragments.task.engine.FragmentEvent;
-import io.knotx.fragments.task.engine.FragmentEventContext;
 import io.knotx.fragments.task.api.Task;
+import io.knotx.fragments.task.engine.FragmentContextTaskAware;
 import io.knotx.fragments.task.factory.api.metadata.TaskMetadata;
 import io.knotx.fragments.task.factory.api.metadata.TaskWithMetadata;
 import io.knotx.fragments.task.factory.api.metadata.TasksMetadata;
 import io.knotx.server.api.context.ClientRequest;
-
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -35,62 +31,42 @@ import java.util.stream.Stream;
 public class ExecutionPlan {
 
   private final TaskProvider taskProvider;
-  private final Map<FragmentEventContext, TaskWithMetadata> plan;
+  private final Map<Fragment, TaskWithMetadata> plan;
+  private final ClientRequest clientRequest;
 
   ExecutionPlan(List<Fragment> fragments, ClientRequest clientRequest, TaskProvider taskProvider) {
     this.taskProvider = taskProvider;
-    this.plan = fragments.stream()
-        .map(fragment -> new FragmentEventContext(new FragmentEvent(fragment), clientRequest))
-        .collect(Collectors.toMap(context -> context,
-            this::getTaskWithMetadataFor,
-            (u, v) -> {
-              throw new IllegalStateException(String.format("Duplicate key %s", u));
-            },
-            LinkedHashMap::new
-        ));
+    this.clientRequest = clientRequest;
+    this.plan = new LinkedHashMap<>();
+
+    fragments.forEach(fragment -> plan.put(fragment, getTaskWithMetadataFor(fragment)));
   }
 
-  public Stream<Entry> getEntryStream() {
-    return plan.entrySet().stream()
-        .map(entry -> new Entry(entry.getKey(), entry.getValue()));
+  public List<FragmentContextTaskAware> getContexts() {
+    return plan.entrySet()
+        .stream()
+        .map(this::toContext)
+        .collect(Collectors.toList());
   }
 
   public TasksMetadata getTasksMetadata() {
-    return new TasksMetadata(getEntryStream()
+    return new TasksMetadata(fragmentIdToTaskMetadata());
+  }
+
+  private FragmentContextTaskAware toContext(Map.Entry<Fragment, TaskWithMetadata> entry) {
+    return new FragmentContextTaskAware(entry.getValue().getTask(), clientRequest, entry.getKey());
+  }
+
+  private Map<String, TaskMetadata> fragmentIdToTaskMetadata() {
+    return plan.entrySet().stream()
         .collect(Collectors.toMap(
-            entry -> entry.getContext().getFragmentEvent().getFragment().getId(),
-            entry -> entry.getTaskWithMetadata().getMetadata())));
+            entry -> entry.getKey().getId(),
+            entry -> entry.getValue().getMetadata()));
   }
 
-  private TaskWithMetadata getTaskWithMetadataFor(FragmentEventContext fragmentEventContext) {
-    return taskProvider.newInstance(fragmentEventContext)
-        .orElseGet(() -> new TaskWithMetadata(new Task(UNDEFINED_TASK), TaskMetadata.notDefined()));
+  private TaskWithMetadata getTaskWithMetadataFor(Fragment fragment) {
+    return taskProvider.newInstance(fragment, clientRequest)
+        .orElseGet(() -> new TaskWithMetadata(Task.undefined(), TaskMetadata.notDefined()));
   }
 
-  public static class Entry {
-
-    private final FragmentEventContext context;
-    private final TaskWithMetadata taskWithMetadata;
-
-    private Entry(FragmentEventContext context, TaskWithMetadata taskWithMetadata) {
-      this.context = context;
-      this.taskWithMetadata = taskWithMetadata;
-    }
-
-    public FragmentEventContext getContext() {
-      return context;
-    }
-
-    public TaskWithMetadata getTaskWithMetadata() {
-      return taskWithMetadata;
-    }
-
-    @Override
-    public String toString() {
-      return "Entry{" +
-          "context=" + context +
-          ", taskWithMetadata=" + taskWithMetadata +
-          '}';
-    }
-  }
 }

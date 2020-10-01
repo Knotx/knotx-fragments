@@ -25,7 +25,7 @@ import io.knotx.fragments.api.FragmentResult;
 import io.knotx.fragments.task.api.NodeType;
 import io.knotx.fragments.task.engine.EventLog;
 import io.knotx.fragments.task.engine.EventLogEntry;
-import io.knotx.fragments.task.engine.FragmentEvent;
+import io.knotx.fragments.task.engine.TaskResult;
 import io.knotx.fragments.task.factory.api.metadata.NodeMetadata;
 import io.knotx.fragments.task.factory.api.metadata.OperationMetadata;
 import io.knotx.fragments.task.factory.api.metadata.TaskMetadata;
@@ -119,13 +119,12 @@ class MetadataConverterTest {
   void shouldProduceCorrectJsonForMissingNodeCase() {
     JsonObject nodeLog = simpleNodeLog();
 
-    EventLogEntry[] logs = new EventLogEntry[]{
-        // d
-        EventLogEntry.error(TASK_NAME, ROOT_NODE, ERROR_TRANSITION, nodeLog),
-        EventLogEntry.unsupported(TASK_NAME, ROOT_NODE, ERROR_TRANSITION)
-    };
+    EventLog log = new EventLog(TASK_NAME);
 
-    givenEventLogAndNodesMetadata(createEventLog(logs), ROOT_NODE,
+    log.error(ROOT_NODE, ERROR_TRANSITION, nodeLog);
+    log.unsupported(ROOT_NODE, ERROR_TRANSITION);
+
+    givenEventLogAndNodesMetadata(log, ROOT_NODE,
         singleNode(ROOT_NODE, "custom", ImmutableMap.of(SUCCESS_TRANSITION, "node-A")),
         singleNode("node-A", "factory-A")
     );
@@ -150,12 +149,10 @@ class MetadataConverterTest {
   @Test
   @DisplayName("Expect no missing node metadata when _success transition and no next node defined")
   void shouldProduceCorrectJsonForSuccessTransitionWithoutNextNode() {
-    EventLogEntry[] logs = new EventLogEntry[]{
-        EventLogEntry.success(TASK_NAME, ROOT_NODE,
-            createFragmentResult(SUCCESS_TRANSITION, simpleNodeLog())),
-    };
+    EventLog log = new EventLog(TASK_NAME);
+    log.success(ROOT_NODE, createFragmentResult(SUCCESS_TRANSITION, simpleNodeLog()));
 
-    givenEventLogAndNodesMetadata(createEventLog(logs), ROOT_NODE,
+    givenEventLogAndNodesMetadata(log, ROOT_NODE,
         singleNode(ROOT_NODE, "custom")
     );
 
@@ -174,13 +171,11 @@ class MetadataConverterTest {
   @DisplayName("Expect errors in response when node throws an exception.")
   void shouldProduceCorrectJsonForExceptionFromNode() {
     CompositeException error = compositeError();
+    EventLog log = new EventLog(TASK_NAME);
+    log.exception(ROOT_NODE, ERROR_TRANSITION, error);
+    log.unsupported(ROOT_NODE, ERROR_TRANSITION);
 
-    EventLogEntry[] logs = new EventLogEntry[]{
-        EventLogEntry.exception(TASK_NAME, ROOT_NODE, ERROR_TRANSITION, error),
-        EventLogEntry.unsupported(TASK_NAME, ROOT_NODE, ERROR_TRANSITION)
-    };
-
-    givenEventLogAndNodesMetadata(createEventLog(logs), ROOT_NODE,
+    givenEventLogAndNodesMetadata(log, ROOT_NODE,
         singleNode(ROOT_NODE, "custom", ImmutableMap.of("custom", "node-A")),
         singleNode("node-A", "factory-A")
     );
@@ -303,21 +298,17 @@ class MetadataConverterTest {
   @Test
   @DisplayName("Expect correct JSON when full metadata for complex graph provided with event log")
   void shouldProduceCorrectJsonForComplexGraphWithFullMetadataWithEventLog() {
-    EventLog eventLog = createEventLog(
-        EventLogEntry.success(TASK_NAME, "a-node",
-            createFragmentResult(SUCCESS_TRANSITION, simpleNodeLog())),
-        EventLogEntry.success(TASK_NAME, "b1-subgraph",
-            createFragmentResult(SUCCESS_TRANSITION, simpleNodeLog())),
-        EventLogEntry
-            .success(TASK_NAME, "b2-subgraph", createFragmentResult("_fallback", complexNodeLog())),
-        EventLogEntry.unsupported(TASK_NAME, "b2-subgraph", "_fallback"),
-        EventLogEntry.error(TASK_NAME, "b-composite", ERROR_TRANSITION),
-        EventLogEntry
-            .success(TASK_NAME, "f-node", createFragmentResult(SUCCESS_TRANSITION, simpleNodeLog()))
-    );
+    EventLog log = new EventLog(TASK_NAME);
+
+    log.success("a-node", createFragmentResult(SUCCESS_TRANSITION, simpleNodeLog()));
+    log.success("b1-subgraph", createFragmentResult(SUCCESS_TRANSITION, simpleNodeLog()));
+    log.success("b2-subgraph", createFragmentResult("_fallback", complexNodeLog()));
+    log.unsupported("b2-subgraph", "_fallback");
+    log.error("b-composite", ERROR_TRANSITION);
+    log.success("f-node", createFragmentResult(SUCCESS_TRANSITION, simpleNodeLog()));
 
     givenEventLogAndNodesMetadata(
-        eventLog,
+        log,
         "a-node",
         singleNode("a-node", "action",
             ImmutableMap.of(SUCCESS_TRANSITION, "b-composite", ERROR_TRANSITION, "c-node")),
@@ -382,12 +373,8 @@ class MetadataConverterTest {
     assertJsonEquals(expected, output);
   }
 
-  private EventLog createEventLog(EventLogEntry... entries) {
-    return new EventLog(Arrays.asList(entries));
-  }
-
   private FragmentResult createFragmentResult(String transition, JsonObject nodeLog) {
-    return new FragmentResult(new Fragment("_empty", new JsonObject(), ""), transition, nodeLog);
+    return FragmentResult.success(new Fragment("_empty", new JsonObject(), ""), transition, nodeLog);
   }
 
   private void givenNotDefinedTaskMetadata() {
@@ -400,7 +387,7 @@ class MetadataConverterTest {
   }
 
   private void givenNodesMetadata(String rootNodeId, NodeMetadata... nodes) {
-    givenEventLogAndNodesMetadata(new EventLog(), rootNodeId, nodes);
+    givenEventLogAndNodesMetadata(new EventLog(TASK_NAME), rootNodeId, nodes);
   }
 
   private void givenEventLogAndNodesMetadata(EventLog eventLog, String rootNodeId,
@@ -414,12 +401,12 @@ class MetadataConverterTest {
         TaskMetadata.create(TASK_NAME, rootNodeId, metadata));
   }
 
-  private FragmentEvent emptyFragmentEvent() {
-    return emptyFragmentEvent(new EventLog());
+  private TaskResult emptyFragmentEvent() {
+    return emptyFragmentEvent(new EventLog(TASK_NAME));
   }
 
-  private FragmentEvent emptyFragmentEvent(EventLog eventLog) {
-    FragmentEvent output = new FragmentEvent(new Fragment("dummy", new JsonObject(), ""));
+  private TaskResult emptyFragmentEvent(EventLog eventLog) {
+    TaskResult output = new TaskResult(TASK_NAME, new Fragment("dummy", new JsonObject(), ""));
     output.appendLog(eventLog);
     return output;
   }

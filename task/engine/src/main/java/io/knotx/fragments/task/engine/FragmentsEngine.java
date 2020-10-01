@@ -15,14 +15,13 @@
  */
 package io.knotx.fragments.task.engine;
 
-import io.knotx.fragments.task.engine.FragmentEvent.Status;
+import io.knotx.fragments.task.engine.TaskResult.Status;
 import io.knotx.fragments.task.api.Node;
 import io.reactivex.Flowable;
 import io.reactivex.Single;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import io.vertx.reactivex.core.Vertx;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -50,39 +49,34 @@ public class FragmentsEngine {
    * @return asynchronous response containing processed list of fragment events returned in the same
    * order as the original list
    */
-  public Single<List<FragmentEvent>> execute(List<FragmentEventContextTaskAware> fragments) {
-
+  public Single<List<TaskResult>> execute(List<FragmentContextTaskAware> fragments) {
     return Flowable.just(fragments)
         .concatMap(Flowable::fromIterable)
-        .map(fragmentCtx -> fragmentCtx
+        .flatMapSingle(ctx -> ctx
             .getTask()
             .getRootNode()
-            .map(rootNode -> startTaskEngine(fragmentCtx, rootNode))
-            .orElseGet(() -> Single.just(fragmentCtx.getFragmentEventContext().getFragmentEvent()))
+            .map(rootNode -> startTaskEngine(ctx, rootNode))
+            .orElseGet(() -> Single.just(new TaskResult(ctx.getTask().getName(), ctx.getFragmentContext().getFragment())))
         )
-        .flatMap(Single::toFlowable)
-        .reduce(new ArrayList<FragmentEvent>(), (list, item) -> {
-          list.add(item);
-          return list;
-        })
+        .toList()
         .map(list -> incomingOrder(list, fragments))
         .map(this::traceEngineResults);
   }
 
-  private Single<FragmentEvent> startTaskEngine(FragmentEventContextTaskAware fragment, Node rootNode) {
-      return taskEngine.start(fragment.getTask().getName(), rootNode, fragment.getFragmentEventContext());
+  private Single<TaskResult> startTaskEngine(FragmentContextTaskAware context, Node rootNode) {
+      return taskEngine.start(context.getTask().getName(), rootNode, context.getFragmentContext());
   }
 
-  private List<FragmentEvent> incomingOrder(
-      List<FragmentEvent> list, List<FragmentEventContextTaskAware> sourceEvents) {
+  private List<TaskResult> incomingOrder(
+      List<TaskResult> list, List<FragmentContextTaskAware> sourceEvents) {
 
     return sourceEvents.stream()
-        .map(event -> event.getFragmentEventContext().getFragmentEvent().getFragment().getId())
+        .map(context -> context.getFragmentContext().getFragment().getId())
         .map(id -> getFragmentFromListById(id, list))
         .collect(Collectors.toList());
   }
 
-  private FragmentEvent getFragmentFromListById(String id, List<FragmentEvent> events) {
+  private TaskResult getFragmentFromListById(String id, List<TaskResult> events) {
     return events
             .stream()
             .filter(event -> id.equals(event.getFragment().getId()))
@@ -90,12 +84,12 @@ public class FragmentsEngine {
             .orElseThrow(() -> new IllegalStateException("Could not find fragment with id: " + id));
   }
 
-  private List<FragmentEvent> traceEngineResults(List<FragmentEvent> results) {
+  private List<TaskResult> traceEngineResults(List<TaskResult> results) {
     if (LOGGER.isTraceEnabled()) {
-      List<FragmentEvent> processedEvents = results.stream()
+      List<TaskResult> processedEvents = results.stream()
           .filter(event -> Status.UNPROCESSED != event.getStatus())
           .collect(Collectors.toList());
-      LOGGER.trace("Knot Engine processed fragments: [{}]", processedEvents);
+      LOGGER.trace("Task Engine processed fragments: [{}]", processedEvents);
     }
     return results;
   }

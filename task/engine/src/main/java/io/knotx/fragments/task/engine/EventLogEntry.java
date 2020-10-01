@@ -36,37 +36,7 @@ public class EventLogEntry {
   private final JsonObject nodeLog;
   private final Throwable error;
 
-  public static EventLogEntry started(String task, String node) {
-    return new EventLogEntry(task, node, NodeStatus.UNPROCESSED, null, null, null);
-  }
-
-  public static EventLogEntry success(String task, String node, FragmentResult fragmentResult) {
-    return new EventLogEntry(task, node, NodeStatus.SUCCESS, fragmentResult.getTransition(),
-        fragmentResult.getLog(), null);
-  }
-
-  public static EventLogEntry unsupported(String task, String node, String transition) {
-    return new EventLogEntry(task, node, NodeStatus.UNSUPPORTED_TRANSITION, transition, null, null);
-  }
-
-  public static EventLogEntry error(String task, String node, FragmentResult fragmentResult) {
-    return error(task, node, fragmentResult.getTransition(), fragmentResult.getLog());
-  }
-
-  public static EventLogEntry error(String task, String node, String transition) {
-    return error(task, node, transition, null);
-  }
-
-  public static EventLogEntry error(String task, String node, String transition, JsonObject nodeLog) {
-    return new EventLogEntry(task, node, NodeStatus.ERROR, transition, nodeLog, null);
-  }
-
-  public static EventLogEntry exception(String task, String node, String transition,
-      Throwable error) {
-    return new EventLogEntry(task, node, NodeStatus.ERROR, transition, null, error);
-  }
-
-  private EventLogEntry(String task, String node, NodeStatus status, String transition,
+  EventLogEntry(String task, String node, NodeStatus status, String transition,
       JsonObject nodeLog, Throwable error) {
     this.task = task;
     this.node = node;

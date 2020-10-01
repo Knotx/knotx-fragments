@@ -24,10 +24,10 @@ import io.knotx.fragments.task.api.NodeFatalException;
  */
 public class TaskFatalException extends IllegalStateException {
 
-  private final FragmentEventContext context;
+  private final TaskResult event;
 
-  TaskFatalException(FragmentEventContext context) {
-    this.context = context;
+  TaskFatalException(TaskResult event) {
+    this.event = event;
   }
 
   /**
@@ -36,7 +36,7 @@ public class TaskFatalException extends IllegalStateException {
    *
    * @return event context
    */
-  public FragmentEventContext getContext() {
-    return context;
+  public TaskResult getEvent() {
+    return event;
   }
 }

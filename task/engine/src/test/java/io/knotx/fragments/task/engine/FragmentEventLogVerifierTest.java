@@ -15,17 +15,26 @@
  */
 package io.knotx.fragments.task.engine;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import io.knotx.fragments.task.engine.FragmentEventLogVerifier.Operation;
 import io.vertx.core.json.JsonObject;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 class FragmentEventLogVerifierTest {
+
+  private static final String TASK_NAME = "task";
+
+  private EventLog log;
+
+  @BeforeEach
+  void setUp() {
+    this.log = new EventLog(TASK_NAME);
+  }
 
   @Test
   @DisplayName("Expect verify all with no error when empty.")
@@ -37,39 +46,44 @@ class FragmentEventLogVerifierTest {
   @Test
   @DisplayName("Expect verify all with no error when the same.")
   void expectVerifyAllNoErrorWhenTheSame() {
-    List<EventLogEntry> operations =
-        Collections.singletonList(EventLogEntry.error("task", "a", "_error"));
+    List<EventLogEntry> operations = log
+        .error("a", "_error")
+        .getOperations();
     FragmentEventLogVerifier
-        .verifyAllLogEntries(operations, Operation.exact("task", "a", "ERROR", 0));
+        .verifyAllLogEntries(operations, Operation.exact(TASK_NAME, "a", "ERROR", 0));
   }
 
   @Test
   @DisplayName("Expect verify all with error when not same.")
   void expectVerifyAllErrorWhenNotSame() {
-    List<EventLogEntry> operations =
-        Collections.singletonList(EventLogEntry.error("task", "b", "_error", new JsonObject()));
+    List<EventLogEntry> operations = log
+        .error("b", "_error")
+        .getOperations();
     assertThrows(AssertionError.class, () -> FragmentEventLogVerifier
-        .verifyAllLogEntries(operations, Operation.exact("task", "a", "ERROR", 0)));
+        .verifyAllLogEntries(operations, Operation.exact(TASK_NAME, "a", "ERROR", 0)));
   }
 
   @Test
   @DisplayName("Expect verify all with error when invalid position.")
   void expectVerifyAllErrorWhenInvalidPosition() {
-    List<EventLogEntry> operations =
-        Collections.singletonList(EventLogEntry.error("task", "b", "_error", new JsonObject()));
+    List<EventLogEntry> operations = log
+        .error("b", "_error", new JsonObject())
+        .getOperations();
     assertThrows(AssertionError.class, () -> FragmentEventLogVerifier
-        .verifyAllLogEntries(operations, Operation.exact("task", "a", "ERROR", 1)));
+        .verifyAllLogEntries(operations, Operation.exact(TASK_NAME, "a", "ERROR", 1)));
   }
 
   @Test
   @DisplayName("Expect verify all with error when elements count not same.")
   void expectVerifyAllErrorWhenSizeDiffers() {
-    List<EventLogEntry> operations =
-        Arrays.asList(
-            EventLogEntry.error("task", "a", "_error", new JsonObject()),
-            EventLogEntry.error("task", "b", "_error", new JsonObject()));
+    List<EventLogEntry> operations = log
+        .error("a", "_error", new JsonObject())
+        .error("b", "_error", new JsonObject())
+        .error("b", "_error")
+        .getOperations();
+
     assertThrows(AssertionError.class, () -> FragmentEventLogVerifier
-        .verifyAllLogEntries(operations, Operation.exact("task", "a", "ERROR", 0)));
+        .verifyAllLogEntries(operations, Operation.exact(TASK_NAME, "a", "ERROR", 0)));
   }
 
   @Test
@@ -82,60 +96,63 @@ class FragmentEventLogVerifierTest {
   @Test
   @DisplayName("Expect verify with no error when the same.")
   void expectVerifyNoErrorWhenTheSame() {
-    List<EventLogEntry> operations =
-        Collections.singletonList(EventLogEntry.error("task", "a", "_error", new JsonObject()));
+    List<EventLogEntry> operations = log
+        .error("a", "_error", new JsonObject())
+        .getOperations();
     FragmentEventLogVerifier
-        .verifyLogEntries(operations, Operation.exact("task", "a", "ERROR", 0));
+        .verifyLogEntries(operations, Operation.exact(TASK_NAME, "a", "ERROR", 0));
   }
 
   @Test
   @DisplayName("Expect verify with error when not same.")
   void expectVerifyErrorWhenNotSame() {
-    List<EventLogEntry> operations =
-        Collections.singletonList(EventLogEntry.error("task", "b", "_error", new JsonObject()));
+    List<EventLogEntry> operations = log
+        .error("b", "_error", new JsonObject())
+        .getOperations();
     assertThrows(AssertionError.class, () -> FragmentEventLogVerifier
-        .verifyLogEntries(operations, Operation.exact("task", "a", "ERROR", 0)));
+        .verifyLogEntries(operations, Operation.exact(TASK_NAME, "a", "ERROR", 0)));
   }
 
   @Test
   @DisplayName("Expect verify with error when invalid position.")
   void expectVerifyErrorWhenInvalidPosition() {
-    List<EventLogEntry> operations =
-        Collections.singletonList(EventLogEntry.error("task", "b", "_error", new JsonObject()));
+    List<EventLogEntry> operations = log
+        .error("b", "_error", new JsonObject())
+        .getOperations();
     assertThrows(AssertionError.class, () -> FragmentEventLogVerifier
-        .verifyLogEntries(operations, Operation.exact("task", "a", "ERROR", 1)));
+        .verifyLogEntries(operations, Operation.exact(TASK_NAME, "a", "ERROR", 1)));
   }
 
   @Test
   @DisplayName("Expect verify when elements count not same.")
   void expectVerifyNoErrorWhenSizeDiffers() {
-    List<EventLogEntry> operations =
-        Arrays.asList(
-            EventLogEntry.error("task", "a", "_error", new JsonObject()),
-            EventLogEntry.error("task", "b", "_error", new JsonObject()));
+    List<EventLogEntry> operations = log
+        .error("a", "_error", new JsonObject())
+        .error("b", "_error", new JsonObject())
+        .getOperations();
     FragmentEventLogVerifier
-        .verifyLogEntries(operations, Operation.exact("task", "a", "ERROR", 0));
+        .verifyLogEntries(operations, Operation.exact(TASK_NAME, "a", "ERROR", 0));
   }
 
   @Test
   @DisplayName("Expect verify when elements in range.")
   void expectVerifyNoErrorWhenInRange() {
-    List<EventLogEntry> operations =
-        Arrays.asList(
-            EventLogEntry.error("task", "a", "_error", new JsonObject()),
-            EventLogEntry.error("task", "b", "_error", new JsonObject()));
+    List<EventLogEntry> operations = log
+        .error("a", "_error", new JsonObject())
+        .error("b", "_error", new JsonObject())
+        .getOperations();
     FragmentEventLogVerifier
-        .verifyLogEntries(operations, Operation.range("task", "a", "ERROR", 0, 1));
+        .verifyLogEntries(operations, Operation.range(TASK_NAME, "a", "ERROR", 0, 1));
   }
 
   @Test
   @DisplayName("Expect verify when elements in range.")
   void expectVerifyErrorWhenNotInRange() {
-    List<EventLogEntry> operations =
-        Arrays.asList(
-            EventLogEntry.error("task", "a", "_error", new JsonObject()),
-            EventLogEntry.error("task", "b", "_error", new JsonObject()));
+    List<EventLogEntry> operations = log
+        .error("a", "_error", new JsonObject())
+        .error("b", "_error", new JsonObject())
+        .getOperations();
     assertThrows(AssertionError.class, () -> FragmentEventLogVerifier
-        .verifyLogEntries(operations, Operation.range("task", "a", "ERROR", 1, 2)));
+        .verifyLogEntries(operations, Operation.range(TASK_NAME, "a", "ERROR", 1, 2)));
   }
 }

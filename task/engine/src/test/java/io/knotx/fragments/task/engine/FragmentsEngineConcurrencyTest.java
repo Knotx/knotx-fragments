@@ -20,9 +20,10 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.knotx.fragments.api.Fragment;
 import io.knotx.fragments.api.FragmentOperation;
+import io.knotx.fragments.api.FragmentResult;
+import io.knotx.fragments.api.SyncFragmentOperation;
 import io.knotx.fragments.task.api.Task;
 import io.knotx.fragments.task.api.single.SingleNode;
-import io.knotx.fragments.api.FragmentResult;
 import io.knotx.server.api.context.ClientRequest;
 import io.reactivex.Single;
 import io.vertx.core.Future;
@@ -54,7 +55,7 @@ class FragmentsEngineConcurrencyTest {
   private static final int WAITING_TIME_IN_MILLIS =
       NUMBER_OF_PROCESSED_EVENTS * BLOCKING_TIME_IN_MILLIS / 2;
 
-  private static final FragmentOperation BLOCKING_OPERATION = (fragmentContext, resultHandler) -> {
+  private static final FragmentOperation BLOCKING_OPERATION = (SyncFragmentOperation) context -> {
     try {
       System.out.println(Thread.currentThread().getName() + ": executing operation");
       Thread.sleep(BLOCKING_TIME_IN_MILLIS);
@@ -62,9 +63,7 @@ class FragmentsEngineConcurrencyTest {
     } catch (InterruptedException e) {
       LOGGER.warn("Unexpected interrupted error!", e);
     }
-    Future.succeededFuture(
-        new FragmentResult(fragmentContext.getFragment(), FragmentResult.SUCCESS_TRANSITION))
-        .onComplete(resultHandler);
+    return FragmentResult.success(context.getFragment());
   };
 
   @Test
@@ -73,29 +72,28 @@ class FragmentsEngineConcurrencyTest {
       throws Throwable {
     // given
 
-    List<FragmentEventContextTaskAware> events = Stream
-        .generate(this::initFragmentEventContextTaskAware)
+    List<FragmentContextTaskAware> events = Stream
+        .generate(this::initFragmentContextTaskAware)
         .limit(NUMBER_OF_PROCESSED_EVENTS).collect(
             Collectors.toList());
 
     // when
     ExecutorService executorService = Executors.newFixedThreadPool(1);
-    CompletableFuture<Single<List<FragmentEvent>>> completableFuture = CompletableFuture
+    CompletableFuture<Single<List<TaskResult>>> completableFuture = CompletableFuture
         .supplyAsync(() -> new FragmentsEngine(vertx).execute(events), executorService);
 
     // then
     verifyExecution(completableFuture, testContext);
   }
 
-  private FragmentEventContextTaskAware initFragmentEventContextTaskAware() {
+  private FragmentContextTaskAware initFragmentContextTaskAware() {
     SingleNode graphNode = single("id", BLOCKING_OPERATION);
     Fragment fragment = new Fragment("snippet", new JsonObject(), "some body");
 
-    return new FragmentEventContextTaskAware(new Task("task", graphNode),
-        new FragmentEventContext(new FragmentEvent(fragment), new ClientRequest()));
+    return new FragmentContextTaskAware(new Task("task", graphNode), new ClientRequest(), fragment);
   }
 
-  private void verifyExecution(CompletableFuture<Single<List<FragmentEvent>>> future,
+  private void verifyExecution(CompletableFuture<Single<List<TaskResult>>> future,
       VertxTestContext testContext) throws Throwable {
     // execute
     future.thenApply(result -> {

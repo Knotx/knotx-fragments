@@ -18,10 +18,10 @@
 package io.knotx.fragments.task.handler;
 
 import io.knotx.fragments.api.Fragment;
+import io.knotx.fragments.task.engine.FragmentContextTaskAware;
 import io.knotx.fragments.task.engine.FragmentsEngine;
-import io.knotx.fragments.task.engine.FragmentEvent;
-import io.knotx.fragments.task.engine.FragmentEvent.Status;
-import io.knotx.fragments.task.engine.FragmentEventContextTaskAware;
+import io.knotx.fragments.task.engine.TaskResult;
+import io.knotx.fragments.task.engine.TaskResult.Status;
 import io.knotx.fragments.task.handler.consumer.FragmentExecutionLogConsumersNotifier;
 import io.knotx.server.api.context.ClientRequest;
 import io.knotx.server.api.context.RequestContext;
@@ -90,23 +90,17 @@ public class FragmentsHandler implements Handler<RoutingContext> {
     return new ExecutionPlan(fragments, clientRequest, taskProvider);
   }
 
-  protected Single<List<FragmentEvent>> doHandle(ExecutionPlan executionPlan) {
-    return engine.execute(
-        executionPlan.getEntryStream()
-            .peek(entry -> LOGGER
-                .debug("Scheduling task [{}] for fragment [{}]", entry.getTaskWithMetadata(),
-                    entry.getContext().getFragmentEvent().getFragment().getId()))
-            .map(entry -> new FragmentEventContextTaskAware(entry.getTaskWithMetadata().getTask(),
-                entry.getContext()))
-            .collect(Collectors.toList())
-    );
+  protected Single<List<TaskResult>> doHandle(ExecutionPlan executionPlan) {
+    List<FragmentContextTaskAware> contexts = executionPlan.getContexts();
+    traceScheduling(contexts);
+    return engine.execute(contexts);
   }
 
-  private void putFragments(RoutingContext routingContext, List<FragmentEvent> events) {
+  private void putFragments(RoutingContext routingContext, List<TaskResult> events) {
     routingContext.put("fragments", retrieveFragments(events, fragmentEvent -> true));
   }
 
-  private RequestEventHandlerResult toHandlerResult(List<FragmentEvent> events,
+  private RequestEventHandlerResult toHandlerResult(List<TaskResult> events,
       RequestContext requestContext) {
 
     List<Fragment> failedFragments = retrieveFragments(events,
@@ -133,11 +127,11 @@ public class FragmentsHandler implements Handler<RoutingContext> {
     return new RequestEvent(requestEvent.getClientRequest(), requestEvent.getPayload());
   }
 
-  private List<Fragment> retrieveFragments(List<FragmentEvent> events,
-      Predicate<FragmentEvent> predicate) {
+  private List<Fragment> retrieveFragments(List<TaskResult> events,
+      Predicate<TaskResult> predicate) {
     return events.stream()
         .filter(predicate)
-        .map(FragmentEvent::getFragment)
+        .map(TaskResult::getFragment)
         .collect(Collectors.toList());
   }
 
@@ -147,5 +141,11 @@ public class FragmentsHandler implements Handler<RoutingContext> {
     String header = request.getHeaders().get(handlerOptions.getAllowInvalidFragmentsHeader());
 
     return Boolean.parseBoolean(param) || Boolean.parseBoolean(header);
+  }
+
+  private void traceScheduling(List<FragmentContextTaskAware> contexts) {
+    contexts.forEach(context -> LOGGER
+        .debug("Scheduling task [{}] for fragment [{}]", context.getTask(),
+            context.getFragmentContext().getFragment().getId()));
   }
 }

@@ -15,24 +15,27 @@
  */
 package io.knotx.fragments.task.engine;
 
+import io.knotx.fragments.api.Fragment;
+import io.knotx.fragments.api.FragmentContext;
 import io.knotx.fragments.task.api.Task;
+import io.knotx.server.api.context.ClientRequest;
 
-public class FragmentEventContextTaskAware {
+public class FragmentContextTaskAware {
 
   private final Task task;
-  private final FragmentEventContext fragmentEventContext;
+  private final FragmentContext fragmentContext;
 
-  public FragmentEventContextTaskAware(Task task,
-      FragmentEventContext fragmentEventContext) {
+  public FragmentContextTaskAware(Task task,
+      ClientRequest clientRequest, Fragment fragment) {
     this.task = task;
-    this.fragmentEventContext = fragmentEventContext;
+    this.fragmentContext = new FragmentContext(fragment, clientRequest);
   }
 
   public Task getTask() {
     return task;
   }
 
-  public FragmentEventContext getFragmentEventContext() {
-    return fragmentEventContext;
+  public FragmentContext getFragmentContext() {
+    return fragmentContext;
   }
 }

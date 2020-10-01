@@ -49,6 +49,15 @@ public class Fragment {
     this.payload = new JsonObject();
   }
 
+  private Fragment(String id, String type, JsonObject configuration, String body,
+      JsonObject payload) {
+    this.id = id;
+    this.type = type;
+    this.configuration = configuration;
+    this.body = body;
+    this.payload = payload;
+  }
+
   public Fragment(JsonObject json) {
     this.id = json.getString(ID_KEY);
     this.type = json.getString(TYPE_KEY);
@@ -64,6 +73,10 @@ public class Fragment {
         .put(CONFIGURATION_KEY, configuration)
         .put(BODY_KEY, body)
         .put(PAYLOAD_KEY, payload);
+  }
+
+  public Fragment copy() {
+    return new Fragment(id, type, configuration.copy(), body, payload.copy());
   }
 
   /**
@@ -125,7 +138,7 @@ public class Fragment {
    * Appends new entry int the Fragment's payload. Notice, that it may overwrite any existing info
    * in the payload, if the keys are identical.
    *
-   * @param key - a key under which payload info will be saved.
+   * @param key   - a key under which payload info will be saved.
    * @param value - a value of the payload info.
    * @return a reference to this, so the API can be used fluently.
    */

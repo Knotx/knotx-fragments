@@ -31,7 +31,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.knotx.fragments.api.Fragment;
-import io.knotx.fragments.task.engine.FragmentEvent.Status;
+import io.knotx.fragments.api.FragmentContext;
+import io.knotx.fragments.task.engine.TaskResult.Status;
 import io.knotx.fragments.task.engine.FragmentEventLogVerifier.Operation;
 import io.knotx.fragments.task.api.Node;
 import io.knotx.junit5.util.RequestUtil;
@@ -58,13 +59,12 @@ class TaskEngineScenariosTest {
   private static final String COMPOSITE_NODE_ID = "composite";
   private static final String INITIAL_BODY = "initial body";
 
-  private FragmentEventContext eventContext;
+  private FragmentContext fragmentContext;
 
   @BeforeEach
   void setUp() {
     Fragment initialFragment = new Fragment("snippet", new JsonObject(), INITIAL_BODY);
-    eventContext = new FragmentEventContext(new FragmentEvent(initialFragment),
-        new ClientRequest());
+    fragmentContext = new FragmentContext(initialFragment, new ClientRequest());
   }
 
   /*
@@ -88,7 +88,7 @@ class TaskEngineScenariosTest {
     String expectedBody = INITIAL_BODY + ":first:last";
 
     // when
-    Single<FragmentEvent> result = new TaskEngine(vertx).start("task", rootNode, eventContext);
+    Single<TaskResult> result = new TaskEngine(vertx).start("task", rootNode, fragmentContext);
 
     // then
     verifyExecution(result, testContext,
@@ -124,7 +124,7 @@ class TaskEngineScenariosTest {
                         single("Y", appendPayloadBasingOnContext("B", "Y", "withY"))),
                     single("last", appendBodyWithPayload("X", "Y"))))))));
     // when
-    Single<FragmentEvent> result = new TaskEngine(vertx).start("task", rootNode, eventContext);
+    Single<TaskResult> result = new TaskEngine(vertx).start("task", rootNode, fragmentContext);
     String expectedBody = INITIAL_BODY + ":payloadAwithX:payloadBwithY";
 
     // then
@@ -161,7 +161,7 @@ class TaskEngineScenariosTest {
                                 single("Y2", success())))),
                         single("last", success())))))));
     // when
-    Single<FragmentEvent> result = new TaskEngine(vertx).start("task", rootNode, eventContext);
+    Single<TaskResult> result = new TaskEngine(vertx).start("task", rootNode, fragmentContext);
 
     // then
     verifyExecution(result, testContext,
@@ -223,7 +223,7 @@ class TaskEngineScenariosTest {
                 single("C", successWithDelay(500, vertx))),
             single("last", success()))));
     // when
-    Single<FragmentEvent> result = new TaskEngine(vertx).start("task", rootNode, eventContext);
+    Single<TaskResult> result = new TaskEngine(vertx).start("task", rootNode, fragmentContext);
 
     // then
     verifyExecution(result, testContext,
@@ -250,7 +250,7 @@ class TaskEngineScenariosTest {
                 single("D", successWithDelay(500, vertx))),
             single("last", success()))));
     // when
-    Single<FragmentEvent> result = new TaskEngine(vertx).start("task", rootNode, eventContext);
+    Single<TaskResult> result = new TaskEngine(vertx).start("task", rootNode, fragmentContext);
 
     // then
     verifyExecution(result, testContext,
@@ -265,8 +265,8 @@ class TaskEngineScenariosTest {
     return Arrays.asList(nodes);
   }
 
-  private void verifyExecution(Single<FragmentEvent> result, VertxTestContext testContext,
-      Consumer<FragmentEvent> successConsumer) throws Throwable {
+  private void verifyExecution(Single<TaskResult> result, VertxTestContext testContext,
+      Consumer<TaskResult> successConsumer) throws Throwable {
     RequestUtil.subscribeToResult_shouldSucceed(testContext, result, successConsumer);
     assertTrue(testContext.awaitCompletion(5, TimeUnit.SECONDS));
     if (testContext.failed()) {

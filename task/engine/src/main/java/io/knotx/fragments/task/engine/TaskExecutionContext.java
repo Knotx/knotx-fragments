@@ -15,150 +15,69 @@
  */
 package io.knotx.fragments.task.engine;
 
-import static io.knotx.fragments.api.FragmentResult.ERROR_TRANSITION;
 import static io.knotx.fragments.api.FragmentResult.SUCCESS_TRANSITION;
 
-import io.knotx.fragments.api.Fragment;
 import io.knotx.fragments.api.FragmentContext;
-import io.knotx.fragments.api.FragmentResult;
 import io.knotx.fragments.task.api.Node;
-import io.knotx.fragments.task.api.NodeFatalException;
-import io.knotx.fragments.task.engine.FragmentEvent.Status;
+import io.knotx.fragments.task.engine.TaskResult.Status;
+import io.knotx.fragments.task.engine.node.NodeExecutionContext;
+import io.knotx.fragments.task.engine.node.NodeResult;
 import io.knotx.server.api.context.ClientRequest;
-import io.reactivex.Single;
-import io.reactivex.SingleSource;
-import io.vertx.core.json.JsonObject;
-import io.vertx.core.logging.Logger;
-import io.vertx.core.logging.LoggerFactory;
 
-class TaskExecutionContext {
-
-  private static final Logger LOGGER = LoggerFactory.getLogger(TaskExecutionContext.class);
+public class TaskExecutionContext {
 
   private final String taskName;
-  private final FragmentEventContext fragmentEventContext;
+  private final ClientRequest clientRequest;
+  private final TaskResult taskResult;
   private Node currentNode;
 
-  TaskExecutionContext(String taskName, Node graphRoot, FragmentEventContext fragmentEventContext) {
+  public TaskExecutionContext(String taskName, FragmentContext fragmentContext, Node rootNode) {
     this.taskName = taskName;
-    this.currentNode = graphRoot;
-    this.fragmentEventContext = fragmentEventContext;
+    this.clientRequest = fragmentContext.getClientRequest();
+    this.taskResult = new TaskResult(taskName, fragmentContext.getFragment());
+    this.currentNode = rootNode;
   }
 
-  TaskExecutionContext(TaskExecutionContext context, Node currentNode) {
-    Fragment fragment = context.getFragmentEventContext().getFragmentEvent().getFragment();
-    FragmentEvent fragmentEvent = new FragmentEvent(fragment);
-    ClientRequest clientRequest = context.getFragmentEventContext().getClientRequest();
-
-    this.fragmentEventContext = new FragmentEventContext(fragmentEvent, clientRequest);
-    this.currentNode = currentNode;
-    this.taskName = context.taskName;
+  public NodeExecutionContext createNodeContext() {
+    // TODO: copies here
+    return new NodeExecutionContext(taskName, currentNode, taskResult.getLog(),
+        new FragmentContext(taskResult.getFragment(), clientRequest));
   }
 
-  FragmentEventContext getFragmentEventContext() {
-    return fragmentEventContext;
-  }
-
-  FragmentContext fragmentContextInstance() {
-    return new FragmentContext(
-        fragmentEventContext.getFragmentEvent().getFragment(),
-        fragmentEventContext.getClientRequest());
+  TaskResult getResult() {
+    return taskResult;
   }
 
   Node getCurrentNode() {
     return currentNode;
   }
 
-  SingleSource<? extends FragmentResult> handleError(Throwable error) {
-    FragmentEvent fragmentEvent = fragmentEventContext.getFragmentEvent();
-    fragmentEvent.setStatus(Status.FAILURE);
-    fragmentEvent.log(EventLogEntry.exception(taskName, currentNode.getId(), ERROR_TRANSITION, error));
-    if (isFatal(error)) {
-      LOGGER
-          .error("Processing failed with fatal error [{}].",
-              fragmentEventContext.getFragmentEvent(),
-              error);
-      throw new TaskFatalException(fragmentEventContext);
-    } else {
-      LOGGER.warn("Knot processing failed [{}], trying to process with the 'error' transition.",
-          fragmentEvent, error);
-      return Single.just(
-          new FragmentResult(fragmentEvent.getFragment(), ERROR_TRANSITION, new JsonObject()));
-    }
+  boolean finished() {
+    return currentNode == null;
   }
 
-  TaskExecutionContext merge(TaskExecutionContext other) {
-    final FragmentEvent fragmentEvent1 = getFragmentEventContext().getFragmentEvent();
-    final FragmentEvent fragmentEvent2 = other.getFragmentEventContext().getFragmentEvent();
-
-    //reduce fragment body and payload
-    final Fragment fragment = fragmentEvent1.getFragment();
-    final Fragment fragment2 = fragmentEvent2.getFragment();
-    fragment.mergeInPayload(fragment2.getPayload());
-    fragment.setBody(fragment2.getBody());
-
-    //reduce status and logs
-    if (Status.FAILURE != fragmentEvent1.getStatus()) {
-      fragmentEvent1.setStatus(fragmentEvent2.getStatus());
-    }
-    fragmentEvent1.appendLog(fragmentEvent2.getLog());
-
+  TaskExecutionContext consumeResultAndShiftToNext(NodeResult result) {
+    taskResult.consume(result);
+    shiftToNext(result.getTransition());
     return this;
   }
 
-  FragmentResult toFragmentResult() {
-    FragmentEvent fragmentEvent = fragmentEventContext.getFragmentEvent();
-    Status status = fragmentEvent.getStatus();
-    String nextTransition = status.getDefaultTransition().orElse(null);
-    FragmentResult result = new FragmentResult(fragmentEvent.getFragment(), nextTransition);
-    if (status == Status.SUCCESS) {
-      handleSuccess(result);
-    } else {
-      fragmentEvent
-          .log(EventLogEntry.error(taskName, currentNode.getId(), result));
-    }
-    return result;
+  void handleFatal(Throwable error) {
+    throw new TaskFatalException(taskResult);
   }
 
-  boolean hasNext() {
-    return currentNode != null;
-  }
-
-  void updateResult(FragmentResult fragmentResult) {
-    fragmentEventContext.getFragmentEvent().setFragment(fragmentResult.getFragment());
-
+  private void shiftToNext(String transition) {
     currentNode = currentNode
-        .next(fragmentResult.getTransition())
-        .orElseGet(() -> {
-          ifNotDefaultTransitionEndAsUnsupportedFailure(fragmentResult.getTransition());
-          return null;
-        });
+        .next(transition)
+        .orElseGet(() -> endBy(transition));
   }
 
-  void handleStarted() {
-    FragmentEvent fragmentEvent = fragmentEventContext.getFragmentEvent();
-    fragmentEvent.log(EventLogEntry.started(taskName, currentNode.getId()));
-  }
-
-  void handleSuccess(FragmentResult fragmentResult) {
-    FragmentEvent fragmentEvent = fragmentEventContext.getFragmentEvent();
-    fragmentEvent.setStatus(Status.SUCCESS);
-    if (ERROR_TRANSITION.equals(fragmentResult.getTransition())) {
-      fragmentEvent.log(EventLogEntry.error(taskName, currentNode.getId(), fragmentResult));
-    } else {
-      fragmentEvent.log(EventLogEntry.success(taskName, currentNode.getId(), fragmentResult));
-    }
-  }
-
-  private boolean isFatal(Throwable error) {
-    return error instanceof NodeFatalException;
-  }
-
-  private void ifNotDefaultTransitionEndAsUnsupportedFailure(String transition) {
-    FragmentEvent fragmentEvent = fragmentEventContext.getFragmentEvent();
+  private Node endBy(String transition) {
     if (!SUCCESS_TRANSITION.equals(transition)) {
-      fragmentEvent.setStatus(Status.FAILURE);
-      fragmentEvent.log(EventLogEntry.unsupported(taskName, currentNode.getId(), transition));
+      taskResult.setStatus(Status.FAILURE);
+      taskResult.getLog().unsupported(currentNode.getId(), transition);
     }
+    return null;
   }
+
 }

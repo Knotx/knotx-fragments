@@ -22,12 +22,11 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import io.knotx.fragments.api.Fragment;
 import io.knotx.fragments.api.FragmentResult;
-import io.knotx.fragments.task.engine.EventLogEntry;
+import io.knotx.fragments.task.engine.EventLog;
 import io.knotx.fragments.task.handler.log.api.model.LoggedNodeStatus;
 import io.reactivex.exceptions.CompositeException;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
-import java.util.Arrays;
 import java.util.Collections;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -51,8 +50,9 @@ class EventLogConverterTest {
   @Test
   @DisplayName("Expect status=UNPROCESSED when log does not contain entries for the given node")
   void fillWithMissingLogEntries() {
+    EventLog log = new EventLog(TASK_NAME);
     EventLogConverter tested = givenLogConverter(
-        EventLogEntry.success(TASK_NAME, OTHER_NODE_ID, successFragmentResult())
+        log.success(OTHER_NODE_ID, successFragmentResult())
     );
 
     NodeExecutionData result = tested.getExecutionData(NODE_ID);
@@ -64,11 +64,12 @@ class EventLogConverterTest {
   @DisplayName("Expect status=SUCCESS when single success log entry for node")
   void fillWithSingleSuccessLogEntry() {
     JsonObject nodeLog = nodeLog();
-    EventLogEntry[] logs = new EventLogEntry[]{
-        EventLogEntry.success(TASK_NAME, NODE_ID, successFragmentResult(nodeLog)),
-        EventLogEntry.success(TASK_NAME, OTHER_NODE_ID, successFragmentResult())
-    };
-    EventLogConverter tested = givenLogConverter(logs);
+
+    EventLog log = new EventLog(TASK_NAME);
+    log.success(NODE_ID, successFragmentResult(nodeLog));
+    log.success(OTHER_NODE_ID, successFragmentResult());
+
+    EventLogConverter tested = givenLogConverter(log);
 
     NodeExecutionData result = tested.getExecutionData(NODE_ID);
 
@@ -82,11 +83,10 @@ class EventLogConverterTest {
   @DisplayName("Expect status=ERROR when single error log entry for node")
   void fillWithSingleErrorLogEntry() {
     JsonObject nodeLog = nodeLog();
-    EventLogEntry[] logs = new EventLogEntry[]{
-        EventLogEntry.error(TASK_NAME, NODE_ID, ERROR_TRANSITION, nodeLog),
-        EventLogEntry.success(TASK_NAME, OTHER_NODE_ID, successFragmentResult())
-    };
-    EventLogConverter tested = givenLogConverter(logs);
+    EventLogConverter tested = givenLogConverter(new EventLog(TASK_NAME)
+        .error(NODE_ID, ERROR_TRANSITION, nodeLog)
+        .success(OTHER_NODE_ID, successFragmentResult())
+    );
 
     NodeExecutionData result = tested.getExecutionData(NODE_ID);
 
@@ -100,12 +100,11 @@ class EventLogConverterTest {
   @DisplayName("Expect status=ERROR when error and unsupported log entries for node")
   void fillWithErrorAndUnsupportedLogEntries() {
     JsonObject nodeLog = nodeLog();
-    EventLogEntry[] logs = new EventLogEntry[]{
-        EventLogEntry.error(TASK_NAME, NODE_ID, ERROR_TRANSITION, nodeLog),
-        EventLogEntry.unsupported(TASK_NAME, NODE_ID, ERROR_TRANSITION),
-        EventLogEntry.success(TASK_NAME, OTHER_NODE_ID, successFragmentResult())
-    };
-    EventLogConverter tested = givenLogConverter(logs);
+    EventLog log = new EventLog(TASK_NAME);
+    log.error(NODE_ID, ERROR_TRANSITION, nodeLog);
+    log.unsupported(NODE_ID, ERROR_TRANSITION);
+    log.success(OTHER_NODE_ID, successFragmentResult());
+    EventLogConverter tested = givenLogConverter(log);
 
     NodeExecutionData result = tested.getExecutionData(NODE_ID);
 
@@ -119,12 +118,12 @@ class EventLogConverterTest {
   @DisplayName("Expect status=ERROR when single exception log entry for node")
   void fillWithSingleExceptionLogEntry() {
     Throwable error = new IllegalArgumentException("error message");
+    EventLog log = new EventLog(TASK_NAME);
 
-    EventLogEntry[] logs = new EventLogEntry[]{
-        EventLogEntry.exception(TASK_NAME, NODE_ID, ERROR_TRANSITION, error),
-        EventLogEntry.success(TASK_NAME, OTHER_NODE_ID, successFragmentResult())
-    };
-    EventLogConverter tested = givenLogConverter(logs);
+    log.exception(NODE_ID, ERROR_TRANSITION, error);
+    log.success(OTHER_NODE_ID, successFragmentResult());
+
+    EventLogConverter tested = givenLogConverter(log);
 
     NodeExecutionData result = tested.getExecutionData(NODE_ID);
 
@@ -138,13 +137,12 @@ class EventLogConverterTest {
   @DisplayName("Expect status=ERROR when exception and unsupported log entries for node")
   void fillWithExceptionAndUnsupportedLogEntries() {
     Throwable error = new IllegalArgumentException("error message");
+    EventLog log = new EventLog(TASK_NAME);
+    log.exception(NODE_ID, ERROR_TRANSITION, error);
+    log.unsupported(NODE_ID, ERROR_TRANSITION);
+    log.success(OTHER_NODE_ID, successFragmentResult());
 
-    EventLogEntry[] logs = new EventLogEntry[]{
-        EventLogEntry.exception(TASK_NAME, NODE_ID, ERROR_TRANSITION, error),
-        EventLogEntry.unsupported(TASK_NAME, NODE_ID, ERROR_TRANSITION),
-        EventLogEntry.success(TASK_NAME, OTHER_NODE_ID, successFragmentResult())
-    };
-    EventLogConverter tested = givenLogConverter(logs);
+    EventLogConverter tested = givenLogConverter(log);
 
     NodeExecutionData result = tested.getExecutionData(NODE_ID);
 
@@ -163,11 +161,11 @@ class EventLogConverterTest {
         new IllegalArgumentException("error message 2")
     );
 
-    EventLogEntry[] logs = new EventLogEntry[]{
-        EventLogEntry.exception(TASK_NAME, NODE_ID, ERROR_TRANSITION, composite),
-        EventLogEntry.success(TASK_NAME, OTHER_NODE_ID, successFragmentResult())
-    };
-    EventLogConverter tested = givenLogConverter(logs);
+    EventLog log = new EventLog(TASK_NAME);
+
+    log.exception(NODE_ID, ERROR_TRANSITION, composite);
+    log.success(OTHER_NODE_ID, successFragmentResult());
+    EventLogConverter tested = givenLogConverter(log);
 
     NodeExecutionData result = tested.getExecutionData(NODE_ID);
 
@@ -180,11 +178,11 @@ class EventLogConverterTest {
   @Test
   @DisplayName("Expect status=OTHER when there's a single success log entry with custom transition")
   void fillWithSingleSuccessCustomLogEntry() {
-    EventLogEntry[] logs = new EventLogEntry[]{
-        EventLogEntry.success(TASK_NAME, NODE_ID, successFragmentResult(nodeLog(), true)),
-        EventLogEntry.success(TASK_NAME, OTHER_NODE_ID, successFragmentResult())
-    };
-    EventLogConverter tested = givenLogConverter(logs);
+    EventLog log = new EventLog(TASK_NAME);
+    log.success(NODE_ID, successFragmentResult(nodeLog(), true));
+    log.success(OTHER_NODE_ID, successFragmentResult());
+
+    EventLogConverter tested = givenLogConverter(log);
 
     NodeExecutionData result = tested.getExecutionData(NODE_ID);
 
@@ -197,13 +195,13 @@ class EventLogConverterTest {
   @Test
   @DisplayName("Expect status=SUCCESS when there's an unsupported success transition")
   void fillWithDoubleLogSuccessEntry() {
-    EventLogEntry[] logs = new EventLogEntry[]{
-        EventLogEntry.success(TASK_NAME, NODE_ID, successFragmentResult(nodeLog())),
-        EventLogEntry.unsupported(TASK_NAME, NODE_ID, SUCCESS_TRANSITION),
-        EventLogEntry.success(TASK_NAME, OTHER_NODE_ID, successFragmentResult()),
-        EventLogEntry.error(TASK_NAME, OTHER_NODE_ID, "timeout")
-    };
-    EventLogConverter tested = givenLogConverter(logs);
+
+    EventLog log = new EventLog(TASK_NAME);
+    log.success(NODE_ID, successFragmentResult(nodeLog()));
+    log.unsupported(NODE_ID, SUCCESS_TRANSITION);
+    log.success(OTHER_NODE_ID, successFragmentResult());
+    log.error(OTHER_NODE_ID, "timeout");
+    EventLogConverter tested = givenLogConverter(log);
 
     NodeExecutionData result = tested.getExecutionData(NODE_ID);
 
@@ -216,13 +214,12 @@ class EventLogConverterTest {
   @Test
   @DisplayName("Expect unsupported non-success transition to have no effect")
   void fillWithDoubleLogNonSuccessEntry() {
-    EventLogEntry[] logs = new EventLogEntry[]{
-        EventLogEntry.error(TASK_NAME, NODE_ID, ERROR_TRANSITION),
-        EventLogEntry.unsupported(TASK_NAME, NODE_ID, ERROR_TRANSITION),
-        EventLogEntry.success(TASK_NAME, OTHER_NODE_ID, successFragmentResult()),
-        EventLogEntry.error(TASK_NAME, OTHER_NODE_ID, "timeout")
-    };
-    EventLogConverter tested = givenLogConverter(logs);
+    EventLog log = new EventLog(TASK_NAME);
+    log.error(NODE_ID, ERROR_TRANSITION);
+    log.unsupported(NODE_ID, ERROR_TRANSITION);
+    log.success(OTHER_NODE_ID, successFragmentResult());
+    log.error(OTHER_NODE_ID, "timeout");
+    EventLogConverter tested = givenLogConverter(log);
 
     NodeExecutionData result = tested.getExecutionData(NODE_ID);
 
@@ -236,8 +233,8 @@ class EventLogConverterTest {
     return new EventLogConverter(Collections.emptyList());
   }
 
-  EventLogConverter givenLogConverter(EventLogEntry... entries) {
-    return new EventLogConverter(Arrays.asList(entries));
+  EventLogConverter givenLogConverter(EventLog log) {
+    return new EventLogConverter(log.getOperations());
   }
 
   private FragmentResult successFragmentResult() {
@@ -249,7 +246,7 @@ class EventLogConverterTest {
   }
 
   private FragmentResult successFragmentResult(JsonObject nodeLog, boolean customTransition) {
-    return new FragmentResult(
+    return FragmentResult.success(
         new Fragment("dummy", new JsonObject(), ""),
         customTransition ? "custom" : SUCCESS_TRANSITION,
         nodeLog

@@ -15,6 +15,9 @@
  */
 package io.knotx.fragments.task.engine;
 
+import io.knotx.fragments.api.FragmentResult;
+import io.knotx.fragments.task.engine.EventLogEntry.NodeStatus;
+import io.vertx.core.json.JsonObject;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -22,20 +25,68 @@ import java.util.Objects;
 public class EventLog {
 
   private final List<EventLogEntry> operations;
+  private final String taskName;
 
-  public EventLog() {
+  public EventLog(String taskName) {
+    this.taskName = taskName;
     operations = new ArrayList<>();
   }
 
-  public EventLog(List<EventLogEntry> operations) {
-    this.operations = operations;
+  public EventLog nodeStarted(String node) {
+    operations.add(new EventLogEntry(taskName, node, NodeStatus.UNPROCESSED, null, null, null));
+    return this;
   }
 
-  void append(EventLogEntry logEntry) {
+  public EventLog compositeSuccess(String node, String transition) {
+    operations.add(new EventLogEntry(taskName, node, NodeStatus.SUCCESS, transition, null, null));
+    return this;
+  }
+
+  public EventLog compositeUnprocessed(String node, String transition) {
+    // TODO: Change to NodeStatus.UNPROCESSED when validated contract
+    // operations.add(new EventLogEntry(taskName, node, NodeStatus.UNPROCESSED, transition, null, null));
+    return compositeError(node, transition);
+  }
+
+  public EventLog compositeError(String node, String transition) {
+    operations.add(new EventLogEntry(taskName, node, NodeStatus.ERROR, transition, null, null));
+    return this;
+  }
+
+  public EventLog success(String node, FragmentResult fragmentResult) {
+    operations.add(new EventLogEntry(taskName, node, NodeStatus.SUCCESS, fragmentResult.getTransition(),
+        fragmentResult.getLog(), null));
+    return this;
+  }
+
+  public EventLog unsupported(String node, String transition) {
+    operations.add(new EventLogEntry(taskName, node, NodeStatus.UNSUPPORTED_TRANSITION, transition, null, null));
+    return this;
+  }
+
+  public EventLog error(String node, String transition) {
+    return error(node, transition, null);
+  }
+
+  public EventLog error(String node, FragmentResult fragmentResult) {
+    return error(node, fragmentResult.getTransition(), fragmentResult.getLog());
+  }
+
+  public EventLog error(String node, String transition, JsonObject nodeLog) {
+    operations.add(new EventLogEntry(taskName, node, NodeStatus.ERROR, transition, nodeLog, null));
+    return this;
+  }
+
+  public EventLog exception(String node, String transition, Throwable error) {
+    operations.add(new EventLogEntry(taskName, node, NodeStatus.ERROR, transition, null, error));
+    return this;
+  }
+
+  public void append(EventLogEntry logEntry) {
     operations.add(logEntry);
   }
 
-  void appendAll(EventLog log) {
+  public void appendAll(EventLog log) {
     this.operations.addAll(log.operations);
   }
 

@@ -18,7 +18,7 @@ package io.knotx.fragments.task.handler.consumer;
 import static io.knotx.fragments.api.FragmentResult.SUCCESS_TRANSITION;
 
 import io.knotx.fragments.task.api.NodeType;
-import io.knotx.fragments.task.engine.FragmentEvent;
+import io.knotx.fragments.task.engine.TaskResult;
 import io.knotx.fragments.task.factory.api.metadata.NodeMetadata;
 import io.knotx.fragments.task.factory.api.metadata.OperationMetadata;
 import io.knotx.fragments.task.factory.api.metadata.TaskMetadata;
@@ -28,7 +28,6 @@ import io.knotx.fragments.task.handler.log.api.model.GraphNodeExecutionLog;
 import io.knotx.fragments.task.handler.log.api.model.GraphNodeOperationLog;
 import io.knotx.fragments.task.handler.log.api.model.GraphNodeResponseLog;
 import io.knotx.fragments.task.handler.log.api.model.LoggedNodeStatus;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -42,7 +41,7 @@ class MetadataConverter {
   private final Map<String, NodeMetadata> nodes;
   private final EventLogConverter eventLogConverter;
 
-  MetadataConverter(FragmentEvent event, TaskMetadata taskMetadata) {
+  MetadataConverter(TaskResult event, TaskMetadata taskMetadata) {
     this.rootNodeId = taskMetadata.getRootNodeId();
     this.nodes = taskMetadata.getNodesMetadata();
     this.eventLogConverter = new EventLogConverter(event.getLog().getOperations());

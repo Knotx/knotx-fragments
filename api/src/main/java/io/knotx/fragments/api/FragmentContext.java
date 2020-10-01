@@ -39,6 +39,10 @@ public class FragmentContext {
     this.clientRequest = new ClientRequest(json.getJsonObject(CLIENT_REQUEST_KEY));
   }
 
+  public FragmentContext copy() {
+    return new FragmentContext(fragment.copy(), clientRequest.copy());
+  }
+
   public JsonObject toJson() {
     return new JsonObject()
         .put(FRAGMENT_KEY, fragment.toJson())

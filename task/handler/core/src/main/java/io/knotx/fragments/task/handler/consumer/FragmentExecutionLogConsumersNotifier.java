@@ -18,7 +18,7 @@ package io.knotx.fragments.task.handler.consumer;
 import static io.knotx.fragments.task.handler.log.api.model.FragmentExecutionLog.newInstance;
 import static java.util.stream.Collectors.toList;
 
-import io.knotx.fragments.task.engine.FragmentEvent;
+import io.knotx.fragments.task.engine.TaskResult;
 import io.knotx.fragments.task.handler.ExecutionPlan;
 import io.knotx.fragments.task.handler.log.api.model.FragmentExecutionLog.ExecutionStatus;
 import io.knotx.fragments.task.handler.exception.ConfigurationException;
@@ -66,7 +66,7 @@ public class FragmentExecutionLogConsumersNotifier {
   }
 
 
-  public void notify(ClientRequest clientRequest, List<FragmentEvent> events,
+  public void notify(ClientRequest clientRequest, List<TaskResult> events,
       ExecutionPlan executionPlan) {
     TasksMetadata tasksMetadata = executionPlan.getTasksMetadata();
     List<FragmentExecutionLog> executionDataList = events.stream()
@@ -77,7 +77,7 @@ public class FragmentExecutionLogConsumersNotifier {
         .forEach(consumer -> consumer.accept(clientRequest, executionDataList));
   }
 
-  private FragmentExecutionLog convert(FragmentEvent event, TasksMetadata tasksMetadata) {
+  private FragmentExecutionLog convert(TaskResult event, TasksMetadata tasksMetadata) {
     return
         Optional.ofNullable(tasksMetadata.get(event.getFragment().getId()))
             .map(metadata -> new MetadataConverter(event, metadata))
@@ -90,7 +90,7 @@ public class FragmentExecutionLogConsumersNotifier {
             .orElseGet(() -> newInstance(event.getFragment()));
   }
 
-  private ExecutionStatus toExecutionStatus(FragmentEvent event) {
+  private ExecutionStatus toExecutionStatus(TaskResult event) {
     return ExecutionStatus.valueOf(event.getStatus().toString());
   }
 }

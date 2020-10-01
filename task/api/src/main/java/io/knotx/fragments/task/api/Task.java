@@ -24,8 +24,8 @@ public class Task {
   private final String name;
   private final Node rootNode;
 
-  public Task(String name) {
-    this(name, null);
+  public static Task undefined() {
+    return new Task(UNDEFINED_TASK, null);
   }
 
   public Task(String name, Node rootNode) {
