@@ -18,14 +18,33 @@ package io.knotx.fragments.supplier.html.splitter;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import io.knotx.junit5.util.FileReader;
+import java.io.IOException;
 import java.util.List;
 import org.apache.commons.lang3.tuple.Pair;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 class HtmlAttributesParserTest {
 
+  private static final String SOME_KEY = "some-parameter";
+
+  private static final String SINGLE_QUOTES_ESCAPED = "\\' Some text \\'having\\' single quotes escaped \\'\\' and some \"double quotes\" \\'";
+  private static final String DOUBLE_QUOTES_ESCAPED = "\\\" Some text \\\"having\\\" double quotes escaped '' and some 'single quotes' \\\"";
+
   private HtmlAttributesParser tested;
+
+  private static String json;
+  private static String base64;
+
+  @BeforeAll
+  static void setUpOnce() throws IOException {
+    json = FileReader.readText("jsonDoubleQuotes.json");
+    base64 = FileReader.readText("base64.txt");
+  }
 
   @BeforeEach
   void setUp() {
@@ -39,6 +58,29 @@ class HtmlAttributesParserTest {
 
     // then
     assertTrue(pairs.isEmpty());
+  }
+
+  @Test
+  void shouldHandleLargeString() {
+    final int COUNT_PER_TYPE = 50;
+    String tag = tagWithProblematicParameters(COUNT_PER_TYPE);
+
+    List<Pair<String, String>> pairs = tested.get(tag);
+
+    assertEquals(COUNT_PER_TYPE * 4, pairs.size());
+
+    assertPresent(pairs, base64, 0, COUNT_PER_TYPE);
+    assertPresent(pairs, SINGLE_QUOTES_ESCAPED, COUNT_PER_TYPE, COUNT_PER_TYPE);
+    assertPresent(pairs, DOUBLE_QUOTES_ESCAPED, 2 * COUNT_PER_TYPE, COUNT_PER_TYPE);
+    assertPresent(pairs, json, 3 * COUNT_PER_TYPE, COUNT_PER_TYPE);
+  }
+
+  private void assertPresent(List<Pair<String, String>> pairs, String value, int offset,
+      int count) {
+    for (int i = 0; i < count; i++) {
+      assertEquals(SOME_KEY, pairs.get(offset + i).getKey());
+      assertEquals(value, pairs.get(offset + i).getValue());
+    }
   }
 
   @Test
@@ -154,6 +196,31 @@ class HtmlAttributesParserTest {
     assertEquals(1, pairs.size());
     assertEquals("attribute", pairs.get(0).getKey());
     assertTrue(pairs.get(0).getValue().isEmpty());
+  }
+
+  private String tagWithProblematicParameters(int countPerType) {
+    StringBuilder builder = new StringBuilder("<knotx:snippet");
+    appendValue(builder, '\'', base64, countPerType);
+    appendValue(builder, '\'', SINGLE_QUOTES_ESCAPED, countPerType);
+    appendValue(builder, '"', DOUBLE_QUOTES_ESCAPED, countPerType);
+    appendValue(builder, '\'', json, countPerType);
+    builder.append(">");
+    return builder.toString();
+  }
+
+  private static void appendValue(StringBuilder builder, char quote, String value, int count) {
+    for (int i = 0; i < count; i++) {
+      appendValue(builder, quote, value);
+    }
+  }
+
+  private static void appendValue(StringBuilder builder, char quote, String value) {
+    builder.append(" ");
+    builder.append(SOME_KEY);
+    builder.append("=");
+    builder.append(quote);
+    builder.append(value);
+    builder.append(quote);
   }
 
 }
