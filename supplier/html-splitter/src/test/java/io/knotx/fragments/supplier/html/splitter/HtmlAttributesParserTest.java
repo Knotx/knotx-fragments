@@ -22,7 +22,6 @@ import io.knotx.junit5.util.FileReader;
 import java.io.IOException;
 import java.util.List;
 import org.apache.commons.lang3.tuple.Pair;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -35,14 +34,8 @@ class HtmlAttributesParserTest {
 
   private HtmlAttributesParser tested;
 
-  private static String json;
-  private static String base64;
-
-  @BeforeAll
-  static void setUpOnce() throws IOException {
-    json = FileReader.readText("jsonDoubleQuotes.json");
-    base64 = FileReader.readText("base64.txt");
-  }
+  private String json;
+  private String base64;
 
   @BeforeEach
   void setUp() {
@@ -59,8 +52,12 @@ class HtmlAttributesParserTest {
   }
 
   @Test
-  void shouldHandleLargeString() {
+  void shouldHandleLargeString() throws IOException {
     final int COUNT_PER_TYPE = 50;
+
+    json = FileReader.readText("jsonDoubleQuotes.json");
+    base64 = FileReader.readText("base64.txt");
+
     String tag = tagWithProblematicParameters(COUNT_PER_TYPE);
 
     List<Pair<String, String>> pairs = tested.get(tag);
