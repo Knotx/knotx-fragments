@@ -4,6 +4,7 @@ All notable changes to `knotx-fragments` will be documented in this file.
 ## Unreleased
 List of changes that are finished but not yet released in any final version.
 - [PR-203](https://github.com/Knotx/knotx-fragments/pull/203) - Fixing [#197](https://github.com/Knotx/knotx-fragments/issues/197): Invoke actions via ActionInvoker.
+- [PR-201](https://github.com/Knotx/knotx-fragments/pull/201) - Prevent StackOverflowException when evaluating fragment as HTML attributes.
 - [PR-198](https://github.com/Knotx/knotx-fragments/pull/198) - Introduce `CopyPayloadKeyActionFactory` to enable coping inside Fragment's payload.
 - [PR-196](https://github.com/Knotx/knotx-fragments/pull/196) - Rename `doActionLogs`  in [Actions](https://github.com/Knotx/knotx-fragments/tree/master/action)' log to `invocations`.
 - [PR-195](https://github.com/Knotx/knotx-fragments/pull/195) - Simplifie `ActionProvider`'s constructor.
