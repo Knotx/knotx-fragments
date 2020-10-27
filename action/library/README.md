@@ -4,11 +4,11 @@ library.
 
 ## Action
 It is a list of core actions:
-- [HTTP Action](#http-action) - invokes a web API and stores a response body in a fragment's payload
-- [Inline Body Action](#inline-body-action) - replaces a fragment's body with the configured value
-- [Inline Payload Action](#inline-payload-action) - adds a JSON data into a fragment's payload
+- [HTTP Action](#http-action) - invokes a web API and stores a response body in Fragment's payload
+- [Inline Body Action](#inline-body-action) - replaces Fragment's body with the configured value
+- [Inline Payload Action](#inline-payload-action) - adds a JSON data into Fragment's payload
 - [CopyPayloadKeyActionFactory](#copy-payload-key-action) - copies data inside Fragment's payload
-- [Payload To Body Action](https://github.com/Knotx/knotx-fragments/tree/master/action/library#payload-to-body-action) - rewrites a fragment's payload to the body
+- [Payload To Body Action](https://github.com/Knotx/knotx-fragments/tree/master/action/library#payload-to-body-action) - rewrites Fragment's payload to its body
 
 ### HTTP Action
 HTTP Action calls a Web API (e.g. RESTful API), decodes the response body (e.g. text to JSON object) and finally stores all response details in a fragment's 
@@ -41,7 +41,7 @@ fetch-products {
 }
 ```
 
-The action does the HTTP `GET` request to `http://localhost:8080/products`. By default, a Vert.x Web Client request ends with an error only if something wrong 
+The action does the HTTP `GET` request to `http://localhost:8080/products`. By default, Vert.x Web Client's request ends with an error only if something wrong 
 happens at the network level. The response options (success conditions) indicate that we expect:
 - `2xx` response status code
 - `content-type` response header is `application.json`
@@ -64,7 +64,7 @@ For the above example, when all processing ends with success, and the response b
 ```
 
 the action fragment result will contain:
-- transition is `_success`
+-  `_success` transition
 - fragment's payload with `_request`, `_response` and `_result` details (under the action alias/name (`fetch-products`) key):
 ```
 "fetch-products": {
@@ -260,7 +260,7 @@ and key value `someKey.someNestedKey` body value will look like:
 
 ## Behaviour
 It is a list of core actions:
-- [Circuit Breaker Be](#circuit-breaker-behaviour) - wraps an action with circuit breaker
+- [Circuit Breaker Behaviour](#circuit-breaker-behaviour) - wraps an action with a circuit breaker
 - [In-memory Cache Behaviour](#in-memory-cache-behaviour) - adds cache for wrapped action
 
 ### Circuit Breaker Behaviour
