@@ -8,7 +8,6 @@
 [frame="topbot"]
 |===
 ^|Name | Type ^| Description
-|[[duration]]`@duration`|`Number (Long)`|-
 |[[log]]`@log`|`link:dataobjects.html#ActionLog[ActionLog]`|-
 |[[success]]`@success`|`Boolean`|-
 |===

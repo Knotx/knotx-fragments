@@ -16,11 +16,12 @@
 package io.knotx.fragments.action.library.cache;
 
 import static io.knotx.commons.validation.ValidationHelper.checkArgument;
+import static io.knotx.fragments.action.api.invoker.ActionInvoker.rxApply;
 import static io.knotx.fragments.action.library.helper.FragmentPlaceholders.buildSourceDefinitions;
-import static io.knotx.fragments.api.FragmentResult.fail;
 
 import io.knotx.commons.cache.Cache;
 import io.knotx.fragments.action.api.Action;
+import io.knotx.fragments.action.api.invoker.ActionInvocation;
 import io.knotx.fragments.action.api.SingleAction;
 import io.knotx.fragments.action.api.log.ActionLogLevel;
 import io.knotx.fragments.action.library.cache.operations.CacheActionLogger;
@@ -29,7 +30,6 @@ import io.knotx.fragments.action.library.cache.operations.CacheStore;
 import io.knotx.fragments.action.library.exception.ActionConfigurationException;
 import io.knotx.fragments.api.FragmentContext;
 import io.knotx.fragments.api.FragmentResult;
-import io.knotx.reactivex.fragments.api.FragmentOperation;
 import io.knotx.server.common.placeholders.PlaceholdersResolver;
 import io.reactivex.Maybe;
 import io.reactivex.Single;
@@ -89,30 +89,34 @@ public class CacheAction implements SingleAction {
     CacheActionLogger logger = CacheActionLogger.create(alias, logLevel);
     String cacheKey = createCacheKey(fragmentContext);
 
-    return lookup.find(cacheKey, logger)
-        .map(value -> lookup.toResponse(fragmentContext, value))
-        .doOnError(logger::onError)
-        .onErrorResumeNext(this::handleLookupError)
-        .switchIfEmpty(retrieve(fragmentContext, logger)
-            .doOnError(logger::onError)
-            .doOnSuccess(result -> safeSave(logger, cacheKey, result)))
-        .onErrorReturn(error -> fail(fragmentContext.getFragment(), error))
+    return lookupInCache(cacheKey, fragmentContext, logger)
+        .switchIfEmpty(retrieveAndStore(cacheKey, fragmentContext, logger))
+        .onErrorReturn(error -> FragmentResult.fail(fragmentContext.getFragment(), error))
         .map(result -> result.copyWithNewLog(logger.getLogAsJson()));
   }
 
-  private Single<FragmentResult> retrieve(FragmentContext context, CacheActionLogger logger) {
-    return Single.just(doAction)
-        .map(FragmentOperation::newInstance)
-        .doOnSuccess(action -> logger.onRetrieveStart())
-        .flatMap(action -> action.rxApply(context))
-        .doOnSuccess(logger::onRetrieveEnd);
+  private Maybe<FragmentResult> lookupInCache(String cacheKey, FragmentContext context,
+      CacheActionLogger logger) {
+    return lookup.find(cacheKey, logger)
+        .map(value -> lookup.toResponse(context, value))
+        .onErrorResumeNext(error -> { return handleLookupError(logger, error); });
+  }
+
+  private Single<FragmentResult> retrieveAndStore(String cacheKey, FragmentContext context,
+      CacheActionLogger logger) {
+    return rxApply(doAction, context)
+        .doOnSuccess(logger::onInvocationFinish)
+        .doOnSuccess(ActionInvocation::rethrowIfResultNotDelivered)
+        .doOnSuccess(invocation -> safeSave(logger, cacheKey, invocation))
+        .map(ActionInvocation::getFragmentResult);
   }
 
   private String createCacheKey(FragmentContext context) {
     return PlaceholdersResolver.resolveAndEncode(keySchema, buildSourceDefinitions(context));
   }
 
-  private Maybe<FragmentResult> handleLookupError(Throwable error) {
+  private Maybe<FragmentResult> handleLookupError(CacheActionLogger logger, Throwable error) {
+    logger.onError(error);
     if (failWhenLookupFails) {
       return Maybe.error(error);
     } else {
@@ -120,9 +124,9 @@ public class CacheAction implements SingleAction {
     }
   }
 
-  private void safeSave(CacheActionLogger logger, String cacheKey, FragmentResult result) {
+  private void safeSave(CacheActionLogger logger, String cacheKey, ActionInvocation invocation) {
     try {
-      store.save(logger, cacheKey, result);
+      store.save(logger, cacheKey, invocation.getFragmentResult());
     } catch (Throwable e) {
       logger.onError(e);
       if (failWhenStoreFails) {

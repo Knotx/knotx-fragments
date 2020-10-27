@@ -37,7 +37,7 @@ class CircuitBreakerDoActions {
       Handler<AsyncResult<FragmentResult>> resultHandler) {
     ActionLogger actionLogger = ActionLogger.create("action", INFO);
     actionLogger.info("info", "success");
-    Future.succeededFuture(new FragmentResult(fragmentContext.getFragment(), SUCCESS_TRANSITION,
+    Future.succeededFuture(FragmentResult.success(fragmentContext.getFragment(),
         actionLogger.toLog().toJson()))
         .onComplete(resultHandler);
   }
@@ -46,7 +46,7 @@ class CircuitBreakerDoActions {
       Handler<AsyncResult<FragmentResult>> resultHandler) {
     ActionLogger actionLogger = ActionLogger.create("action", INFO);
     actionLogger.info("info", "custom");
-    Future.succeededFuture(new FragmentResult(fragmentContext.getFragment(), CUSTOM_TRANSITION,
+    Future.succeededFuture(FragmentResult.success(fragmentContext.getFragment(), CUSTOM_TRANSITION,
         actionLogger.toLog().toJson()))
         .onComplete(resultHandler);
   }
@@ -55,7 +55,7 @@ class CircuitBreakerDoActions {
       Handler<AsyncResult<FragmentResult>> resultHandler) {
     ActionLogger actionLogger = ActionLogger.create("action", INFO);
     actionLogger.info("info", "error");
-    Future.succeededFuture(new FragmentResult(fragmentContext.getFragment(), ERROR_TRANSITION,
+    Future.succeededFuture(FragmentResult.success(fragmentContext.getFragment(), ERROR_TRANSITION,
         actionLogger.toLog().toJson()))
         .onComplete(resultHandler);
   }
@@ -79,7 +79,7 @@ class CircuitBreakerDoActions {
     vertx.setTimer(1500,
         l ->
             Future.succeededFuture(
-                new FragmentResult(fragmentContext.getFragment(), SUCCESS_TRANSITION)
+                FragmentResult.success(fragmentContext.getFragment())
             ).onComplete(resultHandler));
   }
 
