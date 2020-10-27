@@ -22,6 +22,10 @@ import java.util.concurrent.TimeoutException;
 
 public class ActionInvocation {
 
+  public enum Status {
+    RESULT_DELIVERED, EXCEPTION, TIMEOUT
+  }
+
   private final long duration;
   private final FragmentResult fragmentResult;
   private final Status status;
@@ -60,6 +64,14 @@ public class ActionInvocation {
 
   public FragmentResult getFragmentResult() {
     return fragmentResult;
+  }
+
+  public Status getStatus() {
+    return status;
+  }
+
+  public Throwable getError() {
+    return error;
   }
 
   public boolean isResultDelivered() {
@@ -105,17 +117,4 @@ public class ActionInvocation {
         ", fragmentResult=" + fragmentResult +
         '}';
   }
-
-  public Status getStatus() {
-    return status;
-  }
-
-  public Throwable getError() {
-    return error;
-  }
-
-  public enum Status {
-    RESULT_DELIVERED, EXCEPTION, TIMEOUT
-  }
-
 }

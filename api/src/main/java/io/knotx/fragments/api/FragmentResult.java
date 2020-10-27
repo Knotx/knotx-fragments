@@ -77,13 +77,24 @@ public class FragmentResult {
         FragmentOperationFailure.newInstance(errorCode, errorMessage));
   }
 
-  // Should be used only by caller to indicate synchronous or asynchronous exception
+  /**
+   * Should be used only by caller to indicate synchronous or asynchronous exception.
+   *
+   * @param original fragment context
+   * @param error    error
+   * @return fragment result
+   */
   public static FragmentResult exception(FragmentContext original, Throwable error) {
     return new FragmentResult(original.getFragment(), EXCEPTION_TRANSITION, null,
         FragmentOperationFailure.newInstance(error));
   }
 
-  // Should be used only by caller to indicate external timeout
+  /**
+   * Should be used only by caller to indicate external timeout.
+   *
+   * @param original fragment context
+   * @return fragment result
+   */
   public static FragmentResult externalTimeout(FragmentContext original) {
     return new FragmentResult(original.getFragment(), EXTERNAL_TIMEOUT_TRANSITION, null);
   }
@@ -170,7 +181,7 @@ public class FragmentResult {
     return error;
   }
 
-  public boolean isSuccess() {
+  public boolean isSuccessful() {
     return StringUtils.isBlank(transition) || SUCCESS_TRANSITION.equals(transition);
   }
 

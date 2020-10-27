@@ -107,7 +107,6 @@ public final class ActionInvoker {
   }
 
   private static class Timer {
-
     private long startTime;
     private long endTime;
 
@@ -123,5 +122,4 @@ public final class ActionInvoker {
       return endTime - startTime;
     }
   }
-
 }
