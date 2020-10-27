@@ -25,7 +25,7 @@ import org.apache.commons.lang3.tuple.Pair;
 
 class HtmlAttributesParser {
 
-  private static final String HTML_ATTRIBUTE_REGEXP = "(?<key>[\\w\\-]+)\\s*=\\s*(?<value>'((?:\\\\'|[^'])*)'|\"((?:\\\\\"|[^\"])*)\")";
+  private static final String HTML_ATTRIBUTE_REGEXP = "(?<key>[\\w\\-]+)\\s*=\\s*(?<value>'((?:\\\\.|[^\\\\']*)*)'|\"((?:\\\\.|[^\\\\\"]*)*)\")";
   private static final Pattern ATTRIBUTE_PATTERN = Pattern
       .compile(HTML_ATTRIBUTE_REGEXP, Pattern.DOTALL);
 
