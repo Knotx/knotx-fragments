@@ -53,7 +53,7 @@ public class CacheActionLogger {
   }
 
   private boolean isSuccess(ActionInvocation invocation) {
-    return invocation.isResultDelivered() && invocation.getFragmentResult().isSuccessful();
+    return invocation.isResultDelivered() && invocation.getFragmentResult().isSuccess();
   }
 
   void onHit(Object cachedValue) {

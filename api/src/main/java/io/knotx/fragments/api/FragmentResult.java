@@ -181,7 +181,7 @@ public class FragmentResult {
     return error;
   }
 
-  public boolean isSuccessful() {
+  public boolean isSuccess() {
     return StringUtils.isBlank(transition) || SUCCESS_TRANSITION.equals(transition);
   }
 
