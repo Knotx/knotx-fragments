@@ -36,7 +36,8 @@ public final class ActionInvoker {
    * The downstream <b>will receive a succeeded <code>Single</code></b> with an
    * <code>ActionInvocation</code> object with a delivered <code>FragmentResult</code> and
    * <code>duration</code> in ms in these scenarios:
-   * <table cellspacing="10" summary="Happy path execution cases">
+   * <table>
+   *   <caption>Happy path execution cases</caption>
    *    <tr><td><b>Action</b></td><td><b>ResultHandler</b></td><td><b>AsyncResult</b></td><td><b>FragmentResult</b></td></tr>
    *    <tr><td>returns</td><td>called (eventually)</td><td>succeeded</td><td>+</td></tr>
    *    <tr><td>returns</td><td>called (eventually)</td><td>succeeding Future (eventually)</td><td>+</td></tr>
@@ -46,7 +47,8 @@ public final class ActionInvoker {
    * <p>
    * The downstream <b>will also receive a succeeded <code>Single</code></b> with an
    * <code>ActionInvocation</code> object representing a failed invocation, containing exception details, exception-like <code>FragmentResult</code> with original <code>FragmentContext</code> and <code>duration</code> in ms in these scenarios:
-   * <table cellspacing="10" summary="Failed ActionInvocation return cases">
+   * <table>
+   *   <caption>Failed ActionInvocation return cases</caption>
    *   <tr><td><b>Action</b></td><td><b>ResultHandler</b></td><td><b>AsyncResult</b></td><td><b>FragmentResult</b></td></tr>
    *   <tr><td>returns</td><td>called (eventually)</td><td>failed</td><td>-</td></tr>
    *   <tr><td>returns</td><td>called (eventually)</td><td>succeeded</td><td>null</td></tr>
@@ -60,7 +62,8 @@ public final class ActionInvoker {
    * <i>Please note that only the first and second cases are considered valid in Knot.x environment.</i>
    * <p>
    * The downstream <b>will halt forever</b> (unless terminated by an external timeout) in these scenarios:
-   * <table cellspacing="10" summary="Hanging cases">
+   * <table>
+   *   <caption>Hanging cases</caption>
    *   <tr><td><b>Action</b></td><td><b>ResultHandler</b></td><td><b>AsyncResult</b></td><td><b>FragmentResult</b></td></tr>
    *   <tr><td>returns</td><td>not called</td><td>-</td><td>-</td></tr>
    *   <tr><td>returns</td><td>called (eventually)</td><td>Future (never resolved)</td><td>-</td></tr>
