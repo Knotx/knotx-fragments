@@ -14,6 +14,32 @@ It is a list of core actions:
 HTTP Action calls a Web API (e.g. RESTful API), decodes the response body (e.g. text to JSON object) and finally stores all response details in a fragment's 
 payload. It [supports](#supported-http-methods) `GET`, `POST`, `PUT`, `PATCH`, `DELETE` and `HEAD` HTTP methods.
 
+#### Examples
+
+#### GraphQL API via POST request
+In this scenario, product data is retrieved from the e-commerce platform - [Adobe Magento](https://devdocs.magento.com/guides/v2.4/graphql/queries/products.html). Magento implements GraphQL to provide an alternative to REST and SOAP web APIs for frontend development.
+
+```
+products {
+  factory = http
+  config {
+    httpMethod = POST
+    endpointOptions {
+      path = /graphql
+      domain = magento
+      port = 80
+      additionalHeaders = { 
+        content-type = application/json
+      }
+      body = """{"query":"{\n  products(filter: { price: { from: \"1\" to: \"1000\"} }) {\n    total_count\n    items {\n      name\n    }\n  }\n}","variables":{}}"""
+    }
+    responseOptions {
+      predicates = [SC_SUCCESS, JSON]
+    }
+  }
+}
+```
+
 #### How does it work
 It uses [Vert.x Web Client](https://vertx.io/docs/vertx-web-client/java/), an asynchronous HTTP and HTTP/2 client, to call web APIs and handle responses. All 
 request/response interaction aspects are fully configurable:
