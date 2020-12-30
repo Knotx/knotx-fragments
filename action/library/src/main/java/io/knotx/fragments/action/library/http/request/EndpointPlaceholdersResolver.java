@@ -29,14 +29,17 @@ import org.apache.commons.lang3.StringUtils;
 
 class EndpointPlaceholdersResolver {
 
-  private final SourceDefinitions sourceDefinitions;
+  private final PlaceholdersResolver simpleResolver;
+  private final PlaceholdersResolver encodingResolver;
 
   EndpointPlaceholdersResolver(FragmentContext fragmentContext) {
-    sourceDefinitions = buildSourceDefinitions(fragmentContext);
+    SourceDefinitions sourceDefinitions = buildSourceDefinitions(fragmentContext);
+    simpleResolver = PlaceholdersResolver.create(sourceDefinitions);
+    encodingResolver = PlaceholdersResolver.createEncoding(sourceDefinitions);
   }
 
   String resolve(String input) {
-    return PlaceholdersResolver.resolve(input, sourceDefinitions);
+    return simpleResolver.resolve(input);
   }
 
   JsonObject resolve(JsonObject input) {
@@ -46,7 +49,7 @@ class EndpointPlaceholdersResolver {
   }
 
   String resolveAndEncode(String input) {
-    return PlaceholdersResolver.resolveAndEncode(input, sourceDefinitions);
+    return encodingResolver.resolve(input);
   }
 
   private String resolveNotEmpty(String input) {
@@ -65,7 +68,7 @@ class EndpointPlaceholdersResolver {
       List<Object> list = array.stream().map(this::resolveInternal).collect(Collectors.toList());
       return new JsonArray(list);
     } else if (object instanceof String) {
-      return PlaceholdersResolver.resolve((String) object, sourceDefinitions);
+      return simpleResolver.resolve((String) object);
     } else {
       return object;
     }

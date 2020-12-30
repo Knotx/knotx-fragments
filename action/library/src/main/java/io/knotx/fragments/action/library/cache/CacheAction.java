@@ -31,6 +31,7 @@ import io.knotx.fragments.action.library.exception.ActionConfigurationException;
 import io.knotx.fragments.api.FragmentContext;
 import io.knotx.fragments.api.FragmentResult;
 import io.knotx.server.common.placeholders.PlaceholdersResolver;
+import io.knotx.server.common.placeholders.SourceDefinitions;
 import io.reactivex.Maybe;
 import io.reactivex.Single;
 import org.apache.commons.lang3.StringUtils;
@@ -112,7 +113,8 @@ public class CacheAction implements SingleAction {
   }
 
   private String createCacheKey(FragmentContext context) {
-    return PlaceholdersResolver.resolveAndEncode(keySchema, buildSourceDefinitions(context));
+    SourceDefinitions sourceDefinitions = buildSourceDefinitions(context);
+    return PlaceholdersResolver.createEncoding(sourceDefinitions).resolve(keySchema);
   }
 
   private Maybe<FragmentResult> handleLookupError(CacheActionLogger logger, Throwable error) {
