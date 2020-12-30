@@ -29,22 +29,26 @@ import org.apache.commons.lang3.StringUtils;
 
 class EndpointPlaceholdersResolver {
 
-  private final PlaceholdersResolver simpleResolver;
+  private final PlaceholdersResolver simpleResolverLeavingUnmatched;
   private final PlaceholdersResolver encodingResolver;
 
   EndpointPlaceholdersResolver(FragmentContext fragmentContext) {
     SourceDefinitions sourceDefinitions = buildSourceDefinitions(fragmentContext);
-    simpleResolver = PlaceholdersResolver.create(sourceDefinitions);
+    simpleResolverLeavingUnmatched = PlaceholdersResolver.builder()
+        .withSources(sourceDefinitions)
+        .leaveUnmatched()
+        .build();
     encodingResolver = PlaceholdersResolver.createEncoding(sourceDefinitions);
   }
 
   String resolve(String input) {
-    return simpleResolver.resolve(input);
+    return simpleResolverLeavingUnmatched.resolve(input);
   }
 
   JsonObject resolve(JsonObject input) {
     JsonObject output = new JsonObject();
-    input.forEach(entry -> output.put(resolveNotEmpty(entry.getKey()), resolveInternal(entry.getValue())));
+    input.forEach(
+        entry -> output.put(resolveNotEmpty(entry.getKey()), resolveInternal(entry.getValue())));
     return output;
   }
 
@@ -68,7 +72,7 @@ class EndpointPlaceholdersResolver {
       List<Object> list = array.stream().map(this::resolveInternal).collect(Collectors.toList());
       return new JsonArray(list);
     } else if (object instanceof String) {
-      return simpleResolver.resolve((String) object);
+      return simpleResolverLeavingUnmatched.resolve((String) object);
     } else {
       return object;
     }

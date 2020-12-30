@@ -47,6 +47,9 @@ class EndpointPlaceholdersResolverTest {
       "<a href=\"" + HOST_HEADER + "\"></a><a href=\"" + REFINED_QUERY_PARAM + "\"></a><a href=\""
           + HTTP_REQUEST_SOURCE + "\"></a>";
 
+  private static final String COMPLEX_JSON_STRING_WITH_PLACEHOLDERS = "{\"query\":\"query ($categories: [String!]!) {\\n    products(filter: { category_id: { in: $categories } }) {    \\n        total_count\\n        items {      \\n            name      \\n            description {\\n                html      \\n            }      \\n            image {\\n                url\\n                label\\n            }\\n            small_image {         \\n                url\\n                label\\n            }\\n        }\\n    }\\n}\",\"variables\":{\"categories\":[\"{config.categories}\"]}}";
+  private static final String COMPLEX_JSON_STRING_PLACEHOLDERS_DONE = "{\"query\":\"query ($categories: [String!]!) {\\n    products(filter: { category_id: { in: $categories } }) {    \\n        total_count\\n        items {      \\n            name      \\n            description {\\n                html      \\n            }      \\n            image {\\n                url\\n                label\\n            }\\n            small_image {         \\n                url\\n                label\\n            }\\n        }\\n    }\\n}\",\"variables\":{\"categories\":[\"2\"]}}";
+
   private static final JsonObject JSON_NO_PLACEHOLDERS = new JsonObject()
       .put("api-key", "^mJHG3%#r6@")
       .put("items", new JsonObject()
@@ -199,6 +202,16 @@ class EndpointPlaceholdersResolverTest {
         JSON_NONEXISTENT_KEY_PLACEHOLDERS));
   }
 
+  @Test
+  @DisplayName("Expect parsed complex JSON string with nested placeholders to be replaced")
+  void complexJsonAsStringIsInterpolated() {
+    givenResolverFor(fragmentContextWithSomeData());
+
+    String result = tested.resolve(COMPLEX_JSON_STRING_WITH_PLACEHOLDERS);
+
+    assertEquals(COMPLEX_JSON_STRING_PLACEHOLDERS_DONE, result);
+  }
+
   private void givenResolverFor(FragmentContext fragmentContext) {
     tested = new EndpointPlaceholdersResolver(fragmentContext);
   }
@@ -212,7 +225,7 @@ class EndpointPlaceholdersResolverTest {
 
   private FragmentContext fragmentContextWithSomeData() {
     return new FragmentContext(
-        new Fragment("snippet", new JsonObject(), StringUtils.EMPTY)
+        new Fragment("snippet", new JsonObject().put("categories", 2), StringUtils.EMPTY)
             .appendPayload("httpCall", new JsonObject()
                 .put("_request", new JsonObject().put("source", HTTP_REQUEST_SOURCE))),
         new ClientRequest().setHeaders(MultiMap.caseInsensitiveMultiMap()
