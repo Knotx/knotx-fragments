@@ -187,6 +187,7 @@ class EndpointRequestComposerTest {
         .put("domain", "google.com")
         .put("port", 80)
         .put("body", COMPLEX_BODY_STRING)
+        .put("interpolateBody", true)
         .put("clearUnmatchedPlaceholdersInBodyString", false);
 
     givenComposer(configuration);
