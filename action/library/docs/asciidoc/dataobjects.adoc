@@ -129,9 +129,15 @@ Sets the request body schema to be sent to the endpoint. The body may contain <a
 
  This field is mutually exclusive with link.
 +++
+|[[clearUnmatchedPlaceholdersInBodyJson]]`@clearUnmatchedPlaceholdersInBodyJson`|`Boolean`|-
+|[[clearUnmatchedPlaceholdersInBodyString]]`@clearUnmatchedPlaceholdersInBodyString`|`Boolean`|-
+|[[clearUnmatchedPlaceholdersInPath]]`@clearUnmatchedPlaceholdersInPath`|`Boolean`|-
 |[[domain]]`@domain`|`String`|+++
 Sets the <code>domain</code> of the external service
 +++
+|[[encodePlaceholdersInBodyJson]]`@encodePlaceholdersInBodyJson`|`Boolean`|-
+|[[encodePlaceholdersInBodyString]]`@encodePlaceholdersInBodyString`|`Boolean`|-
+|[[encodePlaceholdersInPath]]`@encodePlaceholdersInPath`|`Boolean`|-
 |[[interpolateBody]]`@interpolateBody`|`Boolean`|+++
 Configures interpolation of link parameter. When set, the body will be
  interpolated using <a href="https://github.com/Knotx/knotx-server-http/tree/master/common/placeholders">Knot.x

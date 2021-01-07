@@ -21,6 +21,7 @@ import io.vertx.core.json.JsonObject;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -42,6 +43,12 @@ public class EndpointOptions {
   private List<Pattern> allowedRequestHeadersPatterns;
   private boolean interpolatePath = true;
   private boolean interpolateBody = false;
+  private boolean clearUnmatchedPlaceholdersInPath = true;
+  private boolean clearUnmatchedPlaceholdersInBodyString = false;
+  private boolean clearUnmatchedPlaceholdersInBodyJson = false;
+  private boolean encodePlaceholdersInPath = true;
+  private boolean encodePlaceholdersInBodyString = false;
+  private boolean encodePlaceholdersInBodyJson = false;
   //ToDo: private Set<StatusCode> successStatusCodes;
 
   public EndpointOptions() {
@@ -59,6 +66,12 @@ public class EndpointOptions {
     this.bodyJson = other.getBodyJson();
     this.interpolatePath = other.isInterpolatePath();
     this.interpolateBody = other.isInterpolateBody();
+    this.clearUnmatchedPlaceholdersInPath = other.clearUnmatchedPlaceholdersInPath;
+    this.clearUnmatchedPlaceholdersInBodyString = other.clearUnmatchedPlaceholdersInBodyString;
+    this.clearUnmatchedPlaceholdersInBodyJson = other.clearUnmatchedPlaceholdersInBodyJson;
+    this.encodePlaceholdersInPath = other.encodePlaceholdersInPath;
+    this.encodePlaceholdersInBodyString = other.encodePlaceholdersInBodyString;
+    this.encodePlaceholdersInBodyJson = other.encodePlaceholdersInBodyJson;
   }
 
   public EndpointOptions(JsonObject json) {
@@ -261,6 +274,63 @@ public class EndpointOptions {
     return this;
   }
 
+  public boolean isClearUnmatchedPlaceholdersInPath() {
+    return clearUnmatchedPlaceholdersInPath;
+  }
+
+  public EndpointOptions setClearUnmatchedPlaceholdersInPath(
+      boolean clearUnmatchedPlaceholdersInPath) {
+    this.clearUnmatchedPlaceholdersInPath = clearUnmatchedPlaceholdersInPath;
+    return this;
+  }
+
+  public boolean isClearUnmatchedPlaceholdersInBodyString() {
+    return clearUnmatchedPlaceholdersInBodyString;
+  }
+
+  public EndpointOptions setClearUnmatchedPlaceholdersInBodyString(
+      boolean clearUnmatchedPlaceholdersInBodyString) {
+    this.clearUnmatchedPlaceholdersInBodyString = clearUnmatchedPlaceholdersInBodyString;
+    return this;
+  }
+
+  public boolean isClearUnmatchedPlaceholdersInBodyJson() {
+    return clearUnmatchedPlaceholdersInBodyJson;
+  }
+
+  public EndpointOptions setClearUnmatchedPlaceholdersInBodyJson(
+      boolean clearUnmatchedPlaceholdersInBodyJson) {
+    this.clearUnmatchedPlaceholdersInBodyJson = clearUnmatchedPlaceholdersInBodyJson;
+    return this;
+  }
+
+  public boolean isEncodePlaceholdersInPath() {
+    return encodePlaceholdersInPath;
+  }
+
+  public EndpointOptions setEncodePlaceholdersInPath(boolean encodePlaceholdersInPath) {
+    this.encodePlaceholdersInPath = encodePlaceholdersInPath;
+    return this;
+  }
+
+  public boolean isEncodePlaceholdersInBodyString() {
+    return encodePlaceholdersInBodyString;
+  }
+
+  public EndpointOptions setEncodePlaceholdersInBodyString(boolean encodePlaceholdersInBodyString) {
+    this.encodePlaceholdersInBodyString = encodePlaceholdersInBodyString;
+    return this;
+  }
+
+  public boolean isEncodePlaceholdersInBodyJson() {
+    return encodePlaceholdersInBodyJson;
+  }
+
+  public EndpointOptions setEncodePlaceholdersInBodyJson(boolean encodePlaceholdersInBodyJson) {
+    this.encodePlaceholdersInBodyJson = encodePlaceholdersInBodyJson;
+    return this;
+  }
+
   @Override
   public String toString() {
     return "EndpointOptions{" +
@@ -274,7 +344,46 @@ public class EndpointOptions {
         ", allowedRequestHeadersPatterns=" + allowedRequestHeadersPatterns +
         ", interpolatePath=" + interpolatePath +
         ", interpolateBody=" + interpolateBody +
+        ", clearUnmatchedPlaceholdersInPath=" + clearUnmatchedPlaceholdersInPath +
+        ", clearUnmatchedPlaceholdersInBodyString=" + clearUnmatchedPlaceholdersInBodyString +
+        ", clearUnmatchedPlaceholdersInBodyJson=" + clearUnmatchedPlaceholdersInBodyJson +
+        ", encodePlaceholdersInPath=" + encodePlaceholdersInPath +
+        ", encodePlaceholdersInBodyString=" + encodePlaceholdersInBodyString +
+        ", encodePlaceholdersInBodyJson=" + encodePlaceholdersInBodyJson +
         '}';
   }
 
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    EndpointOptions that = (EndpointOptions) o;
+    return port == that.port && interpolatePath == that.interpolatePath
+        && interpolateBody == that.interpolateBody
+        && clearUnmatchedPlaceholdersInPath == that.clearUnmatchedPlaceholdersInPath
+        && clearUnmatchedPlaceholdersInBodyString == that.clearUnmatchedPlaceholdersInBodyString
+        && clearUnmatchedPlaceholdersInBodyJson == that.clearUnmatchedPlaceholdersInBodyJson
+        && encodePlaceholdersInPath == that.encodePlaceholdersInPath
+        && encodePlaceholdersInBodyString == that.encodePlaceholdersInBodyString
+        && encodePlaceholdersInBodyJson == that.encodePlaceholdersInBodyJson && Objects
+        .equals(path, that.path) && Objects.equals(body, that.body) && Objects
+        .equals(bodyJson, that.bodyJson) && Objects.equals(domain, that.domain)
+        && Objects.equals(allowedRequestHeaders, that.allowedRequestHeaders)
+        && Objects.equals(additionalHeaders, that.additionalHeaders) && Objects
+        .equals(allowedRequestHeadersPatterns, that.allowedRequestHeadersPatterns);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects
+        .hash(path, body, bodyJson, domain, port, allowedRequestHeaders, additionalHeaders,
+            allowedRequestHeadersPatterns, interpolatePath, interpolateBody,
+            clearUnmatchedPlaceholdersInPath, clearUnmatchedPlaceholdersInBodyString,
+            clearUnmatchedPlaceholdersInBodyJson, encodePlaceholdersInPath,
+            encodePlaceholdersInBodyString, encodePlaceholdersInBodyJson);
+  }
 }

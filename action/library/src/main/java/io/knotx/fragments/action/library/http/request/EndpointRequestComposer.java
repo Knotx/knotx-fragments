@@ -15,6 +15,7 @@
  */
 package io.knotx.fragments.action.library.http.request;
 
+import io.knotx.fragments.action.library.http.request.placeholders.EndpointPlaceholdersResolver;
 import io.knotx.fragments.api.FragmentContext;
 import io.knotx.fragments.action.library.http.options.EndpointOptions;
 import io.vertx.reactivex.core.MultiMap;
@@ -32,7 +33,7 @@ public class EndpointRequestComposer {
   }
 
   public EndpointRequest createEndpointRequest(FragmentContext context) {
-    EndpointPlaceholdersResolver resolver = new EndpointPlaceholdersResolver(context);
+    EndpointPlaceholdersResolver resolver = new EndpointPlaceholdersResolver(endpointOptions, context);
     String path = getPath(resolver);
     MultiMap requestHeaders = headersComposer.getRequestHeaders(context.getClientRequest());
     String body = bodyComposer.getBody(resolver);
@@ -48,7 +49,7 @@ public class EndpointRequestComposer {
 
   private String getPath(EndpointPlaceholdersResolver resolver) {
     if (endpointOptions.isInterpolatePath()) {
-      return resolver.resolveAndEncode(endpointOptions.getPath());
+      return resolver.resolvePath(endpointOptions.getPath());
     } else {
       return endpointOptions.getPath();
     }
