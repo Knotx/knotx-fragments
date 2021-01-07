@@ -188,7 +188,7 @@ class EndpointPlaceholdersResolverTest {
   @Test
   @DisplayName("Expect non existent placeholders in JSON values to be replaced with empty string")
   void jsonWithNonExistentPlaceholdersInValuesReplacedWithEmptyString() {
-    givenDefaultResolverFor(fragmentContextWithSomeData());
+    givenClearingUnmatchedResolverFor(fragmentContextWithSomeData());
 
     JsonObject result = tested.resolveJson(JSON_NONEXISTENT_VALUE_PLACEHOLDERS);
 
