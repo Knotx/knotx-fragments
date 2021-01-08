@@ -116,9 +116,9 @@ public class EndpointOptions {
    * href="https://github.com/Knotx/knotx-server-http/tree/master/common/placeholders">Knot.x Server
    * Common Placeholders</a> referencing ClientRequest, Fragment's configuration or Fragment's
    * payload, which will be interpolated if {@link EndpointOptions#interpolateBody} flag is set.
-   *
+   * <p>
    * Please note that request body is sent only in case of using PUT, POST or PATCH HTTP method.
-   *
+   * <p>
    * This field is mutually exclusive with {@link EndpointOptions#bodyJson}.
    *
    * @param body a body to be send to the endpoint
@@ -138,9 +138,9 @@ public class EndpointOptions {
    * href="https://github.com/Knotx/knotx-server-http/tree/master/common/placeholders">Knot.x Server
    * Common Placeholders</a> referencing ClientRequest, Fragment's configuration or Fragment's
    * payload, which will be interpolated if {@link EndpointOptions#interpolateBody} flag is set.
-   *
+   * <p>
    * Please note that request body is sent only in case of using PUT, POST or PATCH HTTP method.
-   *
+   * <p>
    * This field is mutually exclusive with {@link EndpointOptions#body}.
    *
    * @param bodyJson a body to be send to the endpoint
@@ -278,6 +278,17 @@ public class EndpointOptions {
     return clearUnmatchedPlaceholdersInPath;
   }
 
+  /**
+   * Configures interpolation of {@link EndpointOptions#path} parameter. When path interpolation is
+   * enabled and this flag is set, placeholders not matched to a source will be replaced with an
+   * empty string.
+   * <p>
+   * Please note that absent placeholders that are matched to a source (e.g. {payload.not-existent})
+   * will always be replaced with an empty string.
+   *
+   * @param clearUnmatchedPlaceholdersInPath flag enabling clearing unmatched placeholders in path
+   * @return a reference to this, so the API can be used fluently
+   */
   public EndpointOptions setClearUnmatchedPlaceholdersInPath(
       boolean clearUnmatchedPlaceholdersInPath) {
     this.clearUnmatchedPlaceholdersInPath = clearUnmatchedPlaceholdersInPath;
@@ -288,6 +299,18 @@ public class EndpointOptions {
     return clearUnmatchedPlaceholdersInBodyString;
   }
 
+  /**
+   * Configures interpolation of {@link EndpointOptions#body} parameter. When body interpolation is
+   * enabled and this flag is set, placeholders not matched to a source will be replaced with an
+   * empty string.
+   * <p>
+   * Please note that absent placeholders that are matched to a source (e.g. {payload.not-existent})
+   * will always be replaced with an empty string.
+   *
+   * @param clearUnmatchedPlaceholdersInBodyString flag enabling clearing unmatched placeholders in
+   *                                               body
+   * @return a reference to this, so the API can be used fluently
+   */
   public EndpointOptions setClearUnmatchedPlaceholdersInBodyString(
       boolean clearUnmatchedPlaceholdersInBodyString) {
     this.clearUnmatchedPlaceholdersInBodyString = clearUnmatchedPlaceholdersInBodyString;
@@ -298,6 +321,18 @@ public class EndpointOptions {
     return clearUnmatchedPlaceholdersInBodyJson;
   }
 
+  /**
+   * Configures interpolation of {@link EndpointOptions#bodyJson} parameter. When JSON body
+   * interpolation is enabled and this flag is set, placeholders not matched to a source will be
+   * replaced with an empty string.
+   * <p>
+   * Please note that absent placeholders that are matched to a source (e.g. {payload.not-existent})
+   * will always be replaced with an empty string.
+   *
+   * @param clearUnmatchedPlaceholdersInBodyJson flag enabling clearing unmatched placeholders in
+   *                                             JSON body
+   * @return a reference to this, so the API can be used fluently
+   */
   public EndpointOptions setClearUnmatchedPlaceholdersInBodyJson(
       boolean clearUnmatchedPlaceholdersInBodyJson) {
     this.clearUnmatchedPlaceholdersInBodyJson = clearUnmatchedPlaceholdersInBodyJson;
@@ -308,6 +343,17 @@ public class EndpointOptions {
     return encodePlaceholdersInPath;
   }
 
+  /**
+   * Configures interpolation of {@link EndpointOptions#path} parameter. When path interpolation is
+   * enabled and this flag is set, values of matched placeholders will be encoded before
+   * interpolating.
+   * <p>
+   * For details, see <a href="https://github.com/Knotx/knotx-server-http/tree/master/common/placeholders">Knot.x
+   * Server Common Placeholders</a>
+   *
+   * @param encodePlaceholdersInPath flag enabling placeholder encoding in path
+   * @return a reference to this, so the API can be used fluently
+   */
   public EndpointOptions setEncodePlaceholdersInPath(boolean encodePlaceholdersInPath) {
     this.encodePlaceholdersInPath = encodePlaceholdersInPath;
     return this;
@@ -317,6 +363,17 @@ public class EndpointOptions {
     return encodePlaceholdersInBodyString;
   }
 
+  /**
+   * Configures interpolation of {@link EndpointOptions#body} parameter. When body interpolation is
+   * enabled and this flag is set, values of matched placeholders will be encoded before
+   * interpolating.
+   * <p>
+   * For details, see <a href="https://github.com/Knotx/knotx-server-http/tree/master/common/placeholders">Knot.x
+   * Server Common Placeholders</a>
+   *
+   * @param encodePlaceholdersInBodyString flag enabling placeholder encoding in body
+   * @return a reference to this, so the API can be used fluently
+   */
   public EndpointOptions setEncodePlaceholdersInBodyString(boolean encodePlaceholdersInBodyString) {
     this.encodePlaceholdersInBodyString = encodePlaceholdersInBodyString;
     return this;
@@ -326,6 +383,17 @@ public class EndpointOptions {
     return encodePlaceholdersInBodyJson;
   }
 
+  /**
+   * Configures interpolation of {@link EndpointOptions#bodyJson} parameter. When JSON body
+   * interpolation is enabled and this flag is set, values of matched placeholders will be encoded
+   * before interpolating.
+   * <p>
+   * For details, see <a href="https://github.com/Knotx/knotx-server-http/tree/master/common/placeholders">Knot.x
+   * Server Common Placeholders</a>
+   *
+   * @param encodePlaceholdersInBodyJson flag enabling placeholder encoding in JSON body
+   * @return a reference to this, so the API can be used fluently
+   */
   public EndpointOptions setEncodePlaceholdersInBodyJson(boolean encodePlaceholdersInBodyJson) {
     this.encodePlaceholdersInBodyJson = encodePlaceholdersInBodyJson;
     return this;
