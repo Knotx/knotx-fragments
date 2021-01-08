@@ -297,16 +297,16 @@ class EndpointRequestComposerTest {
     );
   }
 
-  private FragmentContext sampleFragmentContextWithPayload(JsonObject payload) {
+  private FragmentContext sampleFragmentContextWithConfig(JsonObject config) {
     return new FragmentContext(
-        new Fragment("snippet", new JsonObject(), "").mergeInPayload(payload),
+        new Fragment("snippet", config, ""),
         new ClientRequest()
     );
   }
 
-  private FragmentContext sampleFragmentContextWithConfig(JsonObject config) {
+  private FragmentContext sampleFragmentContextWithPayload(JsonObject payload) {
     return new FragmentContext(
-        new Fragment("snippet", config, ""),
+        new Fragment("snippet", new JsonObject(), "").mergeInPayload(payload),
         new ClientRequest()
     );
   }
