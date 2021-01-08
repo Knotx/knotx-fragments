@@ -158,8 +158,9 @@ endpointOptions.path = /users/{payload.fetch-user-info._result.id}
 ```
 
 ##### Request body
-Please note that unlike for path, placeholders in body will not be URL-encoded.
+Please note that unlike for path, placeholders in body will not be URL-encoded by default
 To enable body interpolation, set `interpolateBody` flag under `endpointOptions` to `true`.
+More options below.
 
 The sample usage:
 ```
@@ -168,6 +169,26 @@ endpointOptions.bodyJson = {
 }
 endpointOptions.interpolateBody = true
 ```
+
+#### Encoding
+By default, only placeholders in a path are URL-encoded. Any other value is passed as-is, i.e.:
+- path schema
+- body schema + resolved placeholders
+- custom header
+- client's header allowed to be passed on
+
+Therefore, all configuration-based values (path schema, body schema, headers) should be encoded in the configuration.
+Values used for path interpolation should not be encoded (otherwise a double encoding might occur).
+
+Another option is to enable/disable encoding by using dedicated properties. See DataObjects for details.
+
+Client request's values used for interpolation are already in a raw form (when decoded by Knot.x HTTP Server).
+
+#### Unmatched placeholders
+By default, placeholders that are not matched to any source (do not have a recognized prefix, like `payload`) are cleared in path and preserved in body.
+This option is configurable (see DataObjects for details)
+
+Please note that this does not reference matched, but undefined placeholders, like `{payload.not-defined-key}`. These are always substituted with an empty string.
 
 #### Success criteria
 The `responseOptions` config is responsible for handling responses properly. Here we can specify `predicates` - it's array
@@ -191,20 +212,6 @@ Table below shows the behaviour of HttpAction depending on provided `responseOpt
 | application/json | false     | JSON           | RAW  | _error     | -        |
 | application/text | false     | JSON           | JSON | _error     | -        |
 | application/text | true      | JSON           | JSON | _error     | -        |
-
-#### Encoding
-Currently, only placeholders in a path are URL-encoded. Any other value is passed as-is, i.e.:
-- path schema
-- body schema + resolved placeholders
-- custom header
-- client's header allowed to be passed on
-
-Therefore, all configuration-based values (path schema, body schema, headers) **must** be encoded in the configuration.
-
-Values used for path interpolation **must not** be encoded (otherwise a double encoding might occur).
-
-Client request's values used for interpolation are already in a raw form (when decoded by Knot.x HTTP Server).
-
 
 ### Inline Body Action
 Inline Body Action replaces Fragment body with specified one. Its configuration looks like:
