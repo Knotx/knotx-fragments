@@ -27,24 +27,36 @@ import io.netty.handler.codec.http.HttpHeaderValues;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.reactivex.core.MultiMap;
+
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 class EndpointRequestComposerTest {
 
   private static final String INTERPOLATED_VALUE = "interpolated-value";
+
   private static final String SAMPLE_BODY_STRING = "sample-body";
+
   private static final String SAMPLE_BODY_STRING_WITH_PLACEHOLDER = "{payload.action._result}";
+
+  private static final String COMPLEX_BODY_STRING = "{\"query\":\"query ($categories: [String!]!) {\\n    products(filter: { category_id: { in: $categories } }) {    \\n        total_count\\n        items {      \\n            name      \\n            description {\\n                html      \\n            }      \\n            image {\\n                url\\n                label\\n            }\\n            small_image {         \\n                url\\n                label\\n            }\\n        }\\n    }\\n}\",\"variables\":{\"categories\":[\"{config.categories}\"]}}";
+
+  private static final String COMPLEX_BODY_STRING_INTERPOLATED = "{\"query\":\"query ($categories: [String!]!) {\\n    products(filter: { category_id: { in: $categories } }) {    \\n        total_count\\n        items {      \\n            name      \\n            description {\\n                html      \\n            }      \\n            image {\\n                url\\n                label\\n            }\\n            small_image {         \\n                url\\n                label\\n            }\\n        }\\n    }\\n}\",\"variables\":{\"categories\":[\"2\"]}}";
+
   private static final JsonObject SAMPLE_BODY_JSON = new JsonObject()
       .put("key", "value")
       .put("otherKey", new JsonObject().put("nestedKey", "nestedValue"));
+
   private static final JsonObject SAMPLE_BODY_JSON_WITH_PLACEHOLDER = new JsonObject()
       .put("key", "value")
       .put("otherKey", new JsonObject().put("nestedKey", "{payload.action._result}"));
+
   private static final JsonObject SAMPLE_BODY_JSON_INTERPOLATED = new JsonObject()
       .put("key", "value")
       .put("otherKey", new JsonObject().put("nestedKey", INTERPOLATED_VALUE));
-  private static final JsonObject SAMPLE_PAYLOAD = new JsonObject().put("action", new JsonObject().put("_result", INTERPOLATED_VALUE));
+
+  private static final JsonObject SAMPLE_PAYLOAD = new JsonObject()
+      .put("action", new JsonObject().put("_result", INTERPOLATED_VALUE));
 
   private EndpointRequestComposer tested;
 
@@ -59,7 +71,7 @@ class EndpointRequestComposerTest {
 
     givenComposer(configuration);
 
-    EndpointRequest result = tested.createEndpointRequest(sampleFragmentContext());
+    EndpointRequest result = tested.createEndpointRequest(sampleFragmentContextWithPayload());
 
     assertEquals(HttpHeaderValues.APPLICATION_JSON.toString(),
         result.getHeaders().get(HttpHeaderNames.CONTENT_TYPE));
@@ -78,7 +90,8 @@ class EndpointRequestComposerTest {
     givenComposer(configuration);
 
     EndpointRequest result = tested
-        .createEndpointRequest(sampleFragmentContext(HttpHeaderValues.TEXT_PLAIN.toString()));
+        .createEndpointRequest(
+            sampleFragmentContextWithPayload(HttpHeaderValues.TEXT_PLAIN.toString()));
 
     assertEquals(HttpHeaderValues.TEXT_PLAIN.toString(),
         result.getHeaders().get(HttpHeaderNames.CONTENT_TYPE));
@@ -97,7 +110,7 @@ class EndpointRequestComposerTest {
 
     givenComposer(configuration);
 
-    EndpointRequest result = tested.createEndpointRequest(sampleFragmentContext());
+    EndpointRequest result = tested.createEndpointRequest(sampleFragmentContextWithPayload());
 
     assertEquals(HttpHeaderValues.TEXT_PLAIN.toString(),
         result.getHeaders().get(HttpHeaderNames.CONTENT_TYPE));
@@ -114,7 +127,7 @@ class EndpointRequestComposerTest {
 
     givenComposer(configuration);
 
-    EndpointRequest result = tested.createEndpointRequest(sampleFragmentContext());
+    EndpointRequest result = tested.createEndpointRequest(sampleFragmentContextWithPayload());
 
     assertEquals(SAMPLE_BODY_STRING, result.getBody());
   }
@@ -130,7 +143,7 @@ class EndpointRequestComposerTest {
 
     givenComposer(configuration);
 
-    EndpointRequest result = tested.createEndpointRequest(sampleFragmentContext());
+    EndpointRequest result = tested.createEndpointRequest(sampleFragmentContextWithPayload());
 
     assertEquals(SAMPLE_BODY_JSON.toString(), result.getBody());
   }
@@ -161,9 +174,29 @@ class EndpointRequestComposerTest {
 
     givenComposer(configuration);
 
-    EndpointRequest result = tested.createEndpointRequest(sampleFragmentContext());
+    EndpointRequest result = tested.createEndpointRequest(sampleFragmentContextWithPayload());
 
     assertEquals(SAMPLE_BODY_STRING_WITH_PLACEHOLDER, result.getBody());
+  }
+
+  @Test
+  @DisplayName("Expect that body is left as-is when body interpolation is disabled by default")
+  void shouldInterpolateComplexBodies() {
+    JsonObject configuration = new JsonObject()
+        .put("path", "/home")
+        .put("domain", "google.com")
+        .put("port", 80)
+        .put("body", COMPLEX_BODY_STRING)
+        .put("interpolateBody", true)
+        .put("clearUnmatchedPlaceholdersInBodyString", false);
+
+    givenComposer(configuration);
+
+    EndpointRequest result = tested.createEndpointRequest(
+        sampleFragmentContextWithConfig(
+            new JsonObject().put("categories", 2)));
+
+    assertEquals(COMPLEX_BODY_STRING_INTERPOLATED, result.getBody());
   }
 
   @Test
@@ -178,7 +211,8 @@ class EndpointRequestComposerTest {
 
     givenComposer(configuration);
 
-    EndpointRequest result = tested.createEndpointRequest(sampleFragmentContext(SAMPLE_PAYLOAD));
+    EndpointRequest result = tested
+        .createEndpointRequest(sampleFragmentContextWithPayload(SAMPLE_PAYLOAD));
 
     assertEquals(INTERPOLATED_VALUE, result.getBody());
   }
@@ -195,7 +229,8 @@ class EndpointRequestComposerTest {
 
     givenComposer(configuration);
 
-    EndpointRequest result = tested.createEndpointRequest(sampleFragmentContext(SAMPLE_PAYLOAD));
+    EndpointRequest result = tested
+        .createEndpointRequest(sampleFragmentContextWithPayload(SAMPLE_PAYLOAD));
 
     assertEquals(SAMPLE_BODY_JSON_WITH_PLACEHOLDER.toString(), result.getBody());
   }
@@ -212,7 +247,8 @@ class EndpointRequestComposerTest {
 
     givenComposer(configuration);
 
-    EndpointRequest result = tested.createEndpointRequest(sampleFragmentContext(SAMPLE_PAYLOAD));
+    EndpointRequest result = tested
+        .createEndpointRequest(sampleFragmentContextWithPayload(SAMPLE_PAYLOAD));
 
     assertEquals(SAMPLE_BODY_JSON_INTERPOLATED.toString(), result.getBody());
   }
@@ -227,7 +263,8 @@ class EndpointRequestComposerTest {
 
     givenComposer(configuration);
 
-    EndpointRequest result = tested.createEndpointRequest(sampleFragmentContext(SAMPLE_PAYLOAD));
+    EndpointRequest result = tested
+        .createEndpointRequest(sampleFragmentContextWithPayload(SAMPLE_PAYLOAD));
 
     assertEquals("/home/" + INTERPOLATED_VALUE, result.getPath());
   }
@@ -243,7 +280,8 @@ class EndpointRequestComposerTest {
 
     givenComposer(configuration);
 
-    EndpointRequest result = tested.createEndpointRequest(sampleFragmentContext(SAMPLE_PAYLOAD));
+    EndpointRequest result = tested
+        .createEndpointRequest(sampleFragmentContextWithPayload(SAMPLE_PAYLOAD));
 
     assertEquals("/home/{payload.action._result}", result.getPath());
   }
@@ -252,21 +290,28 @@ class EndpointRequestComposerTest {
     tested = new EndpointRequestComposer(new EndpointOptions(configuration));
   }
 
-  private FragmentContext sampleFragmentContext() {
+  private FragmentContext sampleFragmentContextWithPayload() {
     return new FragmentContext(
         new Fragment("snippet", new JsonObject(), ""),
         new ClientRequest()
     );
   }
 
-  private FragmentContext sampleFragmentContext(JsonObject payload) {
+  private FragmentContext sampleFragmentContextWithConfig(JsonObject config) {
+    return new FragmentContext(
+        new Fragment("snippet", config, ""),
+        new ClientRequest()
+    );
+  }
+
+  private FragmentContext sampleFragmentContextWithPayload(JsonObject payload) {
     return new FragmentContext(
         new Fragment("snippet", new JsonObject(), "").mergeInPayload(payload),
         new ClientRequest()
     );
   }
 
-  private FragmentContext sampleFragmentContext(String contentType) {
+  private FragmentContext sampleFragmentContextWithPayload(String contentType) {
     return new FragmentContext(
         new Fragment("snippet", new JsonObject(), ""),
         new ClientRequest().setHeaders(

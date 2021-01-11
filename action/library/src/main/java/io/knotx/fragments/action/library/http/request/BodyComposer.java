@@ -16,6 +16,7 @@
 package io.knotx.fragments.action.library.http.request;
 
 import io.knotx.fragments.action.library.http.options.EndpointOptions;
+import io.knotx.fragments.action.library.http.request.placeholders.EndpointPlaceholdersResolver;
 import io.vertx.core.json.JsonObject;
 import org.apache.commons.lang3.StringUtils;
 
@@ -53,9 +54,9 @@ class BodyComposer {
 
   private String getInterpolatedBody(EndpointPlaceholdersResolver resolver) {
     if (shouldUseJsonBody()) {
-      return resolver.resolve(bodyJson).toString();
+      return resolver.resolveJson(bodyJson).toString();
     } else {
-      return resolver.resolve(body);
+      return resolver.resolveBody(body);
     }
   }
 
