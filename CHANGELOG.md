@@ -3,7 +3,8 @@ All notable changes to `knotx-fragments` will be documented in this file.
 
 ## Unreleased
 List of changes that are finished but not yet released in any final version.
-                
+- [PR-210](https://github.com/Knotx/knotx-fragments/pull/210) - Fixing [#209](https://github.com/Knotx/knotx-fragments/issues/209): Provide previously missing `CacheActionFactory` via SPI 
+
 ## 2.3.0
 - [PR-203](https://github.com/Knotx/knotx-fragments/pull/203) - Fixing [#197](https://github.com/Knotx/knotx-fragments/issues/197): Invoke actions via ActionInvoker.
 - [PR-201](https://github.com/Knotx/knotx-fragments/pull/201) - Prevent StackOverflowException when evaluating fragment as HTML attributes.
