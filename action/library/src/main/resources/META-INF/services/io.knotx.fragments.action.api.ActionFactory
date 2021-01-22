@@ -14,6 +14,9 @@
 
 # behaviours
 io.knotx.fragments.action.library.cb.CircuitBreakerActionFactory
+io.knotx.fragments.action.library.cache.CacheActionFactory
+
+# legacy behaviours
 io.knotx.fragments.action.library.InMemoryCacheActionFactory
 
 # pre-defined actions
