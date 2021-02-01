@@ -87,6 +87,20 @@ class GraphNodeOptionsTest {
     }, vertx);
   }
 
+  @Test
+  @DisplayName("Expect nodes with properly configured labels")
+  void expectTaskWithProperlyConfiguredLabels(Vertx vertx) throws Throwable {
+    verify("conf/taskWithLabels.conf", config -> {
+      GraphNodeOptions graphNodeOptions = new GraphNodeOptions(config);
+      assertEquals("a-label", graphNodeOptions.getLabel());
+      Optional<GraphNodeOptions> nodeB = graphNodeOptions.get(SUCCESS_TRANSITION);
+      assertTrue(nodeB.isPresent());
+      assertEquals("b-label", nodeB.get().getLabel());
+      Optional<GraphNodeOptions> nodec = nodeB.get().get(SUCCESS_TRANSITION);
+      assertTrue(nodec.isPresent());
+      assertEquals("c-label", nodec.get().getLabel());
+    }, vertx);
+  }
 
   private Consumer<JsonObject> validateActionNode() {
     return config -> {

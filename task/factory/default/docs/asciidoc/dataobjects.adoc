@@ -89,6 +89,9 @@ Sets a node factory name to <code>ActionNodeFactory.NAME</code> and configures t
 |[[actions]]`@actions`|`Array of link:dataobjects.html#GraphNodeOptions[GraphNodeOptions]`|+++
 Sets a node factory name to <code>SubtasksNodeFactory.NAME</code> and configures subgraphs.
 +++
+|[[label]]`@label`|`String`|+++
+Sets human readable graph node label
++++
 |[[node]]`@node`|`link:dataobjects.html#NodeOptions[NodeOptions]`|+++
 Node options define a node factory and its configuration.
 +++
