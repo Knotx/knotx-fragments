@@ -16,7 +16,6 @@
 
 package io.knotx.fragments.api;
 
-import static io.knotx.fragments.api.FragmentResult.SUCCESS_TRANSITION;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -25,14 +24,13 @@ import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.VertxTestContext;
-
 import java.util.concurrent.TimeUnit;
 
 public final class TestUtils {
 
   static final Fragment FRAGMENT = new Fragment("", new JsonObject(), "");
   static final FragmentContext FRAGMENT_CONTEXT = new FragmentContext(FRAGMENT, new ClientRequest());
-  static final FragmentResult FRAGMENT_RESULT = new FragmentResult(FRAGMENT, SUCCESS_TRANSITION);
+  static final FragmentResult FRAGMENT_RESULT = FragmentResult.success(FRAGMENT);
 
   private TestUtils() {
     // utility class
