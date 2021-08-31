@@ -116,6 +116,18 @@ public class GraphNodeOptions {
   }
 
   /**
+   * Alias for "onTransitions".
+   * See {@link #setOnTransitions(Map) setOnTransitions}
+   *
+   * @param on - map of possible transitions
+   * @return reference to this, so the API can be used fluently
+   */
+  public GraphNodeOptions setOn(Map<String, GraphNodeOptions> on) {
+    this.onTransitions = on;
+    return this;
+  }
+
+  /**
    * Sets a node factory name to {@code ActionNodeFactory.NAME} and configures the action.
    *
    * @param action - action name for action node config

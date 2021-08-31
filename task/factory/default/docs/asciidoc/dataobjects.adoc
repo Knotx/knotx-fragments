@@ -92,6 +92,10 @@ Sets a node factory name to <code>SubtasksNodeFactory.NAME</code> and configures
 |[[node]]`@node`|`link:dataobjects.html#NodeOptions[NodeOptions]`|+++
 Node options define a node factory and its configuration.
 +++
+|[[on]]`@on`|`link:dataobjects.html#GraphNodeOptions[GraphNodeOptions]`|+++
+Alias for "onTransitions".
+ See link
++++
 |[[onTransitions]]`@onTransitions`|`link:dataobjects.html#GraphNodeOptions[GraphNodeOptions]`|+++
 The outgoing graph node edges, called transitions. A transition is named graph edge that
  defines the next graph node in fragment's processing.
