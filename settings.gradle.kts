@@ -23,11 +23,11 @@ pluginManagement {
         id("io.knotx.maven-publish") version version
         id("io.knotx.composite-build-support") version version
         id("io.knotx.release-java") version version
-        id("org.nosphere.apache.rat") version "0.6.0"
+        id("org.nosphere.apache.rat") version "0.7.0"
     }
     repositories {
         mavenLocal()
-        jcenter()
+        mavenCentral()
         gradlePluginPortal()
     }
 }

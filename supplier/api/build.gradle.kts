@@ -33,13 +33,6 @@ dependencies {
     implementation(group = "org.apache.commons", name = "commons-lang3")
 }
 
-tasks {
-    named<RatTask>("rat") {
-        excludes.addAll(listOf("*.md", "**/*.md", "**/build/*", "**/out/*", "**/generated/*", "/src/test/resources/*"))
-    }
-    getByName("build").dependsOn("rat")
-}
-
 publishing {
     publications {
         withType(MavenPublication::class) {

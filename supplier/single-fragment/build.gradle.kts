@@ -39,13 +39,6 @@ dependencies {
     testImplementation(group = "org.mockito", name = "mockito-junit-jupiter")
 }
 
-tasks {
-    named<RatTask>("rat") {
-        excludes.addAll(listOf("*.md", "**/*.md", "**/build/*", "**/out/*", "**/generated/*", "/src/test/resources/*", "**/*.adoc"))
-    }
-    getByName("build").dependsOn("rat")
-}
-
 publishing {
     publications {
         withType(MavenPublication::class) {

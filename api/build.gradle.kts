@@ -39,13 +39,6 @@ dependencies {
     testImplementation("io.knotx:knotx-junit5:${project.version}")
 }
 
-tasks {
-    named<RatTask>("rat") {
-        excludes.addAll(listOf("*.yml", "*.md", "**/*.md", "**/build/*", "**/out/*", "**/generated/*", "**/*.adoc"))
-    }
-    getByName("build").dependsOn("rat")
-}
-
 publishing {
     publications {
         withType(MavenPublication::class) {

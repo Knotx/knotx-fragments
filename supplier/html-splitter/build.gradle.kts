@@ -41,13 +41,6 @@ dependencies {
     testImplementation(group = "com.google.guava", name = "guava")
 }
 
-tasks {
-    named<RatTask>("rat") {
-        excludes.addAll(listOf("*.md", "**/*.md", "**/build/*", "**/out/*", "**/generated/*", "/src/test/resources/*"))
-    }
-    getByName("build").dependsOn("rat")
-}
-
 publishing {
     publications {
         withType(MavenPublication::class) {

@@ -17,20 +17,38 @@ plugins {
     java
     id("io.knotx.release-java")
     id("io.knotx.composite-build-support")
+    id("org.nosphere.apache.rat")
 }
 
-subprojects {
+allprojects {
     group = "io.knotx"
     repositories {
         mavenLocal()
-        jcenter()
+        mavenCentral()
         gradlePluginPortal()
     }
     pluginManager.withPlugin("java") {
         java {
             toolchain {
                 languageVersion.set(JavaLanguageVersion.of(8))
+                vendor.set(JvmVendorSpec.ADOPTOPENJDK)
             }
+        }
+    }
+    pluginManager.withPlugin("org.nosphere.apache.rat") {
+        tasks {
+            named<org.nosphere.apache.rat.RatTask>("rat") {
+                verbose.set(true)
+                excludes.addAll(listOf(
+                    "**/*.md", // docs
+                    "gradle/wrapper/**", "gradle*", "**/build/**", // Gradle
+                    "*.iml", "*.ipr", "*.iws", "*.idea/**", // IDEs
+                    "**/generated/*", "**/*.adoc", "**/resources/**", // assets
+                    ".github/*"
+                ))
+            }
+            getByName("check").dependsOn("rat")
+            getByName("rat").dependsOn("compileJava")
         }
     }
 }
