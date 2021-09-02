@@ -27,14 +27,6 @@ allprojects {
         mavenCentral()
         gradlePluginPortal()
     }
-    pluginManager.withPlugin("java") {
-        java {
-            toolchain {
-                languageVersion.set(JavaLanguageVersion.of(8))
-                vendor.set(JvmVendorSpec.ADOPTOPENJDK)
-            }
-        }
-    }
     pluginManager.withPlugin("org.nosphere.apache.rat") {
         tasks {
             named<org.nosphere.apache.rat.RatTask>("rat") {
