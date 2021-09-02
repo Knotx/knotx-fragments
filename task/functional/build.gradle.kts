@@ -41,10 +41,3 @@ dependencies {
     testRuntimeOnly(project(":knotx-fragments-task-handler-log-html"))
     testRuntimeOnly(project(":knotx-fragments-task-handler-log-json"))
 }
-
-tasks {
-    named<RatTask>("rat") {
-        excludes.addAll(listOf("**/build/*", "**/*.conf"))
-    }
-    getByName("build").dependsOn("rat")
-}

@@ -114,9 +114,9 @@ Sets the request body schema to be sent to the endpoint. The body may contain <a
  href="https://github.com/Knotx/knotx-server-http/tree/master/common/placeholders">Knot.x Server
  Common Placeholders</a> referencing ClientRequest, Fragment's configuration or Fragment's
  payload, which will be interpolated if link flag is set.
-
+ <p>
  Please note that request body is sent only in case of using PUT, POST or PATCH HTTP method.
-
+ <p>
  This field is mutually exclusive with link.
 +++
 |[[bodyJson]]`@bodyJson`|`Json object`|+++
@@ -124,20 +124,62 @@ Sets the request body schema to be sent to the endpoint. The body may contain <a
  href="https://github.com/Knotx/knotx-server-http/tree/master/common/placeholders">Knot.x Server
  Common Placeholders</a> referencing ClientRequest, Fragment's configuration or Fragment's
  payload, which will be interpolated if link flag is set.
-
+ <p>
  Please note that request body is sent only in case of using PUT, POST or PATCH HTTP method.
-
+ <p>
  This field is mutually exclusive with link.
 +++
-|[[clearUnmatchedPlaceholdersInBodyJson]]`@clearUnmatchedPlaceholdersInBodyJson`|`Boolean`|-
-|[[clearUnmatchedPlaceholdersInBodyString]]`@clearUnmatchedPlaceholdersInBodyString`|`Boolean`|-
-|[[clearUnmatchedPlaceholdersInPath]]`@clearUnmatchedPlaceholdersInPath`|`Boolean`|-
+|[[clearUnmatchedPlaceholdersInBodyJson]]`@clearUnmatchedPlaceholdersInBodyJson`|`Boolean`|+++
+Configures interpolation of link parameter. When JSON body
+ interpolation is enabled and this flag is set, placeholders not matched to a source will be
+ replaced with an empty string.
+ <p>
+ Please note that absent placeholders that are matched to a source (e.g. {payload.not-existent})
+ will always be replaced with an empty string.
++++
+|[[clearUnmatchedPlaceholdersInBodyString]]`@clearUnmatchedPlaceholdersInBodyString`|`Boolean`|+++
+Configures interpolation of link parameter. When body interpolation is
+ enabled and this flag is set, placeholders not matched to a source will be replaced with an
+ empty string.
+ <p>
+ Please note that absent placeholders that are matched to a source (e.g. {payload.not-existent})
+ will always be replaced with an empty string.
++++
+|[[clearUnmatchedPlaceholdersInPath]]`@clearUnmatchedPlaceholdersInPath`|`Boolean`|+++
+Configures interpolation of link parameter. When path interpolation is
+ enabled and this flag is set, placeholders not matched to a source will be replaced with an
+ empty string.
+ <p>
+ Please note that absent placeholders that are matched to a source (e.g. {payload.not-existent})
+ will always be replaced with an empty string.
++++
 |[[domain]]`@domain`|`String`|+++
 Sets the <code>domain</code> of the external service
 +++
-|[[encodePlaceholdersInBodyJson]]`@encodePlaceholdersInBodyJson`|`Boolean`|-
-|[[encodePlaceholdersInBodyString]]`@encodePlaceholdersInBodyString`|`Boolean`|-
-|[[encodePlaceholdersInPath]]`@encodePlaceholdersInPath`|`Boolean`|-
+|[[encodePlaceholdersInBodyJson]]`@encodePlaceholdersInBodyJson`|`Boolean`|+++
+Configures interpolation of link parameter. When JSON body
+ interpolation is enabled and this flag is set, values of matched placeholders will be encoded
+ before interpolating.
+ <p>
+ For details, see <a href="https://github.com/Knotx/knotx-server-http/tree/master/common/placeholders">Knot.x
+ Server Common Placeholders</a>
++++
+|[[encodePlaceholdersInBodyString]]`@encodePlaceholdersInBodyString`|`Boolean`|+++
+Configures interpolation of link parameter. When body interpolation is
+ enabled and this flag is set, values of matched placeholders will be encoded before
+ interpolating.
+ <p>
+ For details, see <a href="https://github.com/Knotx/knotx-server-http/tree/master/common/placeholders">Knot.x
+ Server Common Placeholders</a>
++++
+|[[encodePlaceholdersInPath]]`@encodePlaceholdersInPath`|`Boolean`|+++
+Configures interpolation of link parameter. When path interpolation is
+ enabled and this flag is set, values of matched placeholders will be encoded before
+ interpolating.
+ <p>
+ For details, see <a href="https://github.com/Knotx/knotx-server-http/tree/master/common/placeholders">Knot.x
+ Server Common Placeholders</a>
++++
 |[[interpolateBody]]`@interpolateBody`|`Boolean`|+++
 Configures interpolation of link parameter. When set, the body will be
  interpolated using <a href="https://github.com/Knotx/knotx-server-http/tree/master/common/placeholders">Knot.x
