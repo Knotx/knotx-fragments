@@ -43,6 +43,7 @@ import java.util.stream.Stream;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -139,6 +140,7 @@ class EndpointInvokerIntegrationTest {
   }
 
   @Test
+  @Disabled
   @DisplayName("Expect WebClient to ignore header with empty name, but WireMockServer expecting it")
   void shouldIgnoreEmptyHeaderButServerExpects(VertxTestContext testContext) {
     // given

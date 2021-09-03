@@ -18,12 +18,11 @@ package io.knotx.fragments.action.library.cb;
 import static io.knotx.fragments.action.library.TestUtils.failedResult;
 import static io.knotx.fragments.action.library.TestUtils.someContext;
 import static io.knotx.fragments.action.library.TestUtils.successResult;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 import com.google.common.collect.ImmutableSet;
 import io.knotx.fragments.action.api.invoker.ActionInvocation;

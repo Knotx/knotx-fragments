@@ -37,7 +37,7 @@ import static io.knotx.fragments.action.library.cache.operations.CacheActionLogg
 import static io.knotx.fragments.action.library.cache.operations.CacheActionLogger.CACHE_PASS;
 import static io.knotx.fragments.action.library.cache.operations.CacheActionLogger.COMPUTED_VALUE;
 import static io.knotx.junit5.assertions.KnotxAssertions.assertJsonEquals;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.knotx.fragments.action.api.Action;
@@ -171,14 +171,6 @@ class InMemoryCacheActionFactoryLoggingTest {
   void failingDoActionExceptionOnInfoAndError(String level, VertxTestContext testContext) {
     Action tested = create(
         doActionFailed(() -> new IllegalStateException("Application failed!")), level);
-
-    JsonObject expected = new JsonObject()
-        .put(LOGS_KEY, new JsonObject()
-            .put("errors", new JsonArray()
-                .add(new JsonObject()
-                    .put("className", IllegalStateException.class.getCanonicalName())
-                    .put("message", "Application failed!")
-                )));
 
     verifyDeliveredResult(testContext, tested, result -> {
       List<FragmentOperationError> errors = result.getError().getExceptions();

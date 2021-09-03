@@ -30,7 +30,7 @@ dependencies {
     testImplementation(group = "io.vertx", name = "vertx-web-client")
     testImplementation(group = "io.vertx", name = "vertx-rx-java2")
     testImplementation(group = "io.vertx", name = "vertx-config-hocon")
-    testImplementation(group = "com.github.tomakehurst", name = "wiremock")
+    testImplementation(group = "com.github.tomakehurst", name = "wiremock-jre8")
 
     // logging
     testRuntimeOnly("io.knotx:knotx-launcher:${project.version}")

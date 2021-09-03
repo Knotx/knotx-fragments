@@ -23,7 +23,7 @@ import static io.knotx.fragments.action.library.TestUtils.someContext;
 import static io.knotx.fragments.action.library.TestUtils.someFragmentWithPayload;
 import static io.knotx.fragments.action.library.TestUtils.verifyActionResult;
 import static java.util.concurrent.TimeUnit.SECONDS;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import io.knotx.fragments.action.api.Action;

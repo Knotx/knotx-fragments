@@ -49,7 +49,7 @@ dependencies {
     testImplementation(group = "io.vertx", name = "vertx-rx-java2")
     testImplementation(group = "io.vertx", name = "vertx-config-hocon")
     testImplementation("org.junit.jupiter:junit-jupiter-params")
-    testImplementation(group = "com.github.tomakehurst", name = "wiremock")
+    testImplementation(group = "com.github.tomakehurst", name = "wiremock-jre8")
 }
 
 publishing {
