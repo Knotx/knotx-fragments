@@ -3,6 +3,7 @@ All notable changes to `knotx-fragments` will be documented in this file.
 
 ## Unreleased
 List of changes that are finished but not yet released in any final version.
+- [PR-221](https://github.com/Knotx/knotx-fragments/pull/221) - **security** - update wiremock dependency
 - [PR-210](https://github.com/Knotx/knotx-fragments/pull/210) - Fixing [#209](https://github.com/Knotx/knotx-fragments/issues/209): Provide previously missing `CacheActionFactory` via SPI 
 
 ## 2.3.0
