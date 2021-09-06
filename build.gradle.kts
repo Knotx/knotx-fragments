@@ -18,6 +18,7 @@ plugins {
     id("io.knotx.release-java")
     id("io.knotx.composite-build-support")
     id("org.nosphere.apache.rat")
+    id("net.ossindex.audit")
 }
 
 allprojects {
@@ -29,7 +30,7 @@ allprojects {
     }
     pluginManager.withPlugin("org.nosphere.apache.rat") {
         tasks {
-            named<org.nosphere.apache.rat.RatTask>("rat") {
+            val rat = named<org.nosphere.apache.rat.RatTask>("rat") {
                 verbose.set(true)
                 excludes.addAll(listOf(
                     "**/*.md", // docs
@@ -41,6 +42,22 @@ allprojects {
             }
             getByName("check").dependsOn("rat")
             getByName("rat").dependsOn("compileJava")
+        }
+    }
+}
+
+subprojects {
+    apply(plugin = "io.knotx.java-library")
+    apply(plugin = "net.ossindex.audit")
+    tasks {
+        val audit = named("audit") {
+            group = "verification"
+        }
+        named("check") {
+            dependsOn(audit)
+        }
+        named("test") {
+            mustRunAfter(audit)
         }
     }
 }
