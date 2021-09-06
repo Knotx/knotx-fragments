@@ -24,6 +24,7 @@ pluginManagement {
         id("io.knotx.composite-build-support") version version
         id("io.knotx.release-java") version version
         id("org.nosphere.apache.rat") version "0.7.0"
+        id("net.ossindex.audit") version "0.4.11"
     }
     repositories {
         mavenLocal()
