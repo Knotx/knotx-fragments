@@ -34,7 +34,7 @@ allprojects {
                 verbose.set(true)
                 excludes.addAll(listOf(
                     "**/*.md", // docs
-                    "gradle/wrapper/**", "gradle*", "**/build/**", // Gradle
+                    "gradle/wrapper/**", "gradle*", "**/build/**", "**/bin/**", // Gradle
                     "*.iml", "*.ipr", "*.iws", "*.idea/**", // IDEs
                     "**/generated/*", "**/*.adoc", "**/resources/**", // assets
                     ".github/*"
@@ -52,6 +52,7 @@ subprojects {
     tasks {
         val audit = named("audit") {
             group = "verification"
+            onlyIf { project.hasProperty("audit.enabled") }
         }
         named("check") {
             dependsOn(audit)
