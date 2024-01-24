@@ -45,31 +45,31 @@ steps:
           ./pull-all.sh -r ../../$(workspaceDir) -b $(System.PullRequest.SourceBranch) -a -o $ORGANIZATION
         fi
     displayName: "Clone all repositories"
-  - task: Gradle@2
+  - task: Gradle@3
     inputs:
       gradleWrapperFile: '$(workspaceDir)/knotx-stack/gradlew'
       workingDirectory: '$(workspaceDir)/knotx-stack'
       tasks: 'publish-local-all'
     displayName: "Build Stack dependencies"
-  - task: Gradle@2
+  - task: Gradle@3
     inputs:
       gradleWrapperFile: '$(workspaceDir)/knotx-stack/gradlew'
       workingDirectory: '$(workspaceDir)/knotx-stack'
       tasks: 'build'
     displayName: "Build Stack"
-  - task: Gradle@2
+  - task: Gradle@3
     inputs:
       gradleWrapperFile: '$(workspaceDir)/knotx-docker/gradlew'
       workingDirectory: '$(workspaceDir)/knotx-docker'
       tasks: 'build'
     displayName: "Build Docker image"
-  - task: Gradle@2
+  - task: Gradle@3
     inputs:
       gradleWrapperFile: '$(workspaceDir)/knotx-starter-kit/gradlew'
       workingDirectory: '$(workspaceDir)/knotx-starter-kit'
       tasks: 'build-stack'
     displayName: "Build Starter Kit: ZIP"
-  - task: Gradle@2
+  - task: Gradle@3
     inputs:
       gradleWrapperFile: '$(workspaceDir)/knotx-starter-kit/gradlew'
       workingDirectory: '$(workspaceDir)/knotx-starter-kit'

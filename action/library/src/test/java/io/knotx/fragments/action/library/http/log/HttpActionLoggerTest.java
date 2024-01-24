@@ -33,7 +33,7 @@ import io.vertx.reactivex.ext.web.client.HttpResponse;
 import java.io.IOException;
 import java.util.concurrent.TimeoutException;
 import java.util.stream.Stream;
-import org.apache.http.HttpStatus;
+import org.apache.hc.core5.http.HttpStatus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.extension.ExtendWith;

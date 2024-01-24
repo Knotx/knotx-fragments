@@ -3,7 +3,8 @@ All notable changes to `knotx-fragments` will be documented in this file.
 
 ## Unreleased
 List of changes that are finished but not yet released in any final version.
-                
+- [PR-223](https://github.com/Knotx/knotx-fragments/pull/223) Upgrade Gradle to 7.6.3, Wiremock
+
 ## 2.3.1
 - [PR-150](https://github.com/Knotx/knotx-fragments/pull/150) - `on` alias for `onTransitions`
 - [PR-210](https://github.com/Knotx/knotx-fragments/pull/210) - Fixing [#209](https://github.com/Knotx/knotx-fragments/issues/209): Provide previously missing `CacheActionFactory` via SPI 
