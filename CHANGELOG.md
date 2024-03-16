@@ -3,6 +3,8 @@ All notable changes to `knotx-fragments` will be documented in this file.
 
 ## Unreleased
 List of changes that are finished but not yet released in any final version.
+                
+## 2.4.0
 - [PR-223](https://github.com/Knotx/knotx-fragments/pull/223) Upgrade Gradle to 7.6.3, Wiremock
 
 ## 2.3.1
